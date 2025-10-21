@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+
 import Index from "./pages/Index";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
@@ -19,6 +20,7 @@ import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
 import IntakeForm from "./pages/IntakeForm";
 import VisaCalculator from "./pages/VisaCalculator";
+import UserFeedback from "./components/analytics/UserFeedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,21 +33,71 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/signup" element={<Signup />} />
             <Route path="/auth/forgot-password" element={<ForgotPassword />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/search" element={<UniversitySearch />} />
-            <Route path="/dashboard/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/student/onboarding" element={<ProtectedRoute><StudentOnboarding /></ProtectedRoute>} />
-            <Route path="/student/profile" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
-            <Route path="/student/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
-            <Route path="/student/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
-            <Route path="/student/applications/new" element={<ProtectedRoute><NewApplication /></ProtectedRoute>} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard/*"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/onboarding"
+              element={
+                <ProtectedRoute>
+                  <StudentOnboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/profile"
+              element={
+                <ProtectedRoute>
+                  <StudentProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/documents"
+              element={
+                <ProtectedRoute>
+                  <Documents />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/applications"
+              element={
+                <ProtectedRoute>
+                  <Applications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/applications/new"
+              element={
+                <ProtectedRoute>
+                  <NewApplication />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Additional Features */}
             <Route path="/intake" element={<IntakeForm />} />
             <Route path="/intake/:formId" element={<IntakeForm />} />
             <Route path="/visa-calculator" element={<VisaCalculator />} />
+            <Route path="/feedback" element={<UserFeedback />} />
+
+            {/* Catch-All */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
