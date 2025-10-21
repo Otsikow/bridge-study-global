@@ -692,6 +692,95 @@ export type Database = {
           },
         ]
       }
+      partnership_applications: {
+        Row: {
+          accreditation_document_url: string | null
+          additional_documents: Json | null
+          address: string
+          brochure_document_url: string | null
+          city: string
+          country: string
+          created_at: string | null
+          id: string
+          partnership_terms: string | null
+          primary_contact_email: string
+          primary_contact_name: string
+          primary_contact_phone: string | null
+          primary_contact_position: string | null
+          programs_offered: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_student_demographics: string | null
+          tenant_id: string
+          terms_accepted: boolean
+          terms_accepted_at: string | null
+          university_name: string
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          accreditation_document_url?: string | null
+          additional_documents?: Json | null
+          address: string
+          brochure_document_url?: string | null
+          city: string
+          country: string
+          created_at?: string | null
+          id?: string
+          partnership_terms?: string | null
+          primary_contact_email: string
+          primary_contact_name: string
+          primary_contact_phone?: string | null
+          primary_contact_position?: string | null
+          programs_offered?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_student_demographics?: string | null
+          tenant_id: string
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          university_name: string
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          accreditation_document_url?: string | null
+          additional_documents?: Json | null
+          address?: string
+          brochure_document_url?: string | null
+          city?: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          partnership_terms?: string | null
+          primary_contact_email?: string
+          primary_contact_name?: string
+          primary_contact_phone?: string | null
+          primary_contact_position?: string | null
+          programs_offered?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_student_demographics?: string | null
+          tenant_id?: string
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          university_name?: string
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnership_applications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount_cents: number
