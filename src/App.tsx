@@ -17,6 +17,8 @@ import StudentProfile from "./pages/student/StudentProfile";
 import Documents from "./pages/student/Documents";
 import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
+import IntakeForm from "./pages/IntakeForm";
+import VisaCalculator from "./pages/VisaCalculator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +43,9 @@ const App = () => (
             <Route path="/student/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/student/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/student/applications/new" element={<ProtectedRoute><NewApplication /></ProtectedRoute>} />
+            <Route path="/intake" element={<IntakeForm />} />
+            <Route path="/intake/:formId" element={<IntakeForm />} />
+            <Route path="/visa-calculator" element={<VisaCalculator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

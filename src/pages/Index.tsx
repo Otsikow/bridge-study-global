@@ -19,7 +19,11 @@ import {
   CheckCircle,
   Search,
   Star,
-  Quote
+  Quote,
+  Calculator,
+  Brain,
+  Upload,
+  DollarSign
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import heroBanner from '@/assets/hero-banner.jpg';
@@ -45,6 +49,26 @@ const Index = () => {
       icon: Shield,
       title: 'Secure & Transparent',
       description: 'Your data is protected with enterprise-grade security',
+    },
+    {
+      icon: Calculator,
+      title: 'Visa Calculator',
+      description: 'Check your visa eligibility with AI-powered assessment',
+    },
+    {
+      icon: Brain,
+      title: 'AI-Powered Features',
+      description: 'Get program recommendations and generate SoPs with AI',
+    },
+    {
+      icon: Upload,
+      title: 'Bulk Import',
+      description: 'Import multiple students and manage applications efficiently',
+    },
+    {
+      icon: DollarSign,
+      title: 'Commission Tracking',
+      description: 'Track earnings and manage commissions transparently',
     },
   ];
 
@@ -176,6 +200,12 @@ const Index = () => {
               <Link to="/search">
                 <Button size="lg" variant="outline" className="text-lg px-8 h-14 bg-background/80 backdrop-blur-sm">
                   Search Universities
+                </Button>
+              </Link>
+              <Link to="/visa-calculator">
+                <Button size="lg" variant="outline" className="text-lg px-8 h-14 bg-background/80 backdrop-blur-sm">
+                  <Calculator className="mr-2 h-5 w-5" />
+                  Visa Calculator
                 </Button>
               </Link>
             </div>
