@@ -7,13 +7,14 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface ChecklistItem {
   id: string;
   title: string;
   description: string;
   completed: boolean;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   link: string;
 }
 
@@ -22,7 +23,7 @@ export default function StudentOnboarding() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [completeness, setCompleteness] = useState(0);
 

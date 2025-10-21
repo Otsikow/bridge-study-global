@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, GraduationCap, Pencil, Trash2, Loader2 } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface EducationTabProps {
   studentId: string;
@@ -16,9 +17,9 @@ interface EducationTabProps {
 export function EducationTab({ studentId }: EducationTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [educationRecords, setEducationRecords] = useState<any[]>([]);
+  const [educationRecords, setEducationRecords] = useState<Tables<'education_records'>[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<Tables<'education_records'> | null>(null);
   const [formData, setFormData] = useState({
     level: '',
     institution_name: '',
@@ -83,10 +84,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       setEditingRecord(null);
       resetForm();
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -106,10 +108,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       if (error) throw error;
       toast({ title: 'Success', description: 'Education record deleted' });
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -127,7 +130,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
     });
   };
 
-  const openEditDialog = (record: any) => {
+  const openEditDialog = (record: Tables<'education_records'>) => {
     setEditingRecord(record);
     setFormData({
       level: record.level,

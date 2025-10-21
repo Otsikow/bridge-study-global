@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, Image, Video, BookOpen, ExternalLink } from "lucide-react";
+import { Download, FileText, Image, Video, BookOpen, ExternalLink, type LucideIcon } from "lucide-react";
 
 interface Resource {
   id: string;
   title: string;
   description: string;
   type: 'pdf' | 'image' | 'video' | 'link';
-  icon: any;
+  icon: LucideIcon;
   url: string;
   category: string;
 }
