@@ -19,7 +19,9 @@ import {
   CheckCircle,
   Search,
   Star,
-  Quote
+  Quote,
+  Video,
+  BookOpen
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import heroBanner from '@/assets/hero-banner.jpg';
@@ -57,28 +59,64 @@ const Index = () => {
 
   const testimonials = [
     {
-      name: 'Sarah Chen',
-      country: 'China',
+      name: 'Aisha Okafor',
+      country: 'Nigeria',
       university: 'University of Toronto',
       image: '👩‍🎓',
-      quote: 'GEG made my dream of studying in Canada a reality. The guidance from my agent was invaluable throughout the entire application process.',
-      rating: 5
+      quote: 'GEG made my dream of studying in Canada a reality. The AI recommendations helped me find the perfect program, and my agent guided me through every step of the application process.',
+      rating: 5,
+      program: 'Master of Computer Science',
+      year: '2023'
     },
     {
-      name: 'Raj Patel',
-      country: 'India',
+      name: 'Kwame Asante',
+      country: 'Ghana',
       university: 'University of Melbourne',
       image: '👨‍🎓',
-      quote: 'The platform is incredibly user-friendly. I was able to track all my applications and got accepted to my top choice university!',
-      rating: 5
+      quote: 'The platform is incredibly user-friendly. I was able to track all my applications, practice for interviews, and got accepted to my top choice university with a full scholarship!',
+      rating: 5,
+      program: 'Master of Business Administration',
+      year: '2023'
     },
     {
-      name: 'Maria Rodriguez',
-      country: 'Mexico',
+      name: 'Fatima Hassan',
+      country: 'Kenya',
       university: 'King\'s College London',
       image: '👩‍🎓',
-      quote: 'Transparent process, expert support, and amazing results. I couldn\'t have asked for a better experience.',
-      rating: 5
+      quote: 'The Statement of Purpose generator was a game-changer. Combined with expert guidance, I secured admission to my dream university. The entire process was transparent and stress-free.',
+      rating: 5,
+      program: 'Master of Public Health',
+      year: '2024'
+    },
+    {
+      name: 'David Mwangi',
+      country: 'Kenya',
+      university: 'University of British Columbia',
+      image: '👨‍🎓',
+      quote: 'The visa eligibility estimator gave me confidence in my application. My advisor helped me prepare all documents, and I got my visa approved on the first try!',
+      rating: 5,
+      program: 'Bachelor of Engineering',
+      year: '2024'
+    },
+    {
+      name: 'Zara Ibrahim',
+      country: 'Egypt',
+      university: 'ETH Zurich',
+      image: '👩‍🎓',
+      quote: 'The interview practice module was incredibly helpful. I felt confident during my university interview and secured admission to one of the top engineering schools in Europe.',
+      rating: 5,
+      program: 'Master of Science in Engineering',
+      year: '2023'
+    },
+    {
+      name: 'Omar Diallo',
+      country: 'Senegal',
+      university: 'McGill University',
+      image: '👨‍🎓',
+      quote: 'GEG\'s AI-powered matching found me programs I never knew existed. The resource library and advisor network provided everything I needed for a successful application.',
+      rating: 5,
+      program: 'Master of Economics',
+      year: '2024'
     }
   ];
 
@@ -124,6 +162,9 @@ const Index = () => {
             <span className="text-xl font-bold">GEG</span>
           </div>
           <div className="flex items-center space-x-4">
+            <Link to="/feedback">
+              <Button variant="ghost">Feedback</Button>
+            </Link>
             <Link to="/auth/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
@@ -180,14 +221,37 @@ const Index = () => {
               </Link>
             </div>
 
-            {/* Quick Search Bar */}
-            <div className="pt-8 max-w-2xl">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
-                  placeholder="Search universities, programs, or countries..." 
-                  className="pl-12 h-14 text-base bg-background/90 backdrop-blur-sm shadow-lg border-2"
-                />
+            {/* Enhanced Search Bar */}
+            <div className="pt-8 max-w-3xl">
+              <div className="bg-background/95 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border">
+                <h3 className="text-lg font-semibold mb-4 text-center">Find Your Perfect Program</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search universities or programs..." 
+                      className="pl-10 h-12"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Country or region..." 
+                      className="pl-10 h-12"
+                    />
+                  </div>
+                  <Button size="lg" className="h-12">
+                    <Search className="h-4 w-4 mr-2" />
+                    Search Programs
+                  </Button>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                  {['Computer Science', 'Business', 'Engineering', 'Medicine', 'Arts'].map((subject) => (
+                    <Button key={subject} variant="outline" size="sm" className="text-xs">
+                      {subject}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -205,6 +269,84 @@ const Index = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* AI Features Section */}
+      <section className="container mx-auto px-4 py-20 bg-gradient-to-br from-primary/5 to-transparent rounded-3xl mb-20">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+            <TrendingUp className="h-4 w-4" />
+            <span>Powered by AI</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            AI-Powered Study Abroad Tools
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Leverage cutting-edge AI technology to find the perfect program, prepare applications, and succeed in your study abroad journey
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <TrendingUp className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">Smart Program Matching</h3>
+              <p className="text-muted-foreground">AI analyzes your profile to recommend the best universities and programs that match your goals, budget, and preferences.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FileText className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">SOP Generator</h3>
+              <p className="text-muted-foreground">Create compelling statements of purpose with AI assistance, tailored to your specific program and background.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Video className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">Interview Practice</h3>
+              <p className="text-muted-foreground">Practice university interviews with AI-powered feedback and video recording capabilities.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Shield className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">Visa Eligibility Check</h3>
+              <p className="text-muted-foreground">Get instant estimates of your visa approval chances for different countries based on your profile.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">Expert Advisor Network</h3>
+              <p className="text-muted-foreground">Connect with verified education advisors who specialize in your target countries and programs.</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 hover:border-primary transition-all hover:shadow-lg group">
+            <CardContent className="pt-6 space-y-4">
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold">Resource Library</h3>
+              <p className="text-muted-foreground">Access comprehensive guides, templates, and articles to support every step of your journey.</p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
@@ -245,15 +387,19 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border-2 hover:border-primary transition-all hover:shadow-lg">
+            <Card key={index} className="border-2 hover:border-primary transition-all hover:shadow-lg group">
               <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center space-x-4">
-                  <div className="text-4xl">{testimonial.image}</div>
-                  <div>
+                <div className="flex items-start space-x-4">
+                  <div className="text-4xl group-hover:scale-110 transition-transform">{testimonial.image}</div>
+                  <div className="flex-1">
                     <h4 className="font-semibold text-lg">{testimonial.name}</h4>
                     <p className="text-sm text-muted-foreground">{testimonial.country}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">{testimonial.year}</Badge>
+                      <Badge variant="secondary" className="text-xs">{testimonial.program}</Badge>
+                    </div>
                   </div>
                 </div>
                 
@@ -265,12 +411,12 @@ const Index = () => {
 
                 <div className="relative">
                   <Quote className="absolute -top-2 -left-2 h-8 w-8 text-primary/20" />
-                  <p className="text-muted-foreground italic pl-6">
+                  <p className="text-muted-foreground italic pl-6 text-sm leading-relaxed">
                     {testimonial.quote}
                   </p>
                 </div>
 
-                <div className="pt-2 border-t">
+                <div className="pt-3 border-t">
                   <p className="text-sm font-medium text-primary">{testimonial.university}</p>
                 </div>
               </CardContent>

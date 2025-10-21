@@ -17,6 +17,7 @@ import StudentProfile from "./pages/student/StudentProfile";
 import Documents from "./pages/student/Documents";
 import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
+import UserFeedback from "./components/analytics/UserFeedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/student/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/student/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/student/applications/new" element={<ProtectedRoute><NewApplication /></ProtectedRoute>} />
+            <Route path="/feedback" element={<UserFeedback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
