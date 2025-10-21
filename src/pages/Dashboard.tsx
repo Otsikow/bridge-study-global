@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import StudentDashboard from '@/pages/dashboards/StudentDashboard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Dashboard = () => {
   const { profile, signOut } = useAuth();
@@ -44,7 +45,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-card border-b sticky top-0 z-50">
+      <a href="#dash-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-primary text-primary-foreground px-3 py-2 rounded-md">Skip to content</a>
+      <header className="bg-card/80 backdrop-blur-sm border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -61,13 +63,16 @@ const Dashboard = () => {
               <p className="text-xs text-muted-foreground">{profile?.role.toUpperCase()}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={signOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" onClick={signOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-8 space-y-8" id="dash-content">
         <div>
           <h2 className="text-2xl font-bold">Welcome back, {profile?.full_name}!</h2>
           <p className="text-muted-foreground">

@@ -28,6 +28,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import heroBanner from '@/assets/hero-banner.jpg';
 
 const Index = () => {
@@ -112,13 +113,15 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Navigation */}
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-primary text-primary-foreground px-3 py-2 rounded-md">Skip to content</a>
       <nav className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img src={gegLogo} alt="GEG Logo" className="h-12 w-12 object-contain" />
             <span className="text-xl font-bold">GEG</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <ThemeToggle />
             <Link to="/feedback">
               <Button variant="ghost">Feedback</Button>
             </Link>
@@ -139,7 +142,7 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/50" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 py-24 md:py-32">
+        <div className="relative z-10 container mx-auto px-4 py-20 md:py-28">
           <div className="max-w-4xl space-y-8">
             <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
               <TrendingUp className="h-4 w-4" />
@@ -182,7 +185,7 @@ const Index = () => {
       </section>
 
       {/* Stats */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="container mx-auto px-4 py-16" id="main">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat, i) => (
             <Card key={i} className="text-center">

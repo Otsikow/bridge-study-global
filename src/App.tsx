@@ -5,28 +5,29 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
-import Index from "./pages/Index";
-import Login from "./pages/auth/Login";
-import Signup from "./pages/auth/Signup";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import UniversitySearch from "./pages/UniversitySearch";
-import StudentOnboarding from "./pages/student/StudentOnboarding";
-import StudentProfile from "./pages/student/StudentProfile";
-import Documents from "./pages/student/Documents";
-import Applications from "./pages/student/Applications";
-import NewApplication from "./pages/student/NewApplication";
+import { lazy, Suspense } from "react";
 
-// ✅ Combined imports from both branches
-import ApplicationDetails from "./pages/student/ApplicationDetails";
-import VisaEligibility from "./pages/student/VisaEligibility";
-import SopGenerator from "./pages/student/SopGenerator";
-import IntakeForm from "./pages/IntakeForm";
-import VisaCalculator from "./pages/VisaCalculator";
-import UserFeedback from "./components/analytics/UserFeedback";
-import NotFound from "./pages/NotFound";
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Signup = lazy(() => import("./pages/auth/Signup"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const UniversitySearch = lazy(() => import("./pages/UniversitySearch"));
+const StudentOnboarding = lazy(() => import("./pages/student/StudentOnboarding"));
+const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
+const Documents = lazy(() => import("./pages/student/Documents"));
+const Applications = lazy(() => import("./pages/student/Applications"));
+const NewApplication = lazy(() => import("./pages/student/NewApplication"));
+const ApplicationDetails = lazy(() => import("./pages/student/ApplicationDetails"));
+const VisaEligibility = lazy(() => import("./pages/student/VisaEligibility"));
+const SopGenerator = lazy(() => import("./pages/student/SopGenerator"));
+const IntakeForm = lazy(() => import("./pages/IntakeForm"));
+const VisaCalculator = lazy(() => import("./pages/VisaCalculator"));
+const UserFeedback = lazy(() => import("./components/analytics/UserFeedback"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
+          <Suspense fallback={<div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>}>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth/login" element={<Login />} />
@@ -128,7 +130,8 @@ const App = () => (
 
             {/* Catch-All */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
