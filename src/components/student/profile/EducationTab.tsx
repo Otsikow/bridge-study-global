@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, GraduationCap, Pencil, Trash2, Loader2 } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface EducationTabProps {
   studentId: string;
@@ -16,9 +17,9 @@ interface EducationTabProps {
 export function EducationTab({ studentId }: EducationTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [educationRecords, setEducationRecords] = useState<any[]>([]);
+  const [educationRecords, setEducationRecords] = useState<Tables<'education_records'>[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<Tables<'education_records'> | null>(null);
   const [formData, setFormData] = useState({
     level: '',
     institution_name: '',
@@ -29,11 +30,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
     gpa: ''
   });
 
-  useEffect(() => {
-    fetchEducationRecords();
-  }, [studentId]);
-
-  const fetchEducationRecords = async () => {
+  const fetchEducationRecords = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('education_records')
@@ -48,7 +45,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    fetchEducationRecords();
+  }, [fetchEducationRecords]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,10 +84,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       setEditingRecord(null);
       resetForm();
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -106,10 +108,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       if (error) throw error;
       toast({ title: 'Success', description: 'Education record deleted' });
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -127,7 +130,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
     });
   };
 
-  const openEditDialog = (record: any) => {
+  const openEditDialog = (record: Tables<'education_records'>) => {
     setEditingRecord(record);
     setFormData({
       level: record.level,
@@ -170,7 +173,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="level">Level *</Label>
-                  <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value})}>
+                  <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
@@ -188,7 +191,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                   <Input
                     id="institution_name"
                     value={formData.institution_name}
-                    onChange={(e) => setFormData({...formData, institution_name: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, institution_name: e.target.value })}
                     required
                   />
                 </div>
@@ -198,7 +201,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                   <Input
                     id="country"
                     value={formData.country}
-                    onChange={(e) => setFormData({...formData, country: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     required
                   />
                 </div>
@@ -210,7 +213,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                       id="start_date"
                       type="date"
                       value={formData.start_date}
-                      onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                       required
                     />
                   </div>
@@ -220,7 +223,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                       id="end_date"
                       type="date"
                       value={formData.end_date}
-                      onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                     />
                   </div>
                 </div>
@@ -228,7 +231,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="grade_scale">Grading Scale</Label>
-                    <Select value={formData.grade_scale} onValueChange={(value) => setFormData({...formData, grade_scale: value})}>
+                    <Select value={formData.grade_scale} onValueChange={(value) => setFormData({ ...formData, grade_scale: value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select scale" />
                       </SelectTrigger>
@@ -248,7 +251,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
                       type="number"
                       step="0.01"
                       value={formData.gpa}
-                      onChange={(e) => setFormData({...formData, gpa: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, gpa: e.target.value })}
                     />
                   </div>
                 </div>

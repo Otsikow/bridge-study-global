@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,11 @@ import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, ArrowLeft }
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 import AIChatbot from "@/components/ai/AIChatbot";
+import ProgramRecommendations from "@/components/ai/ProgramRecommendations";
+import SoPGenerator from "@/components/ai/SoPGenerator";
+import InterviewPractice from "@/components/ai/InterviewPractice";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface University {
   id: string;
@@ -70,6 +74,7 @@ export default function UniversitySearch() {
   const [aiInterests, setAIInterests] = useState("");
   const [aiPreferredCountries, setAIPreferredCountries] = useState<string[]>([]);
   const [aiBudget, setAIBudget] = useState("");
+  const [activeTab, setActiveTab] = useState("search");
   const { recommendations, loading: aiLoading, getRecommendations } = useAIRecommendations();
 
   // Load filter options
@@ -105,7 +110,7 @@ export default function UniversitySearch() {
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
       // Build university query
@@ -188,11 +193,11 @@ export default function UniversitySearch() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedCountry, selectedLevel, selectedDiscipline, maxFee, onlyWithScholarships]);
 
   useEffect(() => {
     handleSearch();
-  }, [selectedCountry, selectedLevel, selectedDiscipline, maxFee, onlyWithScholarships]);
+  }, [handleSearch]);
 
   const handleGetAIRecommendations = () => {
     getRecommendations({
@@ -221,315 +226,259 @@ export default function UniversitySearch() {
           <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>
         </div>
 
-        {/* AI Recommendations Section */}
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <CardTitle>AI-Powered Recommendations</CardTitle>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAIRecommendations(!showAIRecommendations)}
-              >
-                {showAIRecommendations ? "Hide" : "Show"}
-              </Button>
-            </div>
-            <CardDescription>
-              Get personalized university and scholarship recommendations based on your profile
-            </CardDescription>
-          </CardHeader>
-          {showAIRecommendations && (
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Your Academic Interests</Label>
-                  <Textarea
-                    placeholder="e.g., Computer Science, Data Analysis, AI..."
-                    value={aiInterests}
-                    onChange={(e) => setAIInterests(e.target.value)}
-                    className="min-h-[80px]"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Preferred Countries</Label>
-                  <Select
-                    value={aiPreferredCountries[0] || ""}
-                    onValueChange={(value) => setAIPreferredCountries([value])}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select countries" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country} value={country}>
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Budget (USD/year)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Enter your budget"
-                    value={aiBudget}
-                    onChange={(e) => setAIBudget(e.target.value)}
-                  />
-                </div>
-              </div>
-              <Button 
-                onClick={handleGetAIRecommendations} 
-                disabled={aiLoading || !aiInterests}
-                className="w-full"
-              >
-                <Sparkles className="mr-2 h-4 w-4" />
-                {aiLoading ? "Generating Recommendations..." : "Get AI Recommendations"}
-              </Button>
-              {recommendations && (
-                <div className="mt-4 p-4 rounded-lg bg-background border">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    Your Personalized Recommendations
-                  </h4>
-                  <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
-                    {recommendations}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="search">Search Universities</TabsTrigger>
+            <TabsTrigger value="recommendations">AI Recommendations</TabsTrigger>
+            <TabsTrigger value="sop">SOP Generator</TabsTrigger>
+            <TabsTrigger value="interview">Interview Practice</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="search" className="space-y-6">
+
+
+            {/* Search Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Search Filters</CardTitle>
+                <CardDescription>Refine your search by selecting criteria below</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Search Term */}
+                  <div className="space-y-2">
+                    <Label>University Name</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search universities..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Country Filter */}
+                  <div className="space-y-2">
+                    <Label>Country</Label>
+                    <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Countries</SelectItem>
+                        {countries.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Level Filter */}
+                  <div className="space-y-2">
+                    <Label>Program Level</Label>
+                    <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Levels</SelectItem>
+                        {levels.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Discipline Filter */}
+                  <div className="space-y-2">
+                    <Label>Discipline</Label>
+                    <Select value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select discipline" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Disciplines</SelectItem>
+                        {disciplines.map((discipline) => (
+                          <SelectItem key={discipline} value={discipline}>
+                            {discipline}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Max Fee */}
+                  <div className="space-y-2">
+                    <Label>Maximum Fee (USD)</Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter max fee"
+                      value={maxFee}
+                      onChange={(e) => setMaxFee(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Scholarship Filter */}
+                  <div className="space-y-2 flex items-end">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="scholarships"
+                        checked={onlyWithScholarships}
+                        onCheckedChange={(checked) => setOnlyWithScholarships(checked as boolean)}
+                      />
+                      <Label htmlFor="scholarships" className="cursor-pointer">
+                        Only show universities with scholarships
+                      </Label>
+                    </div>
                   </div>
                 </div>
-              )}
-            </CardContent>
-          )}
-        </Card>
 
-        {/* Search Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Search Filters</CardTitle>
-            <CardDescription>Refine your search by selecting criteria below</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Search Term */}
-              <div className="space-y-2">
-                <Label>University Name</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search universities..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Country Filter */}
-              <div className="space-y-2">
-                <Label>Country</Label>
-                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Countries</SelectItem>
-                    {countries.map((country) => (
-                      <SelectItem key={country} value={country}>
-                        {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Level Filter */}
-              <div className="space-y-2">
-                <Label>Program Level</Label>
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    {levels.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Discipline Filter */}
-              <div className="space-y-2">
-                <Label>Discipline</Label>
-                <Select value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select discipline" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Disciplines</SelectItem>
-                    {disciplines.map((discipline) => (
-                      <SelectItem key={discipline} value={discipline}>
-                        {discipline}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Max Fee */}
-              <div className="space-y-2">
-                <Label>Maximum Fee (USD)</Label>
-                <Input
-                  type="number"
-                  placeholder="Enter max fee"
-                  value={maxFee}
-                  onChange={(e) => setMaxFee(e.target.value)}
-                />
-              </div>
-
-              {/* Scholarship Filter */}
-              <div className="space-y-2 flex items-end">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="scholarships"
-                    checked={onlyWithScholarships}
-                    onCheckedChange={(checked) => setOnlyWithScholarships(checked as boolean)}
-                  />
-                  <Label htmlFor="scholarships" className="cursor-pointer">
-                    Only show universities with scholarships
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            <Button onClick={handleSearch} className="w-full md:w-auto">
-              <Search className="mr-2 h-4 w-4" />
-              Search
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">
-            {loading ? "Searching..." : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
-          </h2>
-
-          {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <Skeleton className="h-8 w-64" />
-                    <Skeleton className="h-4 w-32" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-20 w-full" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : results.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">No universities found matching your criteria. Try adjusting your filters.</p>
+                <Button onClick={handleSearch} className="w-full md:w-auto">
+                  <Search className="mr-2 h-4 w-4" />
+                  Search
+                </Button>
               </CardContent>
             </Card>
-          ) : (
-            results.map((result) => (
-              <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-2xl">{result.university.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {result.university.city && `${result.university.city}, `}
-                        {result.university.country}
-                      </CardDescription>
-                    </div>
-                    {result.scholarships.length > 0 && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <Award className="h-3 w-3" />
-                        {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {result.university.description && (
-                    <p className="text-sm text-muted-foreground">{result.university.description}</p>
-                  )}
 
-                  {/* Programs */}
-                  <div className="space-y-2">
-                    <h4 className="font-semibold flex items-center gap-2">
-                      <GraduationCap className="h-4 w-4" />
-                      Available Programs ({result.programs.length})
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                       {result.programs.slice(0, 4).map((program) => (
-                        <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-2">
-                          <p className="font-medium text-sm">{program.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="outline" className="text-xs">{program.level}</Badge>
-                            <span className="flex items-center gap-1">
-                              <DollarSign className="h-3 w-3" />
-                              {program.tuition_amount.toLocaleString()} {program.tuition_currency}
-                            </span>
-                          </div>
-                          <Button size="sm" variant="outline" className="w-full text-xs" asChild>
-                            <a href={`/student/applications/new?program=${program.id}`}>
-                              Apply Now
-                            </a>
-                          </Button>
+            {/* Results */}
+            <div className="space-y-4">
+              <h2 className="text-2xl font-semibold">
+                {loading ? "Searching..." : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
+              </h2>
+
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i}>
+                      <CardHeader>
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-32" />
+                      </CardHeader>
+                      <CardContent>
+                        <Skeleton className="h-20 w-full" />
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : results.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No universities found matching your criteria. Try adjusting your filters.</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                results.map((result) => (
+                  <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <CardTitle className="text-2xl">{result.university.name}</CardTitle>
+                          <CardDescription className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4" />
+                            {result.university.city && `${result.university.city}, `}
+                            {result.university.country}
+                          </CardDescription>
                         </div>
-                      ))}
-                    </div>
-                    {result.programs.length > 4 && (
-                      <p className="text-xs text-muted-foreground">+{result.programs.length - 4} more programs</p>
-                    )}
-                  </div>
-
-                  {/* Scholarships */}
-                  {result.scholarships.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-semibold flex items-center gap-2">
-                        <Award className="h-4 w-4" />
-                        Scholarships
-                      </h4>
-                      <div className="space-y-2">
-                        {result.scholarships.slice(0, 3).map((scholarship) => (
-                          <div key={scholarship.id} className="p-3 rounded-md bg-primary/5 border border-primary/20">
-                            <p className="font-medium text-sm">{scholarship.name}</p>
-                            {scholarship.amount_cents && (
-                              <p className="text-xs text-muted-foreground">
-                                {(scholarship.amount_cents / 100).toLocaleString()} {scholarship.currency}
-                                {scholarship.coverage_type && ` • ${scholarship.coverage_type.replace(/_/g, " ")}`}
-                              </p>
-                            )}
-                          </div>
-                        ))}
+                        {result.scholarships.length > 0 && (
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Award className="h-3 w-3" />
+                            {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
+                          </Badge>
+                        )}
                       </div>
-                    </div>
-                  )}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {result.university.description && (
+                        <p className="text-sm text-muted-foreground">{result.university.description}</p>
+                      )}
 
-                  {result.university.website && (
-                    <Button variant="outline" asChild className="w-full">
-                      <a href={result.university.website} target="_blank" rel="noopener noreferrer">
-                        Visit University Website
-                      </a>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                      {/* Programs */}
+                      <div className="space-y-2">
+                        <h4 className="font-semibold flex items-center gap-2">
+                          <GraduationCap className="h-4 w-4" />
+                          Available Programs ({result.programs.length})
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                           {result.programs.slice(0, 4).map((program) => (
+                            <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-2">
+                              <p className="font-medium text-sm">{program.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Badge variant="outline" className="text-xs">{program.level}</Badge>
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="h-3 w-3" />
+                                  {program.tuition_amount.toLocaleString()} {program.tuition_currency}
+                                </span>
+                              </div>
+                              <Button size="sm" variant="outline" className="w-full text-xs" asChild>
+                                <a href={`/student/applications/new?program=${program.id}`}>
+                                  Apply Now
+                                </a>
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        {result.programs.length > 4 && (
+                          <p className="text-xs text-muted-foreground">+{result.programs.length - 4} more programs</p>
+                        )}
+                      </div>
+
+                      {/* Scholarships */}
+                      {result.scholarships.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Award className="h-4 w-4" />
+                            Scholarships
+                          </h4>
+                          <div className="space-y-2">
+                            {result.scholarships.slice(0, 3).map((scholarship) => (
+                              <div key={scholarship.id} className="p-3 rounded-md bg-primary/5 border border-primary/20">
+                                <p className="font-medium text-sm">{scholarship.name}</p>
+                                {scholarship.amount_cents && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {(scholarship.amount_cents / 100).toLocaleString()} {scholarship.currency}
+                                    {scholarship.coverage_type && ` • ${scholarship.coverage_type.replace(/_/g, " ")}`}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {result.university.website && (
+                        <Button variant="outline" asChild className="w-full">
+                          <a href={result.university.website} target="_blank" rel="noopener noreferrer">
+                            Visit University Website
+                          </a>
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="recommendations">
+            <ProgramRecommendations onProgramSelect={(programId) => {
+              navigate(`/student/applications/new?program=${programId}`);
+            }} />
+          </TabsContent>
+
+          <TabsContent value="sop">
+            <SoPGenerator />
+          </TabsContent>
+
+          <TabsContent value="interview">
+            <InterviewPractice />
+          </TabsContent>
+        </Tabs>
       </div>
       
       <AIChatbot />

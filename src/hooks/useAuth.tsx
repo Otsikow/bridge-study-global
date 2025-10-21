@@ -6,7 +6,16 @@ import { useNavigate } from 'react-router-dom';
 interface Profile {
   id: string;
   tenant_id: string;
-  role: 'student' | 'agent' | 'partner' | 'staff' | 'admin' | 'counselor' | 'verifier' | 'finance' | 'school_rep';
+  role:
+    | 'student'
+    | 'agent'
+    | 'partner'
+    | 'staff'
+    | 'admin'
+    | 'counselor'
+    | 'verifier'
+    | 'finance'
+    | 'school_rep';
   full_name: string;
   email: string;
   avatar_url?: string;
@@ -18,8 +27,13 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    role: string
+  ) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -40,7 +54,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) throw error;
       setProfile(data);
     } catch (error) {
@@ -50,33 +64,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          setTimeout(() => {
-            fetchProfile(currentSession.user.id);
-          }, 0);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
+    // Auth state listener
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
 
-    // Check for existing session
+      if (currentSession?.user) {
+        setTimeout(() => {
+          fetchProfile(currentSession.user.id);
+        }, 0);
+      } else {
+        setProfile(null);
+      }
+
+      setLoading(false);
+    });
+
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
-      
+
       if (currentSession?.user) {
         fetchProfile(currentSession.user.id);
       }
-      
+
       setLoading(false);
     });
 
@@ -91,10 +105,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string, role: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string,
+    role: string
+  ) => {
     const redirectUrl = `${window.location.origin}/`;
-    
-    const { data, error } = await supabase.auth.signUp({
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -102,8 +121,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: {
           full_name: fullName,
           role: role,
-        }
-      }
+        },
+      },
     });
 
     return { error };

@@ -1,0 +1,418 @@
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { 
+  GraduationCap, 
+  MapPin, 
+  DollarSign, 
+  Clock, 
+  Star, 
+  TrendingUp, 
+  Filter,
+  Search,
+  Brain,
+  Shield,
+  Target
+} from 'lucide-react';
+import { useAIRecommendations, StudentProfile } from '@/hooks/useAIRecommendations';
+import { Link } from 'react-router-dom';
+
+interface ProgramRecommendationsProps {
+  onProgramSelect?: (programId: string) => void;
+}
+
+export default function ProgramRecommendations({ onProgramSelect }: ProgramRecommendationsProps) {
+  const { recommendations, loading, error, generateRecommendations, getVisaEligibility } = useAIRecommendations();
+  const [showFilters, setShowFilters] = useState(false);
+  const [visaResults, setVisaResults] = useState<Record<string, any>>({});
+  const [selectedTab, setSelectedTab] = useState('recommendations');
+
+  // Filter states
+  const [filters, setFilters] = useState({
+    countries: [] as string[],
+    programLevels: [] as string[],
+    disciplines: [] as string[],
+    budgetRange: [0, 100000] as [number, number],
+    matchScore: [0, 100] as [number, number]
+  });
+
+  // Student profile state
+  const [profile, setProfile] = useState<StudentProfile>({
+    academic_scores: {
+      gpa: 3.5,
+      ielts: 7.0,
+      toefl: 100
+    },
+    preferences: {
+      countries: ['Canada', 'United Kingdom', 'Australia'],
+      budget_range: [20000, 80000],
+      program_level: ['Master', 'Bachelor'],
+      disciplines: ['Computer Science', 'Business', 'Engineering']
+    },
+    education_history: {}
+  });
+
+  const countries = ['Canada', 'United States', 'United Kingdom', 'Australia', 'Germany', 'Netherlands', 'Sweden', 'Norway'];
+  const programLevels = ['Bachelor', 'Master', 'PhD', 'Diploma'];
+  const disciplines = ['Computer Science', 'Business', 'Engineering', 'Medicine', 'Law', 'Arts', 'Sciences', 'Education'];
+
+  useEffect(() => {
+    generateRecommendations(profile);
+  }, []);
+
+  const handleFilterChange = (key: string, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const filteredRecommendations = recommendations.filter(rec => {
+    if (filters.countries.length > 0 && !filters.countries.includes(rec.university.country)) return false;
+    if (filters.programLevels.length > 0 && !filters.programLevels.includes(rec.level)) return false;
+    if (filters.disciplines.length > 0 && !filters.disciplines.some(d => 
+      rec.discipline.toLowerCase().includes(d.toLowerCase())
+    )) return false;
+    if (rec.tuition_amount < filters.budgetRange[0] || rec.tuition_amount > filters.budgetRange[1]) return false;
+    if (rec.match_score < filters.matchScore[0] || rec.match_score > filters.matchScore[1]) return false;
+    return true;
+  });
+
+  const checkVisaEligibility = async (country: string) => {
+    if (visaResults[country]) return;
+    
+    const result = await getVisaEligibility(country, profile);
+    setVisaResults(prev => ({ ...prev, [country]: result }));
+  };
+
+  const getMatchColor = (score: number) => {
+    if (score >= 80) return 'text-green-600 bg-green-100';
+    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
+    return 'text-red-600 bg-red-100';
+  };
+
+  const getVisaColor = (eligibility: string) => {
+    switch (eligibility) {
+      case 'High': return 'text-green-600 bg-green-100';
+      case 'Medium': return 'text-yellow-600 bg-yellow-100';
+      case 'Low': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
+            AI-Powered Program Recommendations
+          </h2>
+          <p className="text-muted-foreground">Discover programs that match your profile and goals</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
+          <Button onClick={() => generateRecommendations(profile)}>
+            <Search className="h-4 w-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Filter Programs</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label>Countries</Label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {countries.map(country => (
+                    <div key={country} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={country}
+                        checked={filters.countries.includes(country)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleFilterChange('countries', [...filters.countries, country]);
+                          } else {
+                            handleFilterChange('countries', filters.countries.filter(c => c !== country));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={country} className="text-sm">{country}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Program Level</Label>
+                <div className="space-y-2">
+                  {programLevels.map(level => (
+                    <div key={level} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={level}
+                        checked={filters.programLevels.includes(level)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleFilterChange('programLevels', [...filters.programLevels, level]);
+                          } else {
+                            handleFilterChange('programLevels', filters.programLevels.filter(l => l !== level));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={level} className="text-sm">{level}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Disciplines</Label>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {disciplines.map(discipline => (
+                    <div key={discipline} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={discipline}
+                        checked={filters.disciplines.includes(discipline)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            handleFilterChange('disciplines', [...filters.disciplines, discipline]);
+                          } else {
+                            handleFilterChange('disciplines', filters.disciplines.filter(d => d !== discipline));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={discipline} className="text-sm">{discipline}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Budget Range: ${filters.budgetRange[0].toLocaleString()} - ${filters.budgetRange[1].toLocaleString()}</Label>
+                  <Slider
+                    value={filters.budgetRange}
+                    onValueChange={(value) => handleFilterChange('budgetRange', value)}
+                    max={100000}
+                    min={0}
+                    step={1000}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Match Score: {filters.matchScore[0]}% - {filters.matchScore[1]}%</Label>
+                  <Slider
+                    value={filters.matchScore}
+                    onValueChange={(value) => handleFilterChange('matchScore', value)}
+                    max={100}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Results */}
+      <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="recommendations">Recommendations ({filteredRecommendations.length})</TabsTrigger>
+          <TabsTrigger value="visa">Visa Eligibility</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="recommendations" className="space-y-4">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p>Generating AI recommendations...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <p className="text-red-600">{error}</p>
+            </div>
+          ) : filteredRecommendations.length === 0 ? (
+            <div className="text-center py-12">
+              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No matching programs found</h3>
+              <p className="text-muted-foreground">Try adjusting your filters or preferences</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredRecommendations.map((program) => (
+                <Card key={program.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-4 flex-1">
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-xl font-semibold">{program.name}</h3>
+                              <Badge className={getMatchColor(program.match_score)}>
+                                {program.match_score}% Match
+                              </Badge>
+                            </div>
+                            <p className="text-muted-foreground mb-2">
+                              {program.level} • {program.discipline}
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4" />
+                              {program.university.name} • {program.university.city}, {program.university.country}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span>{program.tuition_currency} {program.tuition_amount.toLocaleString()}/year</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>{program.duration_months} months</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Star className="h-4 w-4 text-muted-foreground" />
+                            <span>Ranking: {program.university.ranking?.world_rank || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm">Why this program matches you:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {program.match_reasons.map((reason, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {reason}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span>Match Score</span>
+                            <span>{program.match_score}%</span>
+                          </div>
+                          <Progress value={program.match_score} className="h-2" />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-2 ml-4">
+                        <Button
+                          onClick={() => onProgramSelect?.(program.id)}
+                          className="w-full"
+                        >
+                          Apply Now
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => checkVisaEligibility(program.university.country)}
+                          className="w-full"
+                        >
+                          <Shield className="h-4 w-4 mr-2" />
+                          Check Visa
+                        </Button>
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to={`/search?program=${program.id}`}>
+                            View Details
+                          </Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="visa" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Visa Eligibility Assessment</CardTitle>
+              <CardDescription>
+                Based on your profile, here's your estimated visa eligibility for different countries
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {countries.map(country => {
+                  const result = visaResults[country];
+                  return (
+                    <Card key={country} className="hover:shadow-md transition-shadow">
+                      <CardContent className="pt-6">
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold">{country}</h3>
+                            {result ? (
+                              <Badge className={getVisaColor(result.eligibility)}>
+                                {result.eligibility}
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => checkVisaEligibility(country)}
+                              >
+                                Check
+                              </Button>
+                            )}
+                          </div>
+                          
+                          {result && (
+                            <>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between text-sm">
+                                  <span>Eligibility</span>
+                                  <span>{result.percentage}%</span>
+                                </div>
+                                <Progress value={result.percentage} className="h-2" />
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium">Key Factors:</h4>
+                                <div className="space-y-1">
+                                  {result.factors.map((factor: string, index: number) => (
+                                    <div key={index} className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <div className="w-1 h-1 rounded-full bg-green-500" />
+                                      {factor}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

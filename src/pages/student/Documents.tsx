@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,9 +53,9 @@ export default function Documents() {
     if (user) {
       fetchStudentAndDocuments();
     }
-  }, [user]);
+  }, [user, fetchStudentAndDocuments]);
 
-  const fetchStudentAndDocuments = async () => {
+  const fetchStudentAndDocuments = useCallback(async () => {
     try {
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
@@ -95,7 +95,7 @@ export default function Documents() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
