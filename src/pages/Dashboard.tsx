@@ -141,6 +141,18 @@ const StudentDashboard = () => (
               Edit Profile
             </Button>
           </Link>
+          <Link to="/student/documents">
+            <Button className="w-full justify-start" variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              My Documents
+            </Button>
+          </Link>
+          <Link to="/student/applications">
+            <Button className="w-full justify-start" variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              My Applications
+            </Button>
+          </Link>
           <Link to="/search">
             <Button className="w-full justify-start" variant="outline">
               <GraduationCap className="mr-2 h-4 w-4" />

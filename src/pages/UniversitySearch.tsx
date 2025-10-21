@@ -472,8 +472,8 @@ export default function UniversitySearch() {
                       Available Programs ({result.programs.length})
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      {result.programs.slice(0, 4).map((program) => (
-                        <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-1">
+                       {result.programs.slice(0, 4).map((program) => (
+                        <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-2">
                           <p className="font-medium text-sm">{program.name}</p>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Badge variant="outline" className="text-xs">{program.level}</Badge>
@@ -482,6 +482,11 @@ export default function UniversitySearch() {
                               {program.tuition_amount.toLocaleString()} {program.tuition_currency}
                             </span>
                           </div>
+                          <Button size="sm" variant="outline" className="w-full text-xs" asChild>
+                            <a href={`/student/applications/new?program=${program.id}`}>
+                              Apply Now
+                            </a>
+                          </Button>
                         </div>
                       ))}
                     </div>
