@@ -45,7 +45,7 @@ Format the response in clear, concise bullet points.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           { 
             role: 'system', 
@@ -53,7 +53,7 @@ Format the response in clear, concise bullet points.`;
           },
           { role: 'user', content: prompt }
         ],
-        max_completion_tokens: 1000,
+        max_tokens: 1000,
       }),
     });
 
