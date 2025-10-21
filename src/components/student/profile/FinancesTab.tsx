@@ -24,24 +24,24 @@ interface Student {
 }
 
 interface FinancesTabProps {
-student: Tables<'students'>;
-onUpdate: () => void;
-}
-
+  student: Tables<'students'>;
   onUpdate: () => void;
 }
 
 export function FinancesTab({ student, onUpdate }: FinancesTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  
+  const financesData = student.finances_json as Student['finances_json'];
+  
   const [formData, setFormData] = useState({
-    sponsor_type: student.finances_json?.sponsor_type || '',
-    annual_budget: student.finances_json?.annual_budget || '',
-    currency: student.finances_json?.currency || 'USD',
-    sponsor_name: student.finances_json?.sponsor_name || '',
-    sponsor_relationship: student.finances_json?.sponsor_relationship || '',
-    sponsor_occupation: student.finances_json?.sponsor_occupation || '',
-    additional_notes: student.finances_json?.additional_notes || ''
+    sponsor_type: financesData?.sponsor_type || '',
+    annual_budget: financesData?.annual_budget || '',
+    currency: financesData?.currency || 'USD',
+    sponsor_name: financesData?.sponsor_name || '',
+    sponsor_relationship: financesData?.sponsor_relationship || '',
+    sponsor_occupation: financesData?.sponsor_occupation || '',
+    additional_notes: financesData?.additional_notes || ''
   });
 
   const handleChange = (field: string, value: string) => {
