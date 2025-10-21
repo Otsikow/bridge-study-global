@@ -7,8 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin } from "lucide-react";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useAIRecommendations } from "@/hooks/useAIRecommendations";
+import AIChatbot from "@/components/ai/AIChatbot";
+import { Textarea } from "@/components/ui/textarea";
 
 interface University {
   id: string;
@@ -59,6 +62,13 @@ export default function UniversitySearch() {
   const [countries, setCountries] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [disciplines, setDisciplines] = useState<string[]>([]);
+  
+  // AI Recommendations state
+  const [showAIRecommendations, setShowAIRecommendations] = useState(false);
+  const [aiInterests, setAIInterests] = useState("");
+  const [aiPreferredCountries, setAIPreferredCountries] = useState<string[]>([]);
+  const [aiBudget, setAIBudget] = useState("");
+  const { recommendations, loading: aiLoading, getRecommendations } = useAIRecommendations();
 
   // Load filter options
   useEffect(() => {
@@ -182,6 +192,16 @@ export default function UniversitySearch() {
     handleSearch();
   }, [selectedCountry, selectedLevel, selectedDiscipline, maxFee, onlyWithScholarships]);
 
+  const handleGetAIRecommendations = () => {
+    getRecommendations({
+      interests: aiInterests,
+      preferredCountries: aiPreferredCountries,
+      budget: aiBudget ? parseFloat(aiBudget) : undefined,
+      currentLevel: selectedLevel !== "all" ? selectedLevel : undefined,
+      targetLevel: selectedLevel !== "all" ? selectedLevel : undefined,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -189,6 +209,89 @@ export default function UniversitySearch() {
           <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
           <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>
         </div>
+
+        {/* AI Recommendations Section */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <CardTitle>AI-Powered Recommendations</CardTitle>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAIRecommendations(!showAIRecommendations)}
+              >
+                {showAIRecommendations ? "Hide" : "Show"}
+              </Button>
+            </div>
+            <CardDescription>
+              Get personalized university and scholarship recommendations based on your profile
+            </CardDescription>
+          </CardHeader>
+          {showAIRecommendations && (
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Your Academic Interests</Label>
+                  <Textarea
+                    placeholder="e.g., Computer Science, Data Analysis, AI..."
+                    value={aiInterests}
+                    onChange={(e) => setAIInterests(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Preferred Countries</Label>
+                  <Select
+                    value={aiPreferredCountries[0] || ""}
+                    onValueChange={(value) => setAIPreferredCountries([value])}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select countries" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Budget (USD/year)</Label>
+                  <Input
+                    type="number"
+                    placeholder="Enter your budget"
+                    value={aiBudget}
+                    onChange={(e) => setAIBudget(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button 
+                onClick={handleGetAIRecommendations} 
+                disabled={aiLoading || !aiInterests}
+                className="w-full"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                {aiLoading ? "Generating Recommendations..." : "Get AI Recommendations"}
+              </Button>
+              {recommendations && (
+                <div className="mt-4 p-4 rounded-lg bg-background border">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Your Personalized Recommendations
+                  </h4>
+                  <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+                    {recommendations}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
 
         {/* Search Filters */}
         <Card>
@@ -412,6 +515,8 @@ export default function UniversitySearch() {
           )}
         </div>
       </div>
+      
+      <AIChatbot />
     </div>
   );
 }
