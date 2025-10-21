@@ -9,8 +9,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, DollarSign } from 'lucide-react';
 
+interface Student {
+  id: string;
+  finances_json?: {
+    sponsor_type?: string;
+    annual_budget?: string;
+    currency?: string;
+    sponsor_name?: string;
+    sponsor_relationship?: string;
+    sponsor_occupation?: string;
+    additional_notes?: string;
+  };
+}
+
 interface FinancesTabProps {
-  student: any;
+  student: Student;
   onUpdate: () => void;
 }
 

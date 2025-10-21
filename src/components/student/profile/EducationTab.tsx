@@ -9,6 +9,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, GraduationCap, Pencil, Trash2, Loader2 } from 'lucide-react';
 
+interface EducationRecord {
+  id: string;
+  student_id: string;
+  level: string;
+  institution_name: string;
+  country: string;
+  start_date: string;
+  end_date?: string;
+  grade_scale?: string;
+  gpa?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface EducationTabProps {
   studentId: string;
 }
@@ -16,9 +30,9 @@ interface EducationTabProps {
 export function EducationTab({ studentId }: EducationTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [educationRecords, setEducationRecords] = useState<any[]>([]);
+  const [educationRecords, setEducationRecords] = useState<EducationRecord[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<EducationRecord | null>(null);
   const [formData, setFormData] = useState({
     level: '',
     institution_name: '',
@@ -31,9 +45,9 @@ export function EducationTab({ studentId }: EducationTabProps) {
 
   useEffect(() => {
     fetchEducationRecords();
-  }, [studentId]);
+  }, [fetchEducationRecords]);
 
-  const fetchEducationRecords = async () => {
+  const fetchEducationRecords = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('education_records')
@@ -48,7 +62,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,10 +97,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       setEditingRecord(null);
       resetForm();
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -106,10 +121,11 @@ export function EducationTab({ studentId }: EducationTabProps) {
       if (error) throw error;
       toast({ title: 'Success', description: 'Education record deleted' });
       fetchEducationRecords();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -127,7 +143,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
     });
   };
 
-  const openEditDialog = (record: any) => {
+  const openEditDialog = (record: EducationRecord) => {
     setEditingRecord(record);
     setFormData({
       level: record.level,

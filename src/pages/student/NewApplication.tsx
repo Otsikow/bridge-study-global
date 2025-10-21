@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,9 +57,9 @@ export default function NewApplication() {
     if (user && programId) {
       fetchData();
     }
-  }, [user, programId]);
+  }, [user, programId, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
@@ -112,7 +112,7 @@ export default function NewApplication() {
         return;
       }
 
-      setProgram(programData as any);
+      setProgram(programData);
 
       // Fetch intakes
       const { data: intakesData, error: intakesError } = await supabase
@@ -135,7 +135,7 @@ export default function NewApplication() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, programId, navigate, toast]);
 
   const handleSubmit = async () => {
     if (!studentId || !programId) return;

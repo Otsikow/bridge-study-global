@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Award, Pencil, Trash2, Loader2 } from 'lucide-react';
 
+interface TestScore {
+  id: string;
+  student_id: string;
+  test_type: string;
+  total_score: number;
+  test_date: string;
+  subscores_json?: {
+    listening?: number;
+    reading?: number;
+    writing?: number;
+    speaking?: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface TestScoresTabProps {
   studentId: string;
 }
@@ -16,9 +32,9 @@ interface TestScoresTabProps {
 export function TestScoresTab({ studentId }: TestScoresTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [testScores, setTestScores] = useState<any[]>([]);
+  const [testScores, setTestScores] = useState<TestScore[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<TestScore | null>(null);
   const [formData, setFormData] = useState({
     test_type: '',
     total_score: '',
@@ -31,9 +47,9 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
 
   useEffect(() => {
     fetchTestScores();
-  }, [studentId]);
+  }, [fetchTestScores]);
 
-  const fetchTestScores = async () => {
+  const fetchTestScores = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('test_scores')
@@ -48,14 +64,14 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const subscores: any = {};
+      const subscores: Record<string, number> = {};
       if (formData.listening) subscores.listening = parseFloat(formData.listening);
       if (formData.reading) subscores.reading = parseFloat(formData.reading);
       if (formData.writing) subscores.writing = parseFloat(formData.writing);
@@ -92,10 +108,11 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
       setEditingRecord(null);
       resetForm();
       fetchTestScores();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -115,10 +132,11 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
       if (error) throw error;
       toast({ title: 'Success', description: 'Test score deleted' });
       fetchTestScores();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast({
         title: 'Error',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -136,7 +154,7 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     });
   };
 
-  const openEditDialog = (record: any) => {
+  const openEditDialog = (record: TestScore) => {
     setEditingRecord(record);
     setFormData({
       test_type: record.test_type,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +16,7 @@ export default function StudentProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<Record<string, unknown> | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
 
   useEffect(() => {
@@ -29,9 +29,9 @@ export default function StudentProfile() {
     if (hash && ['personal', 'education', 'tests', 'finances'].includes(hash)) {
       setActiveTab(hash);
     }
-  }, [user]);
+  }, [user, fetchStudentData]);
 
-  const fetchStudentData = async () => {
+  const fetchStudentData = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('students')
@@ -51,7 +51,7 @@ export default function StudentProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
 
   if (loading) {
     return (

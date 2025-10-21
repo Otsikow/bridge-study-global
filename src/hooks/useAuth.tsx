@@ -18,8 +18,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }

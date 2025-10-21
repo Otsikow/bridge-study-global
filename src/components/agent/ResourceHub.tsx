@@ -7,7 +7,7 @@ interface Resource {
   title: string;
   description: string;
   type: 'pdf' | 'image' | 'video' | 'link';
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   url: string;
   category: string;
 }

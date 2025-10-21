@@ -7,8 +7,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
+interface Student {
+  id: string;
+  legal_name?: string;
+  preferred_name?: string;
+  date_of_birth?: string;
+  nationality?: string;
+  passport_number?: string;
+  passport_expiry?: string;
+  contact_email?: string;
+  current_country?: string;
+  address?: {
+    phone?: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    postal_code?: string;
+    country?: string;
+  };
+}
+
 interface PersonalInfoTabProps {
-  student: any;
+  student: Student;
   onUpdate: () => void;
 }
 

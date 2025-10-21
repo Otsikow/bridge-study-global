@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +13,7 @@ interface ChecklistItem {
   title: string;
   description: string;
   completed: boolean;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   link: string;
 }
 
@@ -22,7 +22,7 @@ export default function StudentOnboarding() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<Record<string, unknown> | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [completeness, setCompleteness] = useState(0);
 
@@ -30,9 +30,9 @@ export default function StudentOnboarding() {
     if (user) {
       fetchStudentData();
     }
-  }, [user]);
+  }, [user, fetchStudentData]);
 
-  const fetchStudentData = async () => {
+  const fetchStudentData = useCallback(async () => {
     try {
       // Get student record
       const { data: studentData, error: studentError } = await supabase
@@ -131,7 +131,7 @@ export default function StudentOnboarding() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
 
   if (loading) {
     return (
