@@ -196,16 +196,16 @@ export default function StudentDashboard() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center">Loading dashboard...</div>
+        <div className="p-4 md:p-8 text-center">Loading dashboard...</div>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold">
               Welcome back, {profile?.full_name || 'Student'}!
@@ -214,12 +214,14 @@ export default function StudentDashboard() {
               Track your applications and stay on top of your journey
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Bell className="h-4 w-4 mr-2" />
-              Notifications
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+              <Link to="/student/notifications">
+                <Bell className="h-4 w-4 mr-2" />
+                Notifications
+              </Link>
             </Button>
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto">
               <Link to="/search">
                 <Search className="h-4 w-4 mr-2" />
                 Find Programs
@@ -229,11 +231,14 @@ export default function StudentDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid gap-6 md:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="hover:shadow-md transition-shadow">
+              <Card
+                key={stat.title}
+                className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all"
+              >
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
                     {stat.title}
@@ -254,7 +259,7 @@ export default function StudentDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" /> Overview
             </TabsTrigger>

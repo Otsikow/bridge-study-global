@@ -18,6 +18,9 @@ import StudentProfile from "./pages/student/StudentProfile";
 import Documents from "./pages/student/Documents";
 import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
+import Messages from "./pages/student/Messages";
+import Payments from "./pages/student/Payments";
+import Notifications from "./pages/student/Notifications";
 
 // ✅ Combined imports from both branches
 import ApplicationDetails from "./pages/student/ApplicationDetails";
@@ -92,6 +95,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NewApplication />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/payments"
+              element={
+                <ProtectedRoute>
+                  <Payments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
                 </ProtectedRoute>
               }
             />
