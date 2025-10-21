@@ -11,6 +11,67 @@ interface Message {
   content: string;
 }
 
+function FormattedMessage({ content }: { content: string }) {
+  const lines = content.split('\n');
+  const elements: JSX.Element[] = [];
+  let listItems: string[] = [];
+  
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={elements.length} className="list-disc list-inside space-y-1 my-2">
+          {listItems.map((item, i) => (
+            <li key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+          ))}
+        </ul>
+      );
+      listItems = [];
+    }
+  };
+
+  const formatInline = (text: string) => {
+    return text
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/__(.+?)__/g, '<strong>$1</strong>')
+      .replace(/_(.+?)_/g, '<em>$1</em>');
+  };
+
+  lines.forEach((line, index) => {
+    if (line.match(/^#{1,3}\s+(.+)/)) {
+      flushList();
+      const match = line.match(/^#{1,3}\s+(.+)/);
+      if (match) {
+        elements.push(
+          <h3 key={elements.length} className="font-semibold text-sm mt-3 mb-1">
+            {match[1]}
+          </h3>
+        );
+      }
+    } else if (line.match(/^[-*]\s+(.+)/)) {
+      const match = line.match(/^[-*]\s+(.+)/);
+      if (match) {
+        listItems.push(match[1]);
+      }
+    } else if (line.trim() === '') {
+      flushList();
+      if (elements.length > 0) {
+        elements.push(<div key={elements.length} className="h-2" />);
+      }
+    } else {
+      flushList();
+      elements.push(
+        <p key={elements.length} className="text-sm" dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+      );
+    }
+  });
+
+  flushList();
+
+  return <div className="space-y-1">{elements}</div>;
+}
+
 export default function AIChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -176,7 +237,7 @@ export default function AIChatbot() {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <FormattedMessage content={message.content} />
                 </div>
                 {message.role === "user" && (
                   <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
