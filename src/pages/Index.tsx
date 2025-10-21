@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  GraduationCap, 
   Globe, 
   Users, 
   FileCheck, 
@@ -11,6 +10,7 @@ import {
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
+import gegLogo from '@/assets/geg-logo.png';
 
 const Index = () => {
   const features = [
@@ -48,10 +48,8 @@ const Index = () => {
       {/* Navigation */}
       <nav className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
+          <div className="flex items-center space-x-3">
+            <img src={gegLogo} alt="GEG Logo" className="h-12 w-12 object-contain" />
             <span className="text-xl font-bold">GEG</span>
           </div>
           <div className="flex items-center space-x-4">
@@ -200,8 +198,8 @@ const Index = () => {
       <footer className="border-t bg-background">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="flex items-center space-x-2">
-              <GraduationCap className="h-6 w-6 text-primary" />
+            <div className="flex items-center space-x-3">
+              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 object-contain" />
               <span className="font-semibold">GEG — Global Education Gateway</span>
             </div>
             <p className="text-sm text-muted-foreground">

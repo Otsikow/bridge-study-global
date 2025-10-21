@@ -1,4 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,12 +10,15 @@ import {
   Building2,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft,
+  LogOut
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import gegLogo from '@/assets/geg-logo.png';
 
 const Dashboard = () => {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const getDashboardContent = () => {
     switch (profile?.role) {
@@ -34,14 +38,35 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name}!</h1>
-            <p className="text-muted-foreground">
-              {profile?.role && profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} Dashboard
-            </p>
+      <header className="bg-card border-b sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/')}
+              className="rounded-full"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <img src={gegLogo} alt="GEG Logo" className="h-10 w-10 object-contain" />
+            <div>
+              <h1 className="text-xl font-bold">GEG Dashboard</h1>
+              <p className="text-xs text-muted-foreground">{profile?.role.toUpperCase()}</p>
+            </div>
           </div>
+          <Button variant="outline" onClick={signOut}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+      </header>
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div>
+          <h2 className="text-2xl font-bold">Welcome back, {profile?.full_name}!</h2>
+          <p className="text-muted-foreground">
+            {profile?.role && profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} Dashboard
+          </p>
         </div>
         {getDashboardContent()}
       </div>
