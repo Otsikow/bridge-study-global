@@ -1,0 +1,342 @@
+import { useAuth } from '@/hooks/useAuth';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  GraduationCap, 
+  FileText, 
+  Users, 
+  TrendingUp,
+  Building2,
+  CheckCircle,
+  Clock,
+  AlertCircle
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const Dashboard = () => {
+  const { profile } = useAuth();
+
+  const getDashboardContent = () => {
+    switch (profile?.role) {
+      case 'student':
+        return <StudentDashboard />;
+      case 'agent':
+        return <AgentDashboard />;
+      case 'partner':
+        return <PartnerDashboard />;
+      case 'staff':
+      case 'admin':
+        return <StaffDashboard />;
+      default:
+        return <DefaultDashboard />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Welcome back, {profile?.full_name}!</h1>
+            <p className="text-muted-foreground">
+              {profile?.role && profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} Dashboard
+            </p>
+          </div>
+        </div>
+        {getDashboardContent()}
+      </div>
+    </div>
+  );
+};
+
+const StudentDashboard = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Active Applications
+          </CardTitle>
+          <FileText className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">3</div>
+          <p className="text-xs text-muted-foreground mt-1">
+            2 pending review
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Offers Received
+          </CardTitle>
+          <CheckCircle className="h-4 w-4 text-success" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-success">2</div>
+          <p className="text-xs text-muted-foreground mt-1">
+            1 conditional, 1 unconditional
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            Documents Pending
+          </CardTitle>
+          <AlertCircle className="h-4 w-4 text-warning" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-warning">2</div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Upload IELTS, transcript
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Link to="/programs">
+            <Button className="w-full justify-start" variant="outline">
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Browse Programs
+            </Button>
+          </Link>
+          <Link to="/applications">
+            <Button className="w-full justify-start" variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              My Applications
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-start space-x-3">
+              <div className="h-2 w-2 mt-2 rounded-full bg-info" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Application submitted</p>
+                <p className="text-xs text-muted-foreground">MSc Computer Science - Oxford • 2 days ago</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="h-2 w-2 mt-2 rounded-full bg-success" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Offer received</p>
+                <p className="text-xs text-muted-foreground">BSc Business - Toronto • 5 days ago</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+const AgentDashboard = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">24</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Active Applications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">37</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Commissions (Pending)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">$4,250</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-success">92%</div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Agent Tools</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <Users className="h-6 w-6 mb-2" />
+          <span className="text-sm">My Students</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <FileText className="h-6 w-6 mb-2" />
+          <span className="text-sm">Applications</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <TrendingUp className="h-6 w-6 mb-2" />
+          <span className="text-sm">Earnings</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <GraduationCap className="h-6 w-6 mb-2" />
+          <span className="text-sm">Programs</span>
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const PartnerDashboard = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">New Applications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">12</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Pending Review</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">8</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Offers Issued</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-success">45</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Enrolled</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-success">28</div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>University Management</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <FileText className="h-6 w-6 mb-2" />
+          <span className="text-sm">Applications</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <Building2 className="h-6 w-6 mb-2" />
+          <span className="text-sm">Programs</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <CheckCircle className="h-6 w-6 mb-2" />
+          <span className="text-sm">Issue Offers</span>
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const StaffDashboard = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Total Applications</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">342</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Needs Review</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-warning">28</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Active Students</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">186</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Revenue (MTD)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-success">$24.5K</div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <Card>
+      <CardHeader>
+        <CardTitle>Admin Tools</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <FileText className="h-6 w-6 mb-2" />
+          <span className="text-sm">Applications</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <Users className="h-6 w-6 mb-2" />
+          <span className="text-sm">Users</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <Building2 className="h-6 w-6 mb-2" />
+          <span className="text-sm">Universities</span>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col">
+          <TrendingUp className="h-6 w-6 mb-2" />
+          <span className="text-sm">Reports</span>
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+);
+
+const DefaultDashboard = () => (
+  <Card>
+    <CardContent className="pt-6">
+      <p className="text-center text-muted-foreground">Loading dashboard...</p>
+    </CardContent>
+  </Card>
+);
+
+export default Dashboard;
