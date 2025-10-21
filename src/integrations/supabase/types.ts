@@ -995,6 +995,82 @@ export type Database = {
           },
         ]
       }
+      scholarships: {
+        Row: {
+          active: boolean | null
+          amount_cents: number | null
+          application_deadline: string | null
+          coverage_type: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          eligibility_criteria: Json | null
+          id: string
+          name: string
+          program_id: string | null
+          renewable: boolean | null
+          tenant_id: string
+          university_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          amount_cents?: number | null
+          application_deadline?: string | null
+          coverage_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          eligibility_criteria?: Json | null
+          id?: string
+          name: string
+          program_id?: string | null
+          renewable?: boolean | null
+          tenant_id: string
+          university_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          amount_cents?: number | null
+          application_deadline?: string | null
+          coverage_type?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          eligibility_criteria?: Json | null
+          id?: string
+          name?: string
+          program_id?: string | null
+          renewable?: boolean | null
+          tenant_id?: string
+          university_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scholarships_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scholarships_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scholarships_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           address: Json | null

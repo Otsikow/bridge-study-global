@@ -38,7 +38,7 @@ const menuItems = {
   student: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'My Profile', url: '/dashboard/profile', icon: UserCircle },
-    { title: 'Browse Programs', url: '/dashboard/programs', icon: BookOpen },
+    { title: 'Search Universities', url: '/search', icon: BookOpen },
     { title: 'My Applications', url: '/dashboard/applications', icon: FileText },
     { title: 'Documents', url: '/dashboard/documents', icon: Upload },
     { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
