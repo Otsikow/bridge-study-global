@@ -18,6 +18,11 @@ import StudentProfile from "./pages/student/StudentProfile";
 import Documents from "./pages/student/Documents";
 import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
+
+// ✅ Combined imports from both branches
+import ApplicationDetails from "./pages/student/ApplicationDetails";
+import VisaEligibility from "./pages/student/VisaEligibility";
+import SopGenerator from "./pages/student/SopGenerator";
 import IntakeForm from "./pages/IntakeForm";
 import VisaCalculator from "./pages/VisaCalculator";
 import UserFeedback from "./components/analytics/UserFeedback";
@@ -87,6 +92,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NewApplication />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/applications/:id"
+              element={
+                <ProtectedRoute>
+                  <ApplicationDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/visa-eligibility"
+              element={
+                <ProtectedRoute>
+                  <VisaEligibility />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/student/sop"
+              element={
+                <ProtectedRoute>
+                  <SopGenerator />
                 </ProtectedRoute>
               }
             />
