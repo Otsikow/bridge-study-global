@@ -335,22 +335,30 @@ const StaffDashboard = () => (
         <CardTitle>Admin Tools</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Button variant="outline" className="h-auto py-4 flex-col">
-          <FileText className="h-6 w-6 mb-2" />
-          <span className="text-sm">Applications</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-4 flex-col">
-          <Users className="h-6 w-6 mb-2" />
-          <span className="text-sm">Users</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-4 flex-col">
-          <Building2 className="h-6 w-6 mb-2" />
-          <span className="text-sm">Universities</span>
-        </Button>
-        <Button variant="outline" className="h-auto py-4 flex-col">
-          <TrendingUp className="h-6 w-6 mb-2" />
-          <span className="text-sm">Reports</span>
-        </Button>
+        <Link to="/applications">
+          <Button variant="outline" className="h-auto py-4 flex-col w-full">
+            <FileText className="h-6 w-6 mb-2" />
+            <span className="text-sm">Applications</span>
+          </Button>
+        </Link>
+        <Link to="/users">
+          <Button variant="outline" className="h-auto py-4 flex-col w-full">
+            <Users className="h-6 w-6 mb-2" />
+            <span className="text-sm">Users</span>
+          </Button>
+        </Link>
+        <Link to="/universities">
+          <Button variant="outline" className="h-auto py-4 flex-col w-full">
+            <Building2 className="h-6 w-6 mb-2" />
+            <span className="text-sm">Universities</span>
+          </Button>
+        </Link>
+        <Link to="/reports">
+          <Button variant="outline" className="h-auto py-4 flex-col w-full">
+            <TrendingUp className="h-6 w-6 mb-2" />
+            <span className="text-sm">Reports</span>
+          </Button>
+        </Link>
       </CardContent>
     </Card>
   </div>
