@@ -80,14 +80,29 @@ const StudentDashboard = () => (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
+            Profile Completeness
+          </CardTitle>
+          <CheckCircle className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">60%</div>
+          <p className="text-xs text-muted-foreground mt-1">
+            3 of 5 steps complete
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             Active Applications
           </CardTitle>
           <FileText className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">3</div>
+          <div className="text-2xl font-bold">0</div>
           <p className="text-xs text-muted-foreground mt-1">
-            2 pending review
+            Start browsing programs
           </p>
         </CardContent>
       </Card>
@@ -95,29 +110,14 @@ const StudentDashboard = () => (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Offers Received
-          </CardTitle>
-          <CheckCircle className="h-4 w-4 text-success" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-success">2</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            1 conditional, 1 unconditional
-          </p>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            Documents Pending
+            Documents Uploaded
           </CardTitle>
           <AlertCircle className="h-4 w-4 text-warning" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-warning">2</div>
+          <div className="text-2xl font-bold text-warning">0</div>
           <p className="text-xs text-muted-foreground mt-1">
-            Upload IELTS, transcript
+            Upload key documents
           </p>
         </CardContent>
       </Card>
@@ -129,16 +129,22 @@ const StudentDashboard = () => (
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Link to="/programs">
+          <Link to="/student/onboarding">
+            <Button className="w-full justify-start" variant="outline">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Complete Your Profile
+            </Button>
+          </Link>
+          <Link to="/student/profile">
+            <Button className="w-full justify-start" variant="outline">
+              <Users className="mr-2 h-4 w-4" />
+              Edit Profile
+            </Button>
+          </Link>
+          <Link to="/search">
             <Button className="w-full justify-start" variant="outline">
               <GraduationCap className="mr-2 h-4 w-4" />
               Browse Programs
-            </Button>
-          </Link>
-          <Link to="/applications">
-            <Button className="w-full justify-start" variant="outline">
-              <FileText className="mr-2 h-4 w-4" />
-              My Applications
             </Button>
           </Link>
         </CardContent>
@@ -146,22 +152,26 @@ const StudentDashboard = () => (
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle>Getting Started Guide</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <div className="h-2 w-2 mt-2 rounded-full bg-info" />
+              <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Application submitted</p>
-                <p className="text-xs text-muted-foreground">MSc Computer Science - Oxford • 2 days ago</p>
+                <p className="text-sm font-medium">Complete your profile with personal details, education history, and test scores</p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="h-2 w-2 mt-2 rounded-full bg-success" />
+              <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Offer received</p>
-                <p className="text-xs text-muted-foreground">BSc Business - Toronto • 5 days ago</p>
+                <p className="text-sm font-medium">Upload required documents like passport and transcripts</p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Browse and apply to programs that match your goals</p>
               </div>
             </div>
           </div>

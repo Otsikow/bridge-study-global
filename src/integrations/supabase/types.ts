@@ -147,47 +147,68 @@ export type Database = {
       applications: {
         Row: {
           agent_id: string | null
+          app_number: string | null
           created_at: string | null
+          decision_json: Json | null
+          fees_json: Json | null
           id: string
+          intake_id: string | null
           intake_month: number
           intake_year: number
           internal_notes: string | null
           notes: string | null
           program_id: string
+          risk_flags_json: Json | null
           status: Database["public"]["Enums"]["application_status"] | null
           student_id: string
+          submission_channel: string | null
           submitted_at: string | null
           tenant_id: string
+          timeline_json: Json | null
           updated_at: string | null
         }
         Insert: {
           agent_id?: string | null
+          app_number?: string | null
           created_at?: string | null
+          decision_json?: Json | null
+          fees_json?: Json | null
           id?: string
+          intake_id?: string | null
           intake_month: number
           intake_year: number
           internal_notes?: string | null
           notes?: string | null
           program_id: string
+          risk_flags_json?: Json | null
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id: string
+          submission_channel?: string | null
           submitted_at?: string | null
           tenant_id: string
+          timeline_json?: Json | null
           updated_at?: string | null
         }
         Update: {
           agent_id?: string | null
+          app_number?: string | null
           created_at?: string | null
+          decision_json?: Json | null
+          fees_json?: Json | null
           id?: string
+          intake_id?: string | null
           intake_month?: number
           intake_year?: number
           internal_notes?: string | null
           notes?: string | null
           program_id?: string
+          risk_flags_json?: Json | null
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id?: string
+          submission_channel?: string | null
           submitted_at?: string | null
           tenant_id?: string
+          timeline_json?: Json | null
           updated_at?: string | null
         }
         Relationships: [
@@ -196,6 +217,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_intake_id_fkey"
+            columns: ["intake_id"]
+            isOneToOne: false
+            referencedRelation: "intakes"
             referencedColumns: ["id"]
           },
           {
@@ -444,6 +472,62 @@ export type Database = {
           },
         ]
       }
+      education_records: {
+        Row: {
+          certificate_url: string | null
+          country: string
+          created_at: string | null
+          end_date: string | null
+          gpa: number | null
+          grade_scale: string | null
+          id: string
+          institution_name: string
+          level: string
+          start_date: string
+          student_id: string
+          transcript_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          certificate_url?: string | null
+          country: string
+          created_at?: string | null
+          end_date?: string | null
+          gpa?: number | null
+          grade_scale?: string | null
+          id?: string
+          institution_name: string
+          level: string
+          start_date: string
+          student_id: string
+          transcript_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          certificate_url?: string | null
+          country?: string
+          created_at?: string | null
+          end_date?: string | null
+          gpa?: number | null
+          grade_scale?: string | null
+          id?: string
+          institution_name?: string
+          level?: string
+          start_date?: string
+          student_id?: string
+          transcript_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_records_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           created_at: string | null
@@ -533,6 +617,53 @@ export type Database = {
             columns: ["university_id"]
             isOneToOne: false
             referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      intakes: {
+        Row: {
+          app_deadline: string
+          created_at: string | null
+          id: string
+          program_id: string
+          seats_available: number | null
+          seats_json: Json | null
+          start_date: string
+          term: string
+          updated_at: string | null
+          visa_cutoff_date: string | null
+        }
+        Insert: {
+          app_deadline: string
+          created_at?: string | null
+          id?: string
+          program_id: string
+          seats_available?: number | null
+          seats_json?: Json | null
+          start_date: string
+          term: string
+          updated_at?: string | null
+          visa_cutoff_date?: string | null
+        }
+        Update: {
+          app_deadline?: string
+          created_at?: string | null
+          id?: string
+          program_id?: string
+          seats_available?: number | null
+          seats_json?: Json | null
+          start_date?: string
+          term?: string
+          updated_at?: string | null
+          visa_cutoff_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "intakes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
@@ -900,9 +1031,11 @@ export type Database = {
       programs: {
         Row: {
           active: boolean | null
+          app_fee: number | null
           created_at: string | null
           description: string | null
           discipline: string
+          docs_required_json: Json | null
           duration_months: number
           entry_requirements: Json | null
           id: string
@@ -910,6 +1043,7 @@ export type Database = {
           intake_months: number[] | null
           level: string
           name: string
+          requirements_json: Json | null
           seats_available: number | null
           tenant_id: string
           toefl_overall: number | null
@@ -920,9 +1054,11 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          app_fee?: number | null
           created_at?: string | null
           description?: string | null
           discipline: string
+          docs_required_json?: Json | null
           duration_months: number
           entry_requirements?: Json | null
           id?: string
@@ -930,6 +1066,7 @@ export type Database = {
           intake_months?: number[] | null
           level: string
           name: string
+          requirements_json?: Json | null
           seats_available?: number | null
           tenant_id: string
           toefl_overall?: number | null
@@ -940,9 +1077,11 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          app_fee?: number | null
           created_at?: string | null
           description?: string | null
           discipline?: string
+          docs_required_json?: Json | null
           duration_months?: number
           entry_requirements?: Json | null
           id?: string
@@ -950,6 +1089,7 @@ export type Database = {
           intake_months?: number[] | null
           level?: string
           name?: string
+          requirements_json?: Json | null
           seats_available?: number | null
           tenant_id?: string
           toefl_overall?: number | null
@@ -1160,48 +1300,183 @@ export type Database = {
           },
         ]
       }
+      student_assignments: {
+        Row: {
+          assigned_at: string | null
+          counselor_id: string
+          id: string
+          notes: string | null
+          student_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          counselor_id: string
+          id?: string
+          notes?: string | null
+          student_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          counselor_id?: string
+          id?: string
+          notes?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_assignments_counselor_id_fkey"
+            columns: ["counselor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_documents: {
+        Row: {
+          checksum: string | null
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string
+          storage_path: string
+          student_id: string
+          updated_at: string | null
+          verification_notes: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verified_status: string | null
+        }
+        Insert: {
+          checksum?: string | null
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_size: number
+          id?: string
+          mime_type: string
+          storage_path: string
+          student_id: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_status?: string | null
+        }
+        Update: {
+          checksum?: string | null
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          student_id?: string
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_documents_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_documents_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           address: Json | null
+          consent_flags_json: Json | null
+          contact_email: string | null
+          contact_phone: string | null
           created_at: string | null
+          current_country: string | null
           date_of_birth: string | null
           education_history: Json | null
+          finances_json: Json | null
           guardian: Json | null
           id: string
+          legal_name: string | null
           nationality: string | null
+          passport_expiry: string | null
           passport_number: string | null
+          preferred_name: string | null
+          profile_completeness: number | null
           profile_id: string
           tenant_id: string
           test_scores: Json | null
           updated_at: string | null
+          visa_history_json: Json | null
         }
         Insert: {
           address?: Json | null
+          consent_flags_json?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          current_country?: string | null
           date_of_birth?: string | null
           education_history?: Json | null
+          finances_json?: Json | null
           guardian?: Json | null
           id?: string
+          legal_name?: string | null
           nationality?: string | null
+          passport_expiry?: string | null
           passport_number?: string | null
+          preferred_name?: string | null
+          profile_completeness?: number | null
           profile_id: string
           tenant_id: string
           test_scores?: Json | null
           updated_at?: string | null
+          visa_history_json?: Json | null
         }
         Update: {
           address?: Json | null
+          consent_flags_json?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
           created_at?: string | null
+          current_country?: string | null
           date_of_birth?: string | null
           education_history?: Json | null
+          finances_json?: Json | null
           guardian?: Json | null
           id?: string
+          legal_name?: string | null
           nationality?: string | null
+          passport_expiry?: string | null
           passport_number?: string | null
+          preferred_name?: string | null
+          profile_completeness?: number | null
           profile_id?: string
           tenant_id?: string
           test_scores?: Json | null
           updated_at?: string | null
+          visa_history_json?: Json | null
         }
         Relationships: [
           {
@@ -1333,17 +1608,65 @@ export type Database = {
         }
         Relationships: []
       }
+      test_scores: {
+        Row: {
+          created_at: string | null
+          id: string
+          report_url: string | null
+          student_id: string
+          subscores_json: Json | null
+          test_date: string
+          test_type: string
+          total_score: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          report_url?: string | null
+          student_id: string
+          subscores_json?: Json | null
+          test_date: string
+          test_type: string
+          total_score: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          report_url?: string | null
+          student_id?: string
+          subscores_json?: Json | null
+          test_date?: string
+          test_type?: string
+          total_score?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_scores_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universities: {
         Row: {
           active: boolean | null
           city: string | null
+          commission_terms_json: Json | null
           country: string
           created_at: string | null
           description: string | null
           id: string
           logo_url: string | null
           name: string
+          partnership_status: string | null
           ranking: Json | null
+          submission_config_json: Json | null
+          submission_mode: string | null
           tenant_id: string
           updated_at: string | null
           website: string | null
@@ -1351,13 +1674,17 @@ export type Database = {
         Insert: {
           active?: boolean | null
           city?: string | null
+          commission_terms_json?: Json | null
           country: string
           created_at?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
           name: string
+          partnership_status?: string | null
           ranking?: Json | null
+          submission_config_json?: Json | null
+          submission_mode?: string | null
           tenant_id: string
           updated_at?: string | null
           website?: string | null
@@ -1365,13 +1692,17 @@ export type Database = {
         Update: {
           active?: boolean | null
           city?: string | null
+          commission_terms_json?: Json | null
           country?: string
           created_at?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
           name?: string
+          partnership_status?: string | null
           ranking?: Json | null
+          submission_config_json?: Json | null
+          submission_mode?: string | null
           tenant_id?: string
           updated_at?: string | null
           website?: string | null
@@ -1405,7 +1736,16 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "student" | "agent" | "partner" | "staff" | "admin"
+      app_role:
+        | "student"
+        | "agent"
+        | "partner"
+        | "staff"
+        | "admin"
+        | "counselor"
+        | "verifier"
+        | "finance"
+        | "school_rep"
       application_status:
         | "draft"
         | "submitted"
@@ -1567,7 +1907,17 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["student", "agent", "partner", "staff", "admin"],
+      app_role: [
+        "student",
+        "agent",
+        "partner",
+        "staff",
+        "admin",
+        "counselor",
+        "verifier",
+        "finance",
+        "school_rep",
+      ],
       application_status: [
         "draft",
         "submitted",

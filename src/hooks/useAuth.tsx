@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 interface Profile {
   id: string;
   tenant_id: string;
-  role: 'student' | 'agent' | 'partner' | 'staff' | 'admin';
+  role: 'student' | 'agent' | 'partner' | 'staff' | 'admin' | 'counselor' | 'verifier' | 'finance' | 'school_rep';
   full_name: string;
   email: string;
   avatar_url?: string;
