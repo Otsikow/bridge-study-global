@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,12 +43,6 @@ export default function LeadsList() {
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   const [note, setNote] = useState("");
-
-  useEffect(() => {
-    if (profile?.id) {
-      fetchLeads();
-    }
-  }, [profile?.id, fetchLeads]);
 
   const fetchLeads = useCallback(async () => {
     try {
@@ -119,6 +113,12 @@ export default function LeadsList() {
       setLoading(false);
     }
   }, [profile?.id, toast]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchLeads();
+    }
+  }, [profile?.id, fetchLeads]);
 
   if (loading) {
     return (

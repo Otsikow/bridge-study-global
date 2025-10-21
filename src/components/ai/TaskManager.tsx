@@ -171,7 +171,7 @@ export default function TaskManager() {
     }
   };
 
-  const updateTaskStatus = async (taskId: string, status: string) => {
+  const updateTaskStatus = async (taskId: string, status: 'open' | 'in_progress' | 'done' | 'blocked') => {
     try {
       const { error } = await supabase
         .from('tasks')

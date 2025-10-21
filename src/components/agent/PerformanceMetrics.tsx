@@ -27,12 +27,6 @@ export default function PerformanceMetrics() {
   const [data, setData] = useState<PerformanceData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (profile?.id) {
-      fetchPerformanceData();
-    }
-  }, [profile?.id, fetchPerformanceData]);
-
   const fetchPerformanceData = useCallback(async () => {
     try {
       // Get agent ID
@@ -105,6 +99,12 @@ export default function PerformanceMetrics() {
       setLoading(false);
     }
   }, [profile?.id, toast]);
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchPerformanceData();
+    }
+  }, [profile?.id, fetchPerformanceData]);
 
   if (loading) {
     return (

@@ -16,6 +16,16 @@ interface PersonalInfoTabProps {
 export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  
+  const addressData = student.address as { 
+    phone?: string; 
+    line1?: string; 
+    line2?: string; 
+    city?: string; 
+    postal_code?: string; 
+    country?: string; 
+  } | null;
+  
   const [formData, setFormData] = useState({
     legal_name: student.legal_name || '',
     preferred_name: student.preferred_name || '',
@@ -24,13 +34,13 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
     passport_number: student.passport_number || '',
     passport_expiry: student.passport_expiry || '',
     contact_email: student.contact_email || '',
-    contact_phone: student.address?.phone || '',
+    contact_phone: addressData?.phone || '',
     current_country: student.current_country || '',
-    address_line1: student.address?.line1 || '',
-    address_line2: student.address?.line2 || '',
-    city: student.address?.city || '',
-    postal_code: student.address?.postal_code || '',
-    country: student.address?.country || ''
+    address_line1: addressData?.line1 || '',
+    address_line2: addressData?.line2 || '',
+    city: addressData?.city || '',
+    postal_code: addressData?.postal_code || '',
+    country: addressData?.country || ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

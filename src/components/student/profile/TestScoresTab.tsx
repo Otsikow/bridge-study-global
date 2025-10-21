@@ -141,14 +141,15 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
 
   const openEditDialog = (record: Tables<'test_scores'>) => {
     setEditingRecord(record);
+    const subscores = record.subscores_json as { listening?: number; reading?: number; writing?: number; speaking?: number } | null;
     setFormData({
       test_type: record.test_type,
       total_score: record.total_score?.toString() || '',
       test_date: record.test_date,
-      listening: record.subscores_json?.listening?.toString() || '',
-      reading: record.subscores_json?.reading?.toString() || '',
-      writing: record.subscores_json?.writing?.toString() || '',
-      speaking: record.subscores_json?.speaking?.toString() || ''
+      listening: subscores?.listening?.toString() || '',
+      reading: subscores?.reading?.toString() || '',
+      writing: subscores?.writing?.toString() || '',
+      speaking: subscores?.speaking?.toString() || ''
     });
     setIsDialogOpen(true);
   };
@@ -318,36 +319,39 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
                   </div>
                 </div>
               </CardHeader>
-              {score.subscores_json && (
-                <CardContent>
-                  <div className="grid grid-cols-4 gap-4 text-sm">
-                    {score.subscores_json.listening && (
-                      <div>
-                        <span className="text-muted-foreground">Listening:</span>
-                        <p className="font-medium">{score.subscores_json.listening}</p>
-                      </div>
-                    )}
-                    {score.subscores_json.reading && (
-                      <div>
-                        <span className="text-muted-foreground">Reading:</span>
-                        <p className="font-medium">{score.subscores_json.reading}</p>
-                      </div>
-                    )}
-                    {score.subscores_json.writing && (
-                      <div>
-                        <span className="text-muted-foreground">Writing:</span>
-                        <p className="font-medium">{score.subscores_json.writing}</p>
-                      </div>
-                    )}
-                    {score.subscores_json.speaking && (
-                      <div>
-                        <span className="text-muted-foreground">Speaking:</span>
-                        <p className="font-medium">{score.subscores_json.speaking}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              )}
+              {score.subscores_json && (() => {
+                const subscores = score.subscores_json as { listening?: number; reading?: number; writing?: number; speaking?: number };
+                return (
+                  <CardContent>
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                      {subscores.listening && (
+                        <div>
+                          <span className="text-muted-foreground">Listening:</span>
+                          <p className="font-medium">{subscores.listening}</p>
+                        </div>
+                      )}
+                      {subscores.reading && (
+                        <div>
+                          <span className="text-muted-foreground">Reading:</span>
+                          <p className="font-medium">{subscores.reading}</p>
+                        </div>
+                      )}
+                      {subscores.writing && (
+                        <div>
+                          <span className="text-muted-foreground">Writing:</span>
+                          <p className="font-medium">{subscores.writing}</p>
+                        </div>
+                      )}
+                      {subscores.speaking && (
+                        <div>
+                          <span className="text-muted-foreground">Speaking:</span>
+                          <p className="font-medium">{subscores.speaking}</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                );
+              })()}
             </Card>
           ))}
         </div>
