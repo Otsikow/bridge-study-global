@@ -17,6 +17,9 @@ import StudentProfile from "./pages/student/StudentProfile";
 import Documents from "./pages/student/Documents";
 import Applications from "./pages/student/Applications";
 import NewApplication from "./pages/student/NewApplication";
+import ApplicationDetails from "./pages/student/ApplicationDetails";
+import VisaEligibility from "./pages/student/VisaEligibility";
+import SopGenerator from "./pages/student/SopGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +44,9 @@ const App = () => (
             <Route path="/student/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/student/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
             <Route path="/student/applications/new" element={<ProtectedRoute><NewApplication /></ProtectedRoute>} />
+            <Route path="/student/applications/:id" element={<ProtectedRoute><ApplicationDetails /></ProtectedRoute>} />
+            <Route path="/student/visa-eligibility" element={<ProtectedRoute><VisaEligibility /></ProtectedRoute>} />
+            <Route path="/student/sop" element={<ProtectedRoute><SopGenerator /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

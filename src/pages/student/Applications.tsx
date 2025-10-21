@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Plus, Calendar, GraduationCap, ArrowLeft, MapPin } from 'lucide-react';
+import { FileText, Plus, Calendar, GraduationCap, ArrowLeft, MapPin, Filter, Timer, XCircle } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 
 interface Application {
@@ -33,6 +33,10 @@ export default function Applications() {
   const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [allCountries, setAllCountries] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -77,7 +81,9 @@ export default function Applications() {
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;
-      setApplications(appsData || []);
+      const list = appsData || [];
+      setApplications(list);
+      setAllCountries(Array.from(new Set(list.map((a: any) => a.program.university.country))).sort());
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -93,6 +99,40 @@ export default function Applications() {
   const getIntakeLabel = (month: number, year: number) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${monthNames[month - 1]} ${year}`;
+  };
+
+  const filtered = applications.filter((a) => {
+    const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
+    const matchesCountry = countryFilter === 'all' || a.program.university.country === countryFilter;
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = !term || a.program.name.toLowerCase().includes(term) || a.program.university.name.toLowerCase().includes(term);
+    return matchesStatus && matchesCountry && matchesSearch;
+  });
+
+  const etaFor = (status: string) => {
+    const map: Record<string, string> = {
+      draft: '1–2w prep',
+      submitted: '2–6w decision',
+      screening: '1–2w screening',
+      conditional_offer: '1–3w conditions',
+      unconditional_offer: '2–4w CAS/LOA',
+      cas_loa: '2–6w visa',
+      visa: '2–6w enroll',
+      enrolled: 'Done',
+    };
+    return map[status] || 'Varies';
+  };
+
+  const cancelDraft = async (id: string) => {
+    try {
+      const { error } = await supabase.from('applications').update({ status: 'withdrawn' }).eq('id', id);
+      if (error) throw error;
+      toast({ title: 'Cancelled', description: 'Application moved to Withdrawn' });
+      fetchApplications();
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Could not cancel application', variant: 'destructive' });
+    }
   };
 
   if (loading) {
@@ -115,10 +155,54 @@ export default function Applications() {
         Back
       </Button>
 
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-[220px]">
           <h1 className="text-3xl font-bold mb-2">My Applications</h1>
           <p className="text-muted-foreground">Track and manage your university applications</p>
+        </div>
+        <div className="flex-1 max-w-3xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+            <div className="col-span-1 md:col-span-2">
+              <div className="relative">
+                <input
+                  className="w-full border rounded-md h-9 px-3 text-sm"
+                  placeholder="Search program or university..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <select
+                className="w-full border rounded-md h-9 text-sm px-2"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="draft">Draft</option>
+                <option value="submitted">Submitted</option>
+                <option value="screening">Screening</option>
+                <option value="conditional_offer">Conditional Offer</option>
+                <option value="unconditional_offer">Unconditional Offer</option>
+                <option value="cas_loa">CAS/LOA</option>
+                <option value="visa">Visa</option>
+                <option value="enrolled">Enrolled</option>
+                <option value="withdrawn">Withdrawn</option>
+              </select>
+            </div>
+            <div>
+              <select
+                className="w-full border rounded-md h-9 text-sm px-2"
+                value={countryFilter}
+                onChange={(e) => setCountryFilter(e.target.value)}
+              >
+                <option value="all">All Countries</option>
+                {allCountries.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
         <Button asChild>
           <Link to="/search">
@@ -193,7 +277,7 @@ export default function Applications() {
             </div>
           ) : (
             <div className="space-y-4">
-              {applications.map((app) => (
+              {filtered.map((app) => (
                 <Card key={app.id} className="hover:shadow-md transition-shadow">
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between">
@@ -221,6 +305,9 @@ export default function Applications() {
                           <div>
                             Applied: {new Date(app.created_at).toLocaleDateString()}
                           </div>
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Timer className="h-4 w-4" /> {etaFor(app.status)}
+                          </div>
                         </div>
                       </div>
 
@@ -231,6 +318,11 @@ export default function Applications() {
                             View Details
                           </Link>
                         </Button>
+                        {app.status === 'draft' && (
+                          <Button variant="ghost" size="sm" onClick={() => cancelDraft(app.id)} className="text-red-600">
+                            <XCircle className="h-4 w-4 mr-1" /> Cancel
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
