@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import PerformanceMetrics from '@/components/agent/PerformanceMetrics';
 import LeadsList from '@/components/agent/LeadsList';
 import ResourceHub from '@/components/agent/ResourceHub';
-import { LayoutDashboard, Users, FolderOpen, ArrowLeft } from 'lucide-react';
+import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
+import TaskManagement from '@/components/tasks/TaskManagement';
+import PreferenceRanking from '@/components/ranking/PreferenceRanking';
+import CommissionManagement from '@/components/commission/CommissionManagement';
+import { LayoutDashboard, Users, FolderOpen, ArrowLeft, BarChart3, ClipboardList, Star, DollarSign } from 'lucide-react';
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
@@ -28,14 +32,30 @@ export default function AgentDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
             </TabsTrigger>
+            <TabsTrigger value="applications" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Applications
+            </TabsTrigger>
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               My Leads
+            </TabsTrigger>
+            <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="ranking" className="flex items-center gap-2">
+              <Star className="h-4 w-4" />
+              Ranking
+            </TabsTrigger>
+            <TabsTrigger value="commissions" className="flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Commissions
             </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
@@ -47,8 +67,24 @@ export default function AgentDashboard() {
             <PerformanceMetrics />
           </TabsContent>
 
+          <TabsContent value="applications">
+            <ApplicationTrackingSystem />
+          </TabsContent>
+
           <TabsContent value="leads">
             <LeadsList />
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <TaskManagement />
+          </TabsContent>
+
+          <TabsContent value="ranking">
+            <PreferenceRanking />
+          </TabsContent>
+
+          <TabsContent value="commissions">
+            <CommissionManagement />
           </TabsContent>
 
           <TabsContent value="resources">

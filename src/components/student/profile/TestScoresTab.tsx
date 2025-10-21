@@ -8,22 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Award, Pencil, Trash2, Loader2 } from 'lucide-react';
-
-interface TestScore {
-  id: string;
-  student_id: string;
-  test_type: string;
-  total_score: number;
-  test_date: string;
-  subscores_json?: {
-    listening?: number;
-    reading?: number;
-    writing?: number;
-    speaking?: number;
-  };
-  created_at?: string;
-  updated_at?: string;
-}
+import type { Tables } from '@/integrations/supabase/types';
 
 interface TestScoresTabProps {
   studentId: string;
@@ -32,9 +17,9 @@ interface TestScoresTabProps {
 export function TestScoresTab({ studentId }: TestScoresTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [testScores, setTestScores] = useState<TestScore[]>([]);
+  const [testScores, setTestScores] = useState<Tables<'test_scores'>[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<TestScore | null>(null);
+  const [editingRecord, setEditingRecord] = useState<Tables<'test_scores'> | null>(null);
   const [formData, setFormData] = useState({
     test_type: '',
     total_score: '',
@@ -44,10 +29,6 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     writing: '',
     speaking: ''
   });
-
-  useEffect(() => {
-    fetchTestScores();
-  }, [fetchTestScores]);
 
   const fetchTestScores = useCallback(async () => {
     try {
@@ -65,6 +46,10 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
       setLoading(false);
     }
   }, [studentId]);
+
+  useEffect(() => {
+    fetchTestScores();
+  }, [fetchTestScores]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +94,7 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
       resetForm();
       fetchTestScores();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
         description: errorMessage,
@@ -133,7 +118,7 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
       toast({ title: 'Success', description: 'Test score deleted' });
       fetchTestScores();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
         description: errorMessage,
@@ -154,7 +139,7 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     });
   };
 
-  const openEditDialog = (record: TestScore) => {
+  const openEditDialog = (record: Tables<'test_scores'>) => {
     setEditingRecord(record);
     setFormData({
       test_type: record.test_type,

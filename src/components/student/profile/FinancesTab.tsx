@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, DollarSign } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface Student {
   id: string;
@@ -23,7 +24,10 @@ interface Student {
 }
 
 interface FinancesTabProps {
-  student: Student;
+student: Tables<'students'>;
+onUpdate: () => void;
+}
+
   onUpdate: () => void;
 }
 
