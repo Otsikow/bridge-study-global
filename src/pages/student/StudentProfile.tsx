@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { PersonalInfoTab } from '@/components/student/profile/PersonalInfoTab';
 import { EducationTab } from '@/components/student/profile/EducationTab';
 import { TestScoresTab } from '@/components/student/profile/TestScoresTab';
 import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 export default function StudentProfile() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -71,6 +74,15 @@ export default function StudentProfile() {
 
   return (
     <div className="container mx-auto py-8">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate(-1)}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Profile</h1>
         <p className="text-muted-foreground">

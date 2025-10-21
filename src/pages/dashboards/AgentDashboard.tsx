@@ -1,14 +1,26 @@
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import PerformanceMetrics from '@/components/agent/PerformanceMetrics';
 import LeadsList from '@/components/agent/LeadsList';
 import ResourceHub from '@/components/agent/ResourceHub';
-import { LayoutDashboard, Users, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Users, FolderOpen, ArrowLeft } from 'lucide-react';
 
 export default function AgentDashboard() {
+  const navigate = useNavigate();
+  
   return (
     <DashboardLayout>
       <div className="p-8 space-y-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Partner Agent Dashboard</h1>

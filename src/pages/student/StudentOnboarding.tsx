@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ChecklistItem {
@@ -18,6 +18,7 @@ interface ChecklistItem {
 }
 
 export default function StudentOnboarding() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -150,6 +151,15 @@ export default function StudentOnboarding() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate(-1)}
+        className="mb-4"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back
+      </Button>
       <div>
         <h1 className="text-3xl font-bold mb-2">Welcome to Global Education Gateway</h1>
         <p className="text-muted-foreground">Complete your profile to start applying to universities</p>

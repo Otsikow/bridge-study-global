@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,11 +11,13 @@ import {
   TrendingUp, 
   BookOpen,
   Activity,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const stats = [
     { title: 'Total Students', value: '1,245', icon: Users, trend: { value: 12.5, isPositive: true } },
     { title: 'Active Applications', value: '3,892', icon: FileText, trend: { value: 8.2, isPositive: true } },
@@ -38,6 +41,14 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles } from "lucide-react";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, ArrowLeft } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 import AIChatbot from "@/components/ai/AIChatbot";
@@ -51,6 +52,7 @@ interface SearchResult {
 }
 
 export default function UniversitySearch() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
@@ -205,6 +207,15 @@ export default function UniversitySearch() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
           <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>

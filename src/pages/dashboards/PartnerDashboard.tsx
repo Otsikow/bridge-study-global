@@ -1,12 +1,14 @@
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Upload, FileCheck, TrendingUp } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Upload, FileCheck, TrendingUp, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/StatusBadge';
 
 export default function PartnerDashboard() {
+  const navigate = useNavigate();
   const stats = [
     { title: 'New Applications', value: '28', icon: FileText, description: 'This month' },
     { title: 'Pending Review', value: '12', icon: Clock, description: 'Awaiting action' },
@@ -41,6 +43,14 @@ export default function PartnerDashboard() {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Partner Dashboard</h1>
