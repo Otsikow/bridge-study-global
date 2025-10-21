@@ -150,80 +150,84 @@ export default function StudentOnboarding() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Welcome to Global Education Gateway</h1>
-        <p className="text-muted-foreground">Complete your profile to start applying to universities</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8 px-4 max-w-4xl space-y-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
 
-      {/* Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Profile Completeness</CardTitle>
-          <CardDescription>
-            {completeness}% complete - {checklist.filter(i => i.completed).length} of {checklist.length} steps done
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Progress value={completeness} className="h-3" />
-          {completeness === 100 && (
-            <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-              <p className="text-primary font-medium flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Profile Complete! You're ready to start applying to programs.
-              </p>
-              <Link to="/student/programs">
-                <Button className="mt-3">Browse Programs</Button>
-              </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Welcome to Global Education Gateway</h1>
+          <p className="text-lg text-muted-foreground">Complete your profile to start applying to universities</p>
+        </div>
 
-      {/* Onboarding Checklist */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Getting Started Checklist</h2>
-        {checklist.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Card key={item.id} className={item.completed ? 'border-primary/50 bg-primary/5' : ''}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <div className={`rounded-full p-2 ${item.completed ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      {item.completed ? (
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                      <h3 className="font-semibold">{item.title}</h3>
+        {/* Progress Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl">Profile Completeness</CardTitle>
+            <CardDescription className="text-base">
+              {completeness}% complete - {checklist.filter(i => i.completed).length} of {checklist.length} steps done
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Progress value={completeness} className="h-3" />
+            {completeness === 100 && (
+              <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+                <p className="text-primary font-medium flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Profile Complete! You're ready to start applying to programs.
+                </p>
+                <Link to="/search">
+                  <Button className="mt-3">Browse Programs</Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Onboarding Checklist */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold">Getting Started Checklist</h2>
+          <div className="space-y-3">
+            {checklist.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Card key={item.id} className={item.completed ? 'border-primary/50 bg-primary/5' : ''}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-4">
+                      <div className={`rounded-full p-3 flex-shrink-0 ${item.completed ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          {item.completed ? (
+                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                          )}
+                          <h3 className="font-semibold text-lg">{item.title}</h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
+                        {!item.completed && (
+                          <Link to={item.link}>
+                            <Button variant="outline" size="sm">
+                              Complete This Step
+                            </Button>
+                          </Link>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
-                    {!item.completed && (
-                      <Link to={item.link}>
-                        <Button variant="outline" size="sm">
-                          Complete This Step
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
