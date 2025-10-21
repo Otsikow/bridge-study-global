@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, DollarSign } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface FinancesTabProps {
-  student: any;
+  student: Tables<'students'>;
   onUpdate: () => void;
 }
 

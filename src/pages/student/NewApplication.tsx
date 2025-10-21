@@ -112,7 +112,7 @@ export default function NewApplication() {
         return;
       }
 
-      setProgram(programData as any);
+      setProgram(programData as Program);
 
       // Fetch intakes
       const { data: intakesData, error: intakesError } = await supabase

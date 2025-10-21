@@ -9,6 +9,7 @@ import { EducationTab } from '@/components/student/profile/EducationTab';
 import { TestScoresTab } from '@/components/student/profile/TestScoresTab';
 import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
+import type { Tables } from '@/integrations/supabase/types';
 import { Loader2, ArrowLeft } from 'lucide-react';
 
 export default function StudentProfile() {
@@ -16,7 +17,7 @@ export default function StudentProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [student, setStudent] = useState<any>(null);
+  const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
 
   useEffect(() => {
