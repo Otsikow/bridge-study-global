@@ -152,7 +152,7 @@ export function AppSidebar() {
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4" />
-            {state !== 'collapsed' && <span className="ml-2">Sign Out</span>}
+            {state !== 'collapsed' && <span className="ml-2 hidden md:inline">Sign Out</span>}
           </Button>
         </div>
         <SidebarTrigger className="mt-2 w-full" />
