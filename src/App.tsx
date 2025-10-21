@@ -6,9 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
 import { lazy, Suspense } from "react";
 
+// ✅ Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
@@ -27,6 +27,9 @@ const SopGenerator = lazy(() => import("./pages/student/SopGenerator"));
 const IntakeForm = lazy(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazy(() => import("./pages/VisaCalculator"));
 const UserFeedback = lazy(() => import("./components/analytics/UserFeedback"));
+const Messages = lazy(() => import("./pages/student/Messages"));
+const Payments = lazy(() => import("./pages/student/Payments"));
+const Notifications = lazy(() => import("./pages/student/Notifications"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -38,98 +41,128 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Suspense fallback={<div className="min-h-screen grid place-items-center text-muted-foreground">Loading…</div>}>
+          <Suspense
+            fallback={
+              <div className="min-h-screen grid place-items-center text-muted-foreground">
+                Loading…
+              </div>
+            }
+          >
             <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Index />} />
-            <Route path="/auth/login" element={<Login />} />
-            <Route path="/auth/signup" element={<Signup />} />
-            <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-            <Route path="/auth/reset-password" element={<ResetPassword />} />
-            <Route path="/search" element={<UniversitySearch />} />
+              {/* Public Routes */}
+              <Route path="/" element={<Index />} />
+              <Route path="/auth/login" element={<Login />} />
+              <Route path="/auth/signup" element={<Signup />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
+              <Route path="/search" element={<UniversitySearch />} />
 
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard/*"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/onboarding"
-              element={
-                <ProtectedRoute>
-                  <StudentOnboarding />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/profile"
-              element={
-                <ProtectedRoute>
-                  <StudentProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/documents"
-              element={
-                <ProtectedRoute>
-                  <Documents />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/applications"
-              element={
-                <ProtectedRoute>
-                  <Applications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/applications/new"
-              element={
-                <ProtectedRoute>
-                  <NewApplication />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/applications/:id"
-              element={
-                <ProtectedRoute>
-                  <ApplicationDetails />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/visa-eligibility"
-              element={
-                <ProtectedRoute>
-                  <VisaEligibility />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/student/sop"
-              element={
-                <ProtectedRoute>
-                  <SopGenerator />
-                </ProtectedRoute>
-              }
-            />
+              {/* Protected Routes */}
+              <Route
+                path="/dashboard/*"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <StudentOnboarding />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/profile"
+                element={
+                  <ProtectedRoute>
+                    <StudentProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/documents"
+                element={
+                  <ProtectedRoute>
+                    <Documents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/applications"
+                element={
+                  <ProtectedRoute>
+                    <Applications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/applications/new"
+                element={
+                  <ProtectedRoute>
+                    <NewApplication />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/applications/:id"
+                element={
+                  <ProtectedRoute>
+                    <ApplicationDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/messages"
+                element={
+                  <ProtectedRoute>
+                    <Messages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/payments"
+                element={
+                  <ProtectedRoute>
+                    <Payments />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/notifications"
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/visa-eligibility"
+                element={
+                  <ProtectedRoute>
+                    <VisaEligibility />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/student/sop"
+                element={
+                  <ProtectedRoute>
+                    <SopGenerator />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Additional Features */}
-            <Route path="/intake" element={<IntakeForm />} />
-            <Route path="/intake/:formId" element={<IntakeForm />} />
-            <Route path="/visa-calculator" element={<VisaCalculator />} />
-            <Route path="/feedback" element={<UserFeedback />} />
+              {/* Additional Features */}
+              <Route path="/intake" element={<IntakeForm />} />
+              <Route path="/intake/:formId" element={<IntakeForm />} />
+              <Route path="/visa-calculator" element={<VisaCalculator />} />
+              <Route path="/feedback" element={<UserFeedback />} />
 
-            {/* Catch-All */}
-            <Route path="*" element={<NotFound />} />
+              {/* Catch-All */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </AuthProvider>

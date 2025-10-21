@@ -37,13 +37,13 @@ import gegLogo from '@/assets/geg-logo.png';
 const menuItems = {
   student: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
-    { title: 'My Profile', url: '/dashboard/profile', icon: UserCircle },
+    { title: 'My Profile', url: '/student/profile', icon: UserCircle },
     { title: 'Search Universities', url: '/search', icon: BookOpen },
-    { title: 'My Applications', url: '/dashboard/applications', icon: FileText },
-    { title: 'Documents', url: '/dashboard/documents', icon: Upload },
-    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
-    { title: 'Payments', url: '/dashboard/payments', icon: DollarSign },
-    { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
+    { title: 'My Applications', url: '/student/applications', icon: FileText },
+    { title: 'Documents', url: '/student/documents', icon: Upload },
+    { title: 'Messages', url: '/student/messages', icon: MessageSquare },
+    { title: 'Payments', url: '/student/payments', icon: DollarSign },
+    { title: 'Notifications', url: '/student/notifications', icon: Bell },
   ],
   agent: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
