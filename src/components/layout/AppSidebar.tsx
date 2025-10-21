@@ -1,0 +1,162 @@
+import { 
+  Home, 
+  Users, 
+  FileText, 
+  Building2, 
+  BookOpen, 
+  DollarSign, 
+  Share2, 
+  MessageSquare, 
+  CheckSquare, 
+  Settings,
+  BarChart3,
+  Upload,
+  UserCircle,
+  Bell,
+  LogOut
+} from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+  SidebarHeader,
+  SidebarFooter,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import gegLogo from '@/assets/geg-logo.png';
+
+const menuItems = {
+  student: [
+    { title: 'Dashboard', url: '/dashboard', icon: Home },
+    { title: 'My Profile', url: '/dashboard/profile', icon: UserCircle },
+    { title: 'Browse Programs', url: '/dashboard/programs', icon: BookOpen },
+    { title: 'My Applications', url: '/dashboard/applications', icon: FileText },
+    { title: 'Documents', url: '/dashboard/documents', icon: Upload },
+    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
+    { title: 'Payments', url: '/dashboard/payments', icon: DollarSign },
+    { title: 'Notifications', url: '/dashboard/notifications', icon: Bell },
+  ],
+  agent: [
+    { title: 'Dashboard', url: '/dashboard', icon: Home },
+    { title: 'My Students', url: '/dashboard/students', icon: Users },
+    { title: 'Applications', url: '/dashboard/applications', icon: FileText },
+    { title: 'Referrals', url: '/dashboard/referrals', icon: Share2 },
+    { title: 'Earnings', url: '/dashboard/earnings', icon: DollarSign },
+    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
+    { title: 'Resources', url: '/dashboard/resources', icon: BookOpen },
+  ],
+  partner: [
+    { title: 'Dashboard', url: '/dashboard', icon: Home },
+    { title: 'Applications', url: '/dashboard/applications', icon: FileText },
+    { title: 'Document Requests', url: '/dashboard/requests', icon: Upload },
+    { title: 'Offers & CAS', url: '/dashboard/offers', icon: FileText },
+    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
+    { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
+  ],
+  staff: [
+    { title: 'Dashboard', url: '/dashboard', icon: Home },
+    { title: 'Applications', url: '/dashboard/applications', icon: FileText },
+    { title: 'Students', url: '/dashboard/students', icon: Users },
+    { title: 'Tasks', url: '/dashboard/tasks', icon: CheckSquare },
+    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
+    { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
+  ],
+  admin: [
+    { title: 'Dashboard', url: '/dashboard', icon: Home },
+    { title: 'Users', url: '/dashboard/users', icon: Users },
+    { title: 'Universities', url: '/dashboard/universities', icon: Building2 },
+    { title: 'Programs', url: '/dashboard/programs', icon: BookOpen },
+    { title: 'Applications', url: '/dashboard/applications', icon: FileText },
+    { title: 'Agents', url: '/dashboard/agents', icon: Share2 },
+    { title: 'Commissions', url: '/dashboard/commissions', icon: DollarSign },
+    { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
+    { title: 'Settings', url: '/dashboard/settings', icon: Settings },
+  ],
+};
+
+export function AppSidebar() {
+  const { state } = useSidebar();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth/login');
+  };
+
+  const items = profile?.role ? menuItems[profile.role] || menuItems.student : menuItems.student;
+
+  return (
+    <Sidebar className={state === 'collapsed' ? 'w-14' : 'w-64'}>
+      <SidebarHeader className="border-b p-4">
+        <div className="flex items-center gap-3">
+          <img src={gegLogo} alt="GEG Logo" className="h-10 w-10 object-contain" />
+          {state !== 'collapsed' && (
+            <div>
+              <h2 className="font-bold text-lg">GEG</h2>
+              <p className="text-xs text-muted-foreground capitalize">{profile?.role || 'User'}</p>
+            </div>
+          )}
+        </div>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end={item.url === '/dashboard'}
+                      className={({ isActive }) =>
+                        isActive
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          : 'hover:bg-accent'
+                      }
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {state !== 'collapsed' && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t p-4">
+        <div className="space-y-2">
+          {state !== 'collapsed' && (
+            <div className="px-3 py-2 bg-muted rounded-md">
+              <p className="text-sm font-medium truncate">{profile?.full_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+            </div>
+          )}
+          <Button
+            variant="ghost"
+            size={state === 'collapsed' ? 'icon' : 'default'}
+            className="w-full"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" />
+            {state !== 'collapsed' && <span className="ml-2">Sign Out</span>}
+          </Button>
+        </div>
+        <SidebarTrigger className="mt-2 w-full" />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
