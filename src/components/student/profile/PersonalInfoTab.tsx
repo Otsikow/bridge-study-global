@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface PersonalInfoTabProps {
-  student: any;
+  student: Tables<'students'>;
   onUpdate: () => void;
 }
 

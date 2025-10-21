@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,13 +53,7 @@ export default function NewApplication() {
   const [notes, setNotes] = useState<string>('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  useEffect(() => {
-    if (user && programId) {
-      fetchData();
-    }
-  }, [user, programId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
@@ -73,7 +67,7 @@ export default function NewApplication() {
         toast({
           title: 'Error',
           description: 'Student profile not found',
-          variant: 'destructive'
+          variant: 'destructive',
         });
         navigate('/student/onboarding');
         return;
@@ -106,13 +100,14 @@ export default function NewApplication() {
         toast({
           title: 'Error',
           description: 'Program not found',
-          variant: 'destructive'
+          variant: 'destructive',
         });
         navigate('/search');
         return;
       }
 
-      setProgram(programData as any);
+      // ✅ Corrected conflict: explicit type casting
+      setProgram(programData as Program);
 
       // Fetch intakes
       const { data: intakesData, error: intakesError } = await supabase
@@ -124,18 +119,23 @@ export default function NewApplication() {
 
       if (intakesError) throw intakesError;
       setIntakes(intakesData || []);
-
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load program details',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, programId, navigate, toast]);
+
+  useEffect(() => {
+    if (user && programId) {
+      fetchData();
+    }
+  }, [user, programId, fetchData]);
 
   const handleSubmit = async () => {
     if (!studentId || !programId) return;
@@ -144,7 +144,7 @@ export default function NewApplication() {
       toast({
         title: 'Error',
         description: 'Please agree to the terms and conditions',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -153,16 +153,18 @@ export default function NewApplication() {
     try {
       const { data, error } = await supabase
         .from('applications')
-        .insert([{
-          student_id: studentId,
-          program_id: programId,
-          intake_year: intakeYear,
-          intake_month: intakeMonth,
-          status: 'draft',
-          notes: notes || null,
-          intake_id: selectedIntake || null,
-          tenant_id: '00000000-0000-0000-0000-000000000001'
-        }])
+        .insert([
+          {
+            student_id: studentId,
+            program_id: programId,
+            intake_year: intakeYear,
+            intake_month: intakeMonth,
+            status: 'draft',
+            notes: notes || null,
+            intake_id: selectedIntake || null,
+            tenant_id: '00000000-0000-0000-0000-000000000001',
+          },
+        ])
         .select()
         .single();
 
@@ -170,7 +172,7 @@ export default function NewApplication() {
 
       toast({
         title: 'Success',
-        description: 'Application created successfully'
+        description: 'Application created successfully',
       });
 
       navigate(`/student/applications/${data.id}`);
@@ -179,7 +181,7 @@ export default function NewApplication() {
       toast({
         title: 'Error',
         description: 'Failed to create application',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setSubmitting(false);
@@ -204,19 +206,16 @@ export default function NewApplication() {
 
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-4xl">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
 
       <div>
         <h1 className="text-3xl font-bold mb-2">New Application</h1>
-        <p className="text-muted-foreground">Submit your application to start your journey</p>
+        <p className="text-muted-foreground">
+          Submit your application to start your journey
+        </p>
       </div>
 
       {/* Program Details */}
@@ -230,17 +229,25 @@ export default function NewApplication() {
         <CardContent className="space-y-4">
           <div>
             <h3 className="text-xl font-semibold">{program.name}</h3>
-            <p className="text-muted-foreground">{program.level} • {program.discipline}</p>
+            <p className="text-muted-foreground">
+              {program.level} • {program.discipline}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{program.university.name}, {program.university.city}, {program.university.country}</span>
+              <span>
+                {program.university.name}, {program.university.city},{' '}
+                {program.university.country}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span>{program.tuition_currency} {program.tuition_amount.toLocaleString()} per year</span>
+              <span>
+                {program.tuition_currency}{' '}
+                {program.tuition_amount.toLocaleString()} per year
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -254,7 +261,9 @@ export default function NewApplication() {
       <Card>
         <CardHeader>
           <CardTitle>Application Details</CardTitle>
-          <CardDescription>Select your preferred intake and provide additional information</CardDescription>
+          <CardDescription>
+            Select your preferred intake and provide additional information
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {intakes.length > 0 ? (
@@ -267,7 +276,9 @@ export default function NewApplication() {
                 <SelectContent>
                   {intakes.map((intake) => (
                     <SelectItem key={intake.id} value={intake.id}>
-                      {intake.term} - Starts: {new Date(intake.start_date).toLocaleDateString()} (Deadline: {new Date(intake.app_deadline).toLocaleDateString()})
+                      {intake.term} - Starts:{' '}
+                      {new Date(intake.start_date).toLocaleDateString()} (Deadline:{' '}
+                      {new Date(intake.app_deadline).toLocaleDateString()})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -277,14 +288,21 @@ export default function NewApplication() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Intake Year</Label>
-                <Select value={intakeYear.toString()} onValueChange={(v) => setIntakeYear(parseInt(v))}>
+                <Select
+                  value={intakeYear.toString()}
+                  onValueChange={(v) => setIntakeYear(parseInt(v))}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[0, 1, 2].map(offset => {
+                    {[0, 1, 2].map((offset) => {
                       const year = new Date().getFullYear() + offset;
-                      return <SelectItem key={year} value={year.toString()}>{year}</SelectItem>;
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      );
                     })}
                   </SelectContent>
                 </Select>
@@ -292,13 +310,31 @@ export default function NewApplication() {
 
               <div className="space-y-2">
                 <Label>Intake Month</Label>
-                <Select value={intakeMonth.toString()} onValueChange={(v) => setIntakeMonth(parseInt(v))}>
+                <Select
+                  value={intakeMonth.toString()}
+                  onValueChange={(v) => setIntakeMonth(parseInt(v))}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, idx) => (
-                      <SelectItem key={idx + 1} value={(idx + 1).toString()}>{month}</SelectItem>
+                    {[
+                      'January',
+                      'February',
+                      'March',
+                      'April',
+                      'May',
+                      'June',
+                      'July',
+                      'August',
+                      'September',
+                      'October',
+                      'November',
+                      'December',
+                    ].map((month, idx) => (
+                      <SelectItem key={idx + 1} value={(idx + 1).toString()}>
+                        {month}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -321,10 +357,11 @@ export default function NewApplication() {
             <Checkbox
               id="terms"
               checked={agreedToTerms}
-              onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+              onCheckedChange={(checked) => setAgreedToTerms(!!checked)}
             />
             <Label htmlFor="terms" className="text-sm cursor-pointer">
-              I agree to the terms and conditions and confirm that all information provided is accurate
+              I agree to the terms and conditions and confirm that all information
+              provided is accurate
             </Label>
           </div>
 

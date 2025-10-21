@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -31,9 +31,9 @@ export default function PerformanceMetrics() {
     if (profile?.id) {
       fetchPerformanceData();
     }
-  }, [profile?.id]);
+  }, [profile?.id, fetchPerformanceData]);
 
-  const fetchPerformanceData = async () => {
+  const fetchPerformanceData = useCallback(async () => {
     try {
       // Get agent ID
       const { data: agentData, error: agentError } = await supabase
@@ -104,7 +104,7 @@ export default function PerformanceMetrics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.id, toast]);
 
   if (loading) {
     return (

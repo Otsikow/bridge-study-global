@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -110,7 +110,7 @@ export default function UniversitySearch() {
     }
   };
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
       // Build university query
@@ -193,11 +193,11 @@ export default function UniversitySearch() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedCountry, selectedLevel, selectedDiscipline, maxFee, onlyWithScholarships]);
 
   useEffect(() => {
     handleSearch();
-  }, [selectedCountry, selectedLevel, selectedDiscipline, maxFee, onlyWithScholarships]);
+  }, [handleSearch]);
 
   const handleGetAIRecommendations = () => {
     getRecommendations({
