@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,11 +30,7 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     speaking: ''
   });
 
-  useEffect(() => {
-    fetchTestScores();
-  }, [studentId]);
-
-  const fetchTestScores = async () => {
+  const fetchTestScores = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('test_scores')
@@ -49,7 +45,11 @@ export function TestScoresTab({ studentId }: TestScoresTabProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [studentId]);
+
+  useEffect(() => {
+    fetchTestScores();
+  }, [fetchTestScores]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

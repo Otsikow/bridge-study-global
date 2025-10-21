@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,19 +20,7 @@ export default function StudentProfile() {
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
 
-  useEffect(() => {
-    if (user) {
-      fetchStudentData();
-    }
-
-    // Handle hash navigation for direct links to tabs
-    const hash = window.location.hash.replace('#', '');
-    if (hash && ['personal', 'education', 'tests', 'finances'].includes(hash)) {
-      setActiveTab(hash);
-    }
-  }, [user]);
-
-  const fetchStudentData = async () => {
+  const fetchStudentData = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('students')
@@ -47,12 +35,24 @@ export default function StudentProfile() {
       toast({
         title: 'Error',
         description: 'Failed to load profile data',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudentData();
+    }
+
+    // Handle hash navigation for direct links to tabs
+    const hash = window.location.hash.replace('#', '');
+    if (hash && ['personal', 'education', 'tests', 'finances'].includes(hash)) {
+      setActiveTab(hash);
+    }
+  }, [user, fetchStudentData]);
 
   if (loading) {
     return (
@@ -67,7 +67,9 @@ export default function StudentProfile() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Student Profile Not Found</h2>
-          <p className="text-muted-foreground">Please contact support if this issue persists.</p>
+          <p className="text-muted-foreground">
+            Please contact support if this issue persists.
+          </p>
         </div>
       </div>
     );
@@ -84,6 +86,7 @@ export default function StudentProfile() {
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
+
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Profile</h1>
         <p className="text-muted-foreground">

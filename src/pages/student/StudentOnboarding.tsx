@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,13 +27,7 @@ export default function StudentOnboarding() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [completeness, setCompleteness] = useState(0);
 
-  useEffect(() => {
-    if (user) {
-      fetchStudentData();
-    }
-  }, [user]);
-
-  const fetchStudentData = async () => {
+  const fetchStudentData = useCallback(async () => {
     try {
       // Get student record
       const { data: studentData, error: studentError } = await supabase
@@ -71,7 +65,7 @@ export default function StudentOnboarding() {
           description: 'Add your legal name, contact details, and passport information',
           completed: !!(studentData.legal_name && studentData.contact_email && studentData.passport_number),
           icon: FileText,
-          link: '/student/profile'
+          link: '/student/profile',
         },
         {
           id: 'education',
@@ -79,7 +73,7 @@ export default function StudentOnboarding() {
           description: 'Add at least one education record (high school or university)',
           completed: (educationCount || 0) > 0,
           icon: GraduationCap,
-          link: '/student/profile#education'
+          link: '/student/profile#education',
         },
         {
           id: 'tests',
@@ -87,7 +81,7 @@ export default function StudentOnboarding() {
           description: 'Upload your IELTS, TOEFL, or other English test results',
           completed: (testScoresCount || 0) > 0,
           icon: Award,
-          link: '/student/profile#tests'
+          link: '/student/profile#tests',
         },
         {
           id: 'finances',
@@ -95,7 +89,7 @@ export default function StudentOnboarding() {
           description: 'Provide details about your finances and sponsorship',
           completed: !!(studentData.finances_json && Object.keys(studentData.finances_json).length > 0),
           icon: DollarSign,
-          link: '/student/profile#finances'
+          link: '/student/profile#finances',
         },
         {
           id: 'documents',
@@ -103,14 +97,14 @@ export default function StudentOnboarding() {
           description: 'Upload passport, transcripts, and other key documents',
           completed: (documentsCount || 0) >= 2,
           icon: FileCheck,
-          link: '/student/documents'
-        }
+          link: '/student/documents',
+        },
       ];
 
       setChecklist(items);
 
       // Calculate completeness
-      const completedItems = items.filter(item => item.completed).length;
+      const completedItems = items.filter((item) => item.completed).length;
       const percentage = Math.round((completedItems / items.length) * 100);
       setCompleteness(percentage);
 
@@ -121,18 +115,23 @@ export default function StudentOnboarding() {
           .update({ profile_completeness: percentage })
           .eq('id', studentData.id);
       }
-
     } catch (error) {
       console.error('Error fetching student data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load onboarding data',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudentData();
+    }
+  }, [user, fetchStudentData]);
 
   if (loading) {
     return (
@@ -141,7 +140,7 @@ export default function StudentOnboarding() {
           <div className="h-8 bg-muted rounded w-1/3"></div>
           <div className="h-24 bg-muted rounded"></div>
           <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map(i => (
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-20 bg-muted rounded"></div>
             ))}
           </div>
@@ -153,18 +152,16 @@ export default function StudentOnboarding() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 max-w-4xl space-y-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
 
         <div>
           <h1 className="text-4xl font-bold mb-2">Welcome to Global Education Gateway</h1>
-          <p className="text-lg text-muted-foreground">Complete your profile to start applying to universities</p>
+          <p className="text-lg text-muted-foreground">
+            Complete your profile to start applying to universities
+          </p>
         </div>
 
         {/* Progress Overview */}
@@ -172,7 +169,8 @@ export default function StudentOnboarding() {
           <CardHeader>
             <CardTitle className="text-2xl">Profile Completeness</CardTitle>
             <CardDescription className="text-base">
-              {completeness}% complete - {checklist.filter(i => i.completed).length} of {checklist.length} steps done
+              {completeness}% complete - {checklist.filter((i) => i.completed).length} of{' '}
+              {checklist.length} steps done
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -198,10 +196,19 @@ export default function StudentOnboarding() {
             {checklist.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.id} className={item.completed ? 'border-primary/50 bg-primary/5' : ''}>
+                <Card
+                  key={item.id}
+                  className={item.completed ? 'border-primary/50 bg-primary/5' : ''}
+                >
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
-                      <div className={`rounded-full p-3 flex-shrink-0 ${item.completed ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      <div
+                        className={`rounded-full p-3 flex-shrink-0 ${
+                          item.completed
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted'
+                        }`}
+                      >
                         <Icon className="h-6 w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -213,7 +220,9 @@ export default function StudentOnboarding() {
                           )}
                           <h3 className="font-semibold text-lg">{item.title}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-3">{item.description}</p>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {item.description}
+                        </p>
                         {!item.completed && (
                           <Link to={item.link}>
                             <Button variant="outline" size="sm">

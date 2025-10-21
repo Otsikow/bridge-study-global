@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,9 +38,9 @@ export default function Applications() {
     if (user) {
       fetchApplications();
     }
-  }, [user]);
+  }, [user, fetchApplications]);
 
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
@@ -88,7 +88,7 @@ export default function Applications() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, toast]);
 
   const getIntakeLabel = (month: number, year: number) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

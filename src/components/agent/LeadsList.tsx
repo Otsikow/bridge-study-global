@@ -48,9 +48,9 @@ export default function LeadsList() {
     if (profile?.id) {
       fetchLeads();
     }
-  }, [profile?.id]);
+  }, [profile?.id, fetchLeads]);
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     try {
       // First get the agent ID
       const { data: agentData, error: agentError } = await supabase
@@ -118,7 +118,7 @@ export default function LeadsList() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.id, toast]);
 
   if (loading) {
     return (

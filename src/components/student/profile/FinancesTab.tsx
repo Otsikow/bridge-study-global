@@ -10,8 +10,24 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, DollarSign } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
+interface Student {
+  id: string;
+  finances_json?: {
+    sponsor_type?: string;
+    annual_budget?: string;
+    currency?: string;
+    sponsor_name?: string;
+    sponsor_relationship?: string;
+    sponsor_occupation?: string;
+    additional_notes?: string;
+  };
+}
+
 interface FinancesTabProps {
-  student: Tables<'students'>;
+student: Tables<'students'>;
+onUpdate: () => void;
+}
+
   onUpdate: () => void;
 }
 

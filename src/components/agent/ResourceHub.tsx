@@ -8,6 +8,7 @@ interface Resource {
   description: string;
   type: 'pdf' | 'image' | 'video' | 'link';
   icon: LucideIcon;
+main
   url: string;
   category: string;
 }

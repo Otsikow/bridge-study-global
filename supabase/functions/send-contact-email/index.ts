@@ -13,7 +13,7 @@ interface ContactEmailRequest {
 
 const sendEmail = async (to: string[], subject: string, html: string) => {
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-  
+
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -84,13 +84,13 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: unknown) {
     console.error("Error in send-contact-email function:", error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     return new Response(
-      JSON.stringify({ error: message }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      },
     );
   }
 };
