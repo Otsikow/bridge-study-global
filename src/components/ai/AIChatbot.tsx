@@ -140,9 +140,9 @@ export default function AIChatbot() {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-[380px] h-[600px] shadow-2xl flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle className="flex items-center gap-2">
+    <Card className="fixed bottom-6 right-6 w-[380px] h-[85vh] max-h-[600px] shadow-2xl flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Bot className="h-5 w-5" />
           AI Assistant
         </CardTitle>
@@ -154,9 +154,9 @@ export default function AIChatbot() {
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4 p-0">
+      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-          <div className="space-y-4 pb-4">
+          <div className="space-y-4 py-4">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -197,7 +197,7 @@ export default function AIChatbot() {
             )}
           </div>
         </ScrollArea>
-        <div className="p-4 border-t">
+        <div className="p-3 border-t flex-shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
