@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { ContactForm } from '@/components/ContactForm';
 import {
   Accordion,
   AccordionContent,
@@ -373,10 +374,27 @@ const Index = () => {
 
           <div className="text-center mt-12">
             <p className="text-muted-foreground mb-4">Still have questions?</p>
-            <Link to="/auth/signup">
-              <Button variant="outline">Contact Our Team</Button>
-            </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Get in Touch
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Have questions? We're here to help. Send us a message and we'll get back to you soon.
+            </p>
+          </div>
+          
+          <Card className="border-2">
+            <CardContent className="pt-8 pb-8">
+              <ContactForm />
+            </CardContent>
+          </Card>
         </div>
       </section>
 
