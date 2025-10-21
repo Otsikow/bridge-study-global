@@ -49,12 +49,6 @@ export default function Documents() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
 
-  useEffect(() => {
-    if (user) {
-      fetchStudentAndDocuments();
-    }
-  }, [user, fetchStudentAndDocuments]);
-
   const fetchStudentAndDocuments = useCallback(async () => {
     try {
       // Get student ID
@@ -96,6 +90,12 @@ export default function Documents() {
       setLoading(false);
     }
   }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudentAndDocuments();
+    }
+  }, [user, fetchStudentAndDocuments]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

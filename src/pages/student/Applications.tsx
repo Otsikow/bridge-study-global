@@ -38,12 +38,6 @@ export default function Applications() {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [allCountries, setAllCountries] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (user) {
-      fetchApplications();
-    }
-  }, [user, fetchApplications]);
-
   const fetchApplications = useCallback(async () => {
     try {
       // Get student ID
@@ -95,6 +89,12 @@ export default function Applications() {
       setLoading(false);
     }
   }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user) {
+      fetchApplications();
+    }
+  }, [user, fetchApplications]);
 
   const getIntakeLabel = (month: number, year: number) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
