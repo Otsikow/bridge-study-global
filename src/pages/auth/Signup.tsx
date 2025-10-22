@@ -59,7 +59,7 @@ const Signup = () => {
       toast({
         variant: 'destructive',
         title: 'Signup failed',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An error occurred during signup',
       });
       setLoading(false);
     } else {

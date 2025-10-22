@@ -140,7 +140,8 @@ export const useAIRecommendations = () => {
         }
 
         // University ranking bonus
-        if (program.university.ranking?.world_rank && program.university.ranking.world_rank <= 100) {
+        const ranking = program.university.ranking as any;
+        if (ranking && typeof ranking === 'object' && ranking.world_rank && ranking.world_rank <= 100) {
           score += 5;
           reasons.push(`Top-ranked university`);
         }

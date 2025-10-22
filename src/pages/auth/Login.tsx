@@ -46,7 +46,7 @@ const Login = () => {
       toast({
         variant: 'destructive',
         title: 'Login failed',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'An error occurred during login',
       });
       setLoading(false);
     } else {

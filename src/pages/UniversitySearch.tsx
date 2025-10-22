@@ -75,7 +75,7 @@ export default function UniversitySearch() {
   const [aiPreferredCountries, setAIPreferredCountries] = useState<string[]>([]);
   const [aiBudget, setAIBudget] = useState("");
   const [activeTab, setActiveTab] = useState("search");
-  const { recommendations, loading: aiLoading, getRecommendations } = useAIRecommendations();
+  const { recommendations, loading: aiLoading } = useAIRecommendations();
 
   // Load filter options
   useEffect(() => {
@@ -200,12 +200,11 @@ export default function UniversitySearch() {
   }, [handleSearch]);
 
   const handleGetAIRecommendations = () => {
-    getRecommendations({
+    // TODO: Implement AI recommendations when hook is complete
+    console.log('AI Recommendations:', {
       interests: aiInterests,
       preferredCountries: aiPreferredCountries,
       budget: aiBudget ? parseFloat(aiBudget) : undefined,
-      currentLevel: selectedLevel !== "all" ? selectedLevel : undefined,
-      targetLevel: selectedLevel !== "all" ? selectedLevel : undefined,
     });
   };
 
