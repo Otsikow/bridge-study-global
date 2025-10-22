@@ -238,46 +238,48 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                   <AlertCircle className="h-4 w-4" />
                   High Priority ({highPrioritySuggestions.length})
                 </h4>
-                {highPrioritySuggestions.map((suggestion) => {
-                  const TypeIcon = getTypeIcon(suggestion.type);
-                  const CategoryIcon = getCategoryIcon(suggestion.category);
-                  return (
-                    <Card key={suggestion.id} className="border-destructive/40 bg-destructive/10">
-                      <CardContent className="pt-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2 flex-1">
-                            <div className="flex items-center gap-2">
-                              <TypeIcon className="h-4 w-4 text-destructive" />
-                              <Badge className={getTypeColor(suggestion.type)}>
-                                {suggestion.type}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                <CategoryIcon className="h-3 w-3 mr-1" />
-                                {suggestion.category}
-                              </Badge>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {highPrioritySuggestions.map((suggestion) => {
+                    const TypeIcon = getTypeIcon(suggestion.type);
+                    const CategoryIcon = getCategoryIcon(suggestion.category);
+                    return (
+                      <Card key={suggestion.id} className="border-destructive/40 bg-destructive/10 dark:bg-destructive/20">
+                        <CardContent className="pt-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="space-y-2 flex-1">
+                              <div className="flex items-center gap-2">
+                                <TypeIcon className="h-4 w-4 text-destructive" />
+                                <Badge className={getTypeColor(suggestion.type)}>
+                                  {suggestion.type}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  <CategoryIcon className="h-3 w-3 mr-1" />
+                                  {suggestion.category}
+                                </Badge>
+                              </div>
+                              <h4 className="font-medium text-sm">{suggestion.title}</h4>
+                              <p className="text-sm text-muted-foreground">{suggestion.description}</p>
                             </div>
-                            <h4 className="font-medium text-sm">{suggestion.title}</h4>
-                            <p className="text-sm text-muted-foreground">{suggestion.description}</p>
-                          </div>
-                          <div className="flex items-center gap-1 ml-4">
-                            {suggestion.action_url && (
-                              <Button size="sm" onClick={() => handleAction(suggestion)}>
-                                {suggestion.action_text}
+                            <div className="flex items-center gap-1 sm:ml-4">
+                              {suggestion.action_url && (
+                                <Button size="sm" onClick={() => handleAction(suggestion)}>
+                                  {suggestion.action_text}
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => dismissSuggestion(suggestion.id)}
+                              >
+                                ×
                               </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => dismissSuggestion(suggestion.id)}
-                            >
-                              ×
-                            </Button>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -287,46 +289,48 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                 <h4 className="font-medium text-sm text-muted-foreground">
                   Other Suggestions ({otherSuggestions.length})
                 </h4>
-                {otherSuggestions.map((suggestion) => {
-                  const TypeIcon = getTypeIcon(suggestion.type);
-                  const CategoryIcon = getCategoryIcon(suggestion.category);
-                  return (
-                    <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-4">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-2 flex-1">
-                            <div className="flex items-center gap-2">
-                              <TypeIcon className={`h-4 w-4 ${getPriorityColor(suggestion.priority)}`} />
-                              <Badge className={getTypeColor(suggestion.type)}>
-                                {suggestion.type}
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                <CategoryIcon className="h-3 w-3 mr-1" />
-                                {suggestion.category}
-                              </Badge>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {otherSuggestions.map((suggestion) => {
+                    const TypeIcon = getTypeIcon(suggestion.type);
+                    const CategoryIcon = getCategoryIcon(suggestion.category);
+                    return (
+                      <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="pt-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="space-y-2 flex-1">
+                              <div className="flex items-center gap-2">
+                                <TypeIcon className={`h-4 w-4 ${getPriorityColor(suggestion.priority)}`} />
+                                <Badge className={getTypeColor(suggestion.type)}>
+                                  {suggestion.type}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  <CategoryIcon className="h-3 w-3 mr-1" />
+                                  {suggestion.category}
+                                </Badge>
+                              </div>
+                              <h4 className="font-medium text-sm">{suggestion.title}</h4>
+                              <p className="text-sm text-muted-foreground">{suggestion.description}</p>
                             </div>
-                            <h4 className="font-medium text-sm">{suggestion.title}</h4>
-                            <p className="text-sm text-muted-foreground">{suggestion.description}</p>
-                          </div>
-                          <div className="flex items-center gap-1 ml-4">
-                            {suggestion.action_url && (
-                              <Button size="sm" variant="outline" onClick={() => handleAction(suggestion)}>
-                                {suggestion.action_text}
+                            <div className="flex items-center gap-1 sm:ml-4">
+                              {suggestion.action_url && (
+                                <Button size="sm" variant="outline" onClick={() => handleAction(suggestion)}>
+                                  {suggestion.action_text}
+                                </Button>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => dismissSuggestion(suggestion.id)}
+                              >
+                                ×
                               </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => dismissSuggestion(suggestion.id)}
-                            >
-                              ×
-                            </Button>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </>

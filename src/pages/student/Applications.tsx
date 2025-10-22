@@ -76,9 +76,9 @@ export default function Applications() {
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;
-      const list = appsData || [];
+      const list = (appsData ?? []) as Application[];
       setApplications(list);
-      setAllCountries(Array.from(new Set(list.map((a: any) => a.program.university.country))).sort());
+      setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
