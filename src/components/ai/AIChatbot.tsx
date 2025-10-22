@@ -192,18 +192,18 @@ export default function AIChatbot() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-14 md:w-14"
         size="icon"
       >
-        <MessageCircle className="h-6 w-6" />
+        <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
       </Button>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-[380px] h-[85vh] max-h-[600px] shadow-2xl flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
+    <Card className="fixed bottom-4 right-4 left-4 h-[calc(100vh-2rem)] shadow-2xl flex flex-col xs:left-auto xs:w-[380px] xs:h-[85vh] xs:max-h-[600px] md:bottom-6 md:right-6">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 pt-4">
+        <CardTitle className="flex items-center gap-2 text-base md:text-lg">
           <Bot className="h-5 w-5" />
           AI Assistant
         </CardTitle>
@@ -211,13 +211,14 @@ export default function AIChatbot() {
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
+          className="h-8 w-8"
         >
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-          <div className="space-y-4 py-4">
+        <ScrollArea className="flex-1 px-3 md:px-4" ref={scrollRef}>
+          <div className="space-y-3 md:space-y-4 py-3 md:py-4">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -231,7 +232,7 @@ export default function AIChatbot() {
                   </div>
                 )}
                 <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] ${
+                  className={`rounded-lg px-3 py-2 max-w-[75%] xs:max-w-[80%] ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
@@ -258,7 +259,7 @@ export default function AIChatbot() {
             )}
           </div>
         </ScrollArea>
-        <div className="p-3 border-t flex-shrink-0">
+        <div className="p-3 md:p-4 border-t flex-shrink-0">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -271,8 +272,9 @@ export default function AIChatbot() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything..."
               disabled={isLoading}
+              className="text-sm md:text-base"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="flex-shrink-0">
               <Send className="h-4 w-4" />
             </Button>
           </form>
