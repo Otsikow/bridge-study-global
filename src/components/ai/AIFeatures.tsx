@@ -296,17 +296,17 @@ ${sopData.student_name}`;
   };
 
   const getMatchScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 80) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 90) return 'text-success';
+    if (score >= 80) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'easy': return 'bg-success-light text-success dark:bg-success/20';
+      case 'medium': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'hard': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -414,7 +414,7 @@ ${sopData.student_name}`;
                               <ul className="space-y-1">
                                 {rec.reasons.map((reason, index) => (
                                   <li key={index} className="flex items-start gap-2 text-sm">
-                                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                    <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                                     {reason}
                                   </li>
                                 ))}
@@ -690,7 +690,7 @@ ${sopData.student_name}`;
                               <ul className="text-sm space-y-1">
                                 {question.evaluation_criteria.map((criteria, index) => (
                                   <li key={index} className="flex items-center gap-2">
-                                    <CheckCircle className="h-3 w-3 text-green-600" />
+                                    <CheckCircle className="h-3 w-3 text-success" />
                                     {criteria}
                                   </li>
                                 ))}
@@ -725,21 +725,21 @@ ${sopData.student_name}`;
                 
                 <div className="grid gap-4 md:grid-cols-3 mb-6">
                   <div className="text-center">
-                    <CheckCircle className="h-8 w-8 mx-auto text-green-600 mb-2" />
+                    <CheckCircle className="h-8 w-8 mx-auto text-success mb-2" />
                     <h4 className="font-medium">Instant Validation</h4>
                     <p className="text-sm text-muted-foreground">
                       AI checks all requirements in real-time
                     </p>
                   </div>
                   <div className="text-center">
-                    <Lightbulb className="h-8 w-8 mx-auto text-yellow-600 mb-2" />
+                    <Lightbulb className="h-8 w-8 mx-auto text-warning mb-2" />
                     <h4 className="font-medium">Smart Suggestions</h4>
                     <p className="text-sm text-muted-foreground">
                       Get recommendations to improve your application
                     </p>
                   </div>
                   <div className="text-center">
-                    <TrendingUp className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                    <TrendingUp className="h-8 w-8 mx-auto text-info mb-2" />
                     <h4 className="font-medium">Higher Success Rate</h4>
                     <p className="text-sm text-muted-foreground">
                       AI-optimized applications have 40% better acceptance rates

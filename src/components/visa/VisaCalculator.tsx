@@ -239,26 +239,26 @@ export default function VisaCalculator() {
 
   const getProbabilityColor = (probability: string) => {
     switch (probability) {
-      case 'high': return 'text-green-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'high': return 'text-success';
+      case 'medium': return 'text-warning';
+      case 'low': return 'text-destructive';
+      default: return 'text-muted-foreground';
     }
   };
 
   const getProbabilityIcon = (probability: string) => {
     switch (probability) {
-      case 'high': return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'medium': return <AlertCircle className="h-5 w-5 text-yellow-600" />;
-      case 'low': return <XCircle className="h-5 w-5 text-red-600" />;
-      default: return <AlertCircle className="h-5 w-5 text-gray-600" />;
+      case 'high': return <CheckCircle className="h-5 w-5 text-success" />;
+      case 'medium': return <AlertCircle className="h-5 w-5 text-warning" />;
+      case 'low': return <XCircle className="h-5 w-5 text-destructive" />;
+      default: return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 85) return 'text-success';
+    if (score >= 70) return 'text-warning';
+    return 'text-destructive';
   };
 
   return (
@@ -446,18 +446,18 @@ export default function VisaCalculator() {
                 </div>
 
                 {/* Eligibility Status */}
-                <div className={`p-4 rounded-lg ${eligibility.eligible ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                <div className={`p-4 rounded-lg border ${eligibility.eligible ? 'bg-success-light border-success/40 dark:bg-success/10' : 'bg-destructive/10 border-destructive/40'}`}>
                   <div className="flex items-center gap-2">
                     {eligibility.eligible ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-success" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 text-destructive" />
                     )}
-                    <span className={`font-medium ${eligibility.eligible ? 'text-green-800' : 'text-red-800'}`}>
+                    <span className={`font-medium ${eligibility.eligible ? 'text-success' : 'text-destructive'}`}>
                       {eligibility.eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE'}
                     </span>
                   </div>
-                  <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-green-700' : 'text-red-700'}`}>
+                  <p className={`text-sm mt-1 ${eligibility.eligible ? 'text-success' : 'text-destructive'}`}>
                     {eligibility.eligible 
                       ? 'You meet the basic requirements for visa application'
                       : 'You need to improve some requirements before applying'
@@ -468,10 +468,10 @@ export default function VisaCalculator() {
                 {/* Missing Requirements */}
                 {eligibility.missing_requirements.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-red-800 mb-2">Missing Requirements:</h4>
+                    <h4 className="font-medium text-destructive mb-2">Missing Requirements:</h4>
                     <ul className="space-y-1">
                       {eligibility.missing_requirements.map((req, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm text-red-700">
+                        <li key={index} className="flex items-start gap-2 text-sm text-destructive">
                           <XCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                           {req}
                         </li>
@@ -483,10 +483,10 @@ export default function VisaCalculator() {
                 {/* Recommendations */}
                 {eligibility.recommendations.length > 0 && (
                   <div>
-                    <h4 className="font-medium text-blue-800 mb-2">Recommendations:</h4>
+                    <h4 className="font-medium text-info mb-2">Recommendations:</h4>
                     <ul className="space-y-1">
                       {eligibility.recommendations.map((rec, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm text-blue-700">
+                        <li key={index} className="flex items-start gap-2 text-sm text-info">
                           <Award className="h-4 w-4 mt-0.5 flex-shrink-0" />
                           {rec}
                         </li>
@@ -528,7 +528,7 @@ export default function VisaCalculator() {
                       </div>
                       <div className="flex justify-between">
                         <span>Success Rate:</span>
-                        <span className="font-medium text-green-600">{VISA_REQUIREMENTS[selectedCountry].success_rate}%</span>
+                        <span className="font-medium text-success">{VISA_REQUIREMENTS[selectedCountry].success_rate}%</span>
                       </div>
                     </div>
                   </div>

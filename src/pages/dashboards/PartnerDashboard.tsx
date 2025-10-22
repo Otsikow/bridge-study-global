@@ -129,10 +129,10 @@ export default function PartnerDashboard() {
           <CardContent>
             <div className="space-y-4">
               {[
-                { stage: 'Submitted', count: 12, color: 'bg-blue-500' },
-                { stage: 'Under Review', count: 8, color: 'bg-yellow-500' },
-                { stage: 'Conditional Offer', count: 15, color: 'bg-orange-500' },
-                { stage: 'Unconditional Offer', count: 10, color: 'bg-green-500' },
+                { stage: 'Submitted', count: 12, color: 'bg-info' },
+                { stage: 'Under Review', count: 8, color: 'bg-warning' },
+                { stage: 'Conditional Offer', count: 15, color: 'bg-warning' },
+                { stage: 'Unconditional Offer', count: 10, color: 'bg-success' },
                 { stage: 'CAS Issued', count: 8, color: 'bg-primary' },
               ].map((item) => (
                 <div key={item.stage} className="flex items-center justify-between">

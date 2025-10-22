@@ -175,10 +175,10 @@ export default function StaffDashboard() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-5">
               {[
-                { label: 'Submitted', count: 28, color: 'bg-blue-500' },
-                { label: 'Screening', count: 42, color: 'bg-yellow-500' },
-                { label: 'Offers', count: 35, color: 'bg-green-500' },
-                { label: 'Visa Stage', count: 18, color: 'bg-purple-500' },
+                { label: 'Submitted', count: 28, color: 'bg-info' },
+                { label: 'Screening', count: 42, color: 'bg-warning' },
+                { label: 'Offers', count: 35, color: 'bg-success' },
+                { label: 'Visa Stage', count: 18, color: 'bg-accent' },
                 { label: 'Enrolled', count: 24, color: 'bg-primary' },
               ].map((status) => (
                 <div key={status.label} className="p-4 border rounded-lg">

@@ -52,7 +52,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Total Students</p>
                   <p className="text-2xl font-bold">1,234</p>
                 </div>
-                <Users className="h-8 w-8 text-blue-600" />
+                <Users className="h-8 w-8 text-info" />
               </div>
             </CardContent>
           </Card>
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Active Applications</p>
                   <p className="text-2xl font-bold">456</p>
                 </div>
-                <FileText className="h-8 w-8 text-green-600" />
+                <FileText className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -74,7 +74,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Partner Agents</p>
                   <p className="text-2xl font-bold">89</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-purple-600" />
+                <TrendingUp className="h-8 w-8 text-accent-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">Success Rate</p>
                   <p className="text-2xl font-bold">87%</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-orange-600" />
+                <TrendingUp className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
@@ -138,7 +138,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Success Rate</span>
-                      <span className="font-medium text-green-600">87%</span>
+                      <span className="font-medium text-success">87%</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">Revenue This Month</span>

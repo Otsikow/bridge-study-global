@@ -226,12 +226,12 @@ export default function ResourceLibrary() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'article': return 'bg-blue-100 text-blue-800';
-      case 'video': return 'bg-red-100 text-red-800';
-      case 'guide': return 'bg-green-100 text-green-800';
-      case 'template': return 'bg-purple-100 text-purple-800';
-      case 'checklist': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'article': return 'bg-info-light text-info dark:bg-info/20';
+      case 'video': return 'bg-destructive/10 text-destructive';
+      case 'guide': return 'bg-success-light text-success dark:bg-success/20';
+      case 'template': return 'bg-accent text-accent-foreground';
+      case 'checklist': return 'bg-warning-light text-warning dark:bg-warning/20';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

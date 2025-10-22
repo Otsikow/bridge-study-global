@@ -196,11 +196,11 @@ export default function CommissionTracker() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'approved': return 'bg-blue-100 text-blue-800';
-      case 'paid': return 'bg-green-100 text-green-800';
-      case 'clawback': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'approved': return 'bg-info-light text-info dark:bg-info/20';
+      case 'paid': return 'bg-success-light text-success dark:bg-success/20';
+      case 'clawback': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -269,7 +269,7 @@ export default function CommissionTracker() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">${pendingEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-warning">${pendingEarnings.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Awaiting approval</p>
           </CardContent>
         </Card>
@@ -280,7 +280,7 @@ export default function CommissionTracker() {
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">${approvedEarnings.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-info">${approvedEarnings.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Approved for payout</p>
           </CardContent>
         </Card>
