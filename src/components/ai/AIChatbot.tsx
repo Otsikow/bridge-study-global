@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ function FormattedMessage({ content }: { content: string }) {
       elements.push(
         <ul key={elements.length} className="list-disc list-inside space-y-1 my-2">
           {listItems.map((item, i) => (
-            <li key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: formatInline(item) }} />
+            <li key={i} className="text-sm" dangerouslySetInnerHTML={{ __html: sanitizeInline(item) }} />
           ))}
         </ul>
       );
@@ -37,6 +38,12 @@ function FormattedMessage({ content }: { content: string }) {
       .replace(/__(.+?)__/g, '<strong>$1</strong>')
       .replace(/_(.+?)_/g, '<em>$1</em>');
   };
+
+  const sanitizeInline = (text: string) =>
+    DOMPurify.sanitize(formatInline(text), {
+      ALLOWED_TAGS: ["strong", "em"],
+      ALLOWED_ATTR: [],
+    });
 
   lines.forEach((line, index) => {
     if (line.match(/^#{1,3}\s+(.+)/)) {
@@ -62,7 +69,7 @@ function FormattedMessage({ content }: { content: string }) {
     } else {
       flushList();
       elements.push(
-        <p key={elements.length} className="text-sm" dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+        <p key={elements.length} className="text-sm" dangerouslySetInnerHTML={{ __html: sanitizeInline(line) }} />
       );
     }
   });
