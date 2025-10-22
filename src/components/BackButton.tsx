@@ -27,7 +27,16 @@ export default function BackButton({ fallback = '/', label = 'Back', className, 
   };
 
   return (
-    <Button {...buttonProps} onClick={handleClick} className={cn(className)}>
+    <Button 
+      {...buttonProps} 
+      className={cn(className)} 
+      onClick={(e) => {
+        buttonProps.onClick?.(e);
+        if (!e.defaultPrevented) {
+          handleClick();
+        }
+      }}
+    >
       <ArrowLeft className="mr-2 h-4 w-4" />
       {label}
     </Button>
