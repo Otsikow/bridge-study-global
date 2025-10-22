@@ -57,17 +57,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        // If profile doesn't exist, try to create it
+
+        // If profile doesn't exist, create it and refetch
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, attempting to create one...');
+          console.log('Profile not found, creating...');
           await createProfileForUser(userId);
-          // Try fetching again
+
           const { data: retryData, error: retryError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', userId)
             .single();
-          
+
           if (retryError) {
             console.error('Failed to create profile:', retryError);
             setProfile(null);
@@ -80,19 +81,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setProfile(data);
       }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
+    } catch (err) {
+      console.error('Unexpected error fetching profile:', err);
       setProfile(null);
     }
   };
 
   const createProfileForUser = async (userId: string) => {
     try {
-      // Get user data from auth
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get default tenant - try geg first, then any tenant
+      // Try to get the default tenant (e.g., 'geg')
       let { data: tenant } = await supabase
         .from('tenants')
         .select('id')
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (!tenant) {
-        // Fallback to any tenant
+        // Fallback: fetch any tenant
         const { data: anyTenant } = await supabase
           .from('tenants')
           .select('id')
@@ -110,8 +110,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (!tenant) {
-        console.error('No tenant found - creating one');
-        // Create a default tenant
+        console.error('No tenant found, creating default tenant...');
         const { data: newTenant, error: tenantError } = await supabase
           .from('tenants')
           .insert({
@@ -127,74 +126,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error creating tenant:', tenantError);
           return;
         }
+
         tenant = newTenant;
       }
 
       // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          tenant_id: tenant.id,
-          email: user.email || '',
-          full_name: user.user_metadata?.full_name || 'User',
-          role: user.user_metadata?.role || 'student',
-          onboarded: false,
-        });
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: userId,
+        tenant_id: tenant.id,
+        email: user.email || '',
+        full_name: user.user_metadata?.full_name || 'User',
+        role: user.user_metadata?.role || 'student',
+        onboarded: false,
+      });
 
       if (profileError) {
         console.error('Error creating profile:', profileError);
         return;
       }
 
-      // Create user role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: user.user_metadata?.role || 'student',
-        });
+      // Create user role record
+      const { error: roleError } = await supabase.from('user_roles').insert({
+        user_id: userId,
+        role: user.user_metadata?.role || 'student',
+      });
 
       if (roleError) {
         console.error('Error creating user role:', roleError);
       }
 
-      // Create role-specific records
-      const userRole = user.user_metadata?.role || 'student';
-      if (userRole === 'student') {
-        await supabase
-          .from('students')
-          .insert({
-            tenant_id: tenant.id,
-            profile_id: userId,
-          });
-      } else if (userRole === 'agent') {
-        await supabase
-          .from('agents')
-          .insert({
-            tenant_id: tenant.id,
-            profile_id: userId,
-          });
+      // Role-specific record creation
+      const role = user.user_metadata?.role || 'student';
+      if (role === 'student') {
+        await supabase.from('students').insert({
+          tenant_id: tenant.id,
+          profile_id: userId,
+        });
+      } else if (role === 'agent') {
+        await supabase.from('agents').insert({
+          tenant_id: tenant.id,
+          profile_id: userId,
+        });
       }
 
       console.log('Profile created successfully for user:', userId);
-    } catch (error) {
-      console.error('Error creating profile for user:', error);
+    } catch (err) {
+      console.error('Error creating profile for user:', err);
     }
   };
 
   useEffect(() => {
-    // Auth state listener
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log('Auth state change:', event, currentSession?.user?.id);
-      
+
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        // Add a small delay to ensure the profile creation trigger has completed
+        // Delay to allow Supabase triggers to complete
         setTimeout(async () => {
           await fetchProfile(currentSession.user.id);
         }, 1000);
@@ -214,17 +205,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
       });
-      
+
       if (error) {
         console.error('Sign in error:', error);
         return { error };
       }
-      
-      // If successful, the auth state change will handle profile fetching
+
       return { error: null };
-    } catch (error) {
-      console.error('Sign in exception:', error);
-      return { error };
+    } catch (err) {
+      console.error('Sign in exception:', err);
+      return { error: err };
     }
   };
 
@@ -256,9 +246,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       console.log('Sign up successful:', data);
       return { error: null };
-    } catch (error) {
-      console.error('Sign up exception:', error);
-      return { error };
+    } catch (err) {
+      console.error('Sign up exception:', err);
+      return { error: err };
     }
   };
 
@@ -271,9 +261,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
+    if (user) await fetchProfile(user.id);
   };
 
   return (
@@ -296,8 +284,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
