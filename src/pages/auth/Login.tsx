@@ -52,9 +52,11 @@ const Login = () => {
     } else {
       toast({
         title: 'Welcome back!',
-        description: 'Successfully logged in.',
+        description: 'Successfully logged in. Redirecting to dashboard...',
       });
-      navigate('/dashboard');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     }
   };
 
