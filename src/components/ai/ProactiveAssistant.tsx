@@ -287,7 +287,6 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
         ) : (
           <ScrollArea className="h-[400px] pr-2 sm:pr-3">
             <div className="space-y-2.5 sm:space-y-3">
-              {/* High Priority Section */}
               {highPrioritySuggestions.length > 0 && (
                 <>
                   <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
@@ -355,7 +354,6 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                 </>
               )}
 
-              {/* Other Suggestions */}
               {otherSuggestions.length > 0 && (
                 <>
                   {highPrioritySuggestions.length > 0 && (

@@ -313,12 +313,12 @@ export default function StudentDashboard() {
 
           {/* Overview */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1 space-y-6">
+            <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+              <div className="lg:col-span-1 space-y-6 min-w-0">
                 <ProactiveAssistant />
                 <MessagesWidget />
               </div>
-              <div className="w-full min-h-[500px] lg:col-span-2">
+              <div className="lg:col-span-2 min-w-0">
                 <ApplicationTrackingSystem />
               </div>
             </div>

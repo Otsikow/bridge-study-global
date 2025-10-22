@@ -259,7 +259,7 @@ export default function ApplicationTrackingSystem() {
               <h3 className="text-lg font-semibold">No Applications Yet</h3>
               <p className="text-muted-foreground text-sm">
                 Start your journey by browsing programs and creating your first
-                application
+                application.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
@@ -292,8 +292,7 @@ export default function ApplicationTrackingSystem() {
               Application Tracking
             </CardTitle>
             <CardDescription className="text-xs mt-0.5 truncate">
-              {stats.total} applications • {stats.active} active • {stats.offers}{" "}
-              offers
+              {stats.total} applications • {stats.active} active • {stats.offers} offers
             </CardDescription>
           </div>
         </div>
@@ -327,8 +326,7 @@ export default function ApplicationTrackingSystem() {
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {filteredApplications.map((app) => {
-              const config =
-                statusConfig[app.status as keyof typeof statusConfig];
+              const config = statusConfig[app.status as keyof typeof statusConfig];
               const Icon = config?.icon || FileText;
 
               return (
@@ -367,10 +365,7 @@ export default function ApplicationTrackingSystem() {
                               </Badge>
                               <Badge variant="outline" className="text-xs">
                                 <Calendar className="h-3 w-3 mr-1" />
-                                {getIntakeLabel(
-                                  app.intake_month,
-                                  app.intake_year
-                                )}
+                                {getIntakeLabel(app.intake_month, app.intake_year)}
                               </Badge>
                             </div>
                           </div>
@@ -394,30 +389,18 @@ export default function ApplicationTrackingSystem() {
                               Recent Activity
                             </h4>
                             <div className="space-y-2 pl-6">
-                              {app.timeline_json
-                                .slice(0, 3)
-                                .map((event: any, idx: number) => (
-                                  <div
-                                    key={idx}
-                                    className="text-sm flex items-start gap-2"
-                                  >
-                                    <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                                    <div className="flex-1">
-                                      <span className="font-medium">
-                                        {event.event}
-                                      </span>
-                                      <p className="text-muted-foreground text-xs">
-                                        {event.description}
-                                      </p>
-                                      <p className="text-muted-foreground text-xs">
-                                        {format(
-                                          new Date(event.date),
-                                          "MMM dd, yyyy"
-                                        )}
-                                      </p>
-                                    </div>
+                              {app.timeline_json.slice(0, 3).map((event: any, idx: number) => (
+                                <div key={idx} className="text-sm flex items-start gap-2">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
+                                  <div className="flex-1">
+                                    <span className="font-medium">{event.event}</span>
+                                    <p className="text-muted-foreground text-xs">{event.description}</p>
+                                    <p className="text-muted-foreground text-xs">
+                                      {format(new Date(event.date), "MMM dd, yyyy")}
+                                    </p>
                                   </div>
-                                ))}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         )}
@@ -435,11 +418,7 @@ export default function ApplicationTrackingSystem() {
                           </Link>
                         </Button>
                         {app.status === "draft" && (
-                          <Button
-                            asChild
-                            size="sm"
-                            className="hover-scale flex-1"
-                          >
+                          <Button asChild size="sm" className="hover-scale flex-1">
                             <Link to={`/student/applications/${app.id}`}>
                               <ArrowUpRight className="h-4 w-4 mr-2" />
                               Continue
