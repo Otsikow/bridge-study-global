@@ -327,7 +327,7 @@ ${sopData.student_name}`;
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
           <TabsTrigger value="recommendations" className="flex items-center gap-2">
             <Target className="h-4 w-4" />
             Program Matching
@@ -388,7 +388,7 @@ ${sopData.student_name}`;
               )}
 
               {recommendations.length > 0 && (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendations.map((rec) => (
                     <Card key={rec.id} className="hover:shadow-md transition-shadow">
                       <CardContent className="pt-6">
@@ -571,7 +571,7 @@ ${sopData.student_name}`;
                     <CardTitle className="text-base">Generated Statement of Purpose</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="prose max-w-none">
+                    <div className="prose max-w-none dark:prose-invert">
                       <pre className="whitespace-pre-wrap text-sm">{generatedSoP}</pre>
                     </div>
                     <div className="flex gap-2 mt-4">

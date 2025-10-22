@@ -238,7 +238,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
 
       {/* Results */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-2 gap-2">
           <TabsTrigger value="recommendations">Recommendations ({filteredRecommendations.length})</TabsTrigger>
           <TabsTrigger value="visa">Visa Eligibility</TabsTrigger>
         </TabsList>
@@ -260,7 +260,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
               <p className="text-muted-foreground">Try adjusting your filters or preferences</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {filteredRecommendations.map((program) => (
                 <Card key={program.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-4 sm:p-6">
