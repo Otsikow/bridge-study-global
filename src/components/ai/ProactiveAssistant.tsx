@@ -217,28 +217,29 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
   const otherSuggestions = suggestions.filter(s => s.priority !== 'high');
 
   return (
-    <Card className="rounded-xl border shadow-card hover:shadow-lg transition-all">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+    <Card className="rounded-xl border shadow-card hover:shadow-lg transition-all overflow-hidden">
+      <CardHeader className="pb-3 px-4 sm:px-6">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Bot className="h-4 w-4 text-primary" />
             </div>
-            <div>
-              <CardTitle className="text-base">AI Assistant</CardTitle>
-              <CardDescription className="text-xs mt-0.5">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-sm sm:text-base truncate">AI Assistant</CardTitle>
+              <CardDescription className="text-[10px] sm:text-xs mt-0.5 truncate">
                 {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
               </CardDescription>
             </div>
           </div>
           {highPrioritySuggestions.length > 0 && (
-            <Badge variant="destructive" className="text-xs">
-              {highPrioritySuggestions.length} urgent
+            <Badge variant="destructive" className="text-[10px] sm:text-xs flex-shrink-0 whitespace-nowrap">
+              <span className="hidden xs:inline">{highPrioritySuggestions.length} urgent</span>
+              <span className="xs:hidden">{highPrioritySuggestions.length}</span>
             </Badge>
           )}
         </div>
       </CardHeader>
-      <CardContent className="pb-4">
+      <CardContent className="pb-4 px-4 sm:px-6">
         {suggestions.length === 0 ? (
           <div className="text-center py-6">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
@@ -248,61 +249,61 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
             <p className="text-xs text-muted-foreground">No new suggestions</p>
           </div>
         ) : (
-          <ScrollArea className="h-[500px] pr-3">
-            <div className="space-y-3">
+          <ScrollArea className="h-[350px] sm:h-[450px] lg:h-[500px] pr-2 sm:pr-3">
+            <div className="space-y-2.5 sm:space-y-3">
               {/* High Priority Section */}
               {highPrioritySuggestions.length > 0 && (
                 <>
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                    <h4 className="font-medium text-xs text-destructive">
-                      High Priority
-                    </h4>
-                  </div>
+                   <div className="flex items-center gap-1.5 sm:gap-2 mb-2">
+                     <AlertCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive flex-shrink-0" />
+                     <h4 className="font-medium text-[11px] sm:text-xs text-destructive">
+                       High Priority
+                     </h4>
+                   </div>
                   {highPrioritySuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
-                      <div
-                        key={suggestion.id}
-                        className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-colors animate-fade-in"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">
-                              <TypeIcon className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
-                              <Badge className={`${getTypeColor(suggestion.type)} text-[10px] h-4 px-1.5`}>
-                                {suggestion.type}
-                              </Badge>
-                              <Badge variant="outline" className="text-[10px] h-4 px-1.5">
-                                <CategoryIcon className="h-2.5 w-2.5 mr-0.5" />
-                                {suggestion.category}
-                              </Badge>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => dismissSuggestion(suggestion.id)}
-                              className="h-6 w-6 p-0 flex-shrink-0 hover:bg-destructive/20"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <h4 className="font-medium text-sm leading-tight">{suggestion.title}</h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                            {suggestion.description}
-                          </p>
-                          {suggestion.action_url && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleAction(suggestion)}
-                              className="w-full h-7 text-xs hover-scale"
-                            >
-                              {suggestion.action_text}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
+                       <div
+                         key={suggestion.id}
+                         className="p-2.5 sm:p-3 rounded-lg border border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-colors animate-fade-in"
+                       >
+                         <div className="space-y-2">
+                           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+                             <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap min-w-0 flex-1">
+                               <TypeIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-destructive flex-shrink-0" />
+                               <Badge className={`${getTypeColor(suggestion.type)} text-[9px] sm:text-[10px] h-4 px-1 sm:px-1.5`}>
+                                 {suggestion.type}
+                               </Badge>
+                               <Badge variant="outline" className="text-[9px] sm:text-[10px] h-4 px-1 sm:px-1.5">
+                                 <CategoryIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
+                                 {suggestion.category}
+                               </Badge>
+                             </div>
+                             <Button
+                               size="sm"
+                               variant="ghost"
+                               onClick={() => dismissSuggestion(suggestion.id)}
+                               className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0 hover:bg-destructive/20"
+                             >
+                               <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                             </Button>
+                           </div>
+                           <h4 className="font-medium text-xs sm:text-sm leading-tight break-words pr-1">{suggestion.title}</h4>
+                           <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">
+                             {suggestion.description}
+                           </p>
+                           {suggestion.action_url && (
+                             <Button
+                               size="sm"
+                               onClick={() => handleAction(suggestion)}
+                               className="w-full h-7 text-[11px] sm:text-xs hover-scale"
+                             >
+                               {suggestion.action_text}
+                             </Button>
+                           )}
+                         </div>
+                       </div>
                     );
                   })}
                   {otherSuggestions.length > 0 && <Separator className="my-3" />}
@@ -312,64 +313,64 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
               {/* Other Suggestions Section */}
               {otherSuggestions.length > 0 && (
                 <>
-                  {highPrioritySuggestions.length > 0 && (
-                    <h4 className="font-medium text-xs text-muted-foreground mb-2">
-                      Other Suggestions
-                    </h4>
-                  )}
+                   {highPrioritySuggestions.length > 0 && (
+                     <h4 className="font-medium text-[11px] sm:text-xs text-muted-foreground mb-2">
+                       Other Suggestions
+                     </h4>
+                   )}
                   {otherSuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
-                      <div
-                        key={suggestion.id}
-                        className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors animate-fade-in"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">
-                              <TypeIcon className={`h-3.5 w-3.5 ${getPriorityColor(suggestion.priority)} flex-shrink-0`} />
-                              <Badge className={`${getTypeColor(suggestion.type)} text-[10px] h-4 px-1.5`}>
-                                {suggestion.type}
-                              </Badge>
-                              <Badge variant="outline" className="text-[10px] h-4 px-1.5">
-                                <CategoryIcon className="h-2.5 w-2.5 mr-0.5" />
-                                {suggestion.category}
-                              </Badge>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => dismissSuggestion(suggestion.id)}
-                              className="h-6 w-6 p-0 flex-shrink-0"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                          <h4 className="font-medium text-sm leading-tight">{suggestion.title}</h4>
-                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
-                            {suggestion.description}
-                          </p>
-                          {suggestion.action_url && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleAction(suggestion)}
-                              className="w-full h-7 text-xs hover-scale"
-                            >
-                              {suggestion.action_text}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </>
-              )}
-            </div>
-          </ScrollArea>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
+                       <div
+                         key={suggestion.id}
+                         className="p-2.5 sm:p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors animate-fade-in"
+                       >
+                         <div className="space-y-2">
+                           <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+                             <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap min-w-0 flex-1">
+                               <TypeIcon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${getPriorityColor(suggestion.priority)} flex-shrink-0`} />
+                               <Badge className={`${getTypeColor(suggestion.type)} text-[9px] sm:text-[10px] h-4 px-1 sm:px-1.5`}>
+                                 {suggestion.type}
+                               </Badge>
+                               <Badge variant="outline" className="text-[9px] sm:text-[10px] h-4 px-1 sm:px-1.5">
+                                 <CategoryIcon className="h-2 w-2 sm:h-2.5 sm:w-2.5 mr-0.5" />
+                                 {suggestion.category}
+                               </Badge>
+                             </div>
+                             <Button
+                               size="sm"
+                               variant="ghost"
+                               onClick={() => dismissSuggestion(suggestion.id)}
+                               className="h-5 w-5 sm:h-6 sm:w-6 p-0 flex-shrink-0"
+                             >
+                               <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                             </Button>
+                           </div>
+                           <h4 className="font-medium text-xs sm:text-sm leading-tight break-words pr-1">{suggestion.title}</h4>
+                           <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2 break-words">
+                             {suggestion.description}
+                           </p>
+                           {suggestion.action_url && (
+                             <Button
+                               size="sm"
+                               variant="outline"
+                               onClick={() => handleAction(suggestion)}
+                               className="w-full h-7 text-[11px] sm:text-xs hover-scale"
+                             >
+                               {suggestion.action_text}
+                             </Button>
+                           )}
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </>
+               )}
+             </div>
+           </ScrollArea>
+         )}
+       </CardContent>
+     </Card>
+   );
+ }
