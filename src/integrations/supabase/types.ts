@@ -1717,6 +1717,74 @@ export type Database = {
           },
         ]
       }
+      user_feedback: {
+        Row: {
+          admin_notes: string | null
+          category: string
+          contact_email: string | null
+          contact_requested: boolean | null
+          created_at: string
+          feedback_type: string
+          id: string
+          message: string
+          page_url: string | null
+          rating: number | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          tenant_id: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          category: string
+          contact_email?: string | null
+          contact_requested?: boolean | null
+          created_at?: string
+          feedback_type: string
+          id?: string
+          message: string
+          page_url?: string | null
+          rating?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          tenant_id: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          category?: string
+          contact_email?: string | null
+          contact_requested?: boolean | null
+          created_at?: string
+          feedback_type?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          rating?: number | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          tenant_id?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

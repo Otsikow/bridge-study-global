@@ -32,6 +32,7 @@ const SopGenerator = lazy(() => import("./pages/student/SopGenerator"));
 const IntakeForm = lazy(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazy(() => import("./pages/VisaCalculator"));
 const UserFeedback = lazy(() => import("./components/analytics/UserFeedback"));
+const FeedbackAnalytics = lazy(() => import("./pages/admin/FeedbackAnalytics"));
 const Messages = lazy(() => import("./pages/student/Messages"));
 const Payments = lazy(() => import("./pages/student/Payments"));
 const Notifications = lazy(() => import("./pages/student/Notifications"));
@@ -169,6 +170,14 @@ const App = () => (
                 <Route path="/intake/:formId" element={<IntakeForm />} />
                 <Route path="/visa-calculator" element={<VisaCalculator />} />
                 <Route path="/feedback" element={<UserFeedback />} />
+                <Route 
+                  path="/admin/feedback-analytics" 
+                  element={
+                    <ProtectedRoute>
+                      <FeedbackAnalytics />
+                    </ProtectedRoute>
+                  } 
+                />
                 <Route path="/legal/privacy" element={<LegalPrivacy />} />
                 <Route path="/legal/terms" element={<LegalTerms />} />
 
