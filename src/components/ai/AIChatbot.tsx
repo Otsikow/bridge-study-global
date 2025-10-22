@@ -480,4 +480,44 @@ export default function AIChatbot() {
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder
+              placeholder="Type your message..."
+              disabled={isLoading || isUploading}
+              className="flex-1"
+            />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || isUploading}
+              className="h-9 w-9"
+            >
+              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isLoading}
+              className="h-9 w-9"
+            >
+              {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button type="submit" size="icon" disabled={isLoading || isUploading} className="h-9 w-9">
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
