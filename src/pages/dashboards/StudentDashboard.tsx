@@ -28,6 +28,7 @@ import ProactiveAssistant from '@/components/ai/ProactiveAssistant';
 import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
 import TaskManagement from '@/components/tasks/TaskManagement';
 import PreferenceRanking from '@/components/ranking/PreferenceRanking';
+import MessagesWidget from '@/components/student/MessagesWidget';
 
 interface Application {
   id: string;
@@ -286,8 +287,9 @@ export default function StudentDashboard() {
           {/* Overview */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 space-y-6">
                 <ProactiveAssistant />
+                <MessagesWidget />
               </div>
               <div className="lg:col-span-2 space-y-6">
                 <ApplicationTrackingSystem />
