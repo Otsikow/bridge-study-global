@@ -70,7 +70,7 @@ const ResetPassword = () => {
             Back to login
           </Link>
           <div className="flex justify-center mb-4">
-            <img src={gegLogo} alt="GEG Logo" className="h-20 w-20 object-contain" />
+            <img src={gegLogo} alt="GEG Logo" className="h-20 w-20 object-contain dark:brightness-0 dark:invert" />
           </div>
           <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
           <CardDescription>

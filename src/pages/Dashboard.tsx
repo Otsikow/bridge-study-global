@@ -57,7 +57,7 @@ const Dashboard = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <img src={gegLogo} alt="GEG Logo" className="h-10 w-10 object-contain" />
+            <img src={gegLogo} alt="GEG Logo" className="h-10 w-10 object-contain dark:brightness-0 dark:invert" />
             <div>
               <h1 className="text-xl font-bold">GEG Dashboard</h1>
               <p className="text-xs text-muted-foreground">{profile?.role.toUpperCase()}</p>

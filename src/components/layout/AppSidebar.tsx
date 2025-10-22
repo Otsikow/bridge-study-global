@@ -102,7 +102,7 @@ export function AppSidebar() {
           <img 
             src={gegLogo} 
             alt="GEG Logo" 
-            className="h-8 w-8 md:h-10 md:w-10 object-contain flex-shrink-0" 
+            className="h-8 w-8 md:h-10 md:w-10 object-contain flex-shrink-0 dark:brightness-0 dark:invert"
           />
           {state !== 'collapsed' && (
             <div className="min-w-0 flex-1">

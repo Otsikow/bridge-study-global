@@ -118,7 +118,7 @@ const Index = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
-              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 sm:h-12 sm:w-12 object-contain flex-shrink-0" />
+              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 sm:h-12 sm:w-12 object-contain flex-shrink-0 dark:brightness-0 dark:invert" />
               <span className="text-lg sm:text-xl font-bold truncate">GEG</span>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0">
@@ -253,7 +253,7 @@ const Index = () => {
       <footer className="border-t bg-background">
         <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex items-center space-x-3">
-            <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 object-contain" />
+            <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 object-contain dark:brightness-0 dark:invert" />
             <span className="font-semibold">GEG — Global Education Gateway</span>
           </div>
           <p className="text-sm text-muted-foreground">© 2025 GEG. All rights reserved.</p>
