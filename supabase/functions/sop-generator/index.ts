@@ -12,14 +12,26 @@ serve(async (req) => {
   }
 
   try {
-    const { background, motivation, program, university, goals } = await req.json();
+    const {
+      background,
+      motivation,
+      program,
+      university,
+      goals,
+      workExperience,
+      relevantSkills,
+      achievements,
+      tone,
+      targetWordCount,
+    } = await req.json();
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     if (!OPENAI_API_KEY) {
       throw new Error('OPENAI_API_KEY is not configured');
     }
 
-    const prompt = `Write a concise, compelling Statement of Purpose (SoP) in 500-700 words.
+    const targetWords = Math.min(Math.max(Number(targetWordCount) || 600, 400), 900);
+    const prompt = `Write a concise, compelling Statement of Purpose (SoP) in ${targetWords} words.
 
 Context:
 - Academic background: ${background || 'Not provided'}
@@ -27,9 +39,12 @@ Context:
 - Target program: ${program || 'Not provided'}
 - Target university: ${university || 'Not provided'}
 - Career goals: ${goals || 'Not provided'}
+ - Work experience: ${workExperience || 'Not provided'}
+ - Relevant skills: ${relevantSkills || 'Not provided'}
+ - Achievements: ${achievements || 'Not provided'}
 
 Guidelines:
-- Use professional but personable tone
+- Use ${tone || 'professional'} but personable tone
 - Avoid generic claims; be specific and authentic
 - Include a brief narrative of past experiences leading to the program
 - Connect the program/university strengths to goals
