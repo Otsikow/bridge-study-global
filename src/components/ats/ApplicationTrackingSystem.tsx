@@ -150,14 +150,20 @@ export default function ApplicationTrackingSystem() {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Application Tracking</CardTitle>
+      <Card className="rounded-xl border shadow-card h-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse flex-shrink-0" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+              <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         </CardContent>
@@ -167,35 +173,39 @@ export default function ApplicationTrackingSystem() {
 
   if (applications.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Application Tracking
-          </CardTitle>
-          <CardDescription>
-            Track and manage all your university applications in one place
-          </CardDescription>
+      <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <FileText className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Application Tracking</CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                Track and manage all your university applications in one place
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-12 space-y-4">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-              <FileText className="h-8 w-8 text-muted-foreground" />
+        <CardContent className="flex-1">
+          <div className="text-center py-8 space-y-4">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto">
+              <FileText className="h-6 w-6 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold">No Applications Yet</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
+              <h3 className="text-lg font-semibold">No Applications Yet</h3>
+              <p className="text-muted-foreground text-sm">
                 Start your journey by browsing programs and creating your first application
               </p>
             </div>
-            <div className="flex gap-3 justify-center pt-2">
+            <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
               <Button asChild className="hover-scale">
                 <Link to="/search">
                   <Plus className="h-4 w-4 mr-2" />
                   Browse Programs
                 </Link>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="hover-scale">
                 <Link to="/student/onboarding">
                   Complete Profile
                 </Link>
@@ -208,27 +218,28 @@ export default function ApplicationTrackingSystem() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Application Tracking
-            </CardTitle>
-            <CardDescription>
+    <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <FileText className="h-4 w-4 text-primary" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Application Tracking</CardTitle>
+            <CardDescription className="text-xs mt-0.5 truncate">
               {applicationStats.total} {applicationStats.total === 1 ? 'application' : 'applications'} • {applicationStats.active} active • {applicationStats.offers} {applicationStats.offers === 1 ? 'offer' : 'offers'}
             </CardDescription>
           </div>
-          <Button asChild size="sm" className="hover-scale">
-            <Link to="/student/applications/new">
-              <Plus className="h-4 w-4 mr-2" />
-              New Application
-            </Link>
-          </Button>
         </div>
+        <Button asChild size="sm" className="hover-scale flex-shrink-0">
+          <Link to="/student/applications/new">
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">New Application</span>
+            <span className="sm:hidden">New</span>
+          </Link>
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4 flex-1 px-4 sm:px-6">
         {/* Filter Tabs */}
         <Tabs value={activeFilter} onValueChange={setActiveFilter}>
           <TabsList className="grid w-full grid-cols-4 h-auto">
@@ -248,7 +259,7 @@ export default function ApplicationTrackingSystem() {
         </Tabs>
 
         {/* Applications List */}
-        <ScrollArea className="h-[600px] pr-4">
+        <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-4">
             {filteredApplications.map((app) => {
               const config = statusConfig[app.status as keyof typeof statusConfig];
