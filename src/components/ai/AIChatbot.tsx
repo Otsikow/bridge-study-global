@@ -195,9 +195,15 @@ export default function AIChatbot() {
 
     setIsUploading(true);
     try {
-      for (const file of Array.from(files)) await uploadFile(file);
-    } catch {
-      toast({ title: "Upload failed", variant: "destructive" });
+      const uploadPromises = Array.from(files).map(file => uploadFile(file));
+      await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error('Batch upload error:', error);
+      toast({ 
+        title: "Upload failed", 
+        description: "Some files failed to upload. Please try again.",
+        variant: "destructive" 
+      });
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -209,6 +215,7 @@ export default function AIChatbot() {
       toast({ title: "Sign in required", description: "Please sign in to upload files." });
       return;
     }
+    
     const allowed = [
       "image/jpeg",
       "image/png",
@@ -219,33 +226,80 @@ export default function AIChatbot() {
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
+    
     if (!allowed.includes(file.type)) {
-      toast({ title: "Invalid file type", variant: "destructive" });
+      toast({ 
+        title: "Invalid file type", 
+        description: "Please upload images, PDFs, or text files only.",
+        variant: "destructive" 
+      });
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Limit 10MB", variant: "destructive" });
+      toast({ 
+        title: "File too large", 
+        description: "File size must be less than 10MB", 
+        variant: "destructive" 
+      });
       return;
     }
 
-    const ext = file.name.split(".").pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-    const filePath = `chat-attachments/${fileName}`;
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
+      const filePath = `chat-attachments/${fileName}`;
 
-    const { error } = await supabase.storage.from("public").upload(filePath, file);
-    if (error) throw error;
+      console.log('Uploading chat attachment:', {
+        bucket: 'public',
+        path: filePath,
+        fileName: file.name,
+        size: file.size,
+        type: file.type
+      });
 
-    const { data } = supabase.storage.from("public").getPublicUrl(filePath);
-    const attachment: Attachment = {
-      id: fileName,
-      name: file.name,
-      type: file.type,
-      url: data.publicUrl,
-      size: file.size,
-    };
-    setAttachments((prev) => [...prev, attachment]);
-    toast({ title: `${file.name} uploaded successfully.` });
+      const { data: uploadData, error } = await supabase.storage
+        .from("public")
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Storage upload error:', error);
+        throw new Error(`Upload failed: ${error.message}`);
+      }
+
+      console.log('Upload successful:', uploadData);
+
+      const { data } = supabase.storage.from("public").getPublicUrl(filePath);
+      
+      if (!data?.publicUrl) {
+        throw new Error('Failed to get public URL');
+      }
+
+      const attachment: Attachment = {
+        id: fileName,
+        name: file.name,
+        type: file.type,
+        url: data.publicUrl,
+        size: file.size,
+      };
+      
+      setAttachments((prev) => [...prev, attachment]);
+      toast({ 
+        title: "Success", 
+        description: `${file.name} uploaded successfully.` 
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+      toast({ 
+        title: "Upload failed", 
+        description: errorMessage,
+        variant: "destructive" 
+      });
+    }
   };
 
   const removeAttachment = (id: string) => {
@@ -258,9 +312,15 @@ export default function AIChatbot() {
     const files = Array.from(e.dataTransfer.files);
     setIsUploading(true);
     try {
-      for (const file of files) await uploadFile(file);
-    } catch {
-      toast({ title: "Upload failed", variant: "destructive" });
+      const uploadPromises = files.map(file => uploadFile(file));
+      await Promise.all(uploadPromises);
+    } catch (error) {
+      console.error('Drop upload error:', error);
+      toast({ 
+        title: "Upload failed", 
+        description: "Some files failed to upload. Please try again.",
+        variant: "destructive" 
+      });
     } finally {
       setIsUploading(false);
     }
