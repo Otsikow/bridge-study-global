@@ -238,31 +238,37 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                   <AlertCircle className="h-4 w-4" />
                   High Priority ({highPrioritySuggestions.length})
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {highPrioritySuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
                       <Card key={suggestion.id} className="border-destructive/40 bg-destructive/10 dark:bg-destructive/20">
-                        <CardContent className="pt-4">
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                            <div className="space-y-2 flex-1">
-                              <div className="flex items-center gap-2">
-                                <TypeIcon className="h-4 w-4 text-destructive" />
-                                <Badge className={getTypeColor(suggestion.type)}>
+                        <CardContent className="pt-4 px-4 pb-4">
+                          <div className="flex flex-col gap-3 min-w-0">
+                            <div className="space-y-2.5 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <TypeIcon className="h-4 w-4 text-destructive flex-shrink-0" />
+                                <Badge className={`${getTypeColor(suggestion.type)} text-xs whitespace-nowrap`}>
                                   {suggestion.type}
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  <CategoryIcon className="h-3 w-3 mr-1" />
+                                <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                  <CategoryIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                                   {suggestion.category}
                                 </Badge>
                               </div>
-                              <h4 className="font-medium text-sm">{suggestion.title}</h4>
-                              <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                              <h4 className="font-medium text-sm break-words">{suggestion.title}</h4>
+                              <p className="text-sm text-muted-foreground break-words leading-relaxed">
+                                {suggestion.description}
+                              </p>
                             </div>
-                            <div className="flex items-center gap-1 sm:ml-4">
+                            <div className="flex items-center gap-2 flex-wrap pt-1">
                               {suggestion.action_url && (
-                                <Button size="sm" onClick={() => handleAction(suggestion)}>
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => handleAction(suggestion)}
+                                  className="flex-1 min-w-[120px] text-xs"
+                                >
                                   {suggestion.action_text}
                                 </Button>
                               )}
@@ -270,6 +276,8 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => dismissSuggestion(suggestion.id)}
+                                className="flex-shrink-0 h-8 w-8 p-0"
+                                aria-label="Dismiss"
                               >
                                 ×
                               </Button>
@@ -289,31 +297,38 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                 <h4 className="font-medium text-sm text-muted-foreground">
                   Other Suggestions ({otherSuggestions.length})
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {otherSuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
                       <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="pt-4">
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                            <div className="space-y-2 flex-1">
-                              <div className="flex items-center gap-2">
-                                <TypeIcon className={`h-4 w-4 ${getPriorityColor(suggestion.priority)}`} />
-                                <Badge className={getTypeColor(suggestion.type)}>
+                        <CardContent className="pt-4 px-4 pb-4">
+                          <div className="flex flex-col gap-3 min-w-0">
+                            <div className="space-y-2.5 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <TypeIcon className={`h-4 w-4 ${getPriorityColor(suggestion.priority)} flex-shrink-0`} />
+                                <Badge className={`${getTypeColor(suggestion.type)} text-xs whitespace-nowrap`}>
                                   {suggestion.type}
                                 </Badge>
-                                <Badge variant="outline" className="text-xs">
-                                  <CategoryIcon className="h-3 w-3 mr-1" />
+                                <Badge variant="outline" className="text-xs whitespace-nowrap">
+                                  <CategoryIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                                   {suggestion.category}
                                 </Badge>
                               </div>
-                              <h4 className="font-medium text-sm">{suggestion.title}</h4>
-                              <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                              <h4 className="font-medium text-sm break-words">{suggestion.title}</h4>
+                              <p className="text-sm text-muted-foreground break-words leading-relaxed">
+                                {suggestion.description}
+                              </p>
                             </div>
-                            <div className="flex items-center gap-1 sm:ml-4">
+                            <div className="flex items-center gap-2 flex-wrap pt-1">
                               {suggestion.action_url && (
-                                <Button size="sm" variant="outline" onClick={() => handleAction(suggestion)}>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => handleAction(suggestion)}
+                                  className="flex-1 min-w-[120px] text-xs"
+                                >
                                   {suggestion.action_text}
                                 </Button>
                               )}
@@ -321,6 +336,8 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => dismissSuggestion(suggestion.id)}
+                                className="flex-shrink-0 h-8 w-8 p-0"
+                                aria-label="Dismiss"
                               >
                                 ×
                               </Button>
