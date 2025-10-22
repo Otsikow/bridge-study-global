@@ -28,6 +28,13 @@ interface Program {
   university: University;
 }
 
+interface TimelineItem {
+  title?: string;
+  description?: string;
+  date?: string;
+  [key: string]: unknown;
+}
+
 interface Application {
   id: string;
   status: string;
@@ -36,7 +43,7 @@ interface Application {
   created_at: string;
   submitted_at: string | null;
   program: Program;
-  timeline_json?: any[];
+  timeline_json?: TimelineItem[];
 }
 
 interface TaskItem {
@@ -293,7 +300,7 @@ export default function ApplicationDetails() {
             <CardContent>
               {app.timeline_json && Array.isArray(app.timeline_json) && app.timeline_json.length > 0 ? (
                 <div className="space-y-3">
-                  {app.timeline_json.map((item: any, idx: number) => (
+                  {app.timeline_json.map((item: TimelineItem, idx: number) => (
                     <div key={idx} className="flex items-start gap-3">
                       <div className="h-2 w-2 rounded-full bg-primary mt-2" />
                       <div className="text-sm">

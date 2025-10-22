@@ -25,6 +25,20 @@ import {
 import { useAIRecommendations, StudentProfile } from '@/hooks/useAIRecommendations';
 import { Link } from 'react-router-dom';
 
+type VisaEligibilityResult = {
+  eligibility: 'High' | 'Medium' | 'Low';
+  factors: string[];
+  percentage: number;
+};
+
+type Filters = {
+  countries: string[];
+  programLevels: string[];
+  disciplines: string[];
+  budgetRange: [number, number];
+  matchScore: [number, number];
+};
+
 interface ProgramRecommendationsProps {
   onProgramSelect?: (programId: string) => void;
 }
@@ -32,11 +46,11 @@ interface ProgramRecommendationsProps {
 export default function ProgramRecommendations({ onProgramSelect }: ProgramRecommendationsProps) {
   const { recommendations, loading, error, generateRecommendations, getVisaEligibility } = useAIRecommendations();
   const [showFilters, setShowFilters] = useState(false);
-  const [visaResults, setVisaResults] = useState<Record<string, any>>({});
+  const [visaResults, setVisaResults] = useState<Record<string, VisaEligibilityResult>>({});
   const [selectedTab, setSelectedTab] = useState('recommendations');
 
   // Filter states
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<Filters>({
     countries: [] as string[],
     programLevels: [] as string[],
     disciplines: [] as string[],
@@ -68,7 +82,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
     generateRecommendations(profile);
   }, []);
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
@@ -211,7 +225,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                   <Label>Budget Range: ${filters.budgetRange[0].toLocaleString()} - ${filters.budgetRange[1].toLocaleString()}</Label>
                   <Slider
                     value={filters.budgetRange}
-                    onValueChange={(value) => handleFilterChange('budgetRange', value)}
+                    onValueChange={(value) => handleFilterChange('budgetRange', value as [number, number])}
                     max={100000}
                     min={0}
                     step={1000}
@@ -223,7 +237,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                   <Label>Match Score: {filters.matchScore[0]}% - {filters.matchScore[1]}%</Label>
                   <Slider
                     value={filters.matchScore}
-                    onValueChange={(value) => handleFilterChange('matchScore', value)}
+                    onValueChange={(value) => handleFilterChange('matchScore', value as [number, number])}
                     max={100}
                     min={0}
                     step={5}
