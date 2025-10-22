@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
 
 const contactSchema = z.object({
@@ -18,18 +19,30 @@ export const ContactForm = () => {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { session } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
+      if (!session?.access_token) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to send us a message.",
+          variant: "destructive",
+        });
+        return;
+      }
       // Validate input
       const validatedData = contactSchema.parse({ name, email, message });
 
       setIsSubmitting(true);
 
       const { error } = await supabase.functions.invoke("send-contact-email", {
-        body: validatedData
+        body: validatedData,
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (error) throw error;

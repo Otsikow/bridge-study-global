@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, Send, X, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   role: "user" | "assistant";
@@ -91,6 +92,7 @@ export default function AIChatbot() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { session } = useAuth();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -100,6 +102,14 @@ export default function AIChatbot() {
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
+    if (!session?.access_token) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use the AI assistant.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
@@ -113,7 +123,7 @@ export default function AIChatbot() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });

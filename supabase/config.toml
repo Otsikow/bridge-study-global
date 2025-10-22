@@ -1,10 +1,10 @@
 project_id = "gbustuntgvmwkcttjojo"
 
 [functions.ai-recommendations]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-chatbot]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-contact-email]
-verify_jwt = false
+verify_jwt = true
