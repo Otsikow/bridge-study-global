@@ -31,7 +31,8 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    role?: string
   ) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -54,11 +55,131 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        // If profile doesn't exist, try to create it
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, attempting to create one...');
+          await createProfileForUser(userId);
+          // Try fetching again
+          const { data: retryData, error: retryError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          
+          if (retryError) {
+            console.error('Failed to create profile:', retryError);
+            setProfile(null);
+          } else {
+            setProfile(retryData);
+          }
+        } else {
+          setProfile(null);
+        }
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       setProfile(null);
+    }
+  };
+
+  const createProfileForUser = async (userId: string) => {
+    try {
+      // Get user data from auth
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get default tenant - try geg first, then any tenant
+      let { data: tenant } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('slug', 'geg')
+        .single();
+
+      if (!tenant) {
+        // Fallback to any tenant
+        const { data: anyTenant } = await supabase
+          .from('tenants')
+          .select('id')
+          .limit(1)
+          .single();
+        tenant = anyTenant;
+      }
+
+      if (!tenant) {
+        console.error('No tenant found - creating one');
+        // Create a default tenant
+        const { data: newTenant, error: tenantError } = await supabase
+          .from('tenants')
+          .insert({
+            name: 'Default Tenant',
+            slug: 'default',
+            email_from: 'noreply@example.com',
+            active: true,
+          })
+          .select()
+          .single();
+
+        if (tenantError) {
+          console.error('Error creating tenant:', tenantError);
+          return;
+        }
+        tenant = newTenant;
+      }
+
+      // Create profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          tenant_id: tenant.id,
+          email: user.email || '',
+          full_name: user.user_metadata?.full_name || 'User',
+          role: user.user_metadata?.role || 'student',
+          onboarded: false,
+        });
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        return;
+      }
+
+      // Create user role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: user.user_metadata?.role || 'student',
+        });
+
+      if (roleError) {
+        console.error('Error creating user role:', roleError);
+      }
+
+      // Create role-specific records
+      const userRole = user.user_metadata?.role || 'student';
+      if (userRole === 'student') {
+        await supabase
+          .from('students')
+          .insert({
+            tenant_id: tenant.id,
+            profile_id: userId,
+          });
+      } else if (userRole === 'agent') {
+        await supabase
+          .from('agents')
+          .insert({
+            tenant_id: tenant.id,
+            profile_id: userId,
+          });
+      }
+
+      console.log('Profile created successfully for user:', userId);
+    } catch (error) {
+      console.error('Error creating profile for user:', error);
     }
   };
 
@@ -66,14 +187,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, currentSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log('Auth state change:', event, currentSession?.user?.id);
+      
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
-        setTimeout(() => {
-          fetchProfile(currentSession.user.id);
-        }, 0);
+        // Add a small delay to ensure the profile creation trigger has completed
+        setTimeout(async () => {
+          await fetchProfile(currentSession.user.id);
+        }, 1000);
       } else {
         setProfile(null);
       }
@@ -85,32 +209,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error };
+      }
+      
+      // If successful, the auth state change will handle profile fetching
+      return { error: null };
+    } catch (error) {
+      console.error('Sign in exception:', error);
+      return { error };
+    }
   };
 
   const signUp = async (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    role: string = 'student'
   ) => {
-    const redirectUrl = `${window.location.origin}/`;
+    try {
+      const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName,
+            role: role,
+          },
         },
-      },
-    });
+      });
 
-    return { error };
+      if (error) {
+        console.error('Sign up error:', error);
+        return { error };
+      }
+
+      console.log('Sign up successful:', data);
+      return { error: null };
+    } catch (error) {
+      console.error('Sign up exception:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {

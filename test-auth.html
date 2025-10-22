@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEG Auth Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>GEG Authentication Test</h1>
+    <div id="status">Testing...</div>
+    <div id="results"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://gbustuntgvmwkcttjojo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdidXN0dW50Z3Ztd2tjdHRqb2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5OTk1MzQsImV4cCI6MjA3NjU3NTUzNH0.aACHZbMSTULC3Iziz6mGp6LgKYRiTPJEv5izU0HdDIw';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        async function testAuth() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test 1: Check if we can connect to Supabase
+                statusDiv.textContent = 'Testing Supabase connection...';
+                const { data: { user }, error: authError } = await supabase.auth.getUser();
+                
+                if (authError) {
+                    resultsDiv.innerHTML += `<p>❌ Auth error: ${authError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>✅ Supabase connection successful</p>`;
+                }
+                
+                // Test 2: Check if default tenant exists
+                statusDiv.textContent = 'Checking for default tenant...';
+                const { data: tenants, error: tenantError } = await supabase
+                    .from('tenants')
+                    .select('*')
+                    .eq('slug', 'geg');
+                
+                if (tenantError) {
+                    resultsDiv.innerHTML += `<p>❌ Tenant query error: ${tenantError.message}</p>`;
+                } else if (tenants && tenants.length > 0) {
+                    resultsDiv.innerHTML += `<p>✅ Default tenant found: ${tenants[0].name}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>❌ No default tenant found</p>`;
+                }
+                
+                // Test 3: Try to sign up a test user
+                statusDiv.textContent = 'Testing user signup...';
+                const testEmail = `test-${Date.now()}@example.com`;
+                const { data: signupData, error: signupError } = await supabase.auth.signUp({
+                    email: testEmail,
+                    password: 'testpassword123',
+                    options: {
+                        data: {
+                            full_name: 'Test User',
+                            role: 'student'
+                        }
+                    }
+                });
+                
+                if (signupError) {
+                    resultsDiv.innerHTML += `<p>❌ Signup error: ${signupError.message}</p>`;
+                } else {
+                    resultsDiv.innerHTML += `<p>✅ Signup successful for ${testEmail}</p>`;
+                    
+                    // Test 4: Check if profile was created
+                    if (signupData.user) {
+                        statusDiv.textContent = 'Checking profile creation...';
+                        setTimeout(async () => {
+                            const { data: profile, error: profileError } = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', signupData.user.id)
+                                .single();
+                            
+                            if (profileError) {
+                                resultsDiv.innerHTML += `<p>❌ Profile not found: ${profileError.message}</p>`;
+                            } else {
+                                resultsDiv.innerHTML += `<p>✅ Profile created successfully: ${profile.full_name} (${profile.role})</p>`;
+                            }
+                            
+                            statusDiv.textContent = 'Test completed';
+                        }, 2000);
+                    }
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<p>❌ Unexpected error: ${error.message}</p>`;
+                statusDiv.textContent = 'Test failed';
+            }
+        }
+        
+        // Run the test when page loads
+        testAuth();
+    </script>
+</body>
+</html>
