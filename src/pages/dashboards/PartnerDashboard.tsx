@@ -46,9 +46,9 @@ export default function PartnerDashboard() {
       <div className="p-8 space-y-8">
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Partner Dashboard</h1>
-          <p className="text-muted-foreground">University of Manchester</p>
+        <div className="space-y-1.5 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Partner Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">University of Manchester</p>
         </div>
 
         {/* Stats Grid */}

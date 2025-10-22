@@ -260,9 +260,9 @@ export default function Documents() {
     <div className="container mx-auto py-8 space-y-6">
       <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
-      <div>
-        <h1 className="text-3xl font-bold mb-2">My Documents</h1>
-        <p className="text-muted-foreground">Upload and manage your application documents</p>
+      <div className="space-y-1.5 animate-fade-in">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Documents</h1>
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Upload and manage your application documents</p>
       </div>
 
       {/* Upload Section */}

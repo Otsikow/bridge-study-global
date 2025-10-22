@@ -15,14 +15,18 @@ export default function Payments() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Payments</h1>
-            <p className="text-muted-foreground">Manage your invoices and payment methods</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">Payments</h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Manage your invoices and payment methods</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2"><CreditCard className="h-4 w-4" /> Add Payment Method</Button>
-            <Button className="gap-2"><Download className="h-4 w-4" /> Export</Button>
+          <div className="flex gap-2 flex-wrap flex-shrink-0">
+            <Button variant="outline" className="gap-2 hover-scale whitespace-nowrap">
+              <CreditCard className="h-4 w-4" /> <span className="hidden sm:inline">Add Payment</span>
+            </Button>
+            <Button className="gap-2 hover-scale whitespace-nowrap">
+              <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
+            </Button>
           </div>
         </div>
 

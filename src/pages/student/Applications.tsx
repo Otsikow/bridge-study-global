@@ -148,12 +148,12 @@ export default function Applications() {
     <div className="container mx-auto py-8 space-y-6">
       <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-[220px]">
-          <h1 className="text-3xl font-bold mb-2">My Applications</h1>
-          <p className="text-muted-foreground">Track and manage your university applications</p>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 flex-wrap animate-fade-in">
+        <div className="min-w-0 space-y-1.5">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">My Applications</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Track and manage your university applications</p>
         </div>
-        <div className="flex-1 max-w-3xl">
+        <div className="w-full lg:flex-1 lg:max-w-3xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
             <div className="col-span-1 md:col-span-2">
               <div className="relative">

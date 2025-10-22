@@ -209,9 +209,9 @@ export default function NewApplication() {
     <div className="container mx-auto py-8 space-y-6 max-w-4xl">
       <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
-      <div>
-        <h1 className="text-3xl font-bold mb-2">New Application</h1>
-        <p className="text-muted-foreground">
+      <div className="space-y-1.5 animate-fade-in">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">New Application</h1>
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
           Submit your application to start your journey
         </p>
       </div>

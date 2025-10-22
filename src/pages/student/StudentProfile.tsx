@@ -80,9 +80,9 @@ export default function StudentProfile() {
     <div className="container mx-auto py-8">
       <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">My Profile</h1>
-        <p className="text-muted-foreground">
+      <div className="space-y-2 animate-fade-in">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
           Keep your information up to date to ensure smooth application processing
         </p>
       </div>

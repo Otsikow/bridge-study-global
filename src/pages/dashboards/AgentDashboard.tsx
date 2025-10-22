@@ -58,9 +58,9 @@ export default function AgentDashboard() {
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
 
         {/* Header */}
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold">Partner Agent Dashboard</h1>
-          <p className="text-sm md:text-base text-muted-foreground">Manage your students, track performance, and access resources.</p>
+        <div className="space-y-1.5 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Partner Agent Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Manage your students, track performance, and access resources.</p>
         </div>
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">

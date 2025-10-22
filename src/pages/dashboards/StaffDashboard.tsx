@@ -53,9 +53,9 @@ export default function StaffDashboard() {
       <div className="p-8 space-y-8">
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Staff Dashboard</h1>
-          <p className="text-muted-foreground">Manage applications and student support</p>
+        <div className="space-y-1.5 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Staff Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Manage applications and student support</p>
         </div>
 
         {/* Stats Grid */}

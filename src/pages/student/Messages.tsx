@@ -247,14 +247,14 @@ export default function Messages() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Messages</h1>
-            <p className="text-muted-foreground">Stay connected with advisors and support</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">Messages</h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Stay connected with advisors and support</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" disabled>
-              <MessageSquare className="h-4 w-4" /> New Conversation
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" className="gap-2 hover-scale whitespace-nowrap" disabled>
+              <MessageSquare className="h-4 w-4" /> <span className="hidden sm:inline">New Conversation</span>
             </Button>
           </div>
         </div>

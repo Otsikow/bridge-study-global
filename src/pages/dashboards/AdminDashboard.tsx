@@ -31,9 +31,9 @@ export default function AdminDashboard() {
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
         
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage the Global Education Gateway platform</p>
+        <div className="space-y-1.5 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Manage the Global Education Gateway platform</p>
         </div>
 
         {/* Quick Stats */}

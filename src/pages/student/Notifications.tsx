@@ -14,14 +14,18 @@ export default function Notifications() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Notifications</h1>
-            <p className="text-muted-foreground">Stay up to date with your journey</p>
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">Notifications</h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Stay up to date with your journey</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2"><Settings className="h-4 w-4" /> Preferences</Button>
-            <Button className="gap-2"><CheckCircle2 className="h-4 w-4" /> Mark all read</Button>
+          <div className="flex gap-2 flex-wrap flex-shrink-0">
+            <Button variant="outline" className="gap-2 hover-scale whitespace-nowrap">
+              <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Preferences</span>
+            </Button>
+            <Button className="gap-2 hover-scale whitespace-nowrap">
+              <CheckCircle2 className="h-4 w-4" /> <span className="hidden sm:inline">Mark all read</span>
+            </Button>
           </div>
         </div>
 
