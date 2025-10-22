@@ -302,7 +302,7 @@ export default function InterviewPractice() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full justify-start overflow-x-auto">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="practice" className="gap-2">
             <Video className="h-4 w-4" />
             <span className="hidden xs:inline">Practice</span>
