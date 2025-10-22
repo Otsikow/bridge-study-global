@@ -227,16 +227,16 @@ export default function AIChatbot() {
                 }`}
               >
                 {message.role === "assistant" && (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center flex-shrink-0">
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                 )}
                 <div
-                  className={`rounded-lg px-3 py-2 max-w-[75%] xs:max-w-[80%] ${
+                  className={`rounded-xl px-3 py-2 max-w-[75%] xs:max-w-[80%] ${
                     message.role === "user"
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
+                      : "bg-muted text-foreground/90 dark:bg-secondary/60"
+                  } shadow-sm`}
                 >
                   <FormattedMessage content={message.content} />
                 </div>
@@ -249,10 +249,10 @@ export default function AIChatbot() {
             ))}
             {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
               <div className="flex gap-2 justify-start">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
                   <Bot className="h-4 w-4 text-primary" />
                 </div>
-                <div className="rounded-lg px-4 py-2 bg-muted">
+                <div className="rounded-xl px-4 py-2 bg-muted dark:bg-secondary/60">
                   <p className="text-sm">Thinking...</p>
                 </div>
               </div>
