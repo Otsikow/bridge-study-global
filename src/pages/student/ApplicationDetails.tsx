@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/StatusBadge';
-import { ArrowLeft, Calendar, DollarSign, Download, FileText, GraduationCap, MapPin, Timer } from 'lucide-react';
+import { Calendar, DollarSign, Download, FileText, GraduationCap, MapPin, Timer } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 interface University {
   name: string;
@@ -28,6 +29,13 @@ interface Program {
   university: University;
 }
 
+interface TimelineItem {
+  title?: string;
+  description?: string;
+  date?: string;
+  [key: string]: unknown;
+}
+
 interface Application {
   id: string;
   status: string;
@@ -36,7 +44,7 @@ interface Application {
   created_at: string;
   submitted_at: string | null;
   program: Program;
-  timeline_json?: any[];
+  timeline_json?: TimelineItem[];
 }
 
 interface TaskItem {
@@ -217,9 +225,7 @@ export default function ApplicationDetails() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-2" fallback="/dashboard" />
 
       {/* Header */}
       <Card>
@@ -293,7 +299,7 @@ export default function ApplicationDetails() {
             <CardContent>
               {app.timeline_json && Array.isArray(app.timeline_json) && app.timeline_json.length > 0 ? (
                 <div className="space-y-3">
-                  {app.timeline_json.map((item: any, idx: number) => (
+                  {app.timeline_json.map((item: TimelineItem, idx: number) => (
                     <div key={idx} className="flex items-start gap-3">
                       <div className="h-2 w-2 rounded-full bg-primary mt-2" />
                       <div className="text-sm">

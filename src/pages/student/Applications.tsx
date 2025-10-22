@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Plus, Calendar, GraduationCap, ArrowLeft, MapPin, Filter, Timer, XCircle } from 'lucide-react';
+import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 
 interface Application {
@@ -75,9 +76,9 @@ export default function Applications() {
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;
-      const list = appsData || [];
+      const list = (appsData ?? []) as Application[];
       setApplications(list);
-      setAllCountries(Array.from(new Set(list.map((a: any) => a.program.university.country))).sort());
+      setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -145,15 +146,7 @@ export default function Applications() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-[220px]">

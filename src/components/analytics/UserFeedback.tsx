@@ -45,7 +45,7 @@ export default function UserFeedback() {
     { value: 'bug', label: 'Bug Report', icon: Bug },
     { value: 'feature', label: 'Feature Request', icon: Lightbulb },
     { value: 'improvement', label: 'Improvement Suggestion', icon: ThumbsUp }
-  ];
+  ] as const;
 
   const categories = {
     general: ['User Experience', 'Navigation', 'Performance', 'Content', 'Other'],
@@ -156,7 +156,7 @@ export default function UserFeedback() {
                     key={type.value}
                     variant={feedback.type === type.value ? "default" : "outline"}
                     className="h-auto p-4 flex flex-col items-center gap-2"
-                    onClick={() => setFeedback(prev => ({ ...prev, type: type.value as any, category: '' }))}
+                    onClick={() => setFeedback(prev => ({ ...prev, type: type.value, category: '' }))}
                   >
                     <Icon className="h-5 w-5" />
                     <span className="text-sm">{type.label}</span>

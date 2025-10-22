@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+interface UniversityRanking {
+  world_rank?: number;
+  [key: string]: unknown;
+}
+
 export interface ProgramRecommendation {
   id: string;
   name: string;
@@ -16,9 +21,9 @@ export interface ProgramRecommendation {
     name: string;
     city: string;
     country: string;
-    ranking?: any;
+    ranking?: UniversityRanking;
   };
-  entry_requirements: any;
+  entry_requirements: unknown;
   ielts_overall?: number;
   toefl_overall?: number;
 }
@@ -37,7 +42,7 @@ export interface StudentProfile {
     program_level: string[];
     disciplines: string[];
   };
-  education_history: any;
+  education_history: Record<string, unknown>;
 }
 
 export const useAIRecommendations = () => {
@@ -66,7 +71,7 @@ export const useAIRecommendations = () => {
       const appliedProgramIds = existingApps?.map(app => app.program_id) || [];
 
       // Fetch all active programs
-      const { data: programs, error: programsError } = await supabase
+      let query = supabase
         .from('programs')
         .select(`
           id,
@@ -86,8 +91,15 @@ export const useAIRecommendations = () => {
             ranking
           )
         `)
-        .eq('active', true)
-        .not('id', 'in', `(${appliedProgramIds.join(',')})`);
+        .eq('active', true);
+
+      // Exclude programs the student already applied to (guard empty list)
+      if (appliedProgramIds.length > 0) {
+        const list = appliedProgramIds.map((id) => `'${id}'`).join(',');
+        query = query.not('id', 'in', `(${list})`);
+      }
+
+      const { data: programs, error: programsError } = await query;
 
       if (programsError) throw programsError;
 
@@ -140,8 +152,8 @@ export const useAIRecommendations = () => {
         }
 
         // University ranking bonus
-        const ranking = program.university.ranking as any;
-        if (ranking && typeof ranking === 'object' && ranking.world_rank && ranking.world_rank <= 100) {
+        const ranking = program.university.ranking;
+        if (ranking && typeof ranking.world_rank === 'number' && ranking.world_rank <= 100) {
           score += 5;
           reasons.push(`Top-ranked university`);
         }

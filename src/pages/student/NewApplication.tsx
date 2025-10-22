@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, GraduationCap, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { GraduationCap, MapPin, Calendar, DollarSign } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Program {
@@ -206,10 +207,7 @@ export default function NewApplication() {
 
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-4xl">
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-4">
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
       <div>
         <h1 className="text-3xl font-bold mb-2">New Application</h1>
@@ -369,7 +367,7 @@ export default function NewApplication() {
             <Button onClick={handleSubmit} disabled={submitting || !agreedToTerms}>
               {submitting ? 'Creating...' : 'Create Application'}
             </Button>
-            <Button variant="outline" onClick={() => navigate(-1)}>
+            <BackButton variant="outline" label="Cancel" />
               Cancel
             </Button>
           </div>

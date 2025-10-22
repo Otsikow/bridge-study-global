@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -152,10 +153,7 @@ export default function StudentOnboarding() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8 px-4 max-w-4xl space-y-8">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
 
         <div>
           <h1 className="text-4xl font-bold mb-2">Welcome to Global Education Gateway</h1>

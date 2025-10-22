@@ -82,18 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-
-      if (currentSession?.user) {
-        fetchProfile(currentSession.user.id);
-      }
-
-      setLoading(false);
-    });
-
     return () => subscription.unsubscribe();
   }, []);
 
