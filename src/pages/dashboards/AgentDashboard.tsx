@@ -18,7 +18,6 @@ import {
   LayoutDashboard,
   Users,
   FolderOpen,
-  ArrowLeft,
   BarChart3,
   ClipboardList,
   Star,
@@ -26,6 +25,7 @@ import {
   CheckSquare,
   Upload,
 } from "lucide-react";
+import BackButton from '@/components/BackButton';
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
@@ -55,10 +55,7 @@ export default function AgentDashboard() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-8">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
 
         {/* Header */}
         <div className="space-y-1">

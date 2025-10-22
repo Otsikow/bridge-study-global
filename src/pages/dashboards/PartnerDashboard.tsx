@@ -3,9 +3,10 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Upload, FileCheck, TrendingUp, ArrowLeft } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Upload, FileCheck, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/StatusBadge';
+import BackButton from '@/components/BackButton';
 
 export default function PartnerDashboard() {
   const navigate = useNavigate();
@@ -43,14 +44,7 @@ export default function PartnerDashboard() {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold">Partner Dashboard</h1>

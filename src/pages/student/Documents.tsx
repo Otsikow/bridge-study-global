@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle, ArrowLeft } from 'lucide-react';
+import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
 
 interface Document {
@@ -257,15 +258,7 @@ export default function Documents() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
       <div>
         <h1 className="text-3xl font-bold mb-2">My Documents</h1>

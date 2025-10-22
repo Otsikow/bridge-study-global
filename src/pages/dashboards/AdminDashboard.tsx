@@ -15,12 +15,12 @@ import {
   Upload, 
   DollarSign, 
   Brain,
-  ArrowLeft,
   Users,
   FileText,
   TrendingUp,
   Settings
 } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -28,14 +28,7 @@ export default function AdminDashboard() {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-8">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
         
         {/* Header */}
         <div>
