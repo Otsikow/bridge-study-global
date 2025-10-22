@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 function scoreBand(p: number) {
   if (p >= 0.7) return { label: 'High', color: 'text-success' };
@@ -44,11 +45,23 @@ export default function VisaEligibility() {
   const band = calc !== null ? scoreBand(calc) : null;
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
-      <Card>
+    <div className="min-h-screen bg-gradient-subtle">
+      <div className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="rounded-full"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <ThemeToggle />
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" /> Visa Eligibility Estimator
@@ -117,7 +130,8 @@ export default function VisaEligibility() {
             </div>
           )}
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
