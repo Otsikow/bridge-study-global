@@ -8,17 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   FileText,
   CheckCircle,
-  GraduationCap,
-  User,
   Bell,
   Clock,
   TrendingUp,
-  Globe,
-  Filter,
   Search,
   BarChart3,
   ClipboardList,
   Star,
+  MessageSquare,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -28,6 +25,8 @@ import ProactiveAssistant from '@/components/ai/ProactiveAssistant';
 import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
 import TaskManagement from '@/components/tasks/TaskManagement';
 import PreferenceRanking from '@/components/ranking/PreferenceRanking';
+import MessagesWidget from '@/components/student/MessagesWidget';
+import MessagesDashboard from '@/components/messages/MessagesDashboard';
 
 interface Application {
   id: string;
@@ -62,6 +61,7 @@ export default function StudentDashboard() {
   const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -114,6 +114,24 @@ export default function StudentDashboard() {
 
       if (tasksError) throw tasksError;
       setTasks(tasksData || []);
+
+      const { data: messagesData, error: messagesError } = await supabase
+        .from('messages')
+        .select('id, created_at, sender_id')
+        .in('application_id', appsData?.map(app => app.id) || [])
+        .order('created_at', { ascending: false });
+
+      if (!messagesError && messagesData) {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const recentMessages = messagesData.filter(
+          msg =>
+            new Date(msg.created_at || 0) > sevenDaysAgo &&
+            msg.sender_id !== user.id
+        );
+        setUnreadMessages(recentMessages.length);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast({
@@ -123,36 +141,6 @@ export default function StudentDashboard() {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getIntakeLabel = (month: number, year: number) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${monthNames[month - 1]} ${year}`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'status-draft';
-      case 'submitted': return 'bg-info-light text-info dark:bg-info/20 dark:text-info';
-      case 'screening': return 'bg-info-light text-info dark:bg-info/20 dark:text-info';
-      case 'conditional_offer':
-      case 'unconditional_offer': return 'bg-success-light text-success dark:bg-success/20 dark:text-success';
-      case 'visa': return 'bg-accent text-accent-foreground dark:bg-accent/30';
-      case 'enrolled': return 'bg-success-light text-success dark:bg-success/20 dark:text-success';
-      default: return 'status-draft';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-destructive';
-      case 'medium': return 'text-warning';
-      case 'low': return 'text-success';
-      default: return 'text-muted-foreground';
     }
   };
 
@@ -169,27 +157,45 @@ export default function StudentDashboard() {
       title: 'Active Applications',
       value: applications.length.toString(),
       icon: FileText,
-      description: applications.length > 0 ? 'Applications in progress' : 'Start browsing programs',
-      iconColor: applications.length > 0 ? 'text-info' : 'text-muted-foreground',
+      description:
+        applications.length > 0
+          ? 'Applications in progress'
+          : 'Start browsing programs',
+      iconColor:
+        applications.length > 0 ? 'text-info' : 'text-muted-foreground',
       valueColor: applications.length > 0 ? 'text-info' : '',
     },
     {
       title: 'Pending Tasks',
       value: tasks.length.toString(),
       icon: Clock,
-      description: tasks.length > 0 ? 'Tasks need attention' : 'All caught up!',
+      description:
+        tasks.length > 0 ? 'Tasks need attention' : 'All caught up!',
       iconColor: tasks.length > 0 ? 'text-warning' : 'text-success',
       valueColor: tasks.length > 0 ? 'text-warning' : 'text-success',
     },
     {
       title: 'Offers Received',
-      value: applications.filter(
-        (a) => a.status === 'conditional_offer' || a.status === 'unconditional_offer'
-      ).length.toString(),
+      value: applications
+        .filter(
+          a =>
+            a.status === 'conditional_offer' ||
+            a.status === 'unconditional_offer'
+        )
+        .length.toString(),
       icon: TrendingUp,
       description: 'Congratulations!',
       iconColor: 'text-success',
       valueColor: 'text-success',
+    },
+    {
+      title: 'Unread Messages',
+      value: unreadMessages.toString(),
+      icon: MessageSquare,
+      description:
+        unreadMessages > 0 ? 'New messages waiting' : 'All caught up!',
+      iconColor: unreadMessages > 0 ? 'text-info' : 'text-success',
+      valueColor: unreadMessages > 0 ? 'text-info' : 'text-success',
     },
   ];
 
@@ -215,23 +221,38 @@ export default function StudentDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <Button 
-              asChild 
-              variant="outline" 
-              size="sm" 
-              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="hover-scale whitespace-nowrap"
             >
-              <Link to="/student/notifications" className="flex items-center justify-center gap-2">
+              <Link to="/student/notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
                 <span className="hidden sm:inline">Notifications</span>
               </Link>
             </Button>
-            <Button 
-              asChild 
+            <Button
+              asChild
+              variant="outline"
               size="sm"
-              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
+              className="hover-scale whitespace-nowrap"
             >
-              <Link to="/search" className="flex items-center justify-center gap-2">
+              <Link to="/student/messages" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span className="hidden sm:inline">Messages</span>
+                {unreadMessages > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
+                  >
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </Badge>
+                )}
+              </Link>
+            </Button>
+            <Button asChild size="sm" className="hover-scale whitespace-nowrap">
+              <Link to="/search" className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 <span>Find Programs</span>
               </Link>
@@ -240,8 +261,8 @@ export default function StudentDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {stats.map((stat) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
+          {stats.map(stat => {
             const Icon = stat.icon;
             return (
               <Card
@@ -255,8 +276,12 @@ export default function StudentDashboard() {
                   <Icon className={`h-5 w-5 ${stat.iconColor}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className={`text-3xl font-bold ${stat.valueColor}`}>{stat.value}</div>
-                  <p className="text-sm text-muted-foreground mt-1">{stat.description}</p>
+                  <div className={`text-3xl font-bold ${stat.valueColor}`}>
+                    {stat.value}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {stat.description}
+                  </p>
                   {stat.title === 'Profile Completeness' && (
                     <Progress value={75} className="mt-2" />
                   )}
@@ -268,12 +293,15 @@ export default function StudentDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" /> Overview
             </TabsTrigger>
             <TabsTrigger value="applications" className="flex items-center gap-2">
               <FileText className="h-4 w-4" /> Applications
+            </TabsTrigger>
+            <TabsTrigger value="messages" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" /> Messages
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" /> Tasks
@@ -286,8 +314,9 @@ export default function StudentDashboard() {
           {/* Overview */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-3 items-stretch">
-              <div className="lg:col-span-1 min-w-0">
+              <div className="lg:col-span-1 space-y-6 min-w-0">
                 <ProactiveAssistant />
+                <MessagesWidget />
               </div>
               <div className="lg:col-span-2 min-w-0">
                 <ApplicationTrackingSystem />
@@ -298,6 +327,11 @@ export default function StudentDashboard() {
           {/* Applications */}
           <TabsContent value="applications">
             <ApplicationTrackingSystem />
+          </TabsContent>
+
+          {/* Messages */}
+          <TabsContent value="messages">
+            <MessagesDashboard />
           </TabsContent>
 
           {/* Tasks */}
