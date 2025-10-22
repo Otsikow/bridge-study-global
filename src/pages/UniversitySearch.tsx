@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, ArrowLeft } from "lucide-react";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, ArrowLeft, FileText, MessageSquare } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 import AIChatbot from "@/components/ai/AIChatbot";
@@ -227,12 +227,26 @@ export default function UniversitySearch() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="search">Search Universities</TabsTrigger>
-            <TabsTrigger value="recommendations">AI Recommendations</TabsTrigger>
-            <TabsTrigger value="sop">SOP Generator</TabsTrigger>
-            <TabsTrigger value="interview">Interview Practice</TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-hidden">
+            <TabsList className="w-full flex justify-start md:justify-center">
+              <TabsTrigger value="search" className="flex-1 md:flex-initial">
+                <Search className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Search</span>
+              </TabsTrigger>
+              <TabsTrigger value="recommendations" className="flex-1 md:flex-initial">
+                <Sparkles className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">AI Recommendations</span>
+              </TabsTrigger>
+              <TabsTrigger value="sop" className="flex-1 md:flex-initial">
+                <FileText className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">SOP Generator</span>
+              </TabsTrigger>
+              <TabsTrigger value="interview" className="flex-1 md:flex-initial">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Interview Practice</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="search" className="space-y-6">
 

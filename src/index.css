@@ -217,4 +217,14 @@ All colors MUST be HSL.
   .status-deferred {
     @apply bg-warning-light text-warning dark:bg-warning/20 dark:text-warning;
   }
+  
+  /* Hide scrollbars while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
 }
