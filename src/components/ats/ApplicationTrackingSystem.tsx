@@ -150,11 +150,11 @@ export default function ApplicationTrackingSystem() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-xl border shadow-card h-full flex flex-col">
         <CardHeader>
           <CardTitle>Application Tracking</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
@@ -167,7 +167,7 @@ export default function ApplicationTrackingSystem() {
 
   if (applications.length === 0) {
     return (
-      <Card>
+      <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full flex flex-col">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -177,7 +177,7 @@ export default function ApplicationTrackingSystem() {
             Track and manage all your university applications in one place
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center py-12 space-y-4">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto">
               <FileText className="h-8 w-8 text-muted-foreground" />
@@ -208,7 +208,7 @@ export default function ApplicationTrackingSystem() {
   }
 
   return (
-    <Card>
+    <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full flex flex-col">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -228,7 +228,7 @@ export default function ApplicationTrackingSystem() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 flex-1 flex flex-col">
         {/* Filter Tabs */}
         <Tabs value={activeFilter} onValueChange={setActiveFilter}>
           <TabsList className="grid w-full grid-cols-4 h-auto">
@@ -248,7 +248,7 @@ export default function ApplicationTrackingSystem() {
         </Tabs>
 
         {/* Applications List */}
-        <ScrollArea className="h-[600px] pr-4">
+        <ScrollArea className="h-[500px] pr-4">
           <div className="space-y-4">
             {filteredApplications.map((app) => {
               const config = statusConfig[app.status as keyof typeof statusConfig];
