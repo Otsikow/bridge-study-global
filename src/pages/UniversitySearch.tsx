@@ -214,7 +214,7 @@ export default function UniversitySearch() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
