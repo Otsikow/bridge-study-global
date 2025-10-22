@@ -18,7 +18,9 @@ import {
   Target,
   Clock,
   Volume2,
-  VolumeX
+  VolumeX,
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -300,10 +302,22 @@ export default function InterviewPractice() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="practice">Practice Session</TabsTrigger>
-          <TabsTrigger value="questions">Question Bank</TabsTrigger>
-          <TabsTrigger value="feedback">Feedback & Analysis</TabsTrigger>
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="practice" className="gap-2">
+            <Video className="h-4 w-4" />
+            <span className="hidden xs:inline">Practice</span>
+            <span className="hidden md:inline ml-1">Session</span>
+          </TabsTrigger>
+          <TabsTrigger value="questions" className="gap-2">
+            <BookOpen className="h-4 w-4" />
+            <span className="hidden xs:inline">Question</span>
+            <span className="hidden md:inline ml-1">Bank</span>
+          </TabsTrigger>
+          <TabsTrigger value="feedback" className="gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden xs:inline">Feedback</span>
+            <span className="hidden md:inline ml-1">& Analysis</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="practice" className="space-y-6">
