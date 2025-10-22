@@ -29,16 +29,14 @@ import {
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import heroBanner from '@/assets/walking-campus.png';
-import libraryStudent from '@/assets/library.png';
-import usingMobile from '@/assets/using-mobile.png';
-import studentWelcome from '@/assets/student-welcome.png';
-import studentCampus from '@/assets/student-campus.png';
-import careerFair from '@/assets/career-fair.png';
-import labStudent from '@/assets/lab-student.png';
-import classroomStudents from '@/assets/classroom-students.png';
-import studentLaptopOutdoors from '@/assets/student-laptop-outdoors.png';
-import acceptanceLetter from '@/assets/acceptance-letter.png';
+import campusWalk from '@/assets/campus-walk.png';
+import campusGathering from '@/assets/campus-gathering.png';
+import modernClassroom from '@/assets/modern-classroom.png';
+import studentJourney from '@/assets/student-journey.png';
+import visaSuccess from '@/assets/visa-success.png';
+import campusLife from '@/assets/campus-life.png';
+import studentStudying from '@/assets/student-studying.png';
+import campusTour from '@/assets/campus-tour.png';
 
 const Index = () => {
   const features = [
@@ -157,7 +155,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src={heroBanner} alt="Students celebrating success" className="w-full h-full object-cover" />
+          <img src={campusWalk} alt="Students walking on university campus" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/50" />
         </div>
 
@@ -223,7 +221,7 @@ const Index = () => {
       </section>
 
       {/* Features Showcase */}
-      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-24 bg-gradient-to-b from-background to-muted/20">
+      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-24">
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Your Journey to Success</h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -231,102 +229,197 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img 
-                src={studentLaptopOutdoors} 
-                alt="Student using laptop for university applications outdoors" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+        <div className="space-y-16 sm:space-y-24">
+          {/* Expert Guidance */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1">
+              <div className="rounded-2xl overflow-hidden shadow-xl">
+                <img 
+                  src={campusGathering} 
+                  alt="Students gathering with education advisors on campus" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Manage Anywhere</h3>
-              <p className="text-muted-foreground">
-                Track your applications and stay connected with your education agent from any device
+            <div className="order-1 md:order-2 space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Users className="h-4 w-4" />
+                Expert Support
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold">Personalized Guidance Every Step</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Connect with verified education agents who understand your unique goals and aspirations. 
+                Our experts provide personalized guidance throughout your entire application journey, 
+                from university selection to visa processing.
               </p>
-            </CardContent>
-          </Card>
+              <div className="flex flex-wrap gap-3 pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Verified Agents</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>24/7 Support</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Success Guarantee</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
+          {/* Modern Learning */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <BookOpen className="h-4 w-4" />
+                World-Class Education
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold">Learn in State-of-the-Art Facilities</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Experience cutting-edge education in modern classrooms equipped with the latest technology. 
+                Join a diverse community of international students and engage with world-renowned faculty 
+                who are leaders in their fields.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Top-Ranked Universities</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Interactive Learning</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Global Network</span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl overflow-hidden shadow-xl">
               <img 
-                src={classroomStudents} 
-                alt="Students in classroom learning environment" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                src={modernClassroom} 
+                alt="Students in modern classroom with advanced technology" 
+                className="w-full h-full object-cover"
               />
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Interactive Learning</h3>
-              <p className="text-muted-foreground">
-                Join a community of international students and engage with world-class faculty
-              </p>
-            </CardContent>
-          </Card>
+          </div>
 
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img 
-                src={careerFair} 
-                alt="Student meeting education advisor at career fair" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+          {/* Campus Life */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1">
+              <div className="rounded-2xl overflow-hidden shadow-xl">
+                <img 
+                  src={campusTour} 
+                  alt="International students on campus tour" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Expert Guidance</h3>
-              <p className="text-muted-foreground">
-                Connect with verified education agents who understand your goals and aspirations
+            <div className="order-1 md:order-2 space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Globe className="h-4 w-4" />
+                Campus Experience
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold">Immerse Yourself in Campus Culture</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Discover vibrant campus life at universities worldwide. From orientation programs to cultural events, 
+                you'll have countless opportunities to make lifelong connections, explore new perspectives, 
+                and create unforgettable memories.
               </p>
-            </CardContent>
-          </Card>
+              <div className="flex flex-wrap gap-3 pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Student Clubs</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Cultural Events</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Career Support</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
+          {/* Flexible Learning */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Video className="h-4 w-4" />
+                Flexible Study
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold">Study on Your Terms</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                Manage your applications and stay connected with your education agent from anywhere in the world. 
+                Our platform gives you the flexibility to track progress, submit documents, and communicate 
+                with advisors on your schedule.
+              </p>
+              <div className="flex flex-wrap gap-3 pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Mobile Access</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Real-time Updates</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Document Management</span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl overflow-hidden shadow-xl">
               <img 
-                src={labStudent} 
-                alt="Student in science lab" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                src={studentStudying} 
+                alt="Student studying with laptop in comfortable environment" 
+                className="w-full h-full object-cover"
               />
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Diverse Programs</h3>
-              <p className="text-muted-foreground">
-                Explore programs across all fields of study at top universities worldwide
-              </p>
-            </CardContent>
-          </Card>
+          </div>
 
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img 
-                src={studentCampus} 
-                alt="Happy student on campus" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+          {/* Visa Success */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1">
+              <div className="rounded-2xl overflow-hidden shadow-xl">
+                <img 
+                  src={visaSuccess} 
+                  alt="Student celebrating visa approval success" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Campus Life</h3>
-              <p className="text-muted-foreground">
-                Get insights into campus culture and student life at your dream universities
+            <div className="order-1 md:order-2 space-y-4">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Shield className="h-4 w-4" />
+                Visa Support
+              </div>
+              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold">Navigate Visa Process with Confidence</h3>
+              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
+                From acceptance to visa approval, we're with you every step of the way. Our comprehensive 
+                visa calculator and expert guidance ensure you have everything you need for a successful 
+                application, bringing you one step closer to your dream education.
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
-            <div className="aspect-[4/3] overflow-hidden">
-              <img 
-                src={acceptanceLetter} 
-                alt="Student celebrating university acceptance letter" 
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
+              <div className="flex flex-wrap gap-3 pt-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Visa Calculator</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Document Checklist</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-5 w-5 text-primary" />
+                  <span>Expert Review</span>
+                </div>
+              </div>
             </div>
-            <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Acceptance Success</h3>
-              <p className="text-muted-foreground">
-                Celebrate your achievements and prepare for your exciting academic journey abroad
-              </p>
-            </CardContent>
-          </Card>
+          </div>
         </div>
       </section>
 
