@@ -335,10 +335,10 @@ export default function Messages() {
         sender_id: user.id,
         body: composerText.trim() || (uploadedFiles.length > 0 ? 'Sent attachments' : ''),
         message_type: uploadedFiles.length > 0 ? ('document' as const) : ('text' as const),
-        attachments: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+        attachments: uploadedFiles.length > 0 ? (uploadedFiles as any) : undefined,
       };
 
-      const { data, error } = await supabase.from('messages').insert(insert).select('*').single();
+      const { data, error } = await supabase.from('messages').insert([insert]).select('*').single();
 
       if (!error && data) {
         const row = data as MessageRow;
@@ -451,4 +451,128 @@ export default function Messages() {
                       const preview = latest?.body || 'No messages yet';
                       const when = formatRelativeTime(latest?.created_at || null);
                       const unread = unreadCount(app.id);
-                      const showDot = unread === 0 && hasUnread
+                      const showDot = unread === 0 && hasUnread(app.id);
+                      return (
+                        <li
+                          key={app.id}
+                          className={`p-3 cursor-pointer hover:bg-muted/50 transition-colors ${
+                            selectedAppId === app.id ? 'bg-muted' : ''
+                          }`}
+                          onClick={() => setSelectedAppId(app.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Avatar className="h-10 w-10 shrink-0">
+                              <AvatarFallback>
+                                <MessageSquare className="h-5 w-5" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <h3 className="font-medium text-sm truncate">{title}</h3>
+                                <span className="text-xs text-muted-foreground shrink-0">{when}</span>
+                              </div>
+                              <p className="text-sm text-muted-foreground truncate">{preview}</p>
+                            </div>
+                            {unread > 0 && (
+                              <Badge variant="default" className="shrink-0">
+                                {unread}
+                              </Badge>
+                            )}
+                            {showDot && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1" />}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          <Card className="lg:col-span-2 rounded-xl border shadow-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base truncate">{selectedTitle || 'Select a conversation'}</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 space-y-4">
+              {!selectedAppId ? (
+                <div className="text-center text-muted-foreground py-12">Select a conversation to start messaging</div>
+              ) : (
+                <>
+                  <ScrollArea className="h-[300px] pr-4">
+                    <div className="space-y-4">
+                      {selectedMessages.map((msg) => {
+                        const isSelf = msg.sender_id === user?.id;
+                        const isRead = isMessageRead(msg);
+                        return (
+                          <div key={msg.id} className={`flex ${isSelf ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-[75%] ${isSelf ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-3`}>
+                              <p className="text-sm break-words">{msg.body}</p>
+                              {msg.attachments && Array.isArray(msg.attachments) && (msg.attachments as unknown as MessageAttachment[]).map((att) => renderAttachment(att))}
+                              <div className="flex items-center gap-1 mt-1">
+                                <span className="text-xs opacity-70">{formatRelativeTime(msg.created_at)}</span>
+                                {isSelf && (
+                                  <span className="ml-1">
+                                    {isRead ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div ref={listBottomRef} />
+                    </div>
+                  </ScrollArea>
+
+                  <div className="space-y-2">
+                    {attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {attachments.map((file, i) => (
+                          <div key={i} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2 text-sm">
+                            {file.type.startsWith('image/') ? <ImageIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                            <span className="truncate max-w-[150px]">{file.name}</span>
+                            <button onClick={() => removeAttachment(i)} className="text-muted-foreground hover:text-foreground">
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-end gap-2">
+                      <Input
+                        placeholder="Type your message..."
+                        value={composerText}
+                        onChange={(e) => setComposerText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                        disabled={sending || uploading}
+                        className="flex-1"
+                      />
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileSelect}
+                      />
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={sending || uploading}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" onClick={handleSend} disabled={sending || uploading || (!composerText.trim() && attachments.length === 0)}>
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}

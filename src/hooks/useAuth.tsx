@@ -145,16 +145,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Create user role record
-      const { error: roleError } = await supabase.from('user_roles').insert({
-        user_id: userId,
-        role: user.user_metadata?.role || 'student',
-      });
-
-      if (roleError) {
-        console.error('Error creating user role:', roleError);
-      }
-
       // Role-specific record creation
       const role = user.user_metadata?.role || 'student';
       if (role === 'student') {
