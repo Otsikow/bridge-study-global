@@ -16,8 +16,7 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
-  // Role selection removed; backend defaults to student and roles
-  // are managed by admins via user_roles.
+  const [role, setRole] = useState<'student' | 'agent' | 'staff'>('student');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
@@ -28,6 +27,10 @@ const Signup = () => {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
 
@@ -54,7 +57,7 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName);
+    const { error } = await signUp(email, password, fullName, role);
 
     if (error) {
       toast({
@@ -66,9 +69,11 @@ const Signup = () => {
     } else {
       toast({
         title: 'Account created!',
-        description: 'Please check your email to verify your account.',
+        description: 'Please check your email to verify your account. You will be redirected to login.',
       });
-      navigate('/auth/login');
+      setTimeout(() => {
+        navigate('/auth/login');
+      }, 2000);
     }
   };
 
@@ -136,7 +141,22 @@ const Signup = () => {
                 Minimum 6 characters
               </p>
             </div>
-            {null}
+            <div className="space-y-2">
+              <Label htmlFor="role">Account Type</Label>
+              <Select value={role} onValueChange={(value: 'student' | 'agent' | 'staff') => setRole(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="agent">Education Agent</SelectItem>
+                  <SelectItem value="staff">Staff Member</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the type of account you want to create
+              </p>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
