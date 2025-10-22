@@ -59,33 +59,40 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
 
   const generateSOP = async () => {
     setLoading(true);
-    
+
     try {
-      // Simulate AI generation - in real implementation, this would call an AI service
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const generatedText = `Dear Admissions Committee,
+      const { VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY } = import.meta.env;
+      const url = `${VITE_SUPABASE_URL}/functions/v1/sop-generator`;
 
-I am writing to express my strong interest in the ${formData.programInterest} program at ${formData.universityInterest}. With a solid academic foundation in ${formData.academicBackground} and ${formData.workExperience} years of professional experience, I am eager to advance my knowledge and contribute to the field.
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          background: formData.academicBackground,
+          motivation: formData.motivation,
+          program: formData.programInterest,
+          university: formData.universityInterest,
+          goals: formData.careerGoals,
+          workExperience: formData.workExperience,
+          relevantSkills: formData.relevantSkills,
+          achievements: formData.achievements,
+          tone: formData.tone,
+          targetWordCount: formData.wordCount,
+        }),
+      });
 
-My academic journey has been marked by ${formData.achievements}, which have strengthened my analytical and problem-solving abilities. Through my studies, I have developed a deep understanding of ${formData.relevantSkills}, skills that I believe will be invaluable in your program.
-
-What particularly attracts me to ${formData.universityInterest} is its reputation for ${formData.motivation}. The program's curriculum aligns perfectly with my career goals of ${formData.careerGoals}. I am particularly excited about the opportunity to work with distinguished faculty members and engage in cutting-edge research.
-
-My professional experience has provided me with practical insights into the challenges facing our industry. I have successfully ${formData.achievements}, demonstrating my ability to apply theoretical knowledge to real-world problems. This experience has reinforced my commitment to pursuing advanced studies and contributing to meaningful research.
-
-I am confident that the ${formData.programInterest} program will provide me with the advanced knowledge and research opportunities necessary to achieve my long-term career objectives. I am particularly interested in exploring areas such as [specific research interests] and contributing to the university's research community.
-
-Thank you for considering my application. I look forward to the opportunity to contribute to and benefit from your esteemed program.
-
-Sincerely,
-[Your Name]`;
+      if (!res.ok) throw new Error('Generation failed');
+      const data = await res.json();
+      const generatedText: string = data.sop || '';
 
       setGeneratedSOP(generatedText);
       setEditedSOP(generatedText);
       setActiveTab('edit');
       analyzeSOP(generatedText);
-      
+
       toast({
         title: 'Success',
         description: 'Statement of Purpose generated successfully!'
