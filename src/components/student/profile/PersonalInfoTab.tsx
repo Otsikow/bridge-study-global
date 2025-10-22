@@ -97,14 +97,14 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
+    <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
           <CardDescription>Your legal name and identification details</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="legal_name">Legal Name (as on passport) *</Label>
               <Input
@@ -126,7 +126,7 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date_of_birth">Date of Birth *</Label>
               <Input
@@ -150,7 +150,7 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="passport_number">Passport Number *</Label>
               <Input
@@ -176,13 +176,13 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="hover:shadow-md transition-shadow">
         <CardHeader>
           <CardTitle>Contact Information</CardTitle>
           <CardDescription>How we can reach you</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="contact_email">Email *</Label>
               <Input
@@ -237,7 +237,7 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input
@@ -269,7 +269,7 @@ export function PersonalInfoTab({ student, onUpdate }: PersonalInfoTabProps) {
         </CardContent>
       </Card>
 
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading} className="w-full hover-scale">
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Save Personal Information
       </Button>
