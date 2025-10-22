@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Shield,
   FileText,
+  Newspaper
 } from 'lucide-react';
 
 export function AppFooter() {
@@ -49,6 +50,12 @@ export function AppFooter() {
                 <Link to="/search" className="inline-flex items-center gap-2 hover:underline">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   Search Universities
+                </Link>
+              </li>
+              <li>
+                <Link to="/blog" className="inline-flex items-center gap-2 hover:underline">
+                  <Newspaper className="h-4 w-4 text-muted-foreground" />
+                  Blog
                 </Link>
               </li>
               <li>
