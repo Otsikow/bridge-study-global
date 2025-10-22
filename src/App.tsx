@@ -31,8 +31,11 @@ const VisaEligibility = lazy(() => import("./pages/student/VisaEligibility"));
 const SopGenerator = lazy(() => import("./pages/student/SopGenerator"));
 const IntakeForm = lazy(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazy(() => import("./pages/VisaCalculator"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const UserFeedback = lazy(() => import("./components/analytics/UserFeedback"));
 const FeedbackAnalytics = lazy(() => import("./pages/admin/FeedbackAnalytics"));
+const BlogAdmin = lazy(() => import("./pages/admin/BlogAdmin"));
 const Messages = lazy(() => import("./pages/student/Messages"));
 const Payments = lazy(() => import("./pages/student/Payments"));
 const Notifications = lazy(() => import("./pages/student/Notifications"));
@@ -66,6 +69,8 @@ const App = () => (
                 <Route path="/search" element={<UniversitySearch />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
 
                 {/* Protected Routes */}
                 <Route
@@ -177,6 +182,14 @@ const App = () => (
                       <FeedbackAnalytics />
                     </ProtectedRoute>
                   } 
+                />
+                <Route
+                  path="/admin/blog"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                      <BlogAdmin />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route path="/legal/privacy" element={<LegalPrivacy />} />
                 <Route path="/legal/terms" element={<LegalTerms />} />

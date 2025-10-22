@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          id: string
+          tenant_id: string
+          author_id: string
+          slug: string
+          title: string
+          excerpt: string | null
+          content_md: string | null
+          content_html: string | null
+          cover_image_url: string | null
+          tags: string[]
+          status: Database["public"]["Enums"]["blog_status"]
+          featured: boolean
+          seo_title: string | null
+          seo_description: string | null
+          published_at: string | null
+          created_at: string
+          updated_at: string
+          views_count: number
+          likes_count: number
+        }
+        Insert: {
+          id?: string
+          tenant_id: string
+          author_id: string
+          slug: string
+          title: string
+          excerpt?: string | null
+          content_md?: string | null
+          content_html?: string | null
+          cover_image_url?: string | null
+          tags?: string[]
+          status?: Database["public"]["Enums"]["blog_status"]
+          featured?: boolean
+          seo_title?: string | null
+          seo_description?: string | null
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+          views_count?: number
+          likes_count?: number
+        }
+        Update: {
+          id?: string
+          tenant_id?: string
+          author_id?: string
+          slug?: string
+          title?: string
+          excerpt?: string | null
+          content_md?: string | null
+          content_html?: string | null
+          cover_image_url?: string | null
+          tags?: string[]
+          status?: Database["public"]["Enums"]["blog_status"]
+          featured?: boolean
+          seo_title?: string | null
+          seo_description?: string | null
+          published_at?: string | null
+          created_at?: string
+          updated_at?: string
+          views_count?: number
+          likes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           active: boolean | null
@@ -1804,6 +1885,7 @@ export type Database = {
       }
     }
     Enums: {
+      blog_status: "draft" | "published"
       app_role:
         | "student"
         | "agent"
