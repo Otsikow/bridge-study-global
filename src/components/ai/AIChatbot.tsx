@@ -4,13 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, X, Bot, User } from "lucide-react";
+import { MessageCircle, Send, X, Bot, User, Mic, MicOff, Paperclip, FileText, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
 }
 
 function FormattedMessage({ content }: { content: string }) {
@@ -90,7 +94,11 @@ export default function AIChatbot() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ url: string; name: string; type: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { session } = useAuth();
 
@@ -100,8 +108,141 @@ export default function AIChatbot() {
     }
   }, [messages]);
 
+  useEffect(() => {
+    // Initialize Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput((prev) => prev + (prev ? ' ' : '') + transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          toast({
+            title: "Voice input error",
+            description: "Failed to recognize speech. Please try again.",
+            variant: "destructive",
+          });
+        }
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [toast]);
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      toast({
+        title: "Not supported",
+        description: "Voice input is not supported in your browser.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isRecording) {
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsRecording(true);
+      } catch (error) {
+        console.error('Failed to start recognition:', error);
+        toast({
+          title: "Error",
+          description: "Failed to start voice input.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image, PDF, or document file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `chat-uploads/${session?.user?.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('public')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('public')
+        .getPublicUrl(filePath);
+
+      setUploadedFile({
+        url: publicUrl,
+        name: file.name,
+        type: file.type,
+      });
+
+      toast({
+        title: "File uploaded",
+        description: `${file.name} has been uploaded successfully.`,
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload file. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    // Reset input
+    event.target.value = '';
+  };
+
+  const removeUploadedFile = () => {
+    setUploadedFile(null);
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && !uploadedFile) || isLoading) return;
     if (!session?.access_token) {
       toast({
         title: "Sign in required",
@@ -111,9 +252,16 @@ export default function AIChatbot() {
       return;
     }
 
-    const userMessage: Message = { role: "user", content: input };
+    const userMessage: Message = { 
+      role: "user", 
+      content: input || (uploadedFile ? `[Uploaded file: ${uploadedFile.name}]` : ""),
+      fileUrl: uploadedFile?.url,
+      fileName: uploadedFile?.name,
+      fileType: uploadedFile?.type,
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setUploadedFile(null);
     setIsLoading(true);
 
     try {
@@ -255,6 +403,28 @@ export default function AIChatbot() {
                       : "bg-muted text-foreground/90 dark:bg-secondary/60"
                   } shadow-sm`}
                 >
+                  {message.fileUrl && (
+                    <div className="mb-2 p-2 rounded-lg bg-background/20 dark:bg-background/40">
+                      {message.fileType?.startsWith('image/') ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs opacity-90">
+                            <ImageIcon className="h-3 w-3" />
+                            <span className="truncate">{message.fileName}</span>
+                          </div>
+                          <img 
+                            src={message.fileUrl} 
+                            alt={message.fileName}
+                            className="max-w-full h-auto rounded max-h-40 object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs opacity-90">
+                          <FileText className="h-3 w-3" />
+                          <span className="truncate">{message.fileName}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <FormattedMessage content={message.content} />
                 </div>
                 {message.role === "user" && (
@@ -277,6 +447,26 @@ export default function AIChatbot() {
           </div>
         </ScrollArea>
         <div className="p-3 md:p-4 border-t flex-shrink-0">
+          {uploadedFile && (
+            <div className="mb-2 p-2 rounded-lg bg-muted flex items-center justify-between">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {uploadedFile.type.startsWith('image/') ? (
+                  <ImageIcon className="h-4 w-4 flex-shrink-0" />
+                ) : (
+                  <FileText className="h-4 w-4 flex-shrink-0" />
+                )}
+                <span className="text-xs truncate">{uploadedFile.name}</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={removeUploadedFile}
+                className="h-6 w-6 flex-shrink-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -284,14 +474,48 @@ export default function AIChatbot() {
             }}
             className="flex gap-2"
           >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || !!uploadedFile}
+              className="flex-shrink-0"
+              title="Upload file"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask me anything..."
               disabled={isLoading}
-              className="text-sm md:text-base"
+              className="text-sm md:text-base flex-1"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="flex-shrink-0">
+            <Button
+              type="button"
+              size="icon"
+              variant={isRecording ? "destructive" : "outline"}
+              onClick={toggleRecording}
+              disabled={isLoading}
+              className="flex-shrink-0"
+              title={isRecording ? "Stop recording" : "Start voice input"}
+            >
+              {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+            <Button 
+              type="submit" 
+              size="icon" 
+              disabled={isLoading || (!input.trim() && !uploadedFile)} 
+              className="flex-shrink-0"
+            >
               <Send className="h-4 w-4" />
             </Button>
           </form>
