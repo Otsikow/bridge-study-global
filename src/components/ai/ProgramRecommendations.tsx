@@ -108,25 +108,26 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Brain className="h-6 w-6 text-primary" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             AI-Powered Program Recommendations
           </h2>
-          <p className="text-muted-foreground">Discover programs that match your profile and goals</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Discover programs that match your profile and goals</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={() => setShowFilters(!showFilters)}
+            className="flex-1 sm:flex-initial"
           >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
+            <Filter className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Filters</span>
           </Button>
-          <Button onClick={() => generateRecommendations(profile)}>
-            <Search className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={() => generateRecommendations(profile)} className="flex-1 sm:flex-initial">
+            <Search className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -262,45 +263,45 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
             <div className="space-y-4">
               {filteredRecommendations.map((program) => (
                 <Card key={program.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col lg:flex-row lg:items-start gap-4 lg:gap-6">
                       <div className="space-y-4 flex-1">
-                        <div className="flex items-start gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-xl font-semibold">{program.name}</h3>
-                              <Badge className={getMatchColor(program.match_score)}>
-                                {program.match_score}% Match
-                              </Badge>
-                            </div>
-                            <p className="text-muted-foreground mb-2">
-                              {program.level} • {program.discipline}
-                            </p>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4" />
+                        <div className="space-y-3">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-3">
+                            <h3 className="text-lg sm:text-xl font-semibold flex-1">{program.name}</h3>
+                            <Badge className={getMatchColor(program.match_score)}>
+                              {program.match_score}% Match
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {program.level} • {program.discipline}
+                          </p>
+                          <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                            <span className="break-words">
                               {program.university.name} • {program.university.city}, {program.university.country}
-                            </div>
+                            </span>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs sm:text-sm">
                           <div className="flex items-center gap-2">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span>{program.tuition_currency} {program.tuition_amount.toLocaleString()}/year</span>
+                            <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate">{program.tuition_currency} {program.tuition_amount.toLocaleString()}/year</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span>{program.duration_months} months</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Star className="h-4 w-4 text-muted-foreground" />
-                            <span>Ranking: {program.university.ranking?.world_rank || 'N/A'}</span>
+                            <Star className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="truncate">Ranking: {program.university.ranking?.world_rank || 'N/A'}</span>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <h4 className="font-medium text-sm">Why this program matches you:</h4>
-                          <div className="flex flex-wrap gap-2">
+                          <h4 className="font-medium text-xs sm:text-sm">Why this program matches you:</h4>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {program.match_reasons.map((reason, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {reason}
@@ -310,30 +311,32 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                         </div>
 
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
                             <span>Match Score</span>
-                            <span>{program.match_score}%</span>
+                            <span className="font-semibold">{program.match_score}%</span>
                           </div>
                           <Progress value={program.match_score} className="h-2" />
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-2 ml-4">
+                      <div className="flex flex-row lg:flex-col gap-2 w-full lg:w-auto lg:min-w-[140px]">
                         <Button
                           onClick={() => onProgramSelect?.(program.id)}
-                          className="w-full"
+                          className="flex-1 lg:w-full"
+                          size="sm"
                         >
                           Apply Now
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => checkVisaEligibility(program.university.country)}
-                          className="w-full"
+                          className="flex-1 lg:w-full"
+                          size="sm"
                         >
-                          <Shield className="h-4 w-4 mr-2" />
-                          Check Visa
+                          <Shield className="h-3.5 w-3.5 sm:mr-2" />
+                          <span className="hidden sm:inline">Check Visa</span>
                         </Button>
-                        <Button variant="ghost" size="sm" asChild>
+                        <Button variant="ghost" size="sm" asChild className="flex-1 lg:w-full">
                           <Link to={`/search?program=${program.id}`}>
                             View Details
                           </Link>
@@ -355,18 +358,18 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                 Based on your profile, here's your estimated visa eligibility for different countries
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {countries.map(country => {
                   const result = visaResults[country];
                   return (
                     <Card key={country} className="hover:shadow-md transition-shadow">
-                      <CardContent className="pt-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold">{country}</h3>
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="space-y-3 sm:space-y-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <h3 className="font-semibold text-sm sm:text-base truncate">{country}</h3>
                             {result ? (
-                              <Badge className={getVisaColor(result.eligibility)}>
+                              <Badge className={`${getVisaColor(result.eligibility)} text-xs`}>
                                 {result.eligibility}
                               </Badge>
                             ) : (
@@ -374,6 +377,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                                 size="sm"
                                 variant="outline"
                                 onClick={() => checkVisaEligibility(country)}
+                                className="text-xs"
                               >
                                 Check
                               </Button>
@@ -383,20 +387,20 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                           {result && (
                             <>
                               <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
+                                <div className="flex items-center justify-between text-xs sm:text-sm">
                                   <span>Eligibility</span>
-                                  <span>{result.percentage}%</span>
+                                  <span className="font-semibold">{result.percentage}%</span>
                                 </div>
                                 <Progress value={result.percentage} className="h-2" />
                               </div>
                               
                               <div className="space-y-2">
-                                <h4 className="text-sm font-medium">Key Factors:</h4>
+                                <h4 className="text-xs sm:text-sm font-medium">Key Factors:</h4>
                                 <div className="space-y-1">
                                   {result.factors.map((factor: string, index: number) => (
-                                    <div key={index} className="text-xs text-muted-foreground flex items-center gap-1">
-                                      <div className="w-1 h-1 rounded-full bg-green-500" />
-                                      {factor}
+                                    <div key={index} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                                      <div className="w-1 h-1 rounded-full bg-success flex-shrink-0 mt-1.5" />
+                                      <span className="break-words">{factor}</span>
                                     </div>
                                   ))}
                                 </div>
