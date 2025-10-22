@@ -4,13 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageCircle, Send, X, Bot, User } from "lucide-react";
+import { MessageCircle, Send, X, Bot, User, Mic, MicOff, Upload, FileText, Image, X as XIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  attachments?: Attachment[];
+}
+
+interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  url: string;
+  size: number;
 }
 
 function FormattedMessage({ content }: { content: string }) {
@@ -90,7 +100,14 @@ export default function AIChatbot() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
   const { session } = useAuth();
 
@@ -100,8 +117,281 @@ export default function AIChatbot() {
     }
   }, [messages]);
 
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      // Check if speech recognition is supported
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        toast({
+          title: "Voice input not supported",
+          description: "Your browser doesn't support voice input. Please use text input instead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        await processAudioBlob(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      
+      toast({
+        title: "Recording started",
+        description: "Speak now... Click the microphone again to stop.",
+      });
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Microphone access denied",
+        description: "Please allow microphone access to use voice input.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      toast({
+        title: "Processing voice input",
+        description: "Converting your speech to text...",
+      });
+    }
+  };
+
+  const processAudioBlob = async (audioBlob: Blob) => {
+    try {
+      // Use Web Speech API for speech recognition
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        toast({
+          title: "Speech recognition not supported",
+          description: "Your browser doesn't support speech recognition. Please use text input instead.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(prev => prev + (prev ? ' ' : '') + transcript);
+        toast({
+          title: "Voice input processed",
+          description: "Your speech has been converted to text.",
+        });
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        let errorMessage = "Could not process your voice input. Please try again.";
+        
+        switch (event.error) {
+          case 'no-speech':
+            errorMessage = "No speech detected. Please try speaking again.";
+            break;
+          case 'audio-capture':
+            errorMessage = "No microphone found. Please check your microphone.";
+            break;
+          case 'not-allowed':
+            errorMessage = "Microphone access denied. Please allow microphone access.";
+            break;
+        }
+        
+        toast({
+          title: "Speech recognition failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      };
+
+      recognition.onend = () => {
+        // Recognition ended
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      toast({
+        title: "Voice processing failed",
+        description: "Could not process your voice input. Please try typing instead.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // File upload functions
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        await uploadFile(file);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Upload failed",
+        description: "Could not upload files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const uploadFile = async (file: File) => {
+    if (!session?.access_token) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to upload files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload images, PDFs, or text documents only.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: "Please upload files smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `chat-attachments/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('public')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('public')
+      .getPublicUrl(filePath);
+
+    const attachment: Attachment = {
+      id: fileName,
+      name: file.name,
+      type: file.type,
+      url: publicUrl,
+      size: file.size,
+    };
+
+    setAttachments(prev => [...prev, attachment]);
+    
+    toast({
+      title: "File uploaded",
+      description: `${file.name} has been uploaded successfully.`,
+    });
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(att => att.id !== id));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      for (const file of files) {
+        await uploadFile(file);
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      toast({
+        title: "Upload failed",
+        description: "Could not upload files. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if ((!input.trim() && attachments.length === 0) || isLoading) return;
     if (!session?.access_token) {
       toast({
         title: "Sign in required",
@@ -111,9 +401,14 @@ export default function AIChatbot() {
       return;
     }
 
-    const userMessage: Message = { role: "user", content: input };
+    const userMessage: Message = { 
+      role: "user", 
+      content: input,
+      attachments: attachments.length > 0 ? [...attachments] : undefined
+    };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setAttachments([]);
     setIsLoading(true);
 
     try {
@@ -125,7 +420,10 @@ export default function AIChatbot() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ 
+          messages: [...messages, userMessage],
+          attachments: userMessage.attachments || []
+        }),
       });
 
       if (!response.ok || !response.body) {
@@ -209,8 +507,9 @@ export default function AIChatbot() {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-14 md:w-14"
+        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-14 md:w-14 z-40"
         size="icon"
+        aria-label="Open AI Assistant"
       >
         <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
       </Button>
@@ -218,7 +517,7 @@ export default function AIChatbot() {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 left-4 h-[calc(100vh-2rem)] shadow-2xl flex flex-col xs:left-auto xs:w-[380px] xs:h-[85vh] xs:max-h-[600px] md:bottom-6 md:right-6">
+    <Card className="fixed bottom-4 right-4 left-4 h-[calc(100vh-2rem)] shadow-2xl flex flex-col xs:left-auto xs:w-[380px] xs:h-[85vh] xs:max-h-[600px] md:bottom-6 md:right-6 z-50">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 px-4 pt-4">
         <CardTitle className="flex items-center gap-2 text-base md:text-lg">
           <Bot className="h-5 w-5" />
@@ -256,6 +555,39 @@ export default function AIChatbot() {
                   } shadow-sm`}
                 >
                   <FormattedMessage content={message.content} />
+                  {message.attachments && message.attachments.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {message.attachments.map((attachment) => (
+                        <div key={attachment.id} className="flex items-center gap-2 text-xs opacity-90">
+                          {attachment.type.startsWith('image/') ? (
+                            <>
+                              <Image className="h-3 w-3" />
+                              <a 
+                                href={attachment.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="hover:underline truncate"
+                              >
+                                {attachment.name}
+                              </a>
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="h-3 w-3" />
+                              <a 
+                                href={attachment.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="hover:underline truncate"
+                              >
+                                {attachment.name}
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {message.role === "user" && (
                   <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
@@ -277,23 +609,107 @@ export default function AIChatbot() {
           </div>
         </ScrollArea>
         <div className="p-3 md:p-4 border-t flex-shrink-0">
+          {/* Attachments Preview */}
+          {attachments.length > 0 && (
+            <div className="mb-3 space-y-2">
+              {attachments.map((attachment) => (
+                <div key={attachment.id} className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+                  {attachment.type.startsWith('image/') ? (
+                    <Image className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="text-sm text-muted-foreground flex-1 truncate">
+                    {attachment.name} ({formatFileSize(attachment.size)})
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeAttachment(attachment.id)}
+                    className="h-6 w-6"
+                  >
+                    <XIcon className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <form
             onSubmit={(e) => {
               e.preventDefault();
               sendMessage();
             }}
-            className="flex gap-2"
+            className="space-y-2"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything..."
-              disabled={isLoading}
-              className="text-sm md:text-base"
+            <div className={`flex gap-2 transition-colors ${isDragOver ? 'bg-primary/5 rounded-lg p-2' : ''}`}>
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isDragOver ? "Drop files here..." : "Ask me anything..."}
+                disabled={isLoading}
+                className="text-sm md:text-base flex-1"
+              />
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading || isUploading}
+                  className={`flex-shrink-0 h-9 w-9 transition-all duration-200 ${
+                    isRecording 
+                      ? 'bg-red-500 text-white hover:bg-red-600 animate-pulse' 
+                      : 'hover:bg-primary/10'
+                  }`}
+                  aria-label={isRecording ? "Stop recording" : "Start voice recording"}
+                >
+                  {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || isUploading}
+                  className="flex-shrink-0 h-9 w-9"
+                  aria-label="Upload file"
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  disabled={isLoading || (!input.trim() && attachments.length === 0)} 
+                  className="flex-shrink-0 h-9 w-9"
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
             />
-            <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="flex-shrink-0">
-              <Send className="h-4 w-4" />
-            </Button>
+            {isUploading && (
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                Uploading files...
+              </div>
+            )}
+            {isDragOver && (
+              <p className="text-xs text-primary text-center">
+                Drop files here to upload
+              </p>
+            )}
           </form>
         </div>
       </CardContent>
