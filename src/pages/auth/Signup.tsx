@@ -16,7 +16,8 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('student');
+  // Role selection removed; backend defaults to student and roles
+  // are managed by admins via user_roles.
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
@@ -53,7 +54,7 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName, role);
+    const { error } = await signUp(email, password, fullName);
 
     if (error) {
       toast({
@@ -135,20 +136,7 @@ const Signup = () => {
                 Minimum 6 characters
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">I am a</Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="agent">Education Agent</SelectItem>
-                  <SelectItem value="partner">University Partner</SelectItem>
-                  <SelectItem value="staff">GEG Staff</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {null}
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
