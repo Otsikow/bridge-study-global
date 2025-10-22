@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppFooter from "@/components/layout/AppFooter";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -10,6 +11,10 @@ import { lazy, Suspense } from "react";
 
 // ✅ Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
+const Contact = lazy(() => import("./pages/Contact"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const LegalPrivacy = lazy(() => import("./pages/LegalPrivacy"));
+const LegalTerms = lazy(() => import("./pages/LegalTerms"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Signup = lazy(() => import("./pages/auth/Signup"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
@@ -48,122 +53,131 @@ const App = () => (
               </div>
             }
           >
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/auth/login" element={<Login />} />
-              <Route path="/auth/signup" element={<Signup />} />
-              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-              <Route path="/auth/reset-password" element={<ResetPassword />} />
-              <Route path="/search" element={<UniversitySearch />} />
+            <div className="min-h-screen flex flex-col">
+              <div className="flex-1">
+                <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/auth/login" element={<Login />} />
+                <Route path="/auth/signup" element={<Signup />} />
+                <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/reset-password" element={<ResetPassword />} />
+                <Route path="/search" element={<UniversitySearch />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
 
-              {/* Protected Routes */}
-              <Route
-                path="/dashboard/*"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/onboarding"
-                element={
-                  <ProtectedRoute>
-                    <StudentOnboarding />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/profile"
-                element={
-                  <ProtectedRoute>
-                    <StudentProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/documents"
-                element={
-                  <ProtectedRoute>
-                    <Documents />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/applications"
-                element={
-                  <ProtectedRoute>
-                    <Applications />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/applications/new"
-                element={
-                  <ProtectedRoute>
-                    <NewApplication />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/applications/:id"
-                element={
-                  <ProtectedRoute>
-                    <ApplicationDetails />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/messages"
-                element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/payments"
-                element={
-                  <ProtectedRoute>
-                    <Payments />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/notifications"
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/visa-eligibility"
-                element={
-                  <ProtectedRoute>
-                    <VisaEligibility />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/student/sop"
-                element={
-                  <ProtectedRoute>
-                    <SopGenerator />
-                  </ProtectedRoute>
-                }
-              />
+                {/* Protected Routes */}
+                <Route
+                  path="/dashboard/*"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <StudentOnboarding />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/profile"
+                  element={
+                    <ProtectedRoute>
+                      <StudentProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/documents"
+                  element={
+                    <ProtectedRoute>
+                      <Documents />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/applications"
+                  element={
+                    <ProtectedRoute>
+                      <Applications />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/applications/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewApplication />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/applications/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ApplicationDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/messages"
+                  element={
+                    <ProtectedRoute>
+                      <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/payments"
+                  element={
+                    <ProtectedRoute>
+                      <Payments />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/notifications"
+                  element={
+                    <ProtectedRoute>
+                      <Notifications />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/visa-eligibility"
+                  element={
+                    <ProtectedRoute>
+                      <VisaEligibility />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/student/sop"
+                  element={
+                    <ProtectedRoute>
+                      <SopGenerator />
+                    </ProtectedRoute>
+                  }
+                />
 
-              {/* Additional Features */}
-              <Route path="/intake" element={<IntakeForm />} />
-              <Route path="/intake/:formId" element={<IntakeForm />} />
-              <Route path="/visa-calculator" element={<VisaCalculator />} />
-              <Route path="/feedback" element={<UserFeedback />} />
+                {/* Additional Features */}
+                <Route path="/intake" element={<IntakeForm />} />
+                <Route path="/intake/:formId" element={<IntakeForm />} />
+                <Route path="/visa-calculator" element={<VisaCalculator />} />
+                <Route path="/feedback" element={<UserFeedback />} />
+                <Route path="/legal/privacy" element={<LegalPrivacy />} />
+                <Route path="/legal/terms" element={<LegalTerms />} />
 
-              {/* Catch-All */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                {/* Catch-All */}
+                <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <AppFooter />
+            </div>
           </Suspense>
         </AuthProvider>
       </BrowserRouter>

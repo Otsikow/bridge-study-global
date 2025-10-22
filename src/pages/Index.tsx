@@ -249,16 +249,7 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-background">
-        <div className="container mx-auto px-4 py-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-3">
-            <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 object-contain dark:brightness-0 dark:invert" />
-            <span className="font-semibold">GEG — Global Education Gateway</span>
-          </div>
-          <p className="text-sm text-muted-foreground">© 2025 GEG. All rights reserved.</p>
-        </div>
-      </footer>
+      {/* Footer moved to global layout */}
     </div>
   );
 };
