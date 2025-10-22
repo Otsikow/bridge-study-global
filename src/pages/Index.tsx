@@ -114,23 +114,33 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-subtle">
       {/* Navigation */}
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] bg-primary text-primary-foreground px-3 py-2 rounded-md">Skip to content</a>
-      <nav className="border-b bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img src={gegLogo} alt="GEG Logo" className="h-12 w-12 object-contain" />
-            <span className="text-xl font-bold">GEG</span>
-          </div>
-          <div className="flex items-center space-x-2 sm:space-x-4">
-            <ThemeToggle />
-            <Link to="/feedback">
-              <Button variant="ghost">Feedback</Button>
-            </Link>
-            <Link to="/auth/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link to="/auth/signup">
-              <Button>Get Started</Button>
-            </Link>
+      <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 sm:h-12 sm:w-12 object-contain flex-shrink-0" />
+              <span className="text-lg sm:text-xl font-bold truncate">GEG</span>
+            </div>
+            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0">
+              <ThemeToggle />
+              <Link to="/feedback" className="hidden sm:inline-block">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Feedback
+                </Button>
+              </Link>
+              <Link to="/auth/login">
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-3">
+                  <span className="hidden xs:inline">Sign In</span>
+                  <span className="inline xs:hidden">In</span>
+                </Button>
+              </Link>
+              <Link to="/auth/signup">
+                <Button size="sm" className="text-xs sm:text-sm px-2.5 sm:px-4">
+                  <span className="hidden xs:inline">Get Started</span>
+                  <span className="inline xs:hidden">Start</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -142,41 +152,44 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/50" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 py-20 md:py-28">
-          <div className="max-w-4xl space-y-8">
-            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <TrendingUp className="h-4 w-4" />
-              <span>Trusted by 10,000+ students worldwide</span>
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-28">
+          <div className="max-w-4xl space-y-6 sm:space-y-8">
+            <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 text-primary text-xs sm:text-sm font-medium">
+              <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="whitespace-nowrap">Trusted by 10,000+ students worldwide</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
               Apply to Top Universities
               <span className="block text-primary mt-2 bg-gradient-to-r from-primary to-primary-hover bg-clip-text text-transparent">
                 With Guidance You Can Trust
               </span>
             </h1>
 
-            <p className="text-xl text-foreground/80 max-w-2xl">
+            <p className="text-base sm:text-lg md:text-xl text-foreground/80 max-w-2xl leading-relaxed">
               GEG — Global Education Gateway connects international students with world-class universities
               through verified agents and transparent application management.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link to="/auth/signup">
-                <Button size="lg" className="text-lg px-8 h-14 shadow-lg">
-                  Start Your Journey
-                  <ArrowRight className="ml-2 h-5 w-5" />
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+              <Link to="/auth/signup" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 shadow-lg">
+                  <span className="hidden xs:inline">Start Your Journey</span>
+                  <span className="inline xs:hidden">Get Started</span>
+                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </Link>
-              <Link to="/search">
-                <Button size="lg" variant="outline" className="text-lg px-8 h-14">
+              <Link to="/search" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14">
+                  <BookOpen className="mr-2 h-4 w-4 sm:hidden" />
                   Search Universities
                 </Button>
               </Link>
-              <Link to="/visa-calculator">
-                <Button size="lg" variant="outline" className="text-lg px-8 h-14">
-                  <Calculator className="mr-2 h-5 w-5" />
-                  Visa Calculator
+              <Link to="/visa-calculator" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14">
+                  <Calculator className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden xs:inline">Visa Calculator</span>
+                  <span className="inline xs:hidden">Visa</span>
                 </Button>
               </Link>
             </div>
@@ -185,13 +198,15 @@ const Index = () => {
       </section>
 
       {/* Stats */}
-      <section className="container mx-auto px-4 py-16" id="main">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="container mx-auto px-4 sm:px-6 py-12 sm:py-16" id="main">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:gap-8">
           {stats.map((stat, i) => (
-            <Card key={i} className="text-center">
-              <CardContent className="pt-6">
-                <div className="text-4xl font-bold text-primary mb-2">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
+            <Card key={i} className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-4 sm:p-6">
+                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-1.5 sm:mb-2">
+                  {stat.value}
+                </div>
+                <div className="text-xs sm:text-sm text-muted-foreground">{stat.label}</div>
               </CardContent>
             </Card>
           ))}

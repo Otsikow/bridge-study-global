@@ -96,38 +96,48 @@ export function AppSidebar() {
   const items = profile?.role ? menuItems[profile.role] || menuItems.student : menuItems.student;
 
   return (
-    <Sidebar className={state === 'collapsed' ? 'w-14' : 'w-64'}>
-      <SidebarHeader className="border-b p-4">
-        <div className="flex items-center gap-3">
-          <img src={gegLogo} alt="GEG Logo" className="h-10 w-10 object-contain" />
+    <Sidebar className={state === 'collapsed' ? 'w-14 md:w-16' : 'w-56 md:w-64'}>
+      <SidebarHeader className="border-b p-3 md:p-4">
+        <div className="flex items-center gap-2 md:gap-3">
+          <img 
+            src={gegLogo} 
+            alt="GEG Logo" 
+            className="h-8 w-8 md:h-10 md:w-10 object-contain flex-shrink-0" 
+          />
           {state !== 'collapsed' && (
-            <div>
-              <h2 className="font-bold text-lg">GEG</h2>
-              <p className="text-xs text-muted-foreground capitalize">{profile?.role || 'User'}</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold text-base md:text-lg truncate">GEG</h2>
+              <p className="text-xs text-muted-foreground capitalize truncate">
+                {profile?.role || 'User'}
+              </p>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
+      <SidebarContent className="scrollbar-hide">
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          {state !== 'collapsed' && (
+            <SidebarGroupLabel className="text-xs px-3">Navigation</SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild tooltip={state === 'collapsed' ? item.title : undefined}>
                     <NavLink
                       to={item.url}
                       end={item.url === '/dashboard'}
                       className={({ isActive }) =>
                         isActive
-                          ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                          : 'hover:bg-accent'
+                          ? 'bg-primary text-primary-foreground hover:bg-primary/90 font-medium'
+                          : 'hover:bg-accent transition-colors'
                       }
                     >
-                      <item.icon className="h-4 w-4" />
-                      {state !== 'collapsed' && <span>{item.title}</span>}
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {state !== 'collapsed' && (
+                        <span className="truncate text-sm">{item.title}</span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -137,22 +147,28 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t p-4">
+      <SidebarFooter className="border-t p-3 md:p-4">
         <div className="space-y-2">
           {state !== 'collapsed' && (
-            <div className="px-3 py-2 bg-muted rounded-md">
-              <p className="text-sm font-medium truncate">{profile?.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
+            <div className="px-2.5 md:px-3 py-2 bg-muted rounded-lg">
+              <p className="text-xs md:text-sm font-medium truncate">
+                {profile?.full_name}
+              </p>
+              <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                {profile?.email}
+              </p>
             </div>
           )}
           <Button
             variant="ghost"
-            size={state === 'collapsed' ? 'icon' : 'default'}
-            className="w-full"
+            size={state === 'collapsed' ? 'icon' : 'sm'}
+            className="w-full justify-start"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4" />
-            {state !== 'collapsed' && <span className="ml-2 hidden md:inline">Sign Out</span>}
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+            {state !== 'collapsed' && (
+              <span className="ml-2 text-sm">Sign Out</span>
+            )}
           </Button>
         </div>
         <SidebarTrigger className="mt-2 w-full" />
