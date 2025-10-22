@@ -116,10 +116,9 @@ export default function Documents() {
 
     setUploading(true);
     try {
-      // Upload to storage
+      // Upload to storage - first folder MUST be student_id to satisfy RLS
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${studentId}/${documentType}_${Date.now()}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+      const filePath = `${studentId}/${documentType}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('student-documents')

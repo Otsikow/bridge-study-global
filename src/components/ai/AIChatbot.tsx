@@ -231,7 +231,9 @@ export default function AIChatbot() {
 
     const ext = file.name.split(".").pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-    const filePath = `chat-attachments/${fileName}`;
+    // Place uploads under user folder to satisfy storage policies
+    const userId = session.user.id;
+    const filePath = `${userId}/chat-attachments/${fileName}`;
 
     const { error } = await supabase.storage.from("public").upload(filePath, file);
     if (error) throw error;
