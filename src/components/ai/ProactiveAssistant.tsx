@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { 
   Bot, 
   Lightbulb, 
@@ -14,7 +16,8 @@ import {
   GraduationCap,
   DollarSign,
   Globe,
-  Bell
+  Bell,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -189,16 +192,18 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-primary" />
-            AI Assistant
-          </CardTitle>
-          <CardDescription>Analyzing your profile for personalized suggestions...</CardDescription>
+      <Card className="rounded-xl border shadow-card h-full">
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+            <div className="space-y-1.5 flex-1">
+              <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+              <div className="h-3 w-32 bg-muted animate-pulse rounded" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
             ))}
@@ -212,145 +217,157 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
   const otherSuggestions = suggestions.filter(s => s.priority !== 'high');
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          AI Assistant
-        </CardTitle>
-        <CardDescription>
-          Personalized suggestions and reminders to help you succeed in your study abroad journey
-        </CardDescription>
+    <Card className="rounded-xl border shadow-card hover:shadow-lg transition-all h-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <Bot className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-base">AI Assistant</CardTitle>
+              <CardDescription className="text-xs mt-0.5">
+                {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
+              </CardDescription>
+            </div>
+          </div>
+          {highPrioritySuggestions.length > 0 && (
+            <Badge variant="destructive" className="text-xs">
+              {highPrioritySuggestions.length} urgent
+            </Badge>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pb-4">
         {suggestions.length === 0 ? (
-          <div className="text-center py-8">
-            <Bot className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">All caught up!</h3>
-            <p className="text-muted-foreground">No new suggestions at the moment. Check back later for personalized tips.</p>
+          <div className="text-center py-6">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+              <Bot className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <h3 className="font-semibold mb-1 text-sm">All caught up!</h3>
+            <p className="text-xs text-muted-foreground">No new suggestions</p>
           </div>
         ) : (
-          <>
-            {/* High Priority Suggestions */}
-            {highPrioritySuggestions.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm text-destructive flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  High Priority ({highPrioritySuggestions.length})
-                </h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <ScrollArea className="h-[400px] pr-3">
+            <div className="space-y-3">
+              {/* High Priority Section */}
+              {highPrioritySuggestions.length > 0 && (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-3.5 w-3.5 text-destructive" />
+                    <h4 className="font-medium text-xs text-destructive">
+                      High Priority
+                    </h4>
+                  </div>
                   {highPrioritySuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
-                      <Card key={suggestion.id} className="border-destructive/40 bg-destructive/10 dark:bg-destructive/20">
-                        <CardContent className="pt-4 px-4 pb-4">
-                          <div className="flex flex-col gap-3 min-w-0">
-                            <div className="space-y-2.5 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <TypeIcon className="h-4 w-4 text-destructive flex-shrink-0" />
-                                <Badge className={`${getTypeColor(suggestion.type)} text-xs whitespace-nowrap`}>
-                                  {suggestion.type}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs whitespace-nowrap">
-                                  <CategoryIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                                  {suggestion.category}
-                                </Badge>
-                              </div>
-                              <h4 className="font-medium text-sm break-words">{suggestion.title}</h4>
-                              <p className="text-sm text-muted-foreground break-words leading-relaxed">
-                                {suggestion.description}
-                              </p>
+                      <div
+                        key={suggestion.id}
+                        className="p-3 rounded-lg border border-destructive/40 bg-destructive/5 hover:bg-destructive/10 transition-colors animate-fade-in"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">
+                              <TypeIcon className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
+                              <Badge className={`${getTypeColor(suggestion.type)} text-[10px] h-4 px-1.5`}>
+                                {suggestion.type}
+                              </Badge>
+                              <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                <CategoryIcon className="h-2.5 w-2.5 mr-0.5" />
+                                {suggestion.category}
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap pt-1">
-                              {suggestion.action_url && (
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => handleAction(suggestion)}
-                                  className="flex-1 min-w-[120px] text-xs"
-                                >
-                                  {suggestion.action_text}
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => dismissSuggestion(suggestion.id)}
-                                className="flex-shrink-0 h-8 w-8 p-0"
-                                aria-label="Dismiss"
-                              >
-                                ×
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => dismissSuggestion(suggestion.id)}
+                              className="h-6 w-6 p-0 flex-shrink-0 hover:bg-destructive/20"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <h4 className="font-medium text-sm leading-tight">{suggestion.title}</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                            {suggestion.description}
+                          </p>
+                          {suggestion.action_url && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleAction(suggestion)}
+                              className="w-full h-7 text-xs hover-scale"
+                            >
+                              {suggestion.action_text}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
-                </div>
-              </div>
-            )}
+                  {otherSuggestions.length > 0 && <Separator className="my-3" />}
+                </>
+              )}
 
-            {/* Other Suggestions */}
-            {otherSuggestions.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-sm text-muted-foreground">
-                  Other Suggestions ({otherSuggestions.length})
-                </h4>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {/* Other Suggestions Section */}
+              {otherSuggestions.length > 0 && (
+                <>
+                  {highPrioritySuggestions.length > 0 && (
+                    <h4 className="font-medium text-xs text-muted-foreground mb-2">
+                      Other Suggestions
+                    </h4>
+                  )}
                   {otherSuggestions.map((suggestion) => {
                     const TypeIcon = getTypeIcon(suggestion.type);
                     const CategoryIcon = getCategoryIcon(suggestion.category);
                     return (
-                      <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
-                        <CardContent className="pt-4 px-4 pb-4">
-                          <div className="flex flex-col gap-3 min-w-0">
-                            <div className="space-y-2.5 min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <TypeIcon className={`h-4 w-4 ${getPriorityColor(suggestion.priority)} flex-shrink-0`} />
-                                <Badge className={`${getTypeColor(suggestion.type)} text-xs whitespace-nowrap`}>
-                                  {suggestion.type}
-                                </Badge>
-                                <Badge variant="outline" className="text-xs whitespace-nowrap">
-                                  <CategoryIcon className="h-3 w-3 mr-1 flex-shrink-0" />
-                                  {suggestion.category}
-                                </Badge>
-                              </div>
-                              <h4 className="font-medium text-sm break-words">{suggestion.title}</h4>
-                              <p className="text-sm text-muted-foreground break-words leading-relaxed">
-                                {suggestion.description}
-                              </p>
+                      <div
+                        key={suggestion.id}
+                        className="p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors animate-fade-in"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-1.5 flex-wrap min-w-0 flex-1">
+                              <TypeIcon className={`h-3.5 w-3.5 ${getPriorityColor(suggestion.priority)} flex-shrink-0`} />
+                              <Badge className={`${getTypeColor(suggestion.type)} text-[10px] h-4 px-1.5`}>
+                                {suggestion.type}
+                              </Badge>
+                              <Badge variant="outline" className="text-[10px] h-4 px-1.5">
+                                <CategoryIcon className="h-2.5 w-2.5 mr-0.5" />
+                                {suggestion.category}
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-2 flex-wrap pt-1">
-                              {suggestion.action_url && (
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  onClick={() => handleAction(suggestion)}
-                                  className="flex-1 min-w-[120px] text-xs"
-                                >
-                                  {suggestion.action_text}
-                                </Button>
-                              )}
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => dismissSuggestion(suggestion.id)}
-                                className="flex-shrink-0 h-8 w-8 p-0"
-                                aria-label="Dismiss"
-                              >
-                                ×
-                              </Button>
-                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => dismissSuggestion(suggestion.id)}
+                              className="h-6 w-6 p-0 flex-shrink-0"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <h4 className="font-medium text-sm leading-tight">{suggestion.title}</h4>
+                          <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                            {suggestion.description}
+                          </p>
+                          {suggestion.action_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAction(suggestion)}
+                              className="w-full h-7 text-xs hover-scale"
+                            >
+                              {suggestion.action_text}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
-                </div>
-              </div>
-            )}
-          </>
+                </>
+              )}
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>
