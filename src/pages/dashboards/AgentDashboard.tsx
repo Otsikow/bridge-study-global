@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -29,25 +29,45 @@ import {
 
 export default function AgentDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const validTabs = [
+    "overview",
+    "applications",
+    "leads",
+    "tasks",
+    "ranking",
+    "commissions",
+    "import",
+    "resources",
+  ] as const;
+
+  const pathSegment = location.pathname.split("/")[2] || "overview";
+  const currentTab = (validTabs as readonly string[]).includes(pathSegment)
+    ? pathSegment
+    : "overview";
+
+  const handleTabChange = (value: string) => {
+    if (value === "overview") navigate("/dashboard");
+    else navigate(`/dashboard/${value}`);
+  };
 
   return (
     <DashboardLayout>
-      <div className="p-8 space-y-8">
+      <div className="p-4 md:p-8 space-y-8">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
 
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Partner Agent Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage your students, track performance, and access resources.
-          </p>
+        <div className="space-y-1">
+          <h1 className="text-2xl md:text-3xl font-bold">Partner Agent Dashboard</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Manage your students, track performance, and access resources.</p>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full max-w-5xl grid-cols-8">
+        <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview

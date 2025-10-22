@@ -13,7 +13,8 @@ import {
   Upload,
   UserCircle,
   Bell,
-  LogOut
+  LogOut,
+  TrendingUp
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -47,11 +48,12 @@ const menuItems = {
   ],
   agent: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
-    { title: 'My Students', url: '/dashboard/students', icon: Users },
+    { title: 'My Leads', url: '/dashboard/leads', icon: Users },
     { title: 'Applications', url: '/dashboard/applications', icon: FileText },
-    { title: 'Referrals', url: '/dashboard/referrals', icon: Share2 },
-    { title: 'Earnings', url: '/dashboard/earnings', icon: DollarSign },
-    { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
+    { title: 'Tasks', url: '/dashboard/tasks', icon: CheckSquare },
+    { title: 'Ranking', url: '/dashboard/ranking', icon: TrendingUp },
+    { title: 'Commissions', url: '/dashboard/commissions', icon: DollarSign },
+    { title: 'Import', url: '/dashboard/import', icon: Upload },
     { title: 'Resources', url: '/dashboard/resources', icon: BookOpen },
   ],
   partner: [
