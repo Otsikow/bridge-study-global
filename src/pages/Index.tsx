@@ -36,6 +36,9 @@ import studentWelcome from '@/assets/student-welcome.png';
 import studentCampus from '@/assets/student-campus.png';
 import careerFair from '@/assets/career-fair.png';
 import labStudent from '@/assets/lab-student.png';
+import classroomStudents from '@/assets/classroom-students.png';
+import studentLaptopOutdoors from '@/assets/student-laptop-outdoors.png';
+import acceptanceLetter from '@/assets/acceptance-letter.png';
 
 const Index = () => {
   const features = [
@@ -232,8 +235,8 @@ const Index = () => {
           <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
             <div className="aspect-[4/3] overflow-hidden">
               <img 
-                src={usingMobile} 
-                alt="Student using mobile app for university applications" 
+                src={studentLaptopOutdoors} 
+                alt="Student using laptop for university applications outdoors" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
@@ -248,15 +251,15 @@ const Index = () => {
           <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
             <div className="aspect-[4/3] overflow-hidden">
               <img 
-                src={libraryStudent} 
-                alt="Student studying in library" 
+                src={classroomStudents} 
+                alt="Students in classroom learning environment" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
             <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Resource Library</h3>
+              <h3 className="text-xl font-bold mb-2">Interactive Learning</h3>
               <p className="text-muted-foreground">
-                Access comprehensive guides, tips, and resources to strengthen your applications
+                Join a community of international students and engage with world-class faculty
               </p>
             </CardContent>
           </Card>
@@ -312,15 +315,15 @@ const Index = () => {
           <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
             <div className="aspect-[4/3] overflow-hidden">
               <img 
-                src={studentWelcome} 
-                alt="Welcoming student ready for international education" 
+                src={acceptanceLetter} 
+                alt="Student celebrating university acceptance letter" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             </div>
             <CardContent className="p-6">
-              <h3 className="text-xl font-bold mb-2">Start Today</h3>
+              <h3 className="text-xl font-bold mb-2">Acceptance Success</h3>
               <p className="text-muted-foreground">
-                Begin your international education journey with confidence and support
+                Celebrate your achievements and prepare for your exciting academic journey abroad
               </p>
             </CardContent>
           </Card>
