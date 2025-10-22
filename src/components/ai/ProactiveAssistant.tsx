@@ -192,17 +192,17 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
 
   if (loading) {
     return (
-      <Card className="rounded-xl border shadow-card">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+      <Card className="rounded-xl border shadow-card h-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse flex-shrink-0" />
             <div className="space-y-1.5 flex-1">
               <div className="h-4 w-24 bg-muted animate-pulse rounded" />
               <div className="h-3 w-32 bg-muted animate-pulse rounded" />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
@@ -217,31 +217,29 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
   const otherSuggestions = suggestions.filter(s => s.priority !== 'high');
 
   return (
-    <Card className="rounded-xl border shadow-card hover:shadow-lg transition-all overflow-hidden">
-      <CardHeader className="pb-3 px-4 sm:px-6">
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Bot className="h-4 w-4 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <CardTitle className="text-sm sm:text-base truncate">AI Assistant</CardTitle>
-              <CardDescription className="text-[10px] sm:text-xs mt-0.5 truncate">
-                {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
-              </CardDescription>
-            </div>
+    <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden h-full">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Bot className="h-4 w-4 text-primary" />
           </div>
-          {highPrioritySuggestions.length > 0 && (
-            <Badge variant="destructive" className="text-[10px] sm:text-xs flex-shrink-0 whitespace-nowrap">
-              <span className="hidden xs:inline">{highPrioritySuggestions.length} urgent</span>
-              <span className="xs:hidden">{highPrioritySuggestions.length}</span>
-            </Badge>
-          )}
+          <div className="min-w-0 flex-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground">AI Assistant</CardTitle>
+            <CardDescription className="text-xs mt-0.5 truncate">
+              {suggestions.length} {suggestions.length === 1 ? 'suggestion' : 'suggestions'}
+            </CardDescription>
+          </div>
         </div>
+        {highPrioritySuggestions.length > 0 && (
+          <Badge variant="destructive" className="text-xs flex-shrink-0 whitespace-nowrap">
+            <span className="hidden xs:inline">{highPrioritySuggestions.length} urgent</span>
+            <span className="xs:hidden">{highPrioritySuggestions.length}</span>
+          </Badge>
+        )}
       </CardHeader>
-      <CardContent className="pb-4 px-4 sm:px-6">
+      <CardContent className="px-4 sm:px-6 pb-4 flex-1">
         {suggestions.length === 0 ? (
-          <div className="text-center py-6">
+          <div className="text-center py-8">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
               <Bot className="h-6 w-6 text-muted-foreground" />
             </div>
@@ -249,7 +247,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
             <p className="text-xs text-muted-foreground">No new suggestions</p>
           </div>
         ) : (
-          <ScrollArea className="h-[350px] sm:h-[450px] lg:h-[500px] pr-2 sm:pr-3">
+          <ScrollArea className="h-[400px] pr-2 sm:pr-3">
             <div className="space-y-2.5 sm:space-y-3">
               {/* High Priority Section */}
               {highPrioritySuggestions.length > 0 && (

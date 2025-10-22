@@ -119,7 +119,6 @@ export default function StudentDashboard() {
       if (tasksError) throw tasksError;
       setTasks(tasksData || []);
 
-      // Fetch unread messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('id, created_at, sender_id')
@@ -147,14 +146,6 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const getIntakeLabel = (month: number, year: number) => {
-    const monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return `${monthNames[month - 1]} ${year}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -246,24 +237,14 @@ export default function StudentDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
-            >
-              <Link to="/student/notifications" className="flex items-center justify-center gap-2">
+            <Button asChild variant="outline" size="sm" className="hover-scale whitespace-nowrap">
+              <Link to="/student/notifications" className="flex items-center gap-2">
                 <Bell className="h-4 w-4" />
                 <span className="hidden sm:inline">Notifications</span>
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
-            >
-              <Link to="/student/messages" className="flex items-center justify-center gap-2">
+            <Button asChild variant="outline" size="sm" className="hover-scale whitespace-nowrap">
+              <Link to="/student/messages" className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 <span className="hidden sm:inline">Messages</span>
                 {unreadMessages > 0 && (
@@ -273,12 +254,8 @@ export default function StudentDashboard() {
                 )}
               </Link>
             </Button>
-            <Button
-              asChild
-              size="sm"
-              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
-            >
-              <Link to="/search" className="flex items-center justify-center gap-2">
+            <Button asChild size="sm" className="hover-scale whitespace-nowrap">
+              <Link to="/search" className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 <span>Find Programs</span>
               </Link>
@@ -340,7 +317,7 @@ export default function StudentDashboard() {
                 <ProactiveAssistant />
                 <MessagesWidget />
               </div>
-              <div className="lg:col-span-2 space-y-6">
+              <div className="w-full min-h-[500px] lg:col-span-2">
                 <ApplicationTrackingSystem />
               </div>
             </div>
