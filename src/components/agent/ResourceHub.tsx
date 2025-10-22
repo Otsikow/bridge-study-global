@@ -22,7 +22,7 @@ interface Resource {
 export default function ResourceHub() {
   return (
     <div className="space-y-6">
-      <Card className="shadow-sm border border-gray-200">
+      <Card className="shadow-sm border border-border">
         <CardHeader>
           <CardTitle>Resource Hub</CardTitle>
           <CardDescription>

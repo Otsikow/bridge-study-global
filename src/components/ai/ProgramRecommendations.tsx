@@ -91,17 +91,17 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
   };
 
   const getMatchColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 80) return 'text-success bg-success-light dark:bg-success/20';
+    if (score >= 60) return 'text-warning bg-warning-light dark:bg-warning/20';
+    return 'text-destructive bg-destructive/10';
   };
 
   const getVisaColor = (eligibility: string) => {
     switch (eligibility) {
-      case 'High': return 'text-green-600 bg-green-100';
-      case 'Medium': return 'text-yellow-600 bg-yellow-100';
-      case 'Low': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'High': return 'text-success bg-success-light dark:bg-success/20';
+      case 'Medium': return 'text-warning bg-warning-light dark:bg-warning/20';
+      case 'Low': return 'text-destructive bg-destructive/10';
+      default: return 'text-muted-foreground bg-muted';
     }
   };
 
@@ -251,7 +251,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
             </div>
           ) : error ? (
             <div className="text-center py-12">
-              <p className="text-red-600">{error}</p>
+              <p className="text-destructive">{error}</p>
             </div>
           ) : filteredRecommendations.length === 0 ? (
             <div className="text-center py-12">

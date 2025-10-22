@@ -136,23 +136,23 @@ export default function StudentDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'submitted': return 'bg-blue-100 text-blue-800';
-      case 'screening': return 'bg-yellow-100 text-yellow-800';
+      case 'draft': return 'status-draft';
+      case 'submitted': return 'bg-info-light text-info dark:bg-info/20 dark:text-info';
+      case 'screening': return 'bg-info-light text-info dark:bg-info/20 dark:text-info';
       case 'conditional_offer':
-      case 'unconditional_offer': return 'bg-green-100 text-green-800';
-      case 'visa': return 'bg-purple-100 text-purple-800';
-      case 'enrolled': return 'bg-emerald-100 text-emerald-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'unconditional_offer': return 'bg-success-light text-success dark:bg-success/20 dark:text-success';
+      case 'visa': return 'bg-accent text-accent-foreground dark:bg-accent/30';
+      case 'enrolled': return 'bg-success-light text-success dark:bg-success/20 dark:text-success';
+      default: return 'status-draft';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
+      case 'high': return 'text-destructive';
+      case 'medium': return 'text-warning';
+      case 'low': return 'text-success';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -162,24 +162,24 @@ export default function StudentDashboard() {
       value: '75%',
       icon: CheckCircle,
       description: '4 of 5 steps complete',
-      iconColor: 'text-green-600',
-      valueColor: 'text-green-600',
+      iconColor: 'text-success',
+      valueColor: 'text-success',
     },
     {
       title: 'Active Applications',
       value: applications.length.toString(),
       icon: FileText,
       description: applications.length > 0 ? 'Applications in progress' : 'Start browsing programs',
-      iconColor: applications.length > 0 ? 'text-blue-600' : 'text-muted-foreground',
-      valueColor: applications.length > 0 ? 'text-blue-600' : '',
+      iconColor: applications.length > 0 ? 'text-info' : 'text-muted-foreground',
+      valueColor: applications.length > 0 ? 'text-info' : '',
     },
     {
       title: 'Pending Tasks',
       value: tasks.length.toString(),
       icon: Clock,
       description: tasks.length > 0 ? 'Tasks need attention' : 'All caught up!',
-      iconColor: tasks.length > 0 ? 'text-orange-600' : 'text-green-600',
-      valueColor: tasks.length > 0 ? 'text-orange-600' : 'text-green-600',
+      iconColor: tasks.length > 0 ? 'text-warning' : 'text-success',
+      valueColor: tasks.length > 0 ? 'text-warning' : 'text-success',
     },
     {
       title: 'Offers Received',
@@ -188,8 +188,8 @@ export default function StudentDashboard() {
       ).length.toString(),
       icon: TrendingUp,
       description: 'Congratulations!',
-      iconColor: 'text-green-600',
-      valueColor: 'text-green-600',
+      iconColor: 'text-success',
+      valueColor: 'text-success',
     },
   ];
 

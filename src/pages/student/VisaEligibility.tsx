@@ -9,9 +9,9 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 function scoreBand(p: number) {
-  if (p >= 0.7) return { label: 'High', color: 'text-green-600' };
-  if (p >= 0.4) return { label: 'Medium', color: 'text-amber-600' };
-  return { label: 'Low', color: 'text-red-600' };
+  if (p >= 0.7) return { label: 'High', color: 'text-success' };
+  if (p >= 0.4) return { label: 'Medium', color: 'text-warning' };
+  return { label: 'Low', color: 'text-destructive' };
 }
 
 export default function VisaEligibility() {

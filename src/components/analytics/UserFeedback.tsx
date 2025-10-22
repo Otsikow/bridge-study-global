@@ -109,7 +109,7 @@ export default function UserFeedback() {
       <Card>
         <CardContent className="pt-6">
           <div className="text-center space-y-4">
-            <CheckCircle className="h-16 w-16 mx-auto text-green-600" />
+            <CheckCircle className="h-16 w-16 mx-auto text-success" />
             <div>
               <h3 className="text-xl font-semibold">Thank you for your feedback!</h3>
               <p className="text-muted-foreground">
@@ -271,19 +271,19 @@ export default function UserFeedback() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
-              <ThumbsUp className="h-5 w-5 text-green-600" />
+              <ThumbsUp className="h-5 w-5 text-success" />
               <span className="text-sm">AI Tools</span>
             </Button>
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
-              <ThumbsDown className="h-5 w-5 text-red-600" />
+              <ThumbsDown className="h-5 w-5 text-destructive" />
               <span className="text-sm">Search</span>
             </Button>
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
-              <Heart className="h-5 w-5 text-pink-600" />
+              <Heart className="h-5 w-5 text-primary" />
               <span className="text-sm">Dashboard</span>
             </Button>
             <Button variant="outline" className="h-auto p-4 flex flex-col items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <MessageSquare className="h-5 w-5 text-info" />
               <span className="text-sm">Support</span>
             </Button>
           </div>

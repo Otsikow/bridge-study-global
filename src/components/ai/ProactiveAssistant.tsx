@@ -140,20 +140,20 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'reminder': return 'bg-orange-100 text-orange-800';
-      case 'tip': return 'bg-blue-100 text-blue-800';
-      case 'action': return 'bg-green-100 text-green-800';
-      case 'opportunity': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'reminder': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'tip': return 'bg-info-light text-info dark:bg-info/20';
+      case 'action': return 'bg-success-light text-success dark:bg-success/20';
+      case 'opportunity': return 'bg-accent text-accent-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
+      case 'high': return 'text-destructive';
+      case 'medium': return 'text-warning';
+      case 'low': return 'text-success';
+      default: return 'text-muted-foreground';
     }
   };
 
@@ -234,7 +234,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
             {/* High Priority Suggestions */}
             {highPrioritySuggestions.length > 0 && (
               <div className="space-y-3">
-                <h4 className="font-medium text-sm text-red-600 flex items-center gap-2">
+                <h4 className="font-medium text-sm text-destructive flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   High Priority ({highPrioritySuggestions.length})
                 </h4>
@@ -242,12 +242,12 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
                   const TypeIcon = getTypeIcon(suggestion.type);
                   const CategoryIcon = getCategoryIcon(suggestion.category);
                   return (
-                    <Card key={suggestion.id} className="border-red-200 bg-red-50">
+                    <Card key={suggestion.id} className="border-destructive/40 bg-destructive/10">
                       <CardContent className="pt-4">
                         <div className="flex items-start justify-between">
                           <div className="space-y-2 flex-1">
                             <div className="flex items-center gap-2">
-                              <TypeIcon className="h-4 w-4 text-red-600" />
+                              <TypeIcon className="h-4 w-4 text-destructive" />
                               <Badge className={getTypeColor(suggestion.type)}>
                                 {suggestion.type}
                               </Badge>

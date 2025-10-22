@@ -65,10 +65,10 @@ interface CommissionStats {
 }
 
 const STATUS_COLORS = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-blue-100 text-blue-800',
-  paid: 'bg-green-100 text-green-800',
-  clawback: 'bg-red-100 text-red-800'
+  pending: 'bg-warning-light text-warning dark:bg-warning/20',
+  approved: 'bg-info-light text-info dark:bg-info/20',
+  paid: 'bg-success-light text-success dark:bg-success/20',
+  clawback: 'bg-destructive/10 text-destructive'
 };
 
 const STATUS_ICONS = {
@@ -360,7 +360,7 @@ export default function CommissionManagement() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -368,7 +368,7 @@ export default function CommissionManagement() {
                   <p className="text-sm font-medium text-muted-foreground">Total Earnings</p>
                   <p className="text-2xl font-bold">{formatCurrency(stats.total_earnings)}</p>
                 </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+                      <DollarSign className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -382,7 +382,7 @@ export default function CommissionManagement() {
                     {stats.growth_rate > 0 ? '+' : ''}{stats.growth_rate.toFixed(1)}% vs last month
                   </p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-blue-600" />
+                      <TrendingUp className="h-8 w-8 text-info" />
               </div>
             </CardContent>
           </Card>
@@ -391,9 +391,9 @@ export default function CommissionManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-600">{formatCurrency(stats.pending_amount)}</p>
+                        <p className="text-2xl font-bold text-warning">{formatCurrency(stats.pending_amount)}</p>
                 </div>
-                <Clock className="h-8 w-8 text-yellow-600" />
+                      <Clock className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>
@@ -405,7 +405,7 @@ export default function CommissionManagement() {
                   <p className="text-2xl font-bold">{stats.conversion_rate.toFixed(1)}%</p>
                   <p className="text-xs text-muted-foreground">{stats.total_applications} applications</p>
                 </div>
-                <PieChart className="h-8 w-8 text-purple-600" />
+                      <PieChart className="h-8 w-8 text-accent-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -425,21 +425,21 @@ export default function CommissionManagement() {
             <div className="grid gap-4 md:grid-cols-3">
               <div className="p-4 border rounded-lg">
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
+                <p className="text-2xl font-bold text-warning">
                   {formatCurrency(stats.pending_amount)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">Awaiting approval</p>
               </div>
-              <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+              <div className="p-4 border rounded-lg bg-info-light border-border dark:bg-info/10">
                 <p className="text-sm text-muted-foreground">Approved</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-info">
                   {formatCurrency(stats.approved_amount)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">Ready for payout</p>
               </div>
-              <div className="p-4 border rounded-lg bg-green-50 border-green-200">
+              <div className="p-4 border rounded-lg bg-success-light border-border dark:bg-success/10">
                 <p className="text-sm text-muted-foreground">Paid</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-success">
                   {formatCurrency(stats.paid_amount)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">Received</p>

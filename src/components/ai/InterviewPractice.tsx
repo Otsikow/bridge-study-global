@@ -269,21 +269,21 @@ export default function InterviewPractice() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'easy': return 'bg-success-light text-success dark:bg-success/20';
+      case 'medium': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'hard': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'personal': return 'bg-blue-100 text-blue-800';
-      case 'academic': return 'bg-purple-100 text-purple-800';
-      case 'financial': return 'bg-green-100 text-green-800';
-      case 'behavioral': return 'bg-orange-100 text-orange-800';
-      case 'cultural': return 'bg-pink-100 text-pink-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'personal': return 'bg-accent text-accent-foreground';
+      case 'academic': return 'bg-primary/10 text-primary';
+      case 'financial': return 'bg-success-light text-success dark:bg-success/20';
+      case 'behavioral': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'cultural': return 'bg-muted text-muted-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

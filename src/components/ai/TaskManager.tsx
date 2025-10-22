@@ -198,20 +198,20 @@ export default function TaskManager() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-destructive/10 text-destructive';
+      case 'medium': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'low': return 'bg-success-light text-success dark:bg-success/20';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-blue-100 text-blue-800';
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
-      case 'done': return 'bg-green-100 text-green-800';
-      case 'blocked': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'open': return 'bg-info-light text-info dark:bg-info/20';
+      case 'in_progress': return 'bg-warning-light text-warning dark:bg-warning/20';
+      case 'done': return 'bg-success-light text-success dark:bg-success/20';
+      case 'blocked': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -273,10 +273,10 @@ export default function TaskManager() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Overdue</CardTitle>
-            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertCircle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overdueTasks.length}</div>
+            <div className="text-2xl font-bold text-destructive">{overdueTasks.length}</div>
             <p className="text-xs text-muted-foreground">Need attention</p>
           </CardContent>
         </Card>
@@ -284,10 +284,10 @@ export default function TaskManager() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Due Today</CardTitle>
-            <Calendar className="h-4 w-4 text-yellow-500" />
+            <Calendar className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{todayTasks.length}</div>
+            <div className="text-2xl font-bold text-warning">{todayTasks.length}</div>
             <p className="text-xs text-muted-foreground">Due today</p>
           </CardContent>
         </Card>
@@ -295,10 +295,10 @@ export default function TaskManager() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-success">
               {tasks.filter(t => t.status === 'done').length}
             </div>
             <p className="text-xs text-muted-foreground">Finished</p>
@@ -419,7 +419,7 @@ export default function TaskManager() {
                 const isOverdueTask = isOverdue(task.due_at);
                 
                 return (
-                  <Card key={task.id} className={`hover:shadow-md transition-shadow ${isOverdueTask ? 'border-red-200 bg-red-50' : ''}`}>
+                  <Card key={task.id} className={`hover:shadow-md transition-shadow ${isOverdueTask ? 'border-destructive/40 bg-destructive/10' : ''}`}>
                     <CardContent className="pt-6">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2 flex-1">

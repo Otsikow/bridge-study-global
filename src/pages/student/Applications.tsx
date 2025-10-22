@@ -319,7 +319,7 @@ export default function Applications() {
                           </Link>
                         </Button>
                         {app.status === 'draft' && (
-                          <Button variant="ghost" size="sm" onClick={() => cancelDraft(app.id)} className="text-red-600">
+                          <Button variant="ghost" size="sm" onClick={() => cancelDraft(app.id)} className="text-destructive">
                             <XCircle className="h-4 w-4 mr-1" /> Cancel
                           </Button>
                         )}
