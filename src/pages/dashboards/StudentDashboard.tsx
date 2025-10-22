@@ -29,6 +29,7 @@ import ProactiveAssistant from '@/components/ai/ProactiveAssistant';
 import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
 import TaskManagement from '@/components/tasks/TaskManagement';
 import PreferenceRanking from '@/components/ranking/PreferenceRanking';
+import MessagesWidget from '@/components/student/MessagesWidget';
 import MessagesDashboard from '@/components/messages/MessagesDashboard';
 
 interface Application {
@@ -118,7 +119,7 @@ export default function StudentDashboard() {
       if (tasksError) throw tasksError;
       setTasks(tasksData || []);
 
-      // Fetch unread messages count
+      // Fetch unread messages
       const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
         .select('id, created_at, sender_id')
@@ -126,13 +127,13 @@ export default function StudentDashboard() {
         .order('created_at', { ascending: false });
 
       if (!messagesError && messagesData) {
-        // Count messages not sent by current user in last 7 days
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-        
-        const recentMessages = messagesData.filter(msg => 
-          new Date(msg.created_at || 0) > sevenDaysAgo && 
-          msg.sender_id !== user.id
+
+        const recentMessages = messagesData.filter(
+          msg =>
+            new Date(msg.created_at || 0) > sevenDaysAgo &&
+            msg.sender_id !== user.id
         );
         setUnreadMessages(recentMessages.length);
       }
@@ -245,10 +246,10 @@ export default function StudentDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-            <Button 
-              asChild 
-              variant="outline" 
-              size="sm" 
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
               className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
             >
               <Link to="/student/notifications" className="flex items-center justify-center gap-2">
@@ -256,10 +257,10 @@ export default function StudentDashboard() {
                 <span className="hidden sm:inline">Notifications</span>
               </Link>
             </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              size="sm" 
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
               className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
             >
               <Link to="/student/messages" className="flex items-center justify-center gap-2">
@@ -272,8 +273,8 @@ export default function StudentDashboard() {
                 )}
               </Link>
             </Button>
-            <Button 
-              asChild 
+            <Button
+              asChild
               size="sm"
               className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
             >
@@ -335,8 +336,9 @@ export default function StudentDashboard() {
           {/* Overview */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-1 space-y-6">
                 <ProactiveAssistant />
+                <MessagesWidget />
               </div>
               <div className="lg:col-span-2 space-y-6">
                 <ApplicationTrackingSystem />
