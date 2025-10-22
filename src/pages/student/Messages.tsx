@@ -125,10 +125,11 @@ export default function Messages() {
           .eq('student_id', student.id)
           .order('created_at', { ascending: false });
         if (appsError) throw appsError;
+
         const appSummaries: ApplicationSummary[] = (apps || []) as unknown as ApplicationSummary[];
         setApplications(appSummaries);
 
-        // Preload latest messages across these applications
+        // Preload latest messages
         if (appSummaries.length > 0) {
           const appIds = appSummaries.map((a) => a.id);
           const { data: msgs } = await supabase
@@ -159,21 +160,21 @@ export default function Messages() {
         .select('*')
         .eq('application_id', selectedAppId)
         .order('created_at', { ascending: true });
-      
+
       if (!error && data) {
-        setMessagesByApp((prev) => ({ ...prev, [selectedAppId]: (data || []) as MessageRow[] }));
-        
+        setMessagesByApp((prev) => ({ ...prev, [selectedAppId]: data as MessageRow[] }));
+
         // Mark messages as read
         const unreadMessages = data.filter(
           (m: MessageRow) => m.sender_id !== user.id && (!m.read_by || !m.read_by.includes(user.id))
         );
-        
+
         if (unreadMessages.length > 0) {
           for (const msg of unreadMessages) {
             await supabase
               .from('messages')
-              .update({ 
-                read_by: [...(msg.read_by || []), user.id] 
+              .update({
+                read_by: [...(msg.read_by || []), user.id],
               })
               .eq('id', msg.id);
           }
@@ -183,62 +184,55 @@ export default function Messages() {
         const nextSeen = { ...lastSeen, [selectedAppId]: new Date().toISOString() };
         setLastSeen(nextSeen);
         persistLastSeen(nextSeen);
-        
+
         // Update latest message
-        const last = (data || [])[data!.length - 1] as MessageRow | undefined;
+        const last = data[data.length - 1] as MessageRow | undefined;
         if (last) setLatestByApp((prev) => ({ ...prev, [selectedAppId]: last }));
-        
+
         // Scroll to bottom
         setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
       }
     };
     loadThread();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAppId]);
 
-  // Realtime subscription to new messages
+  // Realtime subscription
   useEffect(() => {
     const channel = supabase
       .channel('student-messages')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
-        (payload) => {
-          const m = payload.new as MessageRow;
-          // Update latest per conversation
-          setLatestByApp((prev) => ({ ...prev, [m.application_id]: m }));
-          // If current thread loaded, append
-          setMessagesByApp((prev) => {
-            const arr = prev[m.application_id];
-            if (!arr) return prev;
-            const next = [...arr, m];
-            return { ...prev, [m.application_id]: next };
-          });
-          // Auto-scroll if new message belongs to open conversation
-          if (m.application_id === selectedAppId) {
-            setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-          }
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const m = payload.new as MessageRow;
+        setLatestByApp((prev) => ({ ...prev, [m.application_id]: m }));
+        setMessagesByApp((prev) => {
+          const arr = prev[m.application_id];
+          if (!arr) return prev;
+          return { ...prev, [m.application_id]: [...arr, m] };
+        });
+        if (m.application_id === selectedAppId) {
+          setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
         }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'messages' },
-        (payload) => {
-          const m = payload.new as MessageRow;
-          // Update message in the thread
-          setMessagesByApp((prev) => {
-            const arr = prev[m.application_id];
-            if (!arr) return prev;
-            const next = arr.map(msg => msg.id === m.id ? m : msg);
-            return { ...prev, [m.application_id]: next };
-          });
-        }
-      )
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, (payload) => {
+        const m = payload.new as MessageRow;
+        setMessagesByApp((prev) => {
+          const arr = prev[m.application_id];
+          if (!arr) return prev;
+          const next = arr.map((msg) => (msg.id === m.id ? m : msg));
+          return { ...prev, [m.application_id]: next };
+        });
+      })
       .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
     };
   }, [selectedAppId]);
+
+  useEffect(() => {
+    if (!selectedAppId && applications.length > 0) {
+      setSelectedAppId(applications[0].id);
+    }
+  }, [applications, selectedAppId]);
 
   const filteredApplications = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -253,11 +247,20 @@ export default function Messages() {
     const last = lastSeen[appId] ? new Date(lastSeen[appId]).getTime() : 0;
     const msgs = messagesByApp[appId];
     if (!msgs || !user) return 0;
-    return msgs.filter((m) => 
-      new Date(m.created_at || 0).getTime() > last && 
-      m.sender_id !== user.id &&
-      (!m.read_by || !m.read_by.includes(user.id))
+    return msgs.filter(
+      (m) =>
+        new Date(m.created_at || 0).getTime() > last &&
+        m.sender_id !== user.id &&
+        (!m.read_by || !m.read_by.includes(user.id))
     ).length;
+  };
+
+  const hasUnread = (appId: string) => {
+    if (!user) return false;
+    const latest = latestByApp[appId];
+    if (!latest) return false;
+    const last = lastSeen[appId] ? new Date(lastSeen[appId]).getTime() : 0;
+    return new Date(latest.created_at || 0).getTime() > last && latest.sender_id !== user.id;
   };
 
   const selectedMessages = selectedAppId ? messagesByApp[selectedAppId] || [] : [];
@@ -273,9 +276,8 @@ export default function Messages() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
-      // Check total size
       const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-      if (totalSize > 10 * 1024 * 1024) { // 10MB limit
+      if (totalSize > 10 * 1024 * 1024) {
         toast({
           title: 'Files too large',
           description: 'Total file size must be under 10MB',
@@ -283,27 +285,21 @@ export default function Messages() {
         });
         return;
       }
-      setAttachments(prev => [...prev, ...files]);
+      setAttachments((prev) => [...prev, ...files]);
     }
   };
 
   const removeAttachment = (index: number) => {
-    setAttachments(prev => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const uploadFiles = async (): Promise<MessageAttachment[]> => {
     if (attachments.length === 0) return [];
-    
     const uploaded: MessageAttachment[] = [];
-    
     for (const file of attachments) {
       const fileName = `${user?.id}/${Date.now()}-${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('public')
-        .upload(fileName, file);
-      
+      const { data, error } = await supabase.storage.from('public').upload(fileName, file);
       if (error) {
-        console.error('Upload error:', error);
         toast({
           title: 'Upload failed',
           description: `Failed to upload ${file.name}`,
@@ -311,11 +307,7 @@ export default function Messages() {
         });
         continue;
       }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('public')
-        .getPublicUrl(fileName);
-      
+      const { data: { publicUrl } } = supabase.storage.from('public').getPublicUrl(fileName);
       uploaded.push({
         name: file.name,
         url: publicUrl,
@@ -323,41 +315,31 @@ export default function Messages() {
         size: file.size,
       });
     }
-    
     return uploaded;
   };
 
   const handleSend = async () => {
     if ((!composerText.trim() && attachments.length === 0) || !selectedAppId || !user) return;
-    
     setSending(true);
     setUploading(attachments.length > 0);
-    
+
     try {
       let uploadedFiles: MessageAttachment[] = [];
-      
       if (attachments.length > 0) {
         uploadedFiles = await uploadFiles();
-        if (uploadedFiles.length === 0 && attachments.length > 0) {
-          // All uploads failed
-          return;
-        }
+        if (uploadedFiles.length === 0 && attachments.length > 0) return;
       }
-      
+
       const insert = {
         application_id: selectedAppId,
         sender_id: user.id,
         body: composerText.trim() || (uploadedFiles.length > 0 ? 'Sent attachments' : ''),
-        message_type: uploadedFiles.length > 0 ? 'document' as const : 'text' as const,
+        message_type: uploadedFiles.length > 0 ? ('document' as const) : ('text' as const),
         attachments: uploadedFiles.length > 0 ? uploadedFiles : undefined,
       };
-      
-      const { data, error } = await supabase
-        .from('messages')
-        .insert(insert)
-        .select('*')
-        .single();
-      
+
+      const { data, error } = await supabase.from('messages').insert(insert).select('*').single();
+
       if (!error && data) {
         const row = data as MessageRow;
         setMessagesByApp((prev) => {
@@ -368,7 +350,7 @@ export default function Messages() {
         setComposerText('');
         setAttachments([]);
         setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-        
+
         toast({
           title: 'Message sent',
           description: 'Your message was sent successfully',
@@ -381,7 +363,6 @@ export default function Messages() {
         });
       }
     } catch (error) {
-      console.error('Send error:', error);
       toast({
         title: 'Error',
         description: 'An error occurred while sending the message',
@@ -395,21 +376,16 @@ export default function Messages() {
 
   const renderAttachment = (attachment: MessageAttachment) => {
     const isImage = attachment.type.startsWith('image/');
-    
     return (
       <div key={attachment.url} className="mt-2">
         {isImage ? (
-          <a 
-            href={attachment.url} 
-            target="_blank" 
+          <a
+            href={attachment.url}
+            target="_blank"
             rel="noopener noreferrer"
             className="block max-w-xs rounded-lg overflow-hidden border hover:opacity-90 transition-opacity"
           >
-            <img 
-              src={attachment.url} 
-              alt={attachment.name}
-              className="w-full h-auto"
-            />
+            <img src={attachment.url} alt={attachment.name} className="w-full h-auto" />
           </a>
         ) : (
           <a
@@ -439,7 +415,9 @@ export default function Messages() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
           <div className="space-y-1.5 min-w-0">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">Messages</h1>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Stay connected with advisors and support</p>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Stay connected with advisors and support
+            </p>
           </div>
         </div>
 
@@ -473,171 +451,4 @@ export default function Messages() {
                       const preview = latest?.body || 'No messages yet';
                       const when = formatRelativeTime(latest?.created_at || null);
                       const unread = unreadCount(app.id);
-                      return (
-                        <li
-                          key={app.id}
-                          className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors ${
-                            selectedAppId === app.id ? 'bg-accent/50' : ''
-                          }`}
-                          onClick={() => {
-                            setSelectedAppId(app.id);
-                          }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Avatar>
-                              <AvatarImage alt={title} />
-                              <AvatarFallback>
-                                {(app.program?.university?.name || 'A').slice(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="font-medium truncate">{title}</p>
-                                <span className="text-xs text-muted-foreground flex-shrink-0">{when}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground truncate">{preview}</p>
-                            </div>
-                            {unread > 0 && (
-                              <Badge variant="secondary" className="rounded-full px-2 py-0.5">
-                                {unread}
-                              </Badge>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </ScrollArea>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2 rounded-xl border shadow-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                {selectedAppId ? selectedTitle : 'Conversation'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!selectedAppId ? (
-                <div className="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
-                  Select a conversation to view messages
-                </div>
-              ) : (
-                <>
-                  <ScrollArea className="h-[360px] pr-2">
-                    <div className="space-y-3">
-                      {selectedMessages.length === 0 ? (
-                        <div className="text-sm text-muted-foreground px-1">
-                          No messages yet. Start the conversation below.
-                        </div>
-                      ) : (
-                        selectedMessages.map((m) => {
-                          const mine = user && m.sender_id === user.id;
-                          const attachmentList = (m.attachments as MessageAttachment[]) || [];
-                          const read = isMessageRead(m);
-                          
-                          return (
-                            <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                              <div
-                                className={`max-w-[80%] rounded-lg p-3 text-sm ${
-                                  mine
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted text-foreground'
-                                }`}
-                              >
-                                {m.body && <p className="whitespace-pre-wrap break-words">{m.body}</p>}
-                                {attachmentList.length > 0 && (
-                                  <div className="space-y-2">
-                                    {attachmentList.map((att) => renderAttachment(att))}
-                                  </div>
-                                )}
-                                <div className={`mt-1 text-[10px] flex items-center gap-1 ${mine ? 'opacity-80 justify-end' : 'text-muted-foreground'}`}>
-                                  <span>{formatRelativeTime(m.created_at)}</span>
-                                  {mine && (
-                                    read ? (
-                                      <CheckCheck className="h-3 w-3" />
-                                    ) : (
-                                      <Check className="h-3 w-3" />
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                      <div ref={listBottomRef} />
-                    </div>
-                  </ScrollArea>
-
-                  {attachments.length > 0 && (
-                    <div className="flex flex-wrap gap-2 p-2 bg-muted rounded-lg">
-                      {attachments.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-background px-3 py-2 rounded border text-sm">
-                          {file.type.startsWith('image/') ? (
-                            <ImageIcon className="h-4 w-4" />
-                          ) : (
-                            <FileText className="h-4 w-4" />
-                          )}
-                          <span className="max-w-[120px] truncate">{file.name}</span>
-                          <span className="text-xs text-muted-foreground">({formatFileSize(file.size)})</span>
-                          <button
-                            onClick={() => removeAttachment(idx)}
-                            className="ml-2 hover:text-destructive"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      className="hidden"
-                      onChange={handleFileSelect}
-                      accept="image/*,.pdf,.doc,.docx,.txt"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={sending || uploading}
-                    >
-                      <Paperclip className="h-4 w-4" />
-                    </Button>
-                    <Input
-                      placeholder="Type a message..."
-                      className="flex-1"
-                      value={composerText}
-                      onChange={(e) => setComposerText(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      disabled={sending || uploading}
-                    />
-                    <Button 
-                      className="gap-2" 
-                      onClick={handleSend} 
-                      disabled={sending || uploading || (!composerText.trim() && attachments.length === 0)}
-                    >
-                      <Send className="h-4 w-4" /> 
-                      {uploading ? 'Uploading...' : sending ? 'Sending...' : 'Send'}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </DashboardLayout>
-  );
-}
+                      const showDot = unread === 0 && hasUnread
