@@ -33,14 +33,21 @@ export default function SopGenerator() {
 
     setLoading(true);
     try {
-      // Optional: call your AI generator component or API endpoint
-      const generatedSop = await SoPGenerator({
-        background,
-        motivation,
-        program,
-        university,
-        goals,
-      });
+      // TODO: Replace with actual API call to generate SoP
+      const generatedSop = `Dear Admissions Committee,
+
+I am writing to express my strong interest in the ${program} program at ${university}.
+
+${background}
+
+${motivation}
+
+${goals}
+
+Thank you for considering my application.
+
+Sincerely,
+[Your Name]`;
 
       setSop(generatedSop);
       toast({

@@ -152,7 +152,7 @@ export const useAIRecommendations = () => {
         }
 
         // University ranking bonus
-        const ranking = program.university.ranking;
+        const ranking = program.university.ranking as UniversityRanking | undefined;
         if (ranking && typeof ranking.world_rank === 'number' && ranking.world_rank <= 100) {
           score += 5;
           reasons.push(`Top-ranked university`);
@@ -160,6 +160,10 @@ export const useAIRecommendations = () => {
 
         return {
           ...program,
+          university: {
+            ...program.university,
+            ranking: program.university.ranking as UniversityRanking | undefined
+          },
           match_score: Math.min(score, 100),
           match_reasons: reasons
         };
@@ -181,7 +185,7 @@ export const useAIRecommendations = () => {
 
   const getVisaEligibility = async (country: string, profile: StudentProfile) => {
     // Simple visa eligibility estimation based on common factors
-    let eligibility = 'Medium';
+    let eligibility: 'High' | 'Medium' | 'Low' = 'Medium';
     const factors: string[] = [];
 
     // Academic performance

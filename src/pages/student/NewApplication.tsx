@@ -368,8 +368,6 @@ export default function NewApplication() {
               {submitting ? 'Creating...' : 'Create Application'}
             </Button>
             <BackButton variant="outline" label="Cancel" />
-              Cancel
-            </Button>
           </div>
         </CardContent>
       </Card>
