@@ -192,8 +192,8 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
 
   if (loading) {
     return (
-      <Card className="rounded-xl border shadow-card">
-        <CardHeader className="pb-3">
+      <Card className="rounded-xl border shadow-card h-full">
+        <CardHeader className="p-6 pb-3">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
             <div className="space-y-1.5 flex-1">
@@ -202,7 +202,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-0">
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
@@ -217,8 +217,8 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
   const otherSuggestions = suggestions.filter(s => s.priority !== 'high');
 
   return (
-    <Card className="rounded-xl border shadow-card hover:shadow-lg transition-all overflow-hidden">
-      <CardHeader className="pb-3 px-4 sm:px-6">
+    <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all overflow-hidden h-full">
+      <CardHeader className="p-6 pb-3 min-w-0">
         <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -239,7 +239,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
           )}
         </div>
       </CardHeader>
-      <CardContent className="pb-4 px-4 sm:px-6">
+      <CardContent className="p-6 pt-0 flex-1 overflow-hidden min-w-0">
         {suggestions.length === 0 ? (
           <div className="text-center py-6">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
@@ -249,7 +249,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
             <p className="text-xs text-muted-foreground">No new suggestions</p>
           </div>
         ) : (
-          <ScrollArea className="h-[350px] sm:h-[450px] lg:h-[500px] pr-2 sm:pr-3">
+          <ScrollArea className="max-h-[60vh] pr-2 sm:pr-3 overflow-x-hidden">
             <div className="space-y-2.5 sm:space-y-3">
               {/* High Priority Section */}
               {highPrioritySuggestions.length > 0 && (

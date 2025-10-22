@@ -150,7 +150,7 @@ export default function ApplicationTrackingSystem() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
         <CardHeader>
           <CardTitle>Application Tracking</CardTitle>
         </CardHeader>
@@ -167,7 +167,7 @@ export default function ApplicationTrackingSystem() {
 
   if (applications.length === 0) {
     return (
-      <Card>
+      <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -208,9 +208,9 @@ export default function ApplicationTrackingSystem() {
   }
 
   return (
-    <Card>
+    <Card className="rounded-xl border shadow-card hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-w-0">
           <div>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -228,7 +228,7 @@ export default function ApplicationTrackingSystem() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 min-w-0">
         {/* Filter Tabs */}
         <Tabs value={activeFilter} onValueChange={setActiveFilter}>
           <TabsList className="grid w-full grid-cols-4 h-auto">
@@ -248,7 +248,7 @@ export default function ApplicationTrackingSystem() {
         </Tabs>
 
         {/* Applications List */}
-        <ScrollArea className="h-[600px] pr-4">
+        <ScrollArea className="max-h-[60vh] pr-4 overflow-x-hidden">
           <div className="space-y-4">
             {filteredApplications.map((app) => {
               const config = statusConfig[app.status as keyof typeof statusConfig];
