@@ -1,7 +1,10 @@
+import BackButton from '@/components/BackButton';
+
 const LegalPrivacy = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <section className="container mx-auto px-4 py-12 max-w-3xl prose dark:prose-invert">
+        <BackButton variant="ghost" size="sm" fallback="/" />
         <h1>Privacy Policy</h1>
         <p>
           We value your privacy. We process personal data solely to provide and improve our services, and we never sell your data.

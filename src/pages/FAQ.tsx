@@ -1,4 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import BackButton from '@/components/BackButton';
 
 const faqs = [
   {
@@ -22,6 +23,8 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <section className="container mx-auto px-4 py-12 max-w-3xl">
+        <BackButton variant="ghost" size="sm" fallback="/" />
+        
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold">Frequently Asked Questions</h1>
           <p className="text-muted-foreground">Quick answers to the most common questions</p>
