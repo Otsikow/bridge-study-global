@@ -155,7 +155,7 @@ export default function LeadsList() {
             {students.map((student) => (
               <Card key={student.id} className="border-2 hover:border-primary/50 transition-colors">
                 <CardContent className="pt-6">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div className="space-y-2 flex-1">
                       <h3 className="text-lg font-semibold">{student.profiles.full_name}</h3>
                       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
@@ -176,7 +176,7 @@ export default function LeadsList() {
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Add Note
                         </Button>
@@ -217,11 +217,11 @@ export default function LeadsList() {
                     {student.applications.map((app) => (
                       <div
                         key={app.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg bg-muted/50"
                       >
-                        <div>
-                          <p className="font-medium text-sm">{app.programs.name}</p>
-                          <p className="text-xs text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm truncate">{app.programs.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">
                             {app.programs.universities.name}
                           </p>
                         </div>
