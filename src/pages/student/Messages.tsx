@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Search, Send } from 'lucide-react';
+import { MessageSquare, Search, Send, Paperclip, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Tables } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
 
 type MessageRow = Tables<'messages'>;
 
@@ -43,6 +44,7 @@ function formatRelativeTime(dateIso: string | null | undefined) {
 
 export default function Messages() {
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [applications, setApplications] = useState<ApplicationSummary[]>([]);
@@ -54,6 +56,8 @@ export default function Messages() {
   const [sending, setSending] = useState(false);
   const listBottomRef = useRef<HTMLDivElement | null>(null);
   const [lastSeen, setLastSeen] = useState<LastSeenMap>({});
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load last seen map from localStorage
   useEffect(() => {
@@ -188,6 +192,13 @@ export default function Messages() {
     };
   }, [selectedAppId]);
 
+  // Auto-select first conversation when available
+  useEffect(() => {
+    if (!selectedAppId && applications.length > 0) {
+      setSelectedAppId(applications[0].id);
+    }
+  }, [applications, selectedAppId]);
+
   const filteredApplications = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return applications;
@@ -202,6 +213,14 @@ export default function Messages() {
     const msgs = messagesByApp[appId];
     if (!msgs || !user) return 0;
     return msgs.filter((m) => new Date(m.created_at || 0).getTime() > last && m.sender_id !== user.id).length;
+  };
+
+  const hasUnread = (appId: string) => {
+    if (!user) return false;
+    const latest = latestByApp[appId];
+    if (!latest) return false;
+    const last = lastSeen[appId] ? new Date(lastSeen[appId]).getTime() : 0;
+    return new Date(latest.created_at || 0).getTime() > last && latest.sender_id !== user.id;
   };
 
   const selectedMessages = selectedAppId ? messagesByApp[selectedAppId] || [] : [];
@@ -241,6 +260,72 @@ export default function Messages() {
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  const getPublicUrl = (path: string) => {
+    const { data } = supabase.storage.from('public').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleFilesSelected = async (files: FileList | null) => {
+    if (!files || files.length === 0 || !user || !selectedAppId) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ title: 'File too large', description: 'Max size is 10MB', variant: 'destructive' });
+          continue;
+        }
+        const ext = file.name.split('.').pop() || 'bin';
+        const path = `${user.id}/chat/${selectedAppId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('public').upload(path, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type || undefined,
+        });
+        if (uploadErr) {
+          toast({ title: 'Upload failed', description: uploadErr.message, variant: 'destructive' });
+          continue;
+        }
+
+        const attachments = [
+          {
+            path,
+            name: file.name,
+            mime: file.type,
+            size: file.size,
+            url: getPublicUrl(path),
+          },
+        ];
+
+        const { data, error } = await supabase
+          .from('messages')
+          .insert({
+            application_id: selectedAppId,
+            sender_id: user.id,
+            body: file.name,
+            message_type: 'document',
+            attachments,
+          })
+          .select('*')
+          .single();
+
+        if (!error && data) {
+          const row = data as MessageRow;
+          setMessagesByApp((prev) => {
+            const arr = prev[selectedAppId] || [];
+            return { ...prev, [selectedAppId]: [...arr, row] };
+          });
+          setLatestByApp((prev) => ({ ...prev, [selectedAppId]: row }));
+          setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+        } else if (error) {
+          toast({ title: 'Send failed', description: error.message, variant: 'destructive' });
+        }
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -289,6 +374,7 @@ export default function Messages() {
                       const preview = latest?.body || 'No messages yet';
                       const when = formatRelativeTime(latest?.created_at || null);
                       const unread = unreadCount(app.id);
+                      const showDot = unread === 0 && hasUnread(app.id);
                       return (
                         <li
                           key={app.id}
@@ -313,11 +399,13 @@ export default function Messages() {
                               </div>
                               <p className="text-sm text-muted-foreground truncate">{preview}</p>
                             </div>
-                            {unread > 0 && (
+                            {unread > 0 ? (
                               <Badge variant="secondary" className="rounded-full px-2 py-0.5">
                                 {unread}
                               </Badge>
-                            )}
+                            ) : showDot ? (
+                              <span className="mt-1 w-2 h-2 rounded-full bg-primary inline-block" aria-label="unread" />
+                            ) : null}
                           </div>
                         </li>
                       );
@@ -350,6 +438,7 @@ export default function Messages() {
                       ) : (
                         selectedMessages.map((m) => {
                           const mine = user && m.sender_id === user.id;
+                          const atts = (m.attachments as unknown as Array<{ path: string; name?: string; mime?: string; url?: string; size?: number }>) || [];
                           return (
                             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                               <div
@@ -359,7 +448,38 @@ export default function Messages() {
                                     : 'bg-muted text-foreground'
                                 }`}
                               >
-                                <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                {atts.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {atts.map((a, idx) => {
+                                      const url = (a as any).url || getPublicUrl(a.path);
+                                      const isImage = (a.mime || '').startsWith('image/');
+                                      return (
+                                        <div key={idx} className="group">
+                                          {isImage ? (
+                                            <a href={url} target="_blank" rel="noreferrer" className="block">
+                                              <img src={url} alt={a.name || 'attachment'} className="max-h-48 rounded-md border" />
+                                            </a>
+                                          ) : (
+                                            <a
+                                              href={url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className={`flex items-center gap-2 rounded-md border px-3 py-2 ${mine ? 'bg-primary/20' : 'bg-background'}`}
+                                            >
+                                              <FileText className="h-4 w-4" />
+                                              <span className="truncate">{a.name || 'Attachment'}</span>
+                                            </a>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                    {m.body && (
+                                      <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="whitespace-pre-wrap break-words">{m.body}</p>
+                                )}
                                 <div className={`mt-1 text-[10px] ${mine ? 'opacity-80' : 'text-muted-foreground'}`}>
                                   {formatRelativeTime(m.created_at)}
                                 </div>
@@ -372,6 +492,25 @@ export default function Messages() {
                     </div>
                   </ScrollArea>
                   <div className="flex gap-2 pt-2">
+                    <input
+                      ref={fileInputRef}
+                      id="file-input"
+                      type="file"
+                      multiple
+                      accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                      className="hidden"
+                      onChange={(e) => handleFilesSelected(e.target.files)}
+                      disabled={uploading}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading || !selectedAppId}
+                    >
+                      <Paperclip className="h-4 w-4" /> Attach
+                    </Button>
                     <Input
                       placeholder="Type a message..."
                       className="flex-1"
