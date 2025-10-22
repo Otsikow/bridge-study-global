@@ -16,8 +16,7 @@ const Signup = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
-  // Role selection removed; backend defaults to student and roles
-  // are managed by admins via user_roles.
+  const [role, setRole] = useState<'student' | 'agent'>('student');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
@@ -54,7 +53,7 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName);
+    const { error } = await signUp(email, password, fullName, role);
 
     if (error) {
       toast({
@@ -136,7 +135,21 @@ const Signup = () => {
                 Minimum 6 characters
               </p>
             </div>
-            {null}
+            <div className="space-y-2">
+              <Label htmlFor="role">I am a</Label>
+              <Select value={role} onValueChange={(value: 'student' | 'agent') => setRole(value)}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="agent">Agent/Counselor</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the role that best describes you
+              </p>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>

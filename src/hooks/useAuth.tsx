@@ -31,7 +31,8 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    role?: string
   ) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -95,7 +96,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (
     email: string,
     password: string,
-    fullName: string
+    fullName: string,
+    role?: string
   ) => {
     const redirectUrl = `${window.location.origin}/`;
 
@@ -106,6 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          role: role || 'student',
         },
       },
     });
