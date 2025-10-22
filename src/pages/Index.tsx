@@ -29,7 +29,13 @@ import {
 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import heroBanner from '@/assets/hero-banner.jpg';
+import heroBanner from '@/assets/walking-campus.png';
+import libraryStudent from '@/assets/library.png';
+import usingMobile from '@/assets/using-mobile.png';
+import studentWelcome from '@/assets/student-welcome.png';
+import studentCampus from '@/assets/student-campus.png';
+import careerFair from '@/assets/career-fair.png';
+import labStudent from '@/assets/lab-student.png';
 
 const Index = () => {
   const features = [
@@ -210,6 +216,114 @@ const Index = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* Features Showcase */}
+      <section className="container mx-auto px-4 sm:px-6 py-16 sm:py-24 bg-gradient-to-b from-background to-muted/20">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">Your Journey to Success</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+            From exploration to enrollment, we support you every step of the way
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={usingMobile} 
+                alt="Student using mobile app for university applications" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Manage Anywhere</h3>
+              <p className="text-muted-foreground">
+                Track your applications and stay connected with your education agent from any device
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={libraryStudent} 
+                alt="Student studying in library" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Resource Library</h3>
+              <p className="text-muted-foreground">
+                Access comprehensive guides, tips, and resources to strengthen your applications
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={careerFair} 
+                alt="Student meeting education advisor at career fair" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Expert Guidance</h3>
+              <p className="text-muted-foreground">
+                Connect with verified education agents who understand your goals and aspirations
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={labStudent} 
+                alt="Student in science lab" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Diverse Programs</h3>
+              <p className="text-muted-foreground">
+                Explore programs across all fields of study at top universities worldwide
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={studentCampus} 
+                alt="Happy student on campus" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Campus Life</h3>
+              <p className="text-muted-foreground">
+                Get insights into campus culture and student life at your dream universities
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <div className="aspect-[4/3] overflow-hidden">
+              <img 
+                src={studentWelcome} 
+                alt="Welcoming student ready for international education" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-bold mb-2">Start Today</h3>
+              <p className="text-muted-foreground">
+                Begin your international education journey with confidence and support
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
