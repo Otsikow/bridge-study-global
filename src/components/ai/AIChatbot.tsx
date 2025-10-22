@@ -229,9 +229,16 @@ export default function AIChatbot() {
       return;
     }
 
+    // Get current user ID from session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({ title: "Sign in required", description: "Please sign in to upload files." });
+      return;
+    }
+
     const ext = file.name.split(".").pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-    const filePath = `chat-attachments/${fileName}`;
+    const filePath = `${user.id}/${fileName}`;
 
     const { error } = await supabase.storage.from("public").upload(filePath, file);
     if (error) throw error;

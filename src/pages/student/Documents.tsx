@@ -118,8 +118,8 @@ export default function Documents() {
     try {
       // Upload to storage
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${studentId}/${documentType}_${Date.now()}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+      const fileName = `${documentType}_${Date.now()}.${fileExt}`;
+      const filePath = `${studentId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('student-documents')
