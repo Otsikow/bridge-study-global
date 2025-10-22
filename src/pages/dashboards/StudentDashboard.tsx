@@ -205,26 +205,35 @@ export default function StudentDashboard() {
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">
+        <div className="flex flex-col gap-4 sm:gap-5 lg:flex-row lg:items-center lg:justify-between animate-fade-in">
+          <div className="space-y-1.5 min-w-0">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
               Welcome back, {profile?.full_name || 'Student'}!
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
               Track your applications and stay on top of your journey
             </p>
           </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-              <Link to="/student/notifications">
-                <Bell className="h-4 w-4 mr-2" />
-                Notifications
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <Button 
+              asChild 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
+            >
+              <Link to="/student/notifications" className="flex items-center justify-center gap-2">
+                <Bell className="h-4 w-4" />
+                <span className="hidden sm:inline">Notifications</span>
               </Link>
             </Button>
-            <Button asChild className="w-full sm:w-auto">
-              <Link to="/search">
-                <Search className="h-4 w-4 mr-2" />
-                Find Programs
+            <Button 
+              asChild 
+              size="sm"
+              className="flex-1 sm:flex-initial hover-scale whitespace-nowrap"
+            >
+              <Link to="/search" className="flex items-center justify-center gap-2">
+                <Search className="h-4 w-4" />
+                <span>Find Programs</span>
               </Link>
             </Button>
           </div>
