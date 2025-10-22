@@ -10,7 +10,8 @@ import { TestScoresTab } from '@/components/student/profile/TestScoresTab';
 import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
@@ -77,15 +78,7 @@ export default function StudentProfile() {
 
   return (
     <div className="container mx-auto py-8">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My Profile</h1>

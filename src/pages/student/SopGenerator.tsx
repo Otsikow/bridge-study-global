@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, FileText, Sparkles } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 
 export default function SopGenerator() {
   const [background, setBackground] = useState('');
@@ -41,9 +42,7 @@ export default function SopGenerator() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-2" fallback="/dashboard" />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

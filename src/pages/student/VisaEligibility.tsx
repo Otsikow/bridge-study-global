@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 
 function scoreBand(p: number) {
   if (p >= 0.7) return { label: 'High', color: 'text-success' };
@@ -45,9 +46,7 @@ export default function VisaEligibility() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
-        <ArrowLeft className="mr-2 h-4 w-4" /> Back
-      </Button>
+      <BackButton variant="ghost" size="sm" className="mb-2" fallback="/dashboard" />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

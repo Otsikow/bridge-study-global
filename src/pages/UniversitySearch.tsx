@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, ArrowLeft, FileText, MessageSquare } from "lucide-react";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
+import BackButton from '@/components/BackButton';
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 import AIChatbot from "@/components/ai/AIChatbot";
@@ -211,15 +212,7 @@ export default function UniversitySearch() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/")}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton variant="ghost" size="sm" className="mb-4" fallback="/" />
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
           <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>
