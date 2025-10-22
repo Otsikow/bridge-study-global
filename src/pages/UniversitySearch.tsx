@@ -226,25 +226,32 @@ export default function UniversitySearch() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="w-full overflow-hidden">
-            <TabsList className="w-full flex justify-start md:justify-center">
-              <TabsTrigger value="search" className="flex-1 md:flex-initial">
-                <Search className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Search</span>
-              </TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex-1 md:flex-initial">
-                <Sparkles className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">AI Recommendations</span>
-              </TabsTrigger>
-              <TabsTrigger value="sop" className="flex-1 md:flex-initial">
-                <FileText className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">SOP Generator</span>
-              </TabsTrigger>
-              <TabsTrigger value="interview" className="flex-1 md:flex-initial">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Interview Practice</span>
-              </TabsTrigger>
-            </TabsList>
+          <div className="w-full">
+            <div className="relative">
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <TabsList className="inline-flex w-auto min-w-full sm:w-full sm:justify-center">
+                  <TabsTrigger value="search" className="whitespace-nowrap">
+                    <Search className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden xs:inline ml-1.5 sm:ml-0">Search</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="recommendations" className="whitespace-nowrap">
+                    <Sparkles className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden xs:inline ml-1.5 sm:ml-0">AI Recommend</span>
+                    <span className="hidden md:inline">ations</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="sop" className="whitespace-nowrap">
+                    <FileText className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden xs:inline ml-1.5 sm:ml-0">SOP</span>
+                    <span className="hidden sm:inline"> Generator</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="interview" className="whitespace-nowrap">
+                    <MessageSquare className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden xs:inline ml-1.5 sm:ml-0">Interview</span>
+                    <span className="hidden sm:inline"> Practice</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+            </div>
           </div>
 
           <TabsContent value="search" className="space-y-6">
