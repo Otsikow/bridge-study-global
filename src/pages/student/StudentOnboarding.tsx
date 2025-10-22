@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
@@ -151,82 +152,120 @@ export default function StudentOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-8 px-4 max-w-4xl space-y-8">
+    <div className="min-h-screen bg-gradient-subtle">
+      <div className="container mx-auto py-6 md:py-8 px-4 max-w-4xl space-y-6 md:space-y-8">
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
 
-        <div>
-          <h1 className="text-4xl font-bold mb-2">Welcome to Global Education Gateway</h1>
-          <p className="text-lg text-muted-foreground">
-            Complete your profile to start applying to universities
+        <div className="space-y-2 animate-fade-in">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+            Welcome to Global Education Gateway
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            Complete your profile to start applying to universities worldwide
           </p>
         </div>
 
         {/* Progress Overview */}
-        <Card>
+        <Card className="hover:shadow-lg transition-shadow animate-fade-in">
           <CardHeader>
-            <CardTitle className="text-2xl">Profile Completeness</CardTitle>
-            <CardDescription className="text-base">
-              {completeness}% complete - {checklist.filter((i) => i.completed).length} of{' '}
-              {checklist.length} steps done
+            <CardTitle className="text-xl sm:text-2xl">Profile Completeness</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              {completeness}% complete • {checklist.filter((i) => i.completed).length} of{' '}
+              {checklist.length} steps completed
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Progress value={completeness} className="h-3" />
-            {completeness === 100 && (
-              <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
-                <p className="text-primary font-medium flex items-center gap-2">
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Progress value={completeness} className="h-4" />
+              <span className="absolute right-2 top-0.5 text-xs font-medium">
+                {completeness}%
+              </span>
+            </div>
+            {completeness === 100 ? (
+              <div className="p-4 bg-success/10 rounded-lg border border-success/20 animate-fade-in">
+                <p className="text-success font-medium flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
                   Profile Complete! You're ready to start applying to programs.
                 </p>
-                <Link to="/search">
-                  <Button className="mt-3">Browse Programs</Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                  <Button asChild className="hover-scale flex-1">
+                    <Link to="/search">Browse Programs</Link>
+                  </Button>
+                  <Button asChild variant="outline" className="flex-1">
+                    <Link to="/student/applications/new">Create Application</Link>
+                  </Button>
+                </div>
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Complete all steps below to unlock full access to university applications and features.
+              </p>
             )}
           </CardContent>
         </Card>
 
         {/* Onboarding Checklist */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Getting Started Checklist</h2>
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-bold">Getting Started Checklist</h2>
+            <Badge variant="outline" className="text-xs sm:text-sm">
+              {checklist.filter((i) => i.completed).length}/{checklist.length} Complete
+            </Badge>
+          </div>
           <div className="space-y-3">
-            {checklist.map((item) => {
+            {checklist.map((item, index) => {
               const Icon = item.icon;
               return (
                 <Card
                   key={item.id}
-                  className={item.completed ? 'border-primary/50 bg-primary/5' : ''}
+                  className={`hover:shadow-lg transition-all ${
+                    item.completed ? 'border-success/50 bg-success/5' : 'hover:-translate-y-0.5'
+                  }`}
                 >
                   <CardContent className="pt-6">
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4">
                       <div
-                        className={`rounded-full p-3 flex-shrink-0 ${
+                        className={`rounded-full p-2.5 sm:p-3 flex-shrink-0 transition-colors ${
                           item.completed
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                            ? 'bg-success text-success-foreground'
+                            : 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        <Icon className="h-6 w-6" />
+                        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          {item.completed ? (
-                            <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
-                          ) : (
-                            <Circle className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                          )}
-                          <h3 className="font-semibold text-lg">{item.title}</h3>
+                        <div className="flex items-start gap-2 mb-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {item.completed ? (
+                              <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                            ) : (
+                              <div className="h-5 w-5 rounded-full border-2 border-muted-foreground flex-shrink-0 flex items-center justify-center">
+                                <span className="text-xs text-muted-foreground">{index + 1}</span>
+                              </div>
+                            )}
+                            <h3 className="font-semibold text-base sm:text-lg break-words">
+                              {item.title}
+                            </h3>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-3">
+                        <p className="text-sm text-muted-foreground mb-3 leading-relaxed">
                           {item.description}
                         </p>
-                        {!item.completed && (
+                        {!item.completed ? (
                           <Link to={item.link}>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="hover-scale w-full sm:w-auto"
+                            >
                               Complete This Step
                             </Button>
                           </Link>
+                        ) : (
+                          <div className="flex items-center gap-2 text-success text-sm">
+                            <CheckCircle className="h-4 w-4" />
+                            <span className="font-medium">Completed</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -236,6 +275,26 @@ export default function StudentOnboarding() {
             })}
           </div>
         </div>
+
+        {/* Additional Resources */}
+        <Card className="bg-muted/50 animate-fade-in">
+          <CardHeader>
+            <CardTitle className="text-lg">Need Help?</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Our team is here to support you throughout your application journey.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button asChild variant="outline" size="sm" className="flex-1">
+                <Link to="/faq">View FAQ</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm" className="flex-1">
+                <Link to="/contact">Contact Support</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
