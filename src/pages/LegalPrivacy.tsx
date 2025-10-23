@@ -16,7 +16,7 @@ const LegalPrivacy = () => {
         <h2>How we use data</h2>
         <p>
           To operate the platform, support your applications, and improve product quality. For questions, contact
-          <a className="text-primary" href="mailto:info@globaltalentgateway.com"> info@globaltalentgateway.com</a>.
+          <a className="text-primary" href="mailto:info@globaleducationgateway.com"> info@globaleducationgateway.com</a>.
         </p>
       </section>
     </div>
