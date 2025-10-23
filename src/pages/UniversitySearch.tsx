@@ -8,15 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
-import BackButton from "@/components/BackButton";
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
-import AIChatbot from "@/components/ai/AIChatbot";
 import ProgramRecommendations from "@/components/ai/ProgramRecommendations";
 import SoPGenerator from "@/components/ai/SoPGenerator";
 import InterviewPractice from "@/components/ai/InterviewPractice";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BackButton from "@/components/BackButton";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
 
 // --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
@@ -38,9 +37,9 @@ import mitLogo from "@/assets/mit-logo.png";
 import harvardLogo from "@/assets/harvard-logo.png";
 import stanfordLogo from "@/assets/stanford-logo.png";
 import oxfordLogo from "@/assets/oxford-logo.png";
-import cambridgeLogo from "@/assets/cambridge-logo.png";
+import cambridgeLogo from "@/assets/cambridge-logo.svg";
 import berkeleyLogo from "@/assets/berkeley-logo.png";
-import yaleLogo from "@/assets/yale-logo.png";
+import yaleLogo from "@/assets/yale-logo.svg";
 
 interface University {
   id: string;
@@ -79,10 +78,9 @@ interface SearchResult {
   scholarships: Scholarship[];
 }
 
-// Combined helper: prefers logo, falls back to image
+// Helper: pick logo or image automatically
 const getUniversityVisual = (universityName: string, logoUrl: string | null): string => {
   const name = universityName.toLowerCase();
-
   if (logoUrl) return logoUrl;
 
   if (name.includes("oxford")) return oxfordImg;
@@ -115,9 +113,8 @@ export default function UniversitySearch() {
   const [countries, setCountries] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [disciplines, setDisciplines] = useState<string[]>([]);
-
-  // AI Recommendations state
   const [activeTab, setActiveTab] = useState("search");
+
   const { recommendations } = useAIRecommendations();
 
   // Load filter options
@@ -214,7 +211,9 @@ export default function UniversitySearch() {
         <BackButton variant="ghost" size="sm" className="mb-4" fallback="/" />
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
-          <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>
+          <p className="text-muted-foreground">
+            Search through universities, programs, and scholarships worldwide
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -337,7 +336,9 @@ export default function UniversitySearch() {
             {/* Results */}
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">
-                {loading ? "Searching..." : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
+                {loading
+                  ? "Searching..."
+                  : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
               </h2>
 
               {loading ? (
@@ -405,8 +406,7 @@ export default function UniversitySearch() {
                           {/* Programs */}
                           <div className="space-y-2">
                             <h4 className="font-semibold flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4" /> Available Programs (
-                              {result.programs.length})
+                              <GraduationCap className="h-4 w-4" /> Available Programs ({result.programs.length})
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               {result.programs.slice(0, 4).map((program) => (
@@ -440,42 +440,4 @@ export default function UniversitySearch() {
                               <h4 className="font-semibold flex items-center gap-2">
                                 <Award className="h-4 w-4" /> Scholarships
                               </h4>
-                              <div className="space-y-2">
-                                {result.scholarships.map((scholarship) => (
-                                  <div key={scholarship.id} className="p-2 rounded-md bg-primary/10 text-sm">
-                                    <p className="font-medium">{scholarship.name}</p>
-                                    {scholarship.amount_cents && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {(scholarship.amount_cents / 100).toLocaleString()} {scholarship.currency}
-                                      </p>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </CardContent>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="recommendations" className="space-y-6">
-            <ProgramRecommendations />
-          </TabsContent>
-
-          <TabsContent value="sop" className="space-y-6">
-            <SoPGenerator />
-          </TabsContent>
-
-          <TabsContent value="interview" className="space-y-6">
-            <InterviewPractice />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-}
+                              <div className="space
