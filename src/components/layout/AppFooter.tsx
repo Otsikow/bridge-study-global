@@ -1,31 +1,14 @@
 import { Link } from 'react-router-dom';
 import gegLogo from '@/assets/geg-logo.png';
-import {
-  Mail,
-  Search,
-  Calculator,
-  MessageSquare,
-  LogIn,
-  UserPlus,
-  LayoutDashboard,
-  Shield,
-  FileText,
-  Newspaper
-} from 'lucide-react';
-
+import { Mail, Search, Calculator, MessageSquare, LogIn, UserPlus, LayoutDashboard, Shield, FileText, Newspaper } from 'lucide-react';
 export function AppFooter() {
   const year = new Date().getFullYear();
-  return (
-    <footer className="border-t bg-background">
+  return <footer className="border-t bg-background">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1 space-y-4">
             <div className="flex items-center gap-3">
-              <img
-                src={gegLogo}
-                alt="GEG Logo"
-                className="h-9 w-9 object-contain dark:brightness-0 dark:invert"
-              />
+              <img src={gegLogo} alt="GEG Logo" className="h-9 w-9 object-contain dark:brightness-0 dark:invert" />
               <span className="font-semibold text-lg">GEG — Global Education Gateway</span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -34,12 +17,7 @@ export function AppFooter() {
             </p>
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-primary" />
-              <a
-                href="mailto:info@globaleducationgateway.com"
-                className="hover:underline"
-              >
-                info@globaleducationgateway.com
-              </a>
+              <a href="mailto:info@globaltalentgateway.com" className="hover:underline">info@globaleducationgateway.com</a>
             </div>
           </div>
 
@@ -132,12 +110,10 @@ export function AppFooter() {
           <p className="text-xs text-muted-foreground">© {year} GEG — Global Education Gateway. All rights reserved.</p>
           <div className="text-xs text-muted-foreground">
             <span className="hidden sm:inline">Questions? </span>
-            <a className="hover:underline" href="mailto:info@globaleducationgateway.com">Email us</a>
+            <a className="hover:underline" href="mailto:info@globaltalentgateway.com">Email us</a>
           </div>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 }
-
 export default AppFooter;
