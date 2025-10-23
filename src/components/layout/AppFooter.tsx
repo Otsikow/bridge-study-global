@@ -35,10 +35,10 @@ export function AppFooter() {
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-primary" />
               <a
-                href="mailto:info@globaltalentgateway.com"
+                href="mailto:info@globaleducationgateway.com"
                 className="hover:underline"
               >
-                info@globaltalentgateway.com
+                info@globaleducationgateway.com
               </a>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function AppFooter() {
           <p className="text-xs text-muted-foreground">© {year} GEG — Global Education Gateway. All rights reserved.</p>
           <div className="text-xs text-muted-foreground">
             <span className="hidden sm:inline">Questions? </span>
-            <a className="hover:underline" href="mailto:info@globaltalentgateway.com">Email us</a>
+            <a className="hover:underline" href="mailto:info@globaleducationgateway.com">Email us</a>
           </div>
         </div>
       </div>
