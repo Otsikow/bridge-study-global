@@ -1,147 +1,194 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  retryCount: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
+  private maxRetries = 3;
+
   constructor(props: Props) {
     super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
+      retryCount: 0,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return {
-      hasError: true,
-      error,
-      errorInfo: null,
-    };
+  static getDerivedStateFromError(error: Error): Partial<State> {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-    
-    this.setState({
-      error,
-      errorInfo,
-    });
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    this.setState({ error, errorInfo });
 
-    // Log to error reporting service if configured
-    // Example: Sentry, LogRocket, etc.
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
+
+    if (process.env.NODE_ENV === "production") {
+      this.logErrorToService(error, errorInfo);
+    }
   }
 
-  handleReset = () => {
+  private logErrorToService = (error: Error, errorInfo: ErrorInfo) => {
+    console.error("Error logged to service:", {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  private handleRetry = () => {
+    if (this.state.retryCount < this.maxRetries) {
+      this.setState((prevState) => ({
+        hasError: false,
+        error: null,
+        errorInfo: null,
+        retryCount: prevState.retryCount + 1,
+      }));
+    }
+  };
+
+  private handleReset = () => {
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
+      retryCount: 0,
     });
+  };
+
+  private getErrorMessage = (error: Error): string => {
+    if (error.message.includes("NetworkError") || error.message.includes("fetch"))
+      return "Network connection failed. Please check your internet connection and try again.";
+
+    if (
+      error.message.includes("ChunkLoadError") ||
+      error.message.includes("Loading chunk")
+    )
+      return "Failed to load application resources. This usually happens when the app has been updated.";
+
+    if (error.message.includes("Permission denied") || error.message.includes("403"))
+      return "You do not have permission to access this resource.";
+
+    if (error.message.includes("Not found") || error.message.includes("404"))
+      return "The requested resource was not found.";
+
+    if (error.message.includes("Unauthorized") || error.message.includes("401"))
+      return "Your session has expired. Please log in again.";
+
+    if (error.message.includes("Supabase") || error.message.includes("database"))
+      return "Database connection failed. Please try again in a moment.";
+
+    if (error.message.length < 100 && !error.message.includes("Error:"))
+      return error.message;
+
+    return "An unexpected error occurred. Please try again.";
+  };
+
+  private getErrorTitle = (error: Error): string => {
+    if (error.message.includes("NetworkError") || error.message.includes("fetch"))
+      return "Connection Error";
+    if (
+      error.message.includes("ChunkLoadError") ||
+      error.message.includes("Loading chunk")
+    )
+      return "Loading Error";
+    if (error.message.includes("Permission denied") || error.message.includes("403"))
+      return "Access Denied";
+    if (error.message.includes("Not found") || error.message.includes("404"))
+      return "Not Found";
+    if (error.message.includes("Unauthorized") || error.message.includes("401"))
+      return "Session Expired";
+    return "Something went wrong";
   };
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
+      if (this.props.fallback) return this.props.fallback;
 
-      const { error, errorInfo } = this.state;
-      const isDevelopment = import.meta.env.DEV;
+      const { error } = this.state;
+      const errorMessage = error
+        ? this.getErrorMessage(error)
+        : "An unexpected error occurred";
+      const errorTitle = error ? this.getErrorTitle(error) : "Error";
+      const canRetry = this.state.retryCount < this.maxRetries;
 
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-          <Card className="max-w-2xl w-full">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-8 w-8 text-destructive" />
-                <div>
-                  <CardTitle className="text-2xl">Something went wrong</CardTitle>
-                  <CardDescription className="mt-2">
-                    We encountered an error while rendering this page.
-                  </CardDescription>
-                </div>
+        <div className="min-h-screen flex items-center justify-center bg-background p-4">
+          <Card className="max-w-lg w-full">
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
+              <CardTitle className="text-xl">{errorTitle}</CardTitle>
+              <CardDescription className="text-base">
+                {errorMessage}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {error && (
-                <div className="rounded-lg bg-destructive/10 p-4 space-y-2">
-                  <p className="font-semibold text-destructive">Error Details:</p>
-                  <p className="text-sm font-mono break-all">{error.message}</p>
-                  {isDevelopment && error.stack && (
+              <Alert>
+                <Bug className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  {process.env.NODE_ENV === "development" && error && (
                     <details className="mt-2">
-                      <summary className="cursor-pointer text-sm font-medium hover:text-primary">
-                        Stack trace (dev only)
+                      <summary className="cursor-pointer text-xs text-muted-foreground">
+                        Technical Details
                       </summary>
-                      <pre className="mt-2 text-xs overflow-auto max-h-40 bg-background/50 p-2 rounded">
+                      <pre className="mt-2 text-xs text-muted-foreground overflow-auto max-h-32">
                         {error.stack}
                       </pre>
                     </details>
                   )}
-                  {isDevelopment && errorInfo && (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-sm font-medium hover:text-primary">
-                        Component stack (dev only)
-                      </summary>
-                      <pre className="mt-2 text-xs overflow-auto max-h-40 bg-background/50 p-2 rounded">
-                        {errorInfo.componentStack}
-                      </pre>
-                    </details>
-                  )}
-                </div>
-              )}
+                </AlertDescription>
+              </Alert>
 
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  This could be due to:
-                </p>
-                <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                  <li>A network connectivity issue</li>
-                  <li>Missing or invalid data from the server</li>
-                  <li>A temporary server error</li>
-                  <li>An incompatibility with your browser</li>
-                </ul>
-              </div>
-
-              <div className="flex flex-wrap gap-3 pt-4">
-                <Button onClick={this.handleReset} className="gap-2">
-                  <RefreshCw className="h-4 w-4" />
-                  Try Again
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                {canRetry && (
+                  <Button onClick={this.handleRetry} className="flex-1">
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Try Again ({this.maxRetries - this.state.retryCount} left)
+                  </Button>
+                )}
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = '/'}
-                  className="gap-2"
+                  onClick={this.handleReset}
+                  className="flex-1"
                 >
-                  <Home className="h-4 w-4" />
+                  <Home className="mr-2 h-4 w-4" />
                   Go Home
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.reload()}
-                  className="gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Reload Page
-                </Button>
               </div>
 
-              {!isDevelopment && (
-                <p className="text-xs text-muted-foreground pt-2">
-                  If this problem persists, please contact support with the error details above.
-                </p>
+              {!canRetry && (
+                <div className="text-center text-sm text-muted-foreground">
+                  Maximum retry attempts reached. Please refresh the page or
+                  contact support.
+                </div>
               )}
             </CardContent>
           </Card>
@@ -152,3 +199,13 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+// ✅ Hook for functional components to trigger ErrorBoundary
+export const useErrorHandler = () => {
+  return (error: Error, errorInfo?: string) => {
+    console.error("Error caught by useErrorHandler:", error, errorInfo);
+    throw error;
+  };
+};
+
+export default ErrorBoundary;

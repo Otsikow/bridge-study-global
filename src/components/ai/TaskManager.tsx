@@ -306,46 +306,14 @@ export default function TaskManager() {
       {/* Task Management */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>My Tasks</CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search tasks..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 w-64"
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Done</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priority</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <CardTitle>My Tasks</CardTitle>
               <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Task
+                  <Button size="sm" className="shrink-0">
+                    <Plus className="h-4 w-4 md:mr-2" />
+                    <span className="hidden sm:inline">New Task</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -399,6 +367,43 @@ export default function TaskManager() {
                   </div>
                 </DialogContent>
               </Dialog>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="relative flex-1 min-w-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-full"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="open">Open</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="done">Done</SelectItem>
+                    <SelectItem value="blocked">Blocked</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={filterPriority} onValueChange={setFilterPriority}>
+                  <SelectTrigger className="w-full sm:w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Priority</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardHeader>

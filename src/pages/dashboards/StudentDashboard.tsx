@@ -28,6 +28,8 @@ import TaskManagement from '@/components/tasks/TaskManagement';
 import PreferenceRanking from '@/components/ranking/PreferenceRanking';
 import MessagesWidget from '@/components/student/MessagesWidget';
 import MessagesDashboard from '@/components/messages/MessagesDashboard';
+import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
+import { handleDbError } from '@/lib/errorHandling';
 
 interface Application {
   id: string;
@@ -60,6 +62,7 @@ interface Task {
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const { toast } = useToast();
+  const errorHandler = useErrorHandler({ context: 'Dashboard' });
   const [applications, setApplications] = useState<Application[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -71,6 +74,9 @@ export default function StudentDashboard() {
 
   const fetchDashboardData = async () => {
     try {
+      setLoading(true);
+      errorHandler.clearError();
+
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .select('id')
@@ -134,7 +140,9 @@ export default function StudentDashboard() {
         setUnreadMessages(recentMessages.length);
       }
     } catch (error) {
+      // ✅ Combine best of both branches: log + handle + toast
       logError(error, 'StudentDashboard.fetchDashboardData');
+      errorHandler.handleError(error, 'Failed to load dashboard data');
       toast(formatErrorForToast(error, 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
@@ -200,6 +208,20 @@ export default function StudentDashboard() {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-8 text-center">Loading dashboard...</div>
+      </DashboardLayout>
+    );
+  }
+
+  if (errorHandler.hasError) {
+    return (
+      <DashboardLayout>
+        <div className="p-4 md:p-8">
+          <ErrorDisplay
+            error={errorHandler.error}
+            onRetry={() => errorHandler.retry(fetchDashboardData)}
+            onClear={errorHandler.clearError}
+          />
+        </div>
       </DashboardLayout>
     );
   }
