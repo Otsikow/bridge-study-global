@@ -19,6 +19,21 @@ import InterviewPractice from "@/components/ai/InterviewPractice";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Import university images
+import oxfordImg from "@/assets/university-oxford.jpg";
+import harvardImg from "@/assets/university-harvard.jpg";
+import mitImg from "@/assets/university-mit.jpg";
+import cambridgeImg from "@/assets/university-cambridge.jpg";
+import stanfordImg from "@/assets/university-stanford.jpg";
+import torontoImg from "@/assets/university-toronto.jpg";
+import melbourneImg from "@/assets/university-melbourne.jpg";
+import yaleImg from "@/assets/university-yale.jpg";
+import princetonImg from "@/assets/university-princeton.jpg";
+import uclImg from "@/assets/university-ucl.jpg";
+import imperialImg from "@/assets/university-imperial.jpg";
+import edinburghImg from "@/assets/university-edinburgh.jpg";
+import defaultUniversityImg from "@/assets/university-default.jpg";
+
 interface University {
   id: string;
   name: string;
@@ -55,6 +70,30 @@ interface SearchResult {
   programs: Program[];
   scholarships: Scholarship[];
 }
+
+// Map university names to their images
+const getUniversityImage = (universityName: string, logoUrl: string | null): string => {
+  if (logoUrl) return logoUrl;
+  
+  const name = universityName.toLowerCase();
+  
+  // Map common university names to their images
+  if (name.includes('oxford')) return oxfordImg;
+  if (name.includes('harvard')) return harvardImg;
+  if (name.includes('mit') || name.includes('massachusetts institute')) return mitImg;
+  if (name.includes('cambridge')) return cambridgeImg;
+  if (name.includes('stanford')) return stanfordImg;
+  if (name.includes('toronto')) return torontoImg;
+  if (name.includes('melbourne')) return melbourneImg;
+  if (name.includes('yale')) return yaleImg;
+  if (name.includes('princeton')) return princetonImg;
+  if (name.includes('ucl') || name.includes('university college london')) return uclImg;
+  if (name.includes('imperial')) return imperialImg;
+  if (name.includes('edinburgh')) return edinburghImg;
+  
+  // Default university image for others
+  return defaultUniversityImg;
+};
 
 export default function UniversitySearch() {
   const navigate = useNavigate();
@@ -380,26 +419,38 @@ export default function UniversitySearch() {
                 </Card>
               ) : (
                 results.map((result) => (
-                  <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-2xl">{result.university.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {result.university.city && `${result.university.city}, `}
-                            {result.university.country}
-                          </CardDescription>
-                        </div>
-                        {result.scholarships.length > 0 && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <Award className="h-3 w-3" />
-                            {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
-                          </Badge>
-                        )}
+                  <Card key={result.university.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                    <div className="flex flex-col md:flex-row">
+                      {/* University Image */}
+                      <div className="md:w-64 h-48 md:h-auto bg-muted flex-shrink-0">
+                        <img 
+                          src={getUniversityImage(result.university.name, result.university.logo_url)} 
+                          alt={result.university.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                      
+                      {/* Content */}
+                      <div className="flex-1">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1">
+                              <CardTitle className="text-2xl">{result.university.name}</CardTitle>
+                              <CardDescription className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {result.university.city && `${result.university.city}, `}
+                                {result.university.country}
+                              </CardDescription>
+                            </div>
+                            {result.scholarships.length > 0 && (
+                              <Badge variant="secondary" className="flex items-center gap-1">
+                                <Award className="h-3 w-3" />
+                                {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
                       {result.university.description && (
                         <p className="text-sm text-muted-foreground">{result.university.description}</p>
                       )}
@@ -464,7 +515,9 @@ export default function UniversitySearch() {
                           </a>
                         </Button>
                       )}
-                    </CardContent>
+                        </CardContent>
+                      </div>
+                    </div>
                   </Card>
                 ))
               )}
