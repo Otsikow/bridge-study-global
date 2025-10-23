@@ -49,15 +49,18 @@ export default function Applications() {
       errorHandler.clearError();
 
       // Get student ID
-      const studentData = await safeQuery(
-        () => supabase
-          .from('students')
-          .select('id')
-          .eq('profile_id', user?.id)
-          .maybeSingle(),
-        'Fetching student profile',
-        true
-      );
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('profile_id', user?.id)
+        .maybeSingle();
+
+      if (studentError) {
+        errorHandler.handleError(studentError, 'Failed to fetch student profile');
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
 
       if (!studentData) {
         setApplications([]);
@@ -66,32 +69,35 @@ export default function Applications() {
       }
 
       // Fetch applications with program and university details
-      const appsData = await safeQuery(
-        () => supabase
-          .from('applications')
-          .select(`
-            id,
-            status,
-            intake_year,
-            intake_month,
-            created_at,
-            submitted_at,
-            program:programs (
+      const { data: appsData, error: appsError } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          status,
+          intake_year,
+          intake_month,
+          created_at,
+          submitted_at,
+          program:programs (
+            name,
+            level,
+            discipline,
+            university:universities (
               name,
-              level,
-              discipline,
-              university:universities (
-                name,
-                city,
-                country
-              )
+              city,
+              country
             )
-          `)
-          .eq('student_id', studentData.id)
-          .order('created_at', { ascending: false }),
-        'Fetching applications',
-        true
-      );
+          )
+        `)
+        .eq('student_id', studentData.id)
+        .order('created_at', { ascending: false });
+
+      if (appsError) {
+        errorHandler.handleError(appsError, 'Failed to fetch applications');
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
 
       const list = (appsData ?? []) as Application[];
       setApplications(list);
