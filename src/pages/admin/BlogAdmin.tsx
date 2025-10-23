@@ -9,27 +9,44 @@ import {
 import {
   Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import {
-  Input, Textarea, Button, Label, Badge, Switch, Separator,
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
+import {
   AlertDialog, AlertDialogContent, AlertDialogHeader,
   AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogAction, AlertDialogCancel, Dialog, DialogContent,
-  DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  AlertDialogAction, AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
   DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
   DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-} from "@/components/ui";
+} from "@/components/ui/dropdown-menu";
 import {
-  Eye, Star, FileText, Pencil, Trash2, CheckCircle, Filter,
+  Eye, Star, FileText, Pencil, Trash2, CheckCircle, Filter, Search,
   Clock, TrendingUp, ImageIcon, Plus, X, Save, Settings, Link2,
   Copy, ExternalLink, MoreHorizontal, Calendar, Globe, CheckCircle2, Edit3, Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import BlogAnalytics from "@/components/blog/BlogAnalytics";
-import BlogPreview from "@/components/blog/BlogPreview";
-import { generateSlug } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { BlogAnalytics } from "@/components/blog/BlogAnalytics";
+import { BlogPreview } from "@/components/blog/BlogPreview";
+
+// Simple slug generator
+const generateSlug = (title: string): string => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
 
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<any[]>([]);

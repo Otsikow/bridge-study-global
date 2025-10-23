@@ -23,7 +23,7 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
     } catch (error) {
       console.error("Error loading component:", error);
       return {
-        default: (() => (
+        default: ((() => (
           <div className="min-h-screen flex items-center justify-center p-4">
             <Card className="max-w-md w-full">
               <CardContent className="pt-6 space-y-4">
@@ -48,7 +48,7 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
               </CardContent>
             </Card>
           </div>
-        )) as T,
+        )) as unknown) as T,
       };
     }
   });
