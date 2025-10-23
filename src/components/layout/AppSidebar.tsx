@@ -71,6 +71,7 @@ const menuItems = {
     { title: 'Tasks', url: '/dashboard/tasks', icon: CheckSquare },
     { title: 'Messages', url: '/dashboard/messages', icon: MessageSquare },
     { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
+    { title: 'Blog', url: '/admin/blog', icon: FileText },
   ],
   admin: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -82,6 +83,7 @@ const menuItems = {
     { title: 'Commissions', url: '/dashboard/commissions', icon: DollarSign },
     { title: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
     { title: 'Settings', url: '/dashboard/settings', icon: Settings },
+    { title: 'Blog', url: '/admin/blog', icon: FileText },
   ],
 };
 
