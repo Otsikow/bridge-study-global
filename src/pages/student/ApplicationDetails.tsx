@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -175,8 +176,8 @@ export default function ApplicationDetails() {
       if (docErr) throw docErr;
       setDocs(docData as unknown as AppDocument[]);
     } catch (error) {
-      console.error('Load details error', error);
-      toast({ title: 'Error', description: 'Failed to load application details', variant: 'destructive' });
+      logError(error, 'ApplicationDetails.loadAll');
+      toast(formatErrorForToast(error, 'Failed to load application details'));
     } finally {
       setLoading(false);
     }
@@ -192,8 +193,8 @@ export default function ApplicationDetails() {
       if (error) throw error;
       setTasks(prev => prev.map(t => (t.id === task.id ? { ...t, status: newStatus as TaskItem['status'] } : t)));
     } catch (error) {
-      console.error('Update task error', error);
-      toast({ title: 'Error', description: 'Could not update task', variant: 'destructive' });
+      logError(error, 'ApplicationDetails.toggleTaskDone');
+      toast(formatErrorForToast(error, 'Could not update task'));
     }
   };
 

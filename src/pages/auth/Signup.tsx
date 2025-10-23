@@ -5,8 +5,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
@@ -18,6 +31,7 @@ const Signup = () => {
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'student' | 'agent' | 'staff'>('student');
   const [loading, setLoading] = useState(false);
+
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -27,6 +41,10 @@ const Signup = () => {
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
 
@@ -41,7 +59,7 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password.length < 6) {
       toast({
         variant: 'destructive',
@@ -59,15 +77,21 @@ const Signup = () => {
       toast({
         variant: 'destructive',
         title: 'Signup failed',
-        description: error instanceof Error ? error.message : 'An error occurred during signup',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An error occurred during signup',
       });
       setLoading(false);
     } else {
       toast({
         title: 'Account created!',
-        description: 'Please check your email to verify your account.',
+        description:
+          'Please check your email to verify your account. You will be redirected to login.',
       });
-      navigate('/auth/login');
+      setTimeout(() => {
+        navigate('/auth/login');
+      }, 2000);
     }
   };
 
@@ -75,18 +99,28 @@ const Signup = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1 text-center">
-          <Link to="/auth/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <Link
+            to="/auth/login"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
+          >
             <ArrowLeft className="h-4 w-4" />
             Back to login
           </Link>
+
           <div className="flex justify-center mb-4">
-            <img src={gegLogo} alt="GEG Logo" className="h-24 w-24 object-contain dark:brightness-0 dark:invert" />
+            <img
+              src={gegLogo}
+              alt="GEG Logo"
+              className="h-24 w-24 object-contain dark:brightness-0 dark:invert"
+            />
           </div>
+
           <CardTitle className="text-2xl font-bold">Join GEG</CardTitle>
           <CardDescription>
             Create your Global Education Gateway account
           </CardDescription>
         </CardHeader>
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -100,6 +134,7 @@ const Signup = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -111,6 +146,7 @@ const Signup = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -128,27 +164,41 @@ const Signup = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">
                 Minimum 6 characters
               </p>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="role">I am a</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as 'student' | 'agent' | 'staff')}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
+              <Label htmlFor="role">Account Type</Label>
+              <Select
+                value={role}
+                onValueChange={(value: 'student' | 'agent' | 'staff') =>
+                  setRole(value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select account type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
-                  <SelectItem value="staff">Staff</SelectItem>
+                  <SelectItem value="agent">Education Agent</SelectItem>
+                  <SelectItem value="staff">Staff Member</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Choose the type of account you want to create
+              </p>
             </div>
           </CardContent>
+
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
@@ -160,20 +210,22 @@ const Signup = () => {
                 'Create Account'
               )}
             </Button>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
 
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full" 
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
               onClick={handleGoogleSignUp}
               disabled={loading}
             >
@@ -200,7 +252,10 @@ const Signup = () => {
 
             <p className="text-sm text-center text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/auth/login" className="text-primary hover:underline font-medium">
+              <Link
+                to="/auth/login"
+                className="text-primary hover:underline font-medium"
+              >
                 Sign in
               </Link>
             </p>

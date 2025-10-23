@@ -18,7 +18,8 @@ import {
   Users,
   FileText,
   TrendingUp,
-  Settings
+  Settings,
+  Newspaper
 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 
@@ -149,6 +150,12 @@ export default function AdminDashboard() {
                   <Button variant="outline" className="w-full justify-start">
                     <Users className="mr-3 h-5 w-5" />
                     Manage Users
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" asChild>
+                    <a href="/admin/blog">
+                      <Newspaper className="mr-3 h-5 w-5" />
+                      Manage Blog
+                    </a>
                   </Button>
                   <Button variant="outline" className="w-full justify-start">
                     <FileText className="mr-3 h-5 w-5" />

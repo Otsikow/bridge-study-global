@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
@@ -52,23 +53,37 @@ export default function Documents() {
 
   const fetchStudentAndDocuments = useCallback(async () => {
     try {
+      if (!user?.id) {
+        console.log('No user ID available');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching student data for user:', user.id);
+
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .select('id')
-        .eq('profile_id', user?.id)
+        .eq('profile_id', user.id)
         .maybeSingle();
 
-      if (studentError) throw studentError;
+      if (studentError) {
+        console.error('Student query error:', studentError);
+        throw studentError;
+      }
+
       if (!studentData) {
+        console.log('No student profile found for user:', user.id);
         toast({
           title: 'Error',
-          description: 'Student profile not found',
+          description: 'Student profile not found. Please complete your profile first.',
           variant: 'destructive'
         });
         return;
       }
 
+      console.log('Student ID found:', studentData.id);
       setStudentId(studentData.id);
 
       // Fetch documents
@@ -78,15 +93,16 @@ export default function Documents() {
         .eq('student_id', studentData.id)
         .order('created_at', { ascending: false });
 
-      if (docsError) throw docsError;
+      if (docsError) {
+        console.error('Documents query error:', docsError);
+        throw docsError;
+      }
+
+      console.log('Documents fetched:', docsData?.length || 0);
       setDocuments(docsData || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load documents',
-        variant: 'destructive'
-      });
+      logError(error, 'Documents.fetchStudentAndDocuments');
+      toast(formatErrorForToast(error, 'Failed to load documents'));
     } finally {
       setLoading(false);
     }
@@ -114,21 +130,66 @@ export default function Documents() {
       return;
     }
 
+    // Validate file size (10MB limit)
+    if (selectedFile.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'Error',
+        description: 'File size must be less than 10MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/jpg',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      toast({
+        title: 'Error',
+        description: 'File type not supported. Please upload PDF, DOC, DOCX, JPG, or PNG files.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     setUploading(true);
     try {
-      // Upload to storage
+      // Upload to storage with correct path structure
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${studentId}/${documentType}_${Date.now()}.${fileExt}`;
-      const filePath = `documents/${fileName}`;
+      const fileName = `${documentType}_${Date.now()}.${fileExt}`;
+      const filePath = `${studentId}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file:', {
+        bucket: 'student-documents',
+        path: filePath,
+        fileName: selectedFile.name,
+        size: selectedFile.size,
+        type: selectedFile.type
+      });
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('student-documents')
-        .upload(filePath, selectedFile);
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Storage error: ${uploadError.message}`);
+      }
+
+      console.log('Upload successful:', uploadData);
 
       // Create document record
-      const { error: dbError } = await supabase
+      const { data: insertData, error: dbError } = await supabase
         .from('student_documents')
         .insert({
           student_id: studentId,
@@ -138,9 +199,20 @@ export default function Documents() {
           mime_type: selectedFile.type,
           storage_path: filePath,
           verified_status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database insert error:', dbError);
+        // Try to clean up the uploaded file
+        await supabase.storage
+          .from('student-documents')
+          .remove([filePath]);
+        throw new Error(`Database error: ${dbError.message}`);
+      }
+
+      console.log('Document record created:', insertData);
 
       toast({
         title: 'Success',
@@ -157,9 +229,10 @@ export default function Documents() {
       fetchStudentAndDocuments();
     } catch (error) {
       console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload document';
       toast({
         title: 'Error',
-        description: 'Failed to upload document',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -169,11 +242,20 @@ export default function Documents() {
 
   const handleDownload = async (doc: Document) => {
     try {
+      console.log('Downloading document:', doc.storage_path);
+      
       const { data, error } = await supabase.storage
         .from('student-documents')
         .download(doc.storage_path);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Download error:', error);
+        throw new Error(`Download failed: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error('No data received from storage');
+      }
 
       // Create download link
       const url = URL.createObjectURL(data);
@@ -184,11 +266,17 @@ export default function Documents() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      toast({
+        title: 'Success',
+        description: 'Document downloaded successfully'
+      });
     } catch (error) {
       console.error('Download error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to download document';
       toast({
         title: 'Error',
-        description: 'Failed to download document',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -198,12 +286,18 @@ export default function Documents() {
     if (!confirm('Are you sure you want to delete this document?')) return;
 
     try {
+      console.log('Deleting document:', doc.storage_path);
+      
       // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('student-documents')
         .remove([doc.storage_path]);
 
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('Storage delete error:', storageError);
+        // Continue with database deletion even if storage fails
+        console.warn('Storage deletion failed, but continuing with database cleanup');
+      }
 
       // Delete from database
       const { error: dbError } = await supabase
@@ -211,7 +305,10 @@ export default function Documents() {
         .delete()
         .eq('id', doc.id);
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database delete error:', dbError);
+        throw new Error(`Database deletion failed: ${dbError.message}`);
+      }
 
       toast({
         title: 'Success',
@@ -221,9 +318,10 @@ export default function Documents() {
       fetchStudentAndDocuments();
     } catch (error) {
       console.error('Delete error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete document';
       toast({
         title: 'Error',
-        description: 'Failed to delete document',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
