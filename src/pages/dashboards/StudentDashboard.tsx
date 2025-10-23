@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import ProactiveAssistant from '@/components/ai/ProactiveAssistant';
 import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
 import TaskManagement from '@/components/tasks/TaskManagement';
@@ -139,7 +140,10 @@ export default function StudentDashboard() {
         setUnreadMessages(recentMessages.length);
       }
     } catch (error) {
+      // ✅ Combine best of both branches: log + handle + toast
+      logError(error, 'StudentDashboard.fetchDashboardData');
       errorHandler.handleError(error, 'Failed to load dashboard data');
+      toast(formatErrorForToast(error, 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
     }
@@ -212,8 +216,8 @@ export default function StudentDashboard() {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-8">
-          <ErrorDisplay 
-            error={errorHandler.error} 
+          <ErrorDisplay
+            error={errorHandler.error}
             onRetry={() => errorHandler.retry(fetchDashboardData)}
             onClear={errorHandler.clearError}
           />

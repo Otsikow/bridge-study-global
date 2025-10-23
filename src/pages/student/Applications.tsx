@@ -3,10 +3,22 @@ import { useNavigate, Link } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
+import {
+  FileText,
+  Plus,
+  Calendar,
+  GraduationCap,
+  MapPin,
+  Filter,
+  Timer,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+} from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
 import { handleDbError } from '@/lib/errorHandling';
@@ -36,6 +48,7 @@ export default function Applications() {
   const { user } = useAuth();
   const { toast } = useToast();
   const errorHandler = useErrorHandler({ context: 'Applications' });
+
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -48,27 +61,19 @@ export default function Applications() {
       setLoading(true);
       errorHandler.clearError();
 
-      // Get student ID
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .select('id')
         .eq('profile_id', user?.id)
         .maybeSingle();
 
-      if (studentError) {
-        errorHandler.handleError(studentError, 'Failed to fetch student profile');
-        setApplications([]);
-        setAllCountries([]);
-        return;
-      }
-
+      if (studentError) throw studentError;
       if (!studentData) {
         setApplications([]);
         setAllCountries([]);
         return;
       }
 
-      // Fetch applications with program and university details
       const { data: appsData, error: appsError } = await supabase
         .from('applications')
         .select(`
@@ -92,39 +97,43 @@ export default function Applications() {
         .eq('student_id', studentData.id)
         .order('created_at', { ascending: false });
 
-      if (appsError) {
-        errorHandler.handleError(appsError, 'Failed to fetch applications');
-        setApplications([]);
-        setAllCountries([]);
-        return;
-      }
+      if (appsError) throw appsError;
 
       const list = (appsData ?? []) as Application[];
       setApplications(list);
-      setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
+      setAllCountries(
+        Array.from(new Set(list.map((a) => a.program.university.country))).sort()
+      );
     } catch (error) {
+      logError(error, 'Applications.fetchApplications');
       errorHandler.handleError(error, 'Failed to load applications');
+      toast(formatErrorForToast(error, 'Failed to load applications'));
     } finally {
       setLoading(false);
     }
   }, [user?.id, errorHandler]);
 
   useEffect(() => {
-    if (user) {
-      fetchApplications();
-    }
+    if (user) fetchApplications();
   }, [user, fetchApplications]);
 
   const getIntakeLabel = (month: number, year: number) => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
     return `${monthNames[month - 1]} ${year}`;
   };
 
   const filtered = applications.filter((a) => {
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
-    const matchesCountry = countryFilter === 'all' || a.program.university.country === countryFilter;
+    const matchesCountry =
+      countryFilter === 'all' || a.program.university.country === countryFilter;
     const term = searchTerm.toLowerCase();
-    const matchesSearch = !term || a.program.name.toLowerCase().includes(term) || a.program.university.name.toLowerCase().includes(term);
+    const matchesSearch =
+      !term ||
+      a.program.name.toLowerCase().includes(term) ||
+      a.program.university.name.toLowerCase().includes(term);
     return matchesStatus && matchesCountry && matchesSearch;
   });
 
@@ -144,12 +153,21 @@ export default function Applications() {
 
   const cancelDraft = async (id: string) => {
     try {
-      const { error } = await supabase.from('applications').update({ status: 'withdrawn' }).eq('id', id);
+      const { error } = await supabase
+        .from('applications')
+        .update({ status: 'withdrawn' })
+        .eq('id', id);
+
       if (error) throw error;
-      toast({ title: 'Cancelled', description: 'Application moved to Withdrawn' });
+      toast({
+        title: 'Cancelled',
+        description: 'Application moved to Withdrawn',
+      });
       fetchApplications();
     } catch (err) {
-      errorHandler.handleError(err, 'Failed to cancel application');
+      logError(err, 'Applications.cancelDraft');
+      errorHandler.handleError(err, 'Could not cancel application');
+      toast(formatErrorForToast(err, 'Could not cancel application'));
     }
   };
 
@@ -165,8 +183,8 @@ export default function Applications() {
     return (
       <div className="container mx-auto py-8 space-y-6">
         <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
-        <ErrorDisplay 
-          error={errorHandler.error} 
+        <ErrorDisplay
+          error={errorHandler.error}
           onRetry={() => errorHandler.retry(fetchApplications)}
           onClear={errorHandler.clearError}
         />
@@ -178,22 +196,26 @@ export default function Applications() {
     <div className="container mx-auto py-8 space-y-6">
       <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
 
+      {/* Header and Filters */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 flex-wrap animate-fade-in">
         <div className="min-w-0 space-y-1.5">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">My Applications</h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">Track and manage your university applications</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
+            My Applications
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+            Track and manage your university applications
+          </p>
         </div>
+
         <div className="w-full lg:flex-1 lg:max-w-3xl">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
             <div className="col-span-1 md:col-span-2">
-              <div className="relative">
-                <input
-                  className="w-full border rounded-md h-9 px-3 text-sm"
-                  placeholder="Search program or university..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+              <input
+                className="w-full border rounded-md h-9 px-3 text-sm"
+                placeholder="Search program or university..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <div>
               <select
@@ -221,12 +243,15 @@ export default function Applications() {
               >
                 <option value="all">All Countries</option>
                 {allCountries.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
         </div>
+
         <Button asChild>
           <Link to="/search">
             <Plus className="mr-2 h-4 w-4" />
@@ -251,7 +276,7 @@ export default function Applications() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {applications.filter(a => a.submitted_at).length}
+              {applications.filter((a) => a.submitted_at).length}
             </div>
           </CardContent>
         </Card>
@@ -261,7 +286,11 @@ export default function Applications() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {applications.filter(a => a.status === 'draft' || a.status === 'screening').length}
+              {
+                applications.filter(
+                  (a) => a.status === 'draft' || a.status === 'screening'
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -271,7 +300,13 @@ export default function Applications() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {applications.filter(a => a.status === 'conditional_offer' || a.status === 'unconditional_offer').length}
+              {
+                applications.filter(
+                  (a) =>
+                    a.status === 'conditional_offer' ||
+                    a.status === 'unconditional_offer'
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -281,8 +316,7 @@ export default function Applications() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            All Applications
+            <FileText className="h-5 w-5" /> All Applications
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -290,7 +324,10 @@ export default function Applications() {
             <div className="text-center py-12">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No applications yet</h3>
-              <p className="text-muted-foreground mb-4">Start your journey by browsing programs and submitting your first application</p>
+              <p className="text-muted-foreground mb-4">
+                Start your journey by browsing programs and submitting your first
+                application
+              </p>
               <Button asChild>
                 <Link to="/search">
                   <Plus className="mr-2 h-4 w-4" />
@@ -317,17 +354,18 @@ export default function Applications() {
 
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
-                          {app.program.university.name} • {app.program.university.city}, {app.program.university.country}
+                          {app.program.university.name} •{' '}
+                          {app.program.university.city}, {app.program.university.country}
                         </div>
 
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>Intake: {getIntakeLabel(app.intake_month, app.intake_year)}</span>
+                            <span>
+                              Intake: {getIntakeLabel(app.intake_month, app.intake_year)}
+                            </span>
                           </div>
-                          <div>
-                            Applied: {new Date(app.created_at).toLocaleDateString()}
-                          </div>
+                          <div>Applied: {new Date(app.created_at).toLocaleDateString()}</div>
                           <div className="flex items-center gap-1 text-muted-foreground">
                             <Timer className="h-4 w-4" /> {etaFor(app.status)}
                           </div>
@@ -337,12 +375,15 @@ export default function Applications() {
                       <div className="flex flex-col items-end gap-3">
                         <StatusBadge status={app.status} />
                         <Button variant="outline" size="sm" asChild>
-                          <Link to={`/student/applications/${app.id}`}>
-                            View Details
-                          </Link>
+                          <Link to={`/student/applications/${app.id}`}>View Details</Link>
                         </Button>
                         {app.status === 'draft' && (
-                          <Button variant="ghost" size="sm" onClick={() => cancelDraft(app.id)} className="text-destructive">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => cancelDraft(app.id)}
+                            className="text-destructive"
+                          >
                             <XCircle className="h-4 w-4 mr-1" /> Cancel
                           </Button>
                         )}

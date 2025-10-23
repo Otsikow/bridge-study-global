@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import { GraduationCap, MapPin, Calendar, DollarSign } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -121,12 +122,8 @@ export default function NewApplication() {
       if (intakesError) throw intakesError;
       setIntakes(intakesData || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load program details',
-        variant: 'destructive',
-      });
+      logError(error, 'NewApplication.fetchData');
+      toast(formatErrorForToast(error, 'Failed to load program details'));
     } finally {
       setLoading(false);
     }
