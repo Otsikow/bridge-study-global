@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import ProactiveAssistant from '@/components/ai/ProactiveAssistant';
 import ApplicationTrackingSystem from '@/components/ats/ApplicationTrackingSystem';
 import TaskManagement from '@/components/tasks/TaskManagement';
@@ -133,12 +134,8 @@ export default function StudentDashboard() {
         setUnreadMessages(recentMessages.length);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data',
-        variant: 'destructive',
-      });
+      logError(error, 'StudentDashboard.fetchDashboardData');
+      toast(formatErrorForToast(error, 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
     }

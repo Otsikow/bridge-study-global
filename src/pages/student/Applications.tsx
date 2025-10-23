@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 
@@ -80,12 +81,8 @@ export default function Applications() {
       setApplications(list);
       setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
     } catch (error) {
-      console.error('Error fetching applications:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load applications',
-        variant: 'destructive'
-      });
+      logError(error, 'Applications.fetchApplications');
+      toast(formatErrorForToast(error, 'Failed to load applications'));
     } finally {
       setLoading(false);
     }
@@ -131,8 +128,8 @@ export default function Applications() {
       toast({ title: 'Cancelled', description: 'Application moved to Withdrawn' });
       fetchApplications();
     } catch (err) {
-      console.error(err);
-      toast({ title: 'Error', description: 'Could not cancel application', variant: 'destructive' });
+      logError(err, 'Applications.cancelDraft');
+      toast(formatErrorForToast(err, 'Could not cancel application'));
     }
   };
 

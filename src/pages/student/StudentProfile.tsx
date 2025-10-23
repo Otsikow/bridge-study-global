@@ -11,6 +11,7 @@ import { EducationTab } from '@/components/student/profile/EducationTab';
 import { TestScoresTab } from '@/components/student/profile/TestScoresTab';
 import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import type { Tables } from '@/integrations/supabase/types';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
@@ -78,12 +79,8 @@ export default function StudentProfile() {
       setStudent(data);
       await recalcCompleteness(data);
     } catch (error) {
-      console.error('Error fetching student data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load profile data',
-        variant: 'destructive',
-      });
+      logError(error, 'StudentProfile.fetchStudentData');
+      toast(formatErrorForToast(error, 'Failed to load profile data'));
     } finally {
       setLoading(false);
     }

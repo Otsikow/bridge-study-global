@@ -30,6 +30,7 @@ import {
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 
 interface Application {
   id: string;
@@ -157,12 +158,8 @@ export default function ApplicationTrackingSystem() {
       if (error) throw error;
       setApplications(data || []);
     } catch (error) {
-      console.error("Error fetching applications:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load applications",
-        variant: "destructive",
-      });
+      logError(error, 'ApplicationTrackingSystem.fetchApplications');
+      toast(formatErrorForToast(error, 'Failed to load applications'));
     } finally {
       setLoading(false);
     }

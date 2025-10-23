@@ -7,59 +7,119 @@ import AppFooter from "@/components/layout/AppFooter";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { lazy, Suspense, ComponentType } from "react";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
-// ✅ Lazy-loaded pages
-const Index = lazy(() => import("./pages/Index"));
-const Contact = lazy(() => import("./pages/Contact"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const LegalPrivacy = lazy(() => import("./pages/LegalPrivacy"));
-const LegalTerms = lazy(() => import("./pages/LegalTerms"));
-const Login = lazy(() => import("./pages/auth/Login"));
-const Signup = lazy(() => import("./pages/auth/Signup"));
-const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const UniversitySearch = lazy(() => import("./pages/UniversitySearch"));
-const StudentOnboarding = lazy(() => import("./pages/student/StudentOnboarding"));
-const StudentProfile = lazy(() => import("./pages/student/StudentProfile"));
-const Documents = lazy(() => import("./pages/student/Documents"));
-const Applications = lazy(() => import("./pages/student/Applications"));
-const NewApplication = lazy(() => import("./pages/student/NewApplication"));
-const ApplicationDetails = lazy(() => import("./pages/student/ApplicationDetails"));
-const VisaEligibility = lazy(() => import("./pages/student/VisaEligibility"));
-const SopGenerator = lazy(() => import("./pages/student/SopGenerator"));
-const IntakeForm = lazy(() => import("./pages/IntakeForm"));
-const VisaCalculator = lazy(() => import("./pages/VisaCalculator"));
-const Blog = lazy(() => import("./pages/Blog"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
-const UserFeedback = lazy(() => import("./components/analytics/UserFeedback"));
-const FeedbackAnalytics = lazy(() => import("./pages/admin/FeedbackAnalytics"));
-const BlogAdmin = lazy(() => import("./pages/admin/BlogAdmin"));
-const Messages = lazy(() => import("./pages/student/Messages"));
-const Payments = lazy(() => import("./pages/student/Payments"));
-const Notifications = lazy(() => import("./pages/student/Notifications"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// ✅ Lazy-loaded pages with error handling
+const Index = lazyWithErrorHandling(() => import("./pages/Index"));
+const Contact = lazyWithErrorHandling(() => import("./pages/Contact"));
+const FAQ = lazyWithErrorHandling(() => import("./pages/FAQ"));
+const LegalPrivacy = lazyWithErrorHandling(() => import("./pages/LegalPrivacy"));
+const LegalTerms = lazyWithErrorHandling(() => import("./pages/LegalTerms"));
+const Login = lazyWithErrorHandling(() => import("./pages/auth/Login"));
+const Signup = lazyWithErrorHandling(() => import("./pages/auth/Signup"));
+const ForgotPassword = lazyWithErrorHandling(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPassword"));
+const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
+const UniversitySearch = lazyWithErrorHandling(() => import("./pages/UniversitySearch"));
+const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
+const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
+const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
+const Applications = lazyWithErrorHandling(() => import("./pages/student/Applications"));
+const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
+const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/ApplicationDetails"));
+const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
+const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
+const IntakeForm = lazyWithErrorHandling(() => import("./pages/IntakeForm"));
+const VisaCalculator = lazyWithErrorHandling(() => import("./pages/VisaCalculator"));
+const Blog = lazyWithErrorHandling(() => import("./pages/Blog"));
+const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
+const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
+const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
+const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
+const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
+const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30000,
+    },
+    mutations: {
+      retry: 1,
+    },
+  },
+});
+
+// Wrapper for lazy-loaded components with error handling
+const lazyWithErrorHandling = <T extends ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>
+) => {
+  return lazy(async () => {
+    try {
+      return await importFn();
+    } catch (error) {
+      console.error('Error loading component:', error);
+      // Return a fallback component that shows the error
+      return {
+        default: (() => (
+          <div className="min-h-screen flex items-center justify-center p-4">
+            <Card className="max-w-md w-full">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center gap-3 text-destructive">
+                  <AlertCircle className="h-6 w-6" />
+                  <h3 className="font-semibold text-lg">Failed to Load Page</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {error instanceof Error ? error.message : 'The page could not be loaded. This might be due to a network issue or the page being temporarily unavailable.'}
+                </p>
+                <div className="flex gap-2">
+                  <Button onClick={() => window.location.reload()} className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    Reload Page
+                  </Button>
+                  <Button variant="outline" onClick={() => window.history.back()}>
+                    Go Back
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )) as T,
+      };
+    }
+  });
+};
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense
-            fallback={
-              <div className="min-h-screen grid place-items-center text-muted-foreground">
-                Loading…
-              </div>
-            }
-          >
-            <div className="min-h-screen flex flex-col">
-              <div className="flex-1">
-                <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense
+              fallback={
+                <div className="min-h-screen grid place-items-center text-muted-foreground">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    <p>Loading page...</p>
+                  </div>
+                </div>
+              }
+            >
+              <ErrorBoundary>
+                <div className="min-h-screen flex flex-col">
+                  <div className="flex-1">
+                    <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/auth/login" element={<Login />} />
@@ -196,15 +256,17 @@ const App = () => (
 
                 {/* Catch-All */}
                 <Route path="*" element={<NotFound />} />
-                </Routes>
-              </div>
-              <AppFooter />
-            </div>
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                    </Routes>
+                  </div>
+                  <AppFooter />
+                </div>
+              </ErrorBoundary>
+            </Suspense>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

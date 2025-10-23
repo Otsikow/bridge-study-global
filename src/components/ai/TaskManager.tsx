@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 
 interface Task {
   id: string;
@@ -115,12 +116,8 @@ export default function TaskManager() {
       if (tasksError) throw tasksError;
       setTasks(tasksData || []);
     } catch (error) {
-      console.error('Error fetching tasks:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load tasks',
-        variant: 'destructive'
-      });
+      logError(error, 'TaskManager.fetchTasks');
+      toast(formatErrorForToast(error, 'Failed to load tasks'));
     } finally {
       setLoading(false);
     }
