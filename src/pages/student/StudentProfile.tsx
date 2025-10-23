@@ -15,11 +15,14 @@ import type { Tables } from '@/integrations/supabase/types';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Link } from 'react-router-dom';
+import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
+import { handleDbError } from '@/lib/errorHandling';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const errorHandler = useErrorHandler({ context: 'Student Profile' });
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
@@ -57,6 +60,9 @@ export default function StudentProfile() {
 
   const fetchStudentData = useCallback(async () => {
     try {
+      setLoading(true);
+      errorHandler.clearError();
+
       const { data, error } = await supabase
         .from('students')
         .select('*')
@@ -78,16 +84,11 @@ export default function StudentProfile() {
       setStudent(data);
       await recalcCompleteness(data);
     } catch (error) {
-      console.error('Error fetching student data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load profile data',
-        variant: 'destructive',
-      });
+      errorHandler.handleError(error, 'Failed to load profile data');
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast, navigate, recalcCompleteness]);
+  }, [user?.id, toast, navigate, recalcCompleteness, errorHandler]);
 
   useEffect(() => {
     if (user) {
@@ -114,6 +115,21 @@ export default function StudentProfile() {
         <div className="text-center space-y-4 animate-fade-in">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (errorHandler.hasError) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle">
+        <div className="container mx-auto py-6 md:py-8 px-4 space-y-6">
+          <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+          <ErrorDisplay 
+            error={errorHandler.error} 
+            onRetry={() => errorHandler.retry(fetchStudentData)}
+            onClear={errorHandler.clearError}
+          />
         </div>
       </div>
     );
