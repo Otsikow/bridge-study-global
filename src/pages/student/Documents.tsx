@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
 import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
@@ -100,13 +101,8 @@ export default function Documents() {
       console.log('Documents fetched:', docsData?.length || 0);
       setDocuments(docsData || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load documents';
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive'
-      });
+      logError(error, 'Documents.fetchStudentAndDocuments');
+      toast(formatErrorForToast(error, 'Failed to load documents'));
     } finally {
       setLoading(false);
     }

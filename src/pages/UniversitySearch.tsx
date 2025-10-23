@@ -9,17 +9,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
-import BackButton from '@/components/BackButton';
+import BackButton from "@/components/BackButton";
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 import AIChatbot from "@/components/ai/AIChatbot";
 import ProgramRecommendations from "@/components/ai/ProgramRecommendations";
 import SoPGenerator from "@/components/ai/SoPGenerator";
 import InterviewPractice from "@/components/ai/InterviewPractice";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Import university images
+// --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
 import harvardImg from "@/assets/university-harvard.jpg";
 import mitImg from "@/assets/university-mit.jpg";
@@ -33,6 +32,15 @@ import uclImg from "@/assets/university-ucl.jpg";
 import imperialImg from "@/assets/university-imperial.jpg";
 import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
+
+// --- University Logos ---
+import mitLogo from "@/assets/mit-logo.png";
+import harvardLogo from "@/assets/harvard-logo.png";
+import stanfordLogo from "@/assets/stanford-logo.png";
+import oxfordLogo from "@/assets/oxford-logo.png";
+import cambridgeLogo from "@/assets/cambridge-logo.png";
+import berkeleyLogo from "@/assets/berkeley-logo.png";
+import yaleLogo from "@/assets/yale-logo.png";
 
 interface University {
   id: string;
@@ -71,27 +79,26 @@ interface SearchResult {
   scholarships: Scholarship[];
 }
 
-// Map university names to their images
-const getUniversityImage = (universityName: string, logoUrl: string | null): string => {
-  if (logoUrl) return logoUrl;
-  
+// Combined helper: prefers logo, falls back to image
+const getUniversityVisual = (universityName: string, logoUrl: string | null): string => {
   const name = universityName.toLowerCase();
-  
-  // Map common university names to their images
-  if (name.includes('oxford')) return oxfordImg;
-  if (name.includes('harvard')) return harvardImg;
-  if (name.includes('mit') || name.includes('massachusetts institute')) return mitImg;
-  if (name.includes('cambridge')) return cambridgeImg;
-  if (name.includes('stanford')) return stanfordImg;
-  if (name.includes('toronto')) return torontoImg;
-  if (name.includes('melbourne')) return melbourneImg;
-  if (name.includes('yale')) return yaleImg;
-  if (name.includes('princeton')) return princetonImg;
-  if (name.includes('ucl') || name.includes('university college london')) return uclImg;
-  if (name.includes('imperial')) return imperialImg;
-  if (name.includes('edinburgh')) return edinburghImg;
-  
-  // Default university image for others
+
+  if (logoUrl) return logoUrl;
+
+  if (name.includes("oxford")) return oxfordImg;
+  if (name.includes("harvard")) return harvardImg;
+  if (name.includes("mit") || name.includes("massachusetts institute")) return mitImg;
+  if (name.includes("cambridge")) return cambridgeImg;
+  if (name.includes("stanford")) return stanfordImg;
+  if (name.includes("toronto")) return torontoImg;
+  if (name.includes("melbourne")) return melbourneImg;
+  if (name.includes("yale")) return yaleImg;
+  if (name.includes("princeton")) return princetonImg;
+  if (name.includes("ucl") || name.includes("university college london")) return uclImg;
+  if (name.includes("imperial")) return imperialImg;
+  if (name.includes("edinburgh")) return edinburghImg;
+  if (name.includes("berkeley") || name.includes("california")) return berkeleyLogo;
+
   return defaultUniversityImg;
 };
 
@@ -108,14 +115,10 @@ export default function UniversitySearch() {
   const [countries, setCountries] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
   const [disciplines, setDisciplines] = useState<string[]>([]);
-  
+
   // AI Recommendations state
-  const [showAIRecommendations, setShowAIRecommendations] = useState(false);
-  const [aiInterests, setAIInterests] = useState("");
-  const [aiPreferredCountries, setAIPreferredCountries] = useState<string[]>([]);
-  const [aiBudget, setAIBudget] = useState("");
   const [activeTab, setActiveTab] = useState("search");
-  const { recommendations, loading: aiLoading } = useAIRecommendations();
+  const { recommendations } = useAIRecommendations();
 
   // Load filter options
   useEffect(() => {
@@ -124,24 +127,17 @@ export default function UniversitySearch() {
 
   const loadFilterOptions = async () => {
     try {
-      const { data: universities } = await supabase
-        .from("universities")
-        .select("country")
-        .eq("active", true);
-
-      const { data: programs } = await supabase
-        .from("programs")
-        .select("level, discipline")
-        .eq("active", true);
+      const { data: universities } = await supabase.from("universities").select("country").eq("active", true);
+      const { data: programs } = await supabase.from("programs").select("level, discipline").eq("active", true);
 
       if (universities) {
-        const uniqueCountries = [...new Set(universities.map(u => u.country))].sort();
+        const uniqueCountries = [...new Set(universities.map((u) => u.country))].sort();
         setCountries(uniqueCountries);
       }
 
       if (programs) {
-        const uniqueLevels = [...new Set(programs.map(p => p.level))].sort();
-        const uniqueDisciplines = [...new Set(programs.map(p => p.discipline))].sort();
+        const uniqueLevels = [...new Set(programs.map((p) => p.level))].sort();
+        const uniqueDisciplines = [...new Set(programs.map((p) => p.discipline))].sort();
         setLevels(uniqueLevels);
         setDisciplines(uniqueDisciplines);
       }
@@ -153,65 +149,40 @@ export default function UniversitySearch() {
   const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
-      // Build university query
-      let universityQuery = supabase
-        .from("universities")
-        .select("*")
-        .eq("active", true);
+      let universityQuery = supabase.from("universities").select("*").eq("active", true);
 
-      if (searchTerm) {
-        universityQuery = universityQuery.ilike("name", `%${searchTerm}%`);
-      }
-
-      if (selectedCountry !== "all") {
-        universityQuery = universityQuery.eq("country", selectedCountry);
-      }
+      if (searchTerm) universityQuery = universityQuery.ilike("name", `%${searchTerm}%`);
+      if (selectedCountry !== "all") universityQuery = universityQuery.eq("country", selectedCountry);
 
       const { data: universities, error: uniError } = await universityQuery;
-
       if (uniError) throw uniError;
+
       if (!universities || universities.length === 0) {
         setResults([]);
         setLoading(false);
         return;
       }
 
-      const universityIds = universities.map(u => u.id);
+      const universityIds = universities.map((u) => u.id);
 
-      // Build programs query
-      let programsQuery = supabase
-        .from("programs")
-        .select("*")
-        .in("university_id", universityIds)
-        .eq("active", true);
-
-      if (selectedLevel !== "all") {
-        programsQuery = programsQuery.eq("level", selectedLevel);
-      }
-
-      if (selectedDiscipline !== "all") {
-        programsQuery = programsQuery.eq("discipline", selectedDiscipline);
-      }
-
-      if (maxFee) {
-        programsQuery = programsQuery.lte("tuition_amount", parseFloat(maxFee));
-      }
+      let programsQuery = supabase.from("programs").select("*").in("university_id", universityIds).eq("active", true);
+      if (selectedLevel !== "all") programsQuery = programsQuery.eq("level", selectedLevel);
+      if (selectedDiscipline !== "all") programsQuery = programsQuery.eq("discipline", selectedDiscipline);
+      if (maxFee) programsQuery = programsQuery.lte("tuition_amount", parseFloat(maxFee));
 
       const { data: programs, error: progError } = await programsQuery;
       if (progError) throw progError;
 
-      // Fetch scholarships if needed
       const { data: scholarships } = await supabase
         .from("scholarships")
         .select("*")
         .in("university_id", universityIds)
         .eq("active", true);
 
-      // Combine results
       const searchResults: SearchResult[] = universities
-        .map(university => {
-          const universityPrograms = programs?.filter(p => p.university_id === university.id) || [];
-          const universityScholarships = scholarships?.filter(s => s.university_id === university.id) || [];
+        .map((university) => {
+          const universityPrograms = programs?.filter((p) => p.university_id === university.id) || [];
+          const universityScholarships = scholarships?.filter((s) => s.university_id === university.id) || [];
 
           return {
             university,
@@ -219,10 +190,8 @@ export default function UniversitySearch() {
             scholarships: universityScholarships,
           };
         })
-        .filter(result => {
-          // Filter out universities with no matching programs
+        .filter((result) => {
           if (result.programs.length === 0) return false;
-          // Filter by scholarship requirement
           if (onlyWithScholarships && result.scholarships.length === 0) return false;
           return true;
         });
@@ -239,15 +208,6 @@ export default function UniversitySearch() {
     handleSearch();
   }, [handleSearch]);
 
-  const handleGetAIRecommendations = () => {
-    // TODO: Implement AI recommendations when hook is complete
-    console.log('AI Recommendations:', {
-      interests: aiInterests,
-      preferredCountries: aiPreferredCountries,
-      budget: aiBudget ? parseFloat(aiBudget) : undefined,
-    });
-  };
-
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -258,31 +218,23 @@ export default function UniversitySearch() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <div className="w-full overflow-hidden">
-            <TabsList className="w-full flex justify-start md:justify-center">
-              <TabsTrigger value="search" className="flex-1 md:flex-initial">
-                <Search className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Search</span>
-              </TabsTrigger>
-              <TabsTrigger value="recommendations" className="flex-1 md:flex-initial">
-                <Sparkles className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">AI Recommendations</span>
-              </TabsTrigger>
-              <TabsTrigger value="sop" className="flex-1 md:flex-initial">
-                <FileText className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">SOP Generator</span>
-              </TabsTrigger>
-              <TabsTrigger value="interview" className="flex-1 md:flex-initial">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Interview Practice</span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <TabsList className="w-full flex justify-start md:justify-center">
+            <TabsTrigger value="search">
+              <Search className="mr-2 h-4 w-4" /> Search
+            </TabsTrigger>
+            <TabsTrigger value="recommendations">
+              <Sparkles className="mr-2 h-4 w-4" /> AI Recommendations
+            </TabsTrigger>
+            <TabsTrigger value="sop">
+              <FileText className="mr-2 h-4 w-4" /> SOP Generator
+            </TabsTrigger>
+            <TabsTrigger value="interview">
+              <MessageSquare className="mr-2 h-4 w-4" /> Interview Practice
+            </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="search" className="space-y-6">
-
-
-            {/* Search Filters */}
+            {/* Filters */}
             <Card>
               <CardHeader>
                 <CardTitle>Search Filters</CardTitle>
@@ -290,8 +242,7 @@ export default function UniversitySearch() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Search Term */}
-                  <div className="space-y-2">
+                  <div>
                     <Label>University Name</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -304,8 +255,7 @@ export default function UniversitySearch() {
                     </div>
                   </div>
 
-                  {/* Country Filter */}
-                  <div className="space-y-2">
+                  <div>
                     <Label>Country</Label>
                     <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                       <SelectTrigger>
@@ -322,8 +272,7 @@ export default function UniversitySearch() {
                     </Select>
                   </div>
 
-                  {/* Level Filter */}
-                  <div className="space-y-2">
+                  <div>
                     <Label>Program Level</Label>
                     <Select value={selectedLevel} onValueChange={setSelectedLevel}>
                       <SelectTrigger>
@@ -340,8 +289,7 @@ export default function UniversitySearch() {
                     </Select>
                   </div>
 
-                  {/* Discipline Filter */}
-                  <div className="space-y-2">
+                  <div>
                     <Label>Discipline</Label>
                     <Select value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
                       <SelectTrigger>
@@ -358,8 +306,7 @@ export default function UniversitySearch() {
                     </Select>
                   </div>
 
-                  {/* Max Fee */}
-                  <div className="space-y-2">
+                  <div>
                     <Label>Maximum Fee (USD)</Label>
                     <Input
                       type="number"
@@ -369,24 +316,20 @@ export default function UniversitySearch() {
                     />
                   </div>
 
-                  {/* Scholarship Filter */}
-                  <div className="space-y-2 flex items-end">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="scholarships"
-                        checked={onlyWithScholarships}
-                        onCheckedChange={(checked) => setOnlyWithScholarships(checked as boolean)}
-                      />
-                      <Label htmlFor="scholarships" className="cursor-pointer">
-                        Only show universities with scholarships
-                      </Label>
-                    </div>
+                  <div className="flex items-end">
+                    <Checkbox
+                      id="scholarships"
+                      checked={onlyWithScholarships}
+                      onCheckedChange={(checked) => setOnlyWithScholarships(checked as boolean)}
+                    />
+                    <Label htmlFor="scholarships" className="ml-2">
+                      Only show universities with scholarships
+                    </Label>
                   </div>
                 </div>
 
                 <Button onClick={handleSearch} className="w-full md:w-auto">
-                  <Search className="mr-2 h-4 w-4" />
-                  Search
+                  <Search className="mr-2 h-4 w-4" /> Search
                 </Button>
               </CardContent>
             </Card>
@@ -414,7 +357,9 @@ export default function UniversitySearch() {
               ) : results.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">No universities found matching your criteria. Try adjusting your filters.</p>
+                    <p className="text-muted-foreground">
+                      No universities found matching your criteria. Try adjusting your filters.
+                    </p>
                   </CardContent>
                 </Card>
               ) : (
@@ -423,13 +368,13 @@ export default function UniversitySearch() {
                     <div className="flex flex-col md:flex-row">
                       {/* University Image */}
                       <div className="md:w-64 h-48 md:h-auto bg-muted flex-shrink-0">
-                        <img 
-                          src={getUniversityImage(result.university.name, result.university.logo_url)} 
+                        <img
+                          src={getUniversityVisual(result.university.name, result.university.logo_url)}
                           alt={result.university.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      
+
                       {/* Content */}
                       <div className="flex-1">
                         <CardHeader>
@@ -445,102 +390,54 @@ export default function UniversitySearch() {
                             {result.scholarships.length > 0 && (
                               <Badge variant="secondary" className="flex items-center gap-1">
                                 <Award className="h-3 w-3" />
-                                {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
+                                {result.scholarships.length} Scholarship
+                                {result.scholarships.length > 1 ? "s" : ""}
                               </Badge>
                             )}
                           </div>
                         </CardHeader>
+
                         <CardContent className="space-y-4">
-                      {result.university.description && (
-                        <p className="text-sm text-muted-foreground">{result.university.description}</p>
-                      )}
+                          {result.university.description && (
+                            <p className="text-sm text-muted-foreground">{result.university.description}</p>
+                          )}
 
-                      {/* Programs */}
-                      <div className="space-y-2">
-                        <h4 className="font-semibold flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4" />
-                          Available Programs ({result.programs.length})
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                           {result.programs.slice(0, 4).map((program) => (
-                            <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-2">
-                              <p className="font-medium text-sm">{program.name}</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Badge variant="outline" className="text-xs">{program.level}</Badge>
-                                <span className="flex items-center gap-1">
-                                  <DollarSign className="h-3 w-3" />
-                                  {program.tuition_amount.toLocaleString()} {program.tuition_currency}
-                                </span>
-                              </div>
-                              <Button size="sm" variant="outline" className="w-full text-xs" asChild>
-                                <a href={`/student/applications/new?program=${program.id}`}>
-                                  Apply Now
-                                </a>
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                        {result.programs.length > 4 && (
-                          <p className="text-xs text-muted-foreground">+{result.programs.length - 4} more programs</p>
-                        )}
-                      </div>
-
-                      {/* Scholarships */}
-                      {result.scholarships.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="font-semibold flex items-center gap-2">
-                            <Award className="h-4 w-4" />
-                            Scholarships
-                          </h4>
+                          {/* Programs */}
                           <div className="space-y-2">
-                            {result.scholarships.slice(0, 3).map((scholarship) => (
-                              <div key={scholarship.id} className="p-3 rounded-md bg-primary/5 border border-primary/20">
-                                <p className="font-medium text-sm">{scholarship.name}</p>
-                                {scholarship.amount_cents && (
-                                  <p className="text-xs text-muted-foreground">
-                                    {(scholarship.amount_cents / 100).toLocaleString()} {scholarship.currency}
-                                    {scholarship.coverage_type && ` • ${scholarship.coverage_type.replace(/_/g, " ")}`}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
+                            <h4 className="font-semibold flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" /> Available Programs (
+                              {result.programs.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {result.programs.slice(0, 4).map((program) => (
+                                <div key={program.id} className="p-3 rounded-md bg-muted/50 space-y-2">
+                                  <p className="font-medium text-sm">{program.name}</p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Badge variant="outline" className="text-xs">
+                                      {program.level}
+                                    </Badge>
+                                    <span className="flex items-center gap-1">
+                                      <DollarSign className="h-3 w-3" />
+                                      {program.tuition_amount.toLocaleString()} {program.tuition_currency}
+                                    </span>
+                                  </div>
+                                  <Button size="sm" variant="outline" className="w-full text-xs" asChild>
+                                    <a href={`/student/applications/new?program=${program.id}`}>Apply Now</a>
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                            {result.programs.length > 4 && (
+                              <p className="text-xs text-muted-foreground">
+                                +{result.programs.length - 4} more programs
+                              </p>
+                            )}
                           </div>
-                        </div>
-                      )}
 
-                      {result.university.website && (
-                        <Button variant="outline" asChild className="w-full">
-                          <a href={result.university.website} target="_blank" rel="noopener noreferrer">
-                            Visit University Website
-                          </a>
-                        </Button>
-                      )}
-                        </CardContent>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="recommendations">
-            <ProgramRecommendations onProgramSelect={(programId) => {
-              navigate(`/student/applications/new?program=${programId}`);
-            }} />
-          </TabsContent>
-
-          <TabsContent value="sop">
-            <SoPGenerator />
-          </TabsContent>
-
-          <TabsContent value="interview">
-            <InterviewPractice />
-          </TabsContent>
-        </Tabs>
-      </div>
-      
-      <AIChatbot />
-    </div>
-  );
-}
+                          {/* Scholarships */}
+                          {result.scholarships.length > 0 && (
+                            <div className="space-y-2">
+                              <h4 className="font-semibold flex items-center gap-2">
+                                <Award className="h-4 w-4" /> Scholarships
+                              </h4>
+                              <div className="space-y-
