@@ -7,6 +7,8 @@ import AppFooter from "@/components/layout/AppFooter";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LoadingState } from "@/components/LoadingState";
 import { lazy, Suspense } from "react";
 
 // ✅ Lazy-loaded pages
@@ -41,25 +43,52 @@ const Payments = lazy(() => import("./pages/student/Payments"));
 const Notifications = lazy(() => import("./pages/student/Notifications"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as any).status;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        // Retry up to 3 times for other errors
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+    mutations: {
+      retry: false, // Don't retry mutations by default
+    },
+  },
+});
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense
-            fallback={
-              <div className="min-h-screen grid place-items-center text-muted-foreground">
-                Loading…
-              </div>
-            }
-          >
-            <div className="min-h-screen flex flex-col">
-              <div className="flex-1">
-                <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense
+              fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <LoadingState 
+                    message="Loading application..." 
+                    size="lg"
+                    className="text-muted-foreground"
+                  />
+                </div>
+              }
+            >
+              <div className="min-h-screen flex flex-col">
+                <div className="flex-1">
+                  <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/auth/login" element={<Login />} />
@@ -197,14 +226,15 @@ const App = () => (
                 {/* Catch-All */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>
+                </div>
+                <AppFooter />
               </div>
-              <AppFooter />
-            </div>
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            </Suspense>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

@@ -6,8 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle } from 'lucide-react';
+import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
+import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
+import { handleDbError } from '@/lib/errorHandling';
+import { safeQuery } from '@/lib/supabaseErrorHandling';
 
 interface Application {
   id: string;
@@ -32,6 +35,7 @@ export default function Applications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const errorHandler = useErrorHandler({ context: 'Applications' });
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -41,6 +45,9 @@ export default function Applications() {
 
   const fetchApplications = useCallback(async () => {
     try {
+      setLoading(true);
+      errorHandler.clearError();
+
       // Get student ID
       const { data: studentData, error: studentError } = await supabase
         .from('students')
@@ -48,8 +55,18 @@ export default function Applications() {
         .eq('profile_id', user?.id)
         .maybeSingle();
 
-      if (studentError) throw studentError;
-      if (!studentData) return;
+      if (studentError) {
+        errorHandler.handleError(studentError, 'Failed to fetch student profile');
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
+
+      if (!studentData) {
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
 
       // Fetch applications with program and university details
       const { data: appsData, error: appsError } = await supabase
@@ -75,21 +92,22 @@ export default function Applications() {
         .eq('student_id', studentData.id)
         .order('created_at', { ascending: false });
 
-      if (appsError) throw appsError;
+      if (appsError) {
+        errorHandler.handleError(appsError, 'Failed to fetch applications');
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
+
       const list = (appsData ?? []) as Application[];
       setApplications(list);
       setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
     } catch (error) {
-      console.error('Error fetching applications:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load applications',
-        variant: 'destructive'
-      });
+      errorHandler.handleError(error, 'Failed to load applications');
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, errorHandler]);
 
   useEffect(() => {
     if (user) {
@@ -131,8 +149,7 @@ export default function Applications() {
       toast({ title: 'Cancelled', description: 'Application moved to Withdrawn' });
       fetchApplications();
     } catch (err) {
-      console.error(err);
-      toast({ title: 'Error', description: 'Could not cancel application', variant: 'destructive' });
+      errorHandler.handleError(err, 'Failed to cancel application');
     }
   };
 
@@ -140,6 +157,19 @@ export default function Applications() {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">Loading applications...</div>
+      </div>
+    );
+  }
+
+  if (errorHandler.hasError) {
+    return (
+      <div className="container mx-auto py-8 space-y-6">
+        <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+        <ErrorDisplay 
+          error={errorHandler.error} 
+          onRetry={() => errorHandler.retry(fetchApplications)}
+          onClear={errorHandler.clearError}
+        />
       </div>
     );
   }
