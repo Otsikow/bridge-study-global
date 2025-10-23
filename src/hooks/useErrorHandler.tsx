@@ -146,9 +146,10 @@ export const useAsyncOperation = <T,>(
     }
   }, [operation, errorHandler]);
 
-  const retry = useCallback(async () => {
-    return errorHandler.retry(execute);
-  }, [errorHandler, execute]);
+  const retry = useCallback(async (): Promise<T | undefined> => {
+    const result = await execute();
+    return result;
+  }, [execute]);
 
   return {
     ...errorHandler,
