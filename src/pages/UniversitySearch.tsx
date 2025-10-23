@@ -65,9 +65,10 @@ interface SearchResult {
   scholarships: Scholarship[];
 }
 
-// University logo mapping
-const getUniversityLogo = (universityName: string): string | null => {
-  const name = universityName.toLowerCase();
+// University logo mapping - prioritize local imported assets, then fall back to database URLs
+const getUniversityLogo = (university: University): string | null => {
+  // First, check for local imported assets (these are bundled and reliable)
+  const name = university.name.toLowerCase();
   
   if (name.includes('mit') || name.includes('massachusetts institute')) {
     return mitLogo;
@@ -89,6 +90,11 @@ const getUniversityLogo = (universityName: string): string | null => {
   }
   if (name.includes('yale')) {
     return yaleLogo;
+  }
+  
+  // Fall back to database logo_url for other universities (if it's a valid URL)
+  if (university.logo_url && (university.logo_url.startsWith('http://') || university.logo_url.startsWith('https://'))) {
+    return university.logo_url;
   }
   
   return null;
@@ -418,7 +424,7 @@ export default function UniversitySearch() {
                 </Card>
               ) : (
                 results.map((result) => {
-                  const universityLogo = getUniversityLogo(result.university.name);
+                  const universityLogo = getUniversityLogo(result.university);
                   
                   return (
                     <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
@@ -431,6 +437,10 @@ export default function UniversitySearch() {
                                   src={universityLogo} 
                                   alt={`${result.university.name} logo`}
                                   className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
+                                  onError={(e) => {
+                                    // Hide image if it fails to load
+                                    e.currentTarget.style.display = 'none';
+                                  }}
                                 />
                               </div>
                             )}
