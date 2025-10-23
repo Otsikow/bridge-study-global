@@ -19,6 +19,15 @@ import InterviewPractice from "@/components/ai/InterviewPractice";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// Import university logos
+import mitLogo from "@/assets/mit-logo.png";
+import harvardLogo from "@/assets/harvard-logo.png";
+import stanfordLogo from "@/assets/stanford-logo.png";
+import oxfordLogo from "@/assets/oxford-logo.png";
+import cambridgeLogo from "@/assets/cambridge-logo.png";
+import berkeleyLogo from "@/assets/berkeley-logo.png";
+import yaleLogo from "@/assets/yale-logo.png";
+
 interface University {
   id: string;
   name: string;
@@ -55,6 +64,35 @@ interface SearchResult {
   programs: Program[];
   scholarships: Scholarship[];
 }
+
+// University logo mapping
+const getUniversityLogo = (universityName: string): string | null => {
+  const name = universityName.toLowerCase();
+  
+  if (name.includes('mit') || name.includes('massachusetts institute')) {
+    return mitLogo;
+  }
+  if (name.includes('harvard')) {
+    return harvardLogo;
+  }
+  if (name.includes('stanford')) {
+    return stanfordLogo;
+  }
+  if (name.includes('oxford')) {
+    return oxfordLogo;
+  }
+  if (name.includes('cambridge')) {
+    return cambridgeLogo;
+  }
+  if (name.includes('berkeley') || name.includes('california')) {
+    return berkeleyLogo;
+  }
+  if (name.includes('yale')) {
+    return yaleLogo;
+  }
+  
+  return null;
+};
 
 export default function UniversitySearch() {
   const navigate = useNavigate();
@@ -379,26 +417,40 @@ export default function UniversitySearch() {
                   </CardContent>
                 </Card>
               ) : (
-                results.map((result) => (
-                  <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <CardTitle className="text-2xl">{result.university.name}</CardTitle>
-                          <CardDescription className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            {result.university.city && `${result.university.city}, `}
-                            {result.university.country}
-                          </CardDescription>
+                results.map((result) => {
+                  const universityLogo = getUniversityLogo(result.university.name);
+                  
+                  return (
+                    <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4">
+                            {universityLogo && (
+                              <div className="flex-shrink-0">
+                                <img 
+                                  src={universityLogo} 
+                                  alt={`${result.university.name} logo`}
+                                  className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
+                                />
+                              </div>
+                            )}
+                            <div className="space-y-1">
+                              <CardTitle className="text-2xl">{result.university.name}</CardTitle>
+                              <CardDescription className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                {result.university.city && `${result.university.city}, `}
+                                {result.university.country}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          {result.scholarships.length > 0 && (
+                            <Badge variant="secondary" className="flex items-center gap-1">
+                              <Award className="h-3 w-3" />
+                              {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
+                            </Badge>
+                          )}
                         </div>
-                        {result.scholarships.length > 0 && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <Award className="h-3 w-3" />
-                            {result.scholarships.length} Scholarship{result.scholarships.length > 1 ? "s" : ""}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
+                      </CardHeader>
                     <CardContent className="space-y-4">
                       {result.university.description && (
                         <p className="text-sm text-muted-foreground">{result.university.description}</p>
@@ -466,7 +518,8 @@ export default function UniversitySearch() {
                       )}
                     </CardContent>
                   </Card>
-                ))
+                  );
+                })
               )}
             </div>
           </TabsContent>
