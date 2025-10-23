@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
+import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare, Building2 } from "lucide-react";
 import BackButton from '@/components/BackButton';
 import { Label } from "@/components/ui/label";
 import { useAIRecommendations } from "@/hooks/useAIRecommendations";
@@ -20,13 +20,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Import university logos
-import mitLogo from "@/assets/mit-logo.png";
-import harvardLogo from "@/assets/harvard-logo.png";
-import stanfordLogo from "@/assets/stanford-logo.png";
+import mitLogo from "@/assets/mit-logo.svg";
+import harvardLogo from "@/assets/harvard-logo.svg";
+import stanfordLogo from "@/assets/stanford-logo.svg";
 import oxfordLogo from "@/assets/oxford-logo.png";
-import cambridgeLogo from "@/assets/cambridge-logo.png";
+import cambridgeLogo from "@/assets/cambridge-logo.svg";
 import berkeleyLogo from "@/assets/berkeley-logo.png";
-import yaleLogo from "@/assets/yale-logo.png";
+import yaleLogo from "@/assets/yale-logo.svg";
 
 interface University {
   id: string;
@@ -425,15 +425,28 @@ export default function UniversitySearch() {
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4">
-                            {universityLogo && (
-                              <div className="flex-shrink-0">
+                            <div className="flex-shrink-0">
+                              {universityLogo ? (
                                 <img 
                                   src={universityLogo} 
                                   alt={`${result.university.name} logo`}
                                   className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    // Show fallback icon
+                                    const fallback = target.nextElementSibling as HTMLElement;
+                                    if (fallback) fallback.style.display = 'flex';
+                                  }}
                                 />
+                              ) : null}
+                              <div 
+                                className={`w-16 h-16 rounded-lg bg-muted flex items-center justify-center ${universityLogo ? 'hidden' : 'flex'}`}
+                                style={{ display: universityLogo ? 'none' : 'flex' }}
+                              >
+                                <Building2 className="w-8 h-8 text-muted-foreground" />
                               </div>
-                            )}
+                            </div>
                             <div className="space-y-1">
                               <CardTitle className="text-2xl">{result.university.name}</CardTitle>
                               <CardDescription className="flex items-center gap-2">
