@@ -6,8 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle } from 'lucide-react';
+import { FileText, Plus, Calendar, GraduationCap, MapPin, Filter, Timer, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
+import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
+import { handleDbError } from '@/lib/errorHandling';
+import { safeQuery } from '@/lib/supabaseErrorHandling';
 
 interface Application {
   id: string;
@@ -32,6 +35,7 @@ export default function Applications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const errorHandler = useErrorHandler({ context: 'Applications' });
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -41,55 +45,63 @@ export default function Applications() {
 
   const fetchApplications = useCallback(async () => {
     try {
-      // Get student ID
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', user?.id)
-        .maybeSingle();
+      setLoading(true);
+      errorHandler.clearError();
 
-      if (studentError) throw studentError;
-      if (!studentData) return;
+      // Get student ID
+      const studentData = await safeQuery(
+        () => supabase
+          .from('students')
+          .select('id')
+          .eq('profile_id', user?.id)
+          .maybeSingle(),
+        'Fetching student profile',
+        true
+      );
+
+      if (!studentData) {
+        setApplications([]);
+        setAllCountries([]);
+        return;
+      }
 
       // Fetch applications with program and university details
-      const { data: appsData, error: appsError } = await supabase
-        .from('applications')
-        .select(`
-          id,
-          status,
-          intake_year,
-          intake_month,
-          created_at,
-          submitted_at,
-          program:programs (
-            name,
-            level,
-            discipline,
-            university:universities (
+      const appsData = await safeQuery(
+        () => supabase
+          .from('applications')
+          .select(`
+            id,
+            status,
+            intake_year,
+            intake_month,
+            created_at,
+            submitted_at,
+            program:programs (
               name,
-              city,
-              country
+              level,
+              discipline,
+              university:universities (
+                name,
+                city,
+                country
+              )
             )
-          )
-        `)
-        .eq('student_id', studentData.id)
-        .order('created_at', { ascending: false });
+          `)
+          .eq('student_id', studentData.id)
+          .order('created_at', { ascending: false }),
+        'Fetching applications',
+        true
+      );
 
-      if (appsError) throw appsError;
       const list = (appsData ?? []) as Application[];
       setApplications(list);
       setAllCountries(Array.from(new Set(list.map((a) => a.program.university.country))).sort());
     } catch (error) {
-      console.error('Error fetching applications:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load applications',
-        variant: 'destructive'
-      });
+      errorHandler.handleError(error, 'Failed to load applications');
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, errorHandler]);
 
   useEffect(() => {
     if (user) {
@@ -131,8 +143,7 @@ export default function Applications() {
       toast({ title: 'Cancelled', description: 'Application moved to Withdrawn' });
       fetchApplications();
     } catch (err) {
-      console.error(err);
-      toast({ title: 'Error', description: 'Could not cancel application', variant: 'destructive' });
+      errorHandler.handleError(err, 'Failed to cancel application');
     }
   };
 
@@ -140,6 +151,19 @@ export default function Applications() {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">Loading applications...</div>
+      </div>
+    );
+  }
+
+  if (errorHandler.hasError) {
+    return (
+      <div className="container mx-auto py-8 space-y-6">
+        <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+        <ErrorDisplay 
+          error={errorHandler.error} 
+          onRetry={() => errorHandler.retry(fetchApplications)}
+          onClear={errorHandler.clearError}
+        />
       </div>
     );
   }
