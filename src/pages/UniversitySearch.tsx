@@ -65,10 +65,10 @@ interface SearchResult {
   scholarships: Scholarship[];
 }
 
-// University logo mapping
-const getUniversityLogo = (universityName: string): string | null => {
+// University logo mapping (local assets)
+const getLocalUniversityLogo = (universityName: string): string | null => {
   const name = universityName.toLowerCase();
-  
+
   if (name.includes('mit') || name.includes('massachusetts institute')) {
     return mitLogo;
   }
@@ -84,14 +84,28 @@ const getUniversityLogo = (universityName: string): string | null => {
   if (name.includes('cambridge')) {
     return cambridgeLogo;
   }
-  if (name.includes('berkeley') || name.includes('california')) {
+  // Berkeley only; avoid matching other UC campuses generically
+  if (name.includes('berkeley')) {
     return berkeleyLogo;
   }
   if (name.includes('yale')) {
     return yaleLogo;
   }
-  
+
   return null;
+};
+
+// Resolve logo with priority: DB logo_url -> local asset -> placeholder
+const resolveUniversityLogo = (university: University): string => {
+  if (university.logo_url && typeof university.logo_url === 'string' && university.logo_url.trim().length > 0) {
+    return university.logo_url;
+  }
+
+  const local = getLocalUniversityLogo(university.name);
+  if (local) return local;
+
+  // Public placeholder
+  return '/placeholder.svg';
 };
 
 export default function UniversitySearch() {
@@ -418,22 +432,28 @@ export default function UniversitySearch() {
                 </Card>
               ) : (
                 results.map((result) => {
-                  const universityLogo = getUniversityLogo(result.university.name);
+                  const universityLogo = resolveUniversityLogo(result.university);
                   
                   return (
                     <Card key={result.university.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
                         <div className="flex items-start justify-between">
                           <div className="flex items-start gap-4">
-                            {universityLogo && (
-                              <div className="flex-shrink-0">
-                                <img 
-                                  src={universityLogo} 
-                                  alt={`${result.university.name} logo`}
-                                  className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
-                                />
-                              </div>
-                            )}
+                            <div className="flex-shrink-0">
+                              <img
+                                src={universityLogo}
+                                alt={`${result.university.name} logo`}
+                                className="w-16 h-16 object-contain rounded-lg bg-white p-2 shadow-sm border"
+                                loading="lazy"
+                                decoding="async"
+                                onError={(e) => {
+                                  const target = e.currentTarget as HTMLImageElement;
+                                  if (target.src !== window.location.origin + '/placeholder.svg') {
+                                    target.src = '/placeholder.svg';
+                                  }
+                                }}
+                              />
+                            </div>
                             <div className="space-y-1">
                               <CardTitle className="text-2xl">{result.university.name}</CardTitle>
                               <CardDescription className="flex items-center gap-2">
