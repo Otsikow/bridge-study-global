@@ -70,6 +70,7 @@ const Signup = () => {
     }
 
     setLoading(true);
+
     const { error } = await signUp(email, password, fullName, role);
 
     if (error) {
@@ -105,6 +106,7 @@ const Signup = () => {
             <ArrowLeft className="h-4 w-4" />
             Back to login
           </Link>
+
           <div className="flex justify-center mb-4">
             <img
               src={gegLogo}
@@ -112,6 +114,7 @@ const Signup = () => {
               className="h-24 w-24 object-contain dark:brightness-0 dark:invert"
             />
           </div>
+
           <CardTitle className="text-2xl font-bold">Join GEG</CardTitle>
           <CardDescription>
             Create your Global Education Gateway account

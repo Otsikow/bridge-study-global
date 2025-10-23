@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 
+type SignupRole = 'student' | 'agent' | 'staff';
+
 interface Profile {
   id: string;
   tenant_id: string;
@@ -32,7 +34,7 @@ interface AuthContextType {
     email: string,
     password: string,
     fullName: string,
-    role?: string
+    role?: SignupRole
   ) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -58,9 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         console.error('Error fetching profile:', error);
 
-        // If profile doesn't exist, create it and refetch
+        // If profile not found, create and retry
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating...');
+          console.log('Profile not found, creating new one...');
           await createProfileForUser(userId);
 
           const { data: retryData, error: retryError } = await supabase
@@ -70,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .single();
 
           if (retryError) {
-            console.error('Failed to create profile:', retryError);
+            console.error('Retry failed creating profile:', retryError);
             setProfile(null);
           } else {
             setProfile(retryData);
@@ -92,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Try to get the default tenant (e.g., 'geg')
+      // Try to find the default tenant
       let { data: tenant } = await supabase
         .from('tenants')
         .select('id')
@@ -100,15 +102,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (!tenant) {
-        // Fallback: fetch any tenant
-        const { data: anyTenant } = await supabase
+        const { data: fallbackTenant } = await supabase
           .from('tenants')
           .select('id')
           .limit(1)
           .single();
-        tenant = anyTenant;
+        tenant = fallbackTenant;
       }
 
+      // If still no tenant, create a default one
       if (!tenant) {
         console.error('No tenant found, creating default tenant...');
         const { data: newTenant, error: tenantError } = await supabase
@@ -130,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         tenant = newTenant;
       }
 
-      // Create profile
+      // Create user profile
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
         tenant_id: tenant.id,
@@ -145,7 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Role-specific record creation
+      // Role-based record creation
       const role = user.user_metadata?.role || 'student';
       if (role === 'student') {
         await supabase.from('students').insert({
@@ -166,27 +168,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log('Auth state change:', event, currentSession?.user?.id);
+    let isMounted = true;
 
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+    const init = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const initialSession = data.session ?? null;
+        if (!isMounted) return;
 
-      if (currentSession?.user) {
-        // Delay to allow Supabase triggers to complete
-        setTimeout(async () => {
-          await fetchProfile(currentSession.user.id);
-        }, 1000);
-      } else {
-        setProfile(null);
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+
+        if (initialSession?.user) {
+          await fetchProfile(initialSession.user.id);
+        } else {
+          setProfile(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
+    };
 
-      setLoading(false);
-    });
+    // Initialize
+    init();
 
-    return () => subscription.unsubscribe();
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event, currentSession?.user?.id);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+
+        if (currentSession?.user) {
+          setTimeout(async () => {
+            await fetchProfile(currentSession.user.id);
+          }, 1000);
+        } else {
+          setProfile(null);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -197,13 +223,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error('Sign-in error:', error);
         return { error };
       }
 
+      console.log('Sign-in successful:', data);
       return { error: null };
     } catch (err) {
-      console.error('Sign in exception:', err);
+      console.error('Sign-in exception:', err);
       return { error: err };
     }
   };
@@ -212,7 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string,
     password: string,
     fullName: string,
-    role: string = 'student'
+    role: SignupRole = 'student'
   ) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -224,20 +251,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
-            role: role,
+            role,
           },
         },
       });
 
       if (error) {
-        console.error('Sign up error:', error);
+        console.error('Sign-up error:', error);
         return { error };
       }
 
-      console.log('Sign up successful:', data);
+      console.log('Sign-up successful:', data);
       return { error: null };
     } catch (err) {
-      console.error('Sign up exception:', err);
+      console.error('Sign-up exception:', err);
       return { error: err };
     }
   };
