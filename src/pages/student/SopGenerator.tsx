@@ -1,147 +1,93 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Sparkles } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import SoPGenerator from '@/components/ai/SoPGenerator';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function SopGenerator() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  
+  // Get program and university from URL params if available
+  const programName = searchParams.get('program') || '';
+  const universityName = searchParams.get('university') || '';
 
-  const [background, setBackground] = useState('');
-  const [motivation, setMotivation] = useState('');
-  const [program, setProgram] = useState('');
-  const [university, setUniversity] = useState('');
-  const [goals, setGoals] = useState('');
-  const [sop, setSop] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  async function generate() {
-    if (!background || !motivation || !program || !university || !goals) {
-      toast({
-        title: 'Incomplete Information',
-        description: 'Please fill in all fields before generating your SoP.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setLoading(true);
+  const handleSave = async (sopContent: string) => {
     try {
-      // TODO: Replace with actual API call to generate SoP
-      const generatedSop = `Dear Admissions Committee,
+      // Get student ID
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('profile_id', user?.id)
+        .maybeSingle();
 
-I am writing to express my strong interest in the ${program} program at ${university}.
+      if (studentError) throw studentError;
+      if (!studentData) {
+        toast({
+          title: 'Error',
+          description: 'Student profile not found',
+          variant: 'destructive'
+        });
+        return;
+      }
 
-${background}
+      // Save SOP to documents
+      const fileName = `sop_${new Date().getTime()}.txt`;
+      const filePath = `${studentData.id}/${fileName}`;
 
-${motivation}
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('student-documents')
+        .upload(filePath, new Blob([sopContent], { type: 'text/plain' }), {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-${goals}
+      if (uploadError) throw uploadError;
 
-Thank you for considering my application.
+      // Create document record
+      const { error: dbError } = await supabase
+        .from('student_documents')
+        .insert({
+          student_id: studentData.id,
+          document_type: 'personal_statement',
+          file_name: 'statement-of-purpose.txt',
+          file_size: sopContent.length,
+          mime_type: 'text/plain',
+          storage_path: filePath,
+          verified_status: 'pending'
+        });
 
-Sincerely,
-[Your Name]`;
+      if (dbError) throw dbError;
 
-      setSop(generatedSop);
       toast({
-        title: 'Statement of Purpose Generated',
-        description: 'You can edit your draft below.',
+        title: 'Success',
+        description: 'Statement of Purpose saved to your documents'
       });
+
+      // Navigate to documents page
+      navigate('/student/documents');
     } catch (error) {
-      console.error(error);
+      console.error('Error saving SOP:', error);
       toast({
         title: 'Error',
-        description: 'Something went wrong while generating your SoP.',
-        variant: 'destructive',
+        description: 'Failed to save Statement of Purpose',
+        variant: 'destructive'
       });
-    } finally {
-      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-8 space-y-6">
       <BackButton variant="ghost" size="sm" className="mb-2" fallback="/dashboard" />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" /> Statement of Purpose Generator
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Academic Background</label>
-              <Textarea
-                placeholder="Summarize your academics and key experiences"
-                value={background}
-                onChange={(e) => setBackground(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Motivation</label>
-              <Textarea
-                placeholder="Why this field and program?"
-                value={motivation}
-                onChange={(e) => setMotivation(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Program</label>
-              <Input
-                placeholder="e.g., MSc Data Science"
-                value={program}
-                onChange={(e) => setProgram(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">University</label>
-              <Input
-                placeholder="e.g., University of Manchester"
-                value={university}
-                onChange={(e) => setUniversity(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Career Goals</label>
-              <Textarea
-                placeholder="What do you want to do after graduation?"
-                value={goals}
-                onChange={(e) => setGoals(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <Button onClick={generate} disabled={loading} className="w-full">
-            <Sparkles className="mr-2 h-4 w-4" />
-            {loading ? 'Generating...' : 'Generate SoP'}
-          </Button>
-
-          {sop && (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">Draft</div>
-              <Textarea
-                value={sop}
-                onChange={(e) => setSop(e.target.value)}
-                className="min-h-[300px]"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <SoPGenerator 
+        programName={programName}
+        universityName={universityName}
+        onSave={handleSave}
+      />
     </div>
   );
 }
