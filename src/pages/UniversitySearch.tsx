@@ -9,12 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useAIRecommendations } from "@/hooks/useAIRecommendations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BackButton from "@/components/BackButton";
 import ProgramRecommendations from "@/components/ai/ProgramRecommendations";
 import SoPGenerator from "@/components/ai/SoPGenerator";
 import InterviewPractice from "@/components/ai/InterviewPractice";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BackButton from "@/components/BackButton";
 import { Search, GraduationCap, DollarSign, Award, MapPin, Sparkles, FileText, MessageSquare } from "lucide-react";
 
 // --- University Images ---
@@ -33,9 +32,9 @@ import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
 
 // --- University Logos ---
-import mitLogo from "@/assets/mit-logo.png";
-import harvardLogo from "@/assets/harvard-logo.png";
-import stanfordLogo from "@/assets/stanford-logo.png";
+import mitLogo from "@/assets/mit-logo.svg";
+import harvardLogo from "@/assets/harvard-logo.svg";
+import stanfordLogo from "@/assets/stanford-logo.svg";
 import oxfordLogo from "@/assets/oxford-logo.png";
 import cambridgeLogo from "@/assets/cambridge-logo.svg";
 import berkeleyLogo from "@/assets/berkeley-logo.png";
@@ -115,8 +114,6 @@ export default function UniversitySearch() {
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("search");
 
-  const { recommendations } = useAIRecommendations();
-
   // Load filter options
   useEffect(() => {
     loadFilterOptions();
@@ -124,17 +121,23 @@ export default function UniversitySearch() {
 
   const loadFilterOptions = async () => {
     try {
-      const { data: universities } = await supabase.from("universities").select("country").eq("active", true);
-      const { data: programs } = await supabase.from("programs").select("level, discipline").eq("active", true);
+      const { data: universities } = await supabase
+        .from("universities")
+        .select("country")
+        .eq("active", true);
+      const { data: programs } = await supabase
+        .from("programs")
+        .select("level, discipline")
+        .eq("active", true);
 
       if (universities) {
-        const uniqueCountries = [...new Set(universities.map((u) => u.country))].sort();
+        const uniqueCountries = [...new Set(universities.map((u: { country: string }) => u.country))].sort();
         setCountries(uniqueCountries);
       }
 
       if (programs) {
-        const uniqueLevels = [...new Set(programs.map((p) => p.level))].sort();
-        const uniqueDisciplines = [...new Set(programs.map((p) => p.discipline))].sort();
+        const uniqueLevels = [...new Set(programs.map((p: { level: string }) => p.level))].sort();
+        const uniqueDisciplines = [...new Set(programs.map((p: { discipline: string }) => p.discipline))].sort();
         setLevels(uniqueLevels);
         setDisciplines(uniqueDisciplines);
       }
@@ -146,7 +149,10 @@ export default function UniversitySearch() {
   const handleSearch = useCallback(async () => {
     setLoading(true);
     try {
-      let universityQuery = supabase.from("universities").select("*").eq("active", true);
+      let universityQuery = supabase
+        .from("universities")
+        .select("*")
+        .eq("active", true);
 
       if (searchTerm) universityQuery = universityQuery.ilike("name", `%${searchTerm}%`);
       if (selectedCountry !== "all") universityQuery = universityQuery.eq("country", selectedCountry);
@@ -160,9 +166,13 @@ export default function UniversitySearch() {
         return;
       }
 
-      const universityIds = universities.map((u) => u.id);
+      const universityIds = (universities as University[]).map((u) => u.id);
 
-      let programsQuery = supabase.from("programs").select("*").in("university_id", universityIds).eq("active", true);
+      let programsQuery = supabase
+        .from("programs")
+        .select("*")
+        .in("university_id", universityIds)
+        .eq("active", true);
       if (selectedLevel !== "all") programsQuery = programsQuery.eq("level", selectedLevel);
       if (selectedDiscipline !== "all") programsQuery = programsQuery.eq("discipline", selectedDiscipline);
       if (maxFee) programsQuery = programsQuery.lte("tuition_amount", parseFloat(maxFee));
@@ -176,10 +186,10 @@ export default function UniversitySearch() {
         .in("university_id", universityIds)
         .eq("active", true);
 
-      const searchResults: SearchResult[] = universities
+      const searchResults: SearchResult[] = (universities as University[])
         .map((university) => {
-          const universityPrograms = programs?.filter((p) => p.university_id === university.id) || [];
-          const universityScholarships = scholarships?.filter((s) => s.university_id === university.id) || [];
+          const universityPrograms = (programs as Program[] | null)?.filter((p) => p.university_id === university.id) || [];
+          const universityScholarships = (scholarships as Scholarship[] | null)?.filter((s) => s.university_id === university.id) || [];
 
           return {
             university,
@@ -211,9 +221,7 @@ export default function UniversitySearch() {
         <BackButton variant="ghost" size="sm" className="mb-4" fallback="/" />
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
-          <p className="text-muted-foreground">
-            Search through universities, programs, and scholarships worldwide
-          </p>
+          <p className="text-muted-foreground">Search through universities, programs, and scholarships worldwide</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -319,7 +327,7 @@ export default function UniversitySearch() {
                     <Checkbox
                       id="scholarships"
                       checked={onlyWithScholarships}
-                      onCheckedChange={(checked) => setOnlyWithScholarships(checked as boolean)}
+                      onCheckedChange={(checked) => setOnlyWithScholarships(Boolean(checked))}
                     />
                     <Label htmlFor="scholarships" className="ml-2">
                       Only show universities with scholarships
@@ -336,9 +344,7 @@ export default function UniversitySearch() {
             {/* Results */}
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">
-                {loading
-                  ? "Searching..."
-                  : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
+                {loading ? "Searching..." : `Found ${results.length} ${results.length === 1 ? "result" : "results"}`}
               </h2>
 
               {loading ? (
@@ -428,9 +434,7 @@ export default function UniversitySearch() {
                               ))}
                             </div>
                             {result.programs.length > 4 && (
-                              <p className="text-xs text-muted-foreground">
-                                +{result.programs.length - 4} more programs
-                              </p>
+                              <p className="text-xs text-muted-foreground">+{result.programs.length - 4} more programs</p>
                             )}
                           </div>
 
@@ -440,4 +444,57 @@ export default function UniversitySearch() {
                               <h4 className="font-semibold flex items-center gap-2">
                                 <Award className="h-4 w-4" /> Scholarships
                               </h4>
-                              <div className="space
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {result.scholarships.slice(0, 4).map((scholarship) => (
+                                  <div key={scholarship.id} className="p-3 rounded-md bg-muted/50 space-y-2">
+                                    <p className="font-medium text-sm">{scholarship.name}</p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Badge variant="outline" className="text-xs">
+                                        {scholarship.amount_cents !== null
+                                          ? `${scholarship.currency} ${Math.round((scholarship.amount_cents as number) / 100).toLocaleString()}`
+                                          : "Amount varies"}
+                                      </Badge>
+                                      {scholarship.coverage_type && (
+                                        <span className="truncate">{scholarship.coverage_type}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              {result.scholarships.length > 4 && (
+                                <p className="text-xs text-muted-foreground">+{result.scholarships.length - 4} more scholarships</p>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* AI Recommendations */}
+          <TabsContent value="recommendations" className="space-y-6">
+            <ProgramRecommendations
+              onProgramSelect={(programId: string) =>
+                navigate(`/student/applications/new?program=${programId}`)
+              }
+            />
+          </TabsContent>
+
+          {/* SOP Generator */}
+          <TabsContent value="sop" className="space-y-6">
+            <SoPGenerator onSave={() => { /* noop */ }} />
+          </TabsContent>
+
+          {/* Interview Practice */}
+          <TabsContent value="interview" className="space-y-6">
+            <InterviewPractice />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
