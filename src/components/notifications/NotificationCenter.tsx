@@ -12,7 +12,7 @@ import {
   Info, 
   CheckCircle, 
   Clock,
-  MarkAsRead
+  CheckCheck
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -166,7 +166,7 @@ export function NotificationCenter() {
                 onClick={markAllAsRead}
                 className="text-xs"
               >
-                <MarkAsRead className="h-3 w-3 mr-1" />
+                <CheckCheck className="h-3 w-3 mr-1" />
                 Mark all read
               </Button>
             )}

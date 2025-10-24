@@ -178,25 +178,23 @@ const Index = () => {
               through verified agents and transparent application management.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
-              <Link to="/auth/signup" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14 shadow-lg">
-                  <span className="hidden xs:inline">Start Your Journey</span>
-                  <span className="inline xs:hidden">Get Started</span>
-                  <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="flex flex-col sm:flex-row gap-3 pt-4 max-w-3xl">
+              <Link to="/auth/signup" className="flex-1 sm:flex-initial">
+                <Button size="lg" className="w-full text-base px-6 h-12 sm:h-14 shadow-lg hover:shadow-xl transition-shadow">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                 </Button>
               </Link>
-              <Link to="/search" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14">
-                  <BookOpen className="mr-2 h-4 w-4 sm:hidden" />
+              <Link to="/search" className="flex-1 sm:flex-initial">
+                <Button size="lg" variant="outline" className="w-full text-base px-6 h-12 sm:h-14">
+                  <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
                   Search Universities
                 </Button>
               </Link>
-              <Link to="/visa-calculator" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto text-base sm:text-lg px-6 sm:px-8 h-12 sm:h-14">
-                  <Calculator className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="hidden xs:inline">Visa Calculator</span>
-                  <span className="inline xs:hidden">Visa</span>
+              <Link to="/visa-calculator" className="flex-1 sm:flex-initial">
+                <Button size="lg" variant="outline" className="w-full text-base px-6 h-12 sm:h-14">
+                  <Calculator className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Visa Calculator
                 </Button>
               </Link>
             </div>
