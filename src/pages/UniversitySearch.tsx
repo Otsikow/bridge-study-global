@@ -440,4 +440,45 @@ export default function UniversitySearch() {
                               <h4 className="font-semibold flex items-center gap-2">
                                 <Award className="h-4 w-4" /> Scholarships
                               </h4>
-                              <div className="space
+                              <div className="space-y-1">
+                                {result.scholarships.slice(0, 3).map((scholarship) => (
+                                  <div key={scholarship.id} className="text-sm flex items-center justify-between p-2 rounded-md bg-muted/30">
+                                    <span>{scholarship.name}</span>
+                                    {scholarship.amount_cents && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {(scholarship.amount_cents / 100).toLocaleString()} {scholarship.currency}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* AI Recommendations Tab */}
+          <TabsContent value="recommendations">
+            <ProgramRecommendations />
+          </TabsContent>
+
+          {/* SoP Generator Tab */}
+          <TabsContent value="sop">
+            <SoPGenerator />
+          </TabsContent>
+
+          {/* Interview Practice Tab */}
+          <TabsContent value="interview">
+            <InterviewPractice />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
