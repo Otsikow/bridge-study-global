@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,15 +31,6 @@ import uclImg from "@/assets/university-ucl.jpg";
 import imperialImg from "@/assets/university-imperial.jpg";
 import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
-
-// --- University Logos ---
-import mitLogo from "@/assets/mit-logo.png";
-import harvardLogo from "@/assets/harvard-logo.png";
-import stanfordLogo from "@/assets/stanford-logo.png";
-import oxfordLogo from "@/assets/oxford-logo.png";
-import cambridgeLogo from "@/assets/cambridge-logo.svg";
-import berkeleyLogo from "@/assets/berkeley-logo.png";
-import yaleLogo from "@/assets/yale-logo.svg";
 
 interface University {
   id: string;
@@ -95,7 +86,7 @@ const getUniversityVisual = (universityName: string, logoUrl: string | null): st
   if (name.includes("ucl") || name.includes("university college london")) return uclImg;
   if (name.includes("imperial")) return imperialImg;
   if (name.includes("edinburgh")) return edinburghImg;
-  if (name.includes("berkeley") || name.includes("california")) return berkeleyLogo;
+  if (name.includes("berkeley") || name.includes("california")) return defaultUniversityImg;
 
   return defaultUniversityImg;
 };
@@ -440,4 +431,64 @@ export default function UniversitySearch() {
                               <h4 className="font-semibold flex items-center gap-2">
                                 <Award className="h-4 w-4" /> Scholarships
                               </h4>
-                              <div className="space
+                              <div className="space-y-2">
+                                {result.scholarships.slice(0, 3).map((scholarship) => (
+                                  <div key={scholarship.id} className="p-2 rounded-md bg-muted/50">
+                                    <p className="font-medium text-sm">{scholarship.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {scholarship.amount_cents
+                                        ? `${(scholarship.amount_cents / 100).toLocaleString()} ${scholarship.currency}`
+                                        : scholarship.coverage_type || 'Amount varies'}
+                                    </p>
+                                  </div>
+                                ))}
+                                {result.scholarships.length > 3 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    +{result.scholarships.length - 3} more scholarships
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Actions */}
+                          <div className="flex gap-2 pt-4">
+                            <Button asChild className="flex-1">
+                              <Link to={`/search/${result.university.id}`}>
+                                View Details
+                              </Link>
+                            </Button>
+                            <Button variant="outline" asChild>
+                              <a href={result.university.website || '#'} target="_blank" rel="noopener noreferrer">
+                                Visit Website
+                              </a>
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* AI Recommendations */}
+          <TabsContent value="recommendations">
+            <ProgramRecommendations />
+          </TabsContent>
+
+          {/* SOP Generator */}
+          <TabsContent value="sop">
+            <SoPGenerator />
+          </TabsContent>
+
+          {/* Interview Practice */}
+          <TabsContent value="interview">
+            <InterviewPractice />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
