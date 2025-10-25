@@ -79,6 +79,7 @@ const queryClient = new QueryClient({
 const Index = lazyWithErrorHandling(() => import("./pages/Index"));
 const Contact = lazyWithErrorHandling(() => import("./pages/Contact"));
 const FAQ = lazyWithErrorHandling(() => import("./pages/FAQ"));
+const HelpCenter = lazyWithErrorHandling(() => import("./pages/HelpCenter"));
 const LegalPrivacy = lazyWithErrorHandling(() => import("./pages/LegalPrivacy"));
 const LegalTerms = lazyWithErrorHandling(() => import("./pages/LegalTerms"));
 const Login = lazyWithErrorHandling(() => import("./pages/auth/Login"));
@@ -139,6 +140,7 @@ const App = () => (
                     <Route path="/search" element={<UniversitySearch />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/faq" element={<FAQ />} />
+                    <Route path="/help" element={<HelpCenter />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
 
