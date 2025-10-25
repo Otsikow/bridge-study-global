@@ -115,6 +115,13 @@ const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSetti
 const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
+// Staff Dashboard Pages
+const StaffApplications = lazyWithErrorHandling(() => import("./pages/dashboard/StaffApplications"));
+const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
+const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
+const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
+const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
+
 // ✅ Main App component
 const App = () => (
   <ErrorBoundary>
@@ -156,10 +163,50 @@ const App = () => (
 
                     {/* Protected Routes */}
                     <Route
-                      path="/dashboard/*"
+                      path="/dashboard"
                       element={
                         <ProtectedRoute>
                           <Dashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/applications"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
+                          <StaffApplications />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/students"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                          <StaffStudents />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/tasks"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
+                          <StaffTasks />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/messages"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
+                          <StaffMessages />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/reports"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                          <StaffReports />
                         </ProtectedRoute>
                       }
                     />
