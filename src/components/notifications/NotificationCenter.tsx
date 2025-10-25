@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,83 +13,57 @@ import {
   Info, 
   CheckCircle, 
   Clock,
-  CheckCheck
+  CheckCheck,
+  DollarSign,
+  MessageSquare,
+  FileText,
+  BookOpen,
+  Loader2
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useNotifications } from '@/hooks/useNotifications';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: 'info' | 'success' | 'warning' | 'error';
-  read: boolean;
-  timestamp: Date;
-  actionUrl?: string;
-  priority: 'low' | 'medium' | 'high';
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    title: 'Application Status Update',
-    message: 'Your application to University of Toronto has been reviewed and moved to screening phase.',
-    type: 'info',
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 30),
-    actionUrl: '/student/applications',
-    priority: 'high'
-  },
-  {
-    id: '2',
-    title: 'Document Required',
-    message: 'Please upload your IELTS certificate to complete your application.',
-    type: 'warning',
-    read: false,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    actionUrl: '/student/documents',
-    priority: 'high'
-  },
-  {
-    id: '3',
-    title: 'Payment Successful',
-    message: 'Your application fee payment of $150 has been processed successfully.',
-    type: 'success',
-    read: true,
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-    actionUrl: '/student/payments',
-    priority: 'medium'
-  }
-];
+type NotificationType = 'application_status' | 'message' | 'commission' | 'course_recommendation';
+type FilterType = 'all' | 'unread' | 'application_status' | 'message' | 'commission' | 'course_recommendation';
 
 export function NotificationCenter() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'high'>('all');
-  const { toast } = useToast();
+  const { 
+    notifications, 
+    unreadCount, 
+    loading, 
+    markAsRead, 
+    markAllAsRead, 
+    deleteNotification 
+  } = useNotifications();
+  const [filter, setFilter] = useState<FilterType>('all');
+  const navigate = useNavigate();
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case 'success': return CheckCircle;
-      case 'warning': return AlertCircle;
-      case 'error': return X;
+      case 'application_status': return FileText;
+      case 'message': return MessageSquare;
+      case 'commission': return DollarSign;
+      case 'course_recommendation': return BookOpen;
       default: return Info;
     }
   };
 
-  const getNotificationColor = (type: string) => {
+  const getNotificationColor = (type: NotificationType) => {
     switch (type) {
-      case 'success': return 'text-green-600 dark:text-green-400';
-      case 'warning': return 'text-yellow-600 dark:text-yellow-400';
-      case 'error': return 'text-red-600 dark:text-red-400';
-      default: return 'text-blue-600 dark:text-blue-400';
+      case 'application_status': return 'text-blue-600 dark:text-blue-400';
+      case 'message': return 'text-purple-600 dark:text-purple-400';
+      case 'commission': return 'text-green-600 dark:text-green-400';
+      case 'course_recommendation': return 'text-orange-600 dark:text-orange-400';
+      default: return 'text-gray-600 dark:text-gray-400';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+  const getTypeLabel = (type: NotificationType) => {
+    switch (type) {
+      case 'application_status': return 'Application';
+      case 'message': return 'Message';
+      case 'commission': return 'Commission';
+      case 'course_recommendation': return 'Recommendation';
+      default: return 'Notification';
     }
   };
 
@@ -106,43 +81,17 @@ export function NotificationCenter() {
 
   const filteredNotifications = notifications.filter(notification => {
     if (filter === 'unread') return !notification.read;
-    if (filter === 'high') return notification.priority === 'high';
-    return true;
+    if (filter === 'all') return true;
+    return notification.type === filter;
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const highPriorityCount = notifications.filter(n => n.priority === 'high' && !n.read).length;
-
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true }
-          : notification
-      )
-    );
-    toast({
-      title: 'Notification marked as read',
-      description: 'The notification has been marked as read.'
-    });
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, read: true }))
-    );
-    toast({
-      title: 'All notifications marked as read',
-      description: 'All notifications have been marked as read.'
-    });
-  };
-
-  const deleteNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-    toast({
-      title: 'Notification deleted',
-      description: 'The notification has been deleted.'
-    });
+  const handleNotificationClick = (notification: typeof notifications[0]) => {
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    if (notification.action_url) {
+      navigate(notification.action_url);
+    }
   };
 
   return (
@@ -178,7 +127,7 @@ export function NotificationCenter() {
       </CardHeader>
       <CardContent>
         <Tabs value={filter} onValueChange={(value: any) => setFilter(value)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="all" className="flex items-center gap-2">
               All
               {notifications.length > 0 && (
@@ -195,35 +144,64 @@ export function NotificationCenter() {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="high" className="flex items-center gap-2">
-              High Priority
-              {highPriorityCount > 0 && (
-                <Badge variant="destructive" className="text-xs">
-                  {highPriorityCount}
-                </Badge>
-              )}
+            <TabsTrigger value="application_status" className="flex items-center gap-2">
+              <FileText className="h-3 w-3" />
+              Apps
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value={filter} className="mt-4">
-            <ScrollArea className="h-96">
-              {filteredNotifications.length === 0 ? (
-                <div className="text-center py-8">
-                  <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">No notifications found</p>
-                </div>
-              ) : (
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant={filter === 'message' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter('message')}
+            >
+              <MessageSquare className="h-3 w-3 mr-1" />
+              Messages
+            </Button>
+            <Button
+              variant={filter === 'commission' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter('commission')}
+            >
+              <DollarSign className="h-3 w-3 mr-1" />
+              Commissions
+            </Button>
+            <Button
+              variant={filter === 'course_recommendation' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter('course_recommendation')}
+            >
+              <BookOpen className="h-3 w-3 mr-1" />
+              Courses
+            </Button>
+          </div>
+
+          <TabsContent value={filter} className="mt-0">
+            {loading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 mx-auto animate-spin text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">Loading notifications...</p>
+              </div>
+            ) : filteredNotifications.length === 0 ? (
+              <div className="text-center py-8">
+                <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No notifications found</p>
+              </div>
+            ) : (
+              <ScrollArea className="h-96">
                 <div className="space-y-3">
                   {filteredNotifications.map((notification) => {
                     const Icon = getNotificationIcon(notification.type);
                     return (
                       <div
                         key={notification.id}
-                        className={`p-4 rounded-lg border transition-all hover:shadow-sm ${
+                        className={`p-4 rounded-lg border transition-all hover:shadow-sm cursor-pointer ${
                           notification.read 
                             ? 'bg-muted/50 opacity-75' 
                             : 'bg-background border-primary/20'
                         }`}
+                        onClick={() => handleNotificationClick(notification)}
                       >
                         <div className="flex items-start gap-3">
                           <div className={`mt-1 ${getNotificationColor(notification.type)}`}>
@@ -238,20 +216,20 @@ export function NotificationCenter() {
                                   </h4>
                                   <Badge 
                                     variant="outline" 
-                                    className={`text-xs ${getPriorityColor(notification.priority)}`}
+                                    className="text-xs"
                                   >
-                                    {notification.priority}
+                                    {getTypeLabel(notification.type)}
                                   </Badge>
                                   {!notification.read && (
                                     <div className="w-2 h-2 bg-primary rounded-full" />
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground mb-2">
-                                  {notification.message}
+                                  {notification.content}
                                 </p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                   <Clock className="h-3 w-3" />
-                                  {formatTimestamp(notification.timestamp)}
+                                  {formatTimestamp(new Date(notification.created_at))}
                                 </div>
                               </div>
                               <div className="flex items-center gap-1 ml-2">
@@ -259,7 +237,10 @@ export function NotificationCenter() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => markAsRead(notification.id)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      markAsRead(notification.id);
+                                    }}
                                     className="h-6 w-6 p-0"
                                   >
                                     <Check className="h-3 w-3" />
@@ -268,7 +249,10 @@ export function NotificationCenter() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => deleteNotification(notification.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(notification.id);
+                                  }}
                                   className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                                 >
                                   <X className="h-3 w-3" />
@@ -281,8 +265,8 @@ export function NotificationCenter() {
                     );
                   })}
                 </div>
-              )}
-            </ScrollArea>
+              </ScrollArea>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
