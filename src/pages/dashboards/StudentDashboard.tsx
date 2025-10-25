@@ -16,6 +16,7 @@ import {
   ClipboardList,
   Star,
   MessageSquare,
+  Activity,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -268,6 +269,17 @@ export default function StudentDashboard() {
                     {unreadMessages > 9 ? '9+' : unreadMessages}
                   </Badge>
                 )}
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="hover-scale whitespace-nowrap"
+            >
+              <Link to="/student/application-tracking" className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                <span className="hidden sm:inline">Track Apps</span>
               </Link>
             </Button>
             <Button asChild size="sm" className="hover-scale whitespace-nowrap">
