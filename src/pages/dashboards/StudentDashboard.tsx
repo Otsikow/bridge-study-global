@@ -499,4 +499,100 @@ export default function StudentDashboard() {
               <CardContent>
                 {recommendedPrograms.length === 0 ? (
                   <div className="text-center py-8">
-                    <BookOpen className="h-12 w-12 text-muted
+                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No recommendations yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recommendedPrograms.map((program) => (
+                      <Link
+                        key={program.id}
+                        to={`/search?program=${program.id}`}
+                        className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold truncate">{program.name}</h4>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                              <MapPin className="h-3 w-3" />
+                              {program.university.name}, {program.university.country}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="outline">{program.level}</Badge>
+                              <Badge variant="secondary">{program.discipline}</Badge>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-primary">
+                              {formatCurrency(program.tuition_amount, program.tuition_currency)}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {program.duration_months} months
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar - Notifications */}
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-xl">Recent Activity</CardTitle>
+                  </div>
+                  <Button asChild size="sm" variant="ghost">
+                    <Link to="/student/notifications">View All</Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground text-sm">No notifications</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[400px] pr-4">
+                    <div className="space-y-4">
+                      {notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`p-3 rounded-lg border transition-colors ${
+                            notification.read_at ? 'bg-background' : 'bg-muted/50'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm">{notification.subject}</p>
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {notification.body}
+                              </p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {getRelativeTime(notification.created_at)}
+                              </p>
+                            </div>
+                            {!notification.read_at && (
+                              <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
+}
