@@ -108,6 +108,7 @@ const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"))
 const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
 const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
+const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // ✅ Main App component
@@ -251,8 +252,22 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
-
-                    {/* Additional Features */}
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/university/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
+                          <UniversityDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="/intake" element={<IntakeForm />} />
                     <Route path="/intake/:formId" element={<IntakeForm />} />
                     <Route path="/visa-calculator" element={<VisaCalculator />} />
@@ -270,14 +285,6 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/admin-dashboard"
-                      element={
-                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
-                          <AdminDashboard />
                         </ProtectedRoute>
                       }
                     />
