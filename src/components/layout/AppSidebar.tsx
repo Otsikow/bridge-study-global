@@ -52,7 +52,7 @@ const menuItems = {
     { title: 'Applications', url: '/dashboard/applications', icon: FileText },
     { title: 'Tasks', url: '/dashboard/tasks', icon: CheckSquare },
     { title: 'Ranking', url: '/dashboard/ranking', icon: TrendingUp },
-    { title: 'Commissions', url: '/dashboard/commissions', icon: DollarSign },
+    { title: 'Payments & Commissions', url: '/agent/payments', icon: DollarSign },
     { title: 'Import', url: '/dashboard/import', icon: Upload },
     { title: 'Resources', url: '/dashboard/resources', icon: BookOpen },
   ],

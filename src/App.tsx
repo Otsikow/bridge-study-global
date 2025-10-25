@@ -103,7 +103,7 @@ const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/
 const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
-const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
+const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
@@ -210,7 +210,23 @@ const App = () => (
                     <Route
                       path="/student/payments"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/agent/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
                           <Payments />
                         </ProtectedRoute>
                       }
