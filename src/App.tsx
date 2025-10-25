@@ -105,6 +105,7 @@ const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"))
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // ✅ Main App component
@@ -236,6 +237,14 @@ const App = () => (
                       element={
                         <ProtectedRoute>
                           <SopGenerator />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <ProfileSettings />
                         </ProtectedRoute>
                       }
                     />
