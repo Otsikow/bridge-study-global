@@ -165,6 +165,17 @@ export function AppSidebar() {
             variant="ghost"
             size={state === 'collapsed' ? 'icon' : 'sm'}
             className="w-full justify-start"
+            onClick={() => navigate('/settings')}
+          >
+            <Settings className="h-4 w-4 flex-shrink-0" />
+            {state !== 'collapsed' && (
+              <span className="ml-2 text-sm">Settings</span>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size={state === 'collapsed' ? 'icon' : 'sm'}
+            className="w-full justify-start"
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
