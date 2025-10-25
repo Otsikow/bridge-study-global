@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
+import AgentDashboardOverview from "@/components/agent/AgentDashboardOverview";
 import PerformanceMetrics from "@/components/agent/PerformanceMetrics";
 import LeadsList from "@/components/agent/LeadsList";
 import ResourceHub from "@/components/agent/ResourceHub";
@@ -101,7 +102,7 @@ export default function AgentDashboard() {
 
           {/* Overview */}
           <TabsContent value="overview" className="space-y-6">
-            <PerformanceMetrics />
+            <AgentDashboardOverview />
           </TabsContent>
 
           {/* Applications */}
