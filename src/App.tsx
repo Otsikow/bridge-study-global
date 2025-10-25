@@ -91,6 +91,7 @@ const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/St
 const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
 const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
 const Applications = lazyWithErrorHandling(() => import("./pages/student/Applications"));
+const ApplicationTracking = lazyWithErrorHandling(() => import("./pages/student/ApplicationTracking"));
 const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
 const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/ApplicationDetails"));
 const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
@@ -180,6 +181,14 @@ const App = () => (
                       element={
                         <ProtectedRoute>
                           <Applications />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/student/application-tracking"
+                      element={
+                        <ProtectedRoute>
+                          <ApplicationTracking />
                         </ProtectedRoute>
                       }
                     />
