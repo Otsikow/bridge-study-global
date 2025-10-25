@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   Sidebar,
   SidebarContent,
@@ -33,6 +34,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import gegLogo from '@/assets/geg-logo.png';
 
 const menuItems = {
@@ -88,6 +90,7 @@ const menuItems = {
 export function AppSidebar() {
   const { state } = useSidebar();
   const { user, profile, signOut } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -136,9 +139,29 @@ export function AppSidebar() {
                           : 'hover:bg-accent transition-colors'
                       }
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <div className="relative">
+                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        {item.title === 'Notifications' && unreadCount > 0 && (
+                          <Badge 
+                            variant="destructive" 
+                            className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
+                          >
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </Badge>
+                        )}
+                      </div>
                       {state !== 'collapsed' && (
-                        <span className="truncate text-sm">{item.title}</span>
+                        <>
+                          <span className="truncate text-sm">{item.title}</span>
+                          {item.title === 'Notifications' && unreadCount > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="ml-auto h-5 w-5 flex items-center justify-center text-[10px]"
+                            >
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </Badge>
+                          )}
+                        </>
                       )}
                     </NavLink>
                   </SidebarMenuButton>
