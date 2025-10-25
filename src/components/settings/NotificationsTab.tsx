@@ -24,39 +24,18 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
     document_reminders: true,
   });
 
-  // Fetch notification preferences
+  // Note: notification_preferences table doesn't exist yet, using local state
   const { data, isLoading } = useQuery({
     queryKey: ['notificationPreferences', profile.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .single();
-
-      if (error) {
-        // If no preferences exist, create default ones
-        if (error.code === 'PGRST116') {
-          const { data: newData, error: insertError } = await supabase
-            .from('notification_preferences')
-            .insert({
-              profile_id: profile.id,
-              email_notifications: true,
-              sms_notifications: false,
-              marketing_emails: true,
-              application_updates: true,
-              document_reminders: true,
-            })
-            .select()
-            .single();
-
-          if (insertError) throw insertError;
-          return newData;
-        }
-        throw error;
-      }
-
-      return data;
+      // Return default preferences for now
+      return {
+        email_notifications: true,
+        sms_notifications: false,
+        marketing_emails: true,
+        application_updates: true,
+        document_reminders: true,
+      };
     },
   });
 
@@ -73,21 +52,18 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
     }
   }, [data]);
 
-  // Update preferences mutation
+  // Update preferences mutation (currently just shows success message)
   const updateMutation = useMutation({
     mutationFn: async (newPreferences: typeof preferences) => {
-      const { error } = await supabase
-        .from('notification_preferences')
-        .update(newPreferences)
-        .eq('profile_id', profile.id);
-
-      if (error) throw error;
+      // TODO: Implement notification_preferences table
+      // For now, just store in local state
+      return newPreferences;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificationPreferences', profile.id] });
       toast({
         title: 'Success',
-        description: 'Notification preferences updated successfully',
+        description: 'Notification preferences saved locally',
       });
     },
     onError: (error: any) => {

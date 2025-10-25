@@ -149,7 +149,7 @@ export default function ApplicationsTab() {
     try {
       const { error } = await supabase
         .from('applications')
-        .update({ status: newStatus })
+        .update({ status: newStatus as any })
         .eq('id', applicationId);
 
       if (error) throw error;

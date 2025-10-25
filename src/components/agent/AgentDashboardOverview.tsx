@@ -90,7 +90,7 @@ export default function AgentDashboardOverview() {
         .select('code')
         .eq('agent_id', agentData.id)
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       if (referralData) {
         setReferralCode(referralData.code);
@@ -100,8 +100,9 @@ export default function AgentDashboardOverview() {
         const { data: newReferral } = await supabase
           .from('referrals')
           .insert({
-            code: newCode,
+            tenant_id: profile!.tenant_id,
             agent_id: agentData.id,
+            code: newCode,
             active: true,
           })
           .select('code')

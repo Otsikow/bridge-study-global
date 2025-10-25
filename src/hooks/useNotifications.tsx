@@ -7,13 +7,14 @@ export interface Notification {
   id: string;
   tenant_id: string;
   user_id: string;
-  type: 'application_status' | 'message' | 'commission' | 'course_recommendation';
+  type: string;
   title: string;
   content: string;
   read: boolean;
   metadata: Record<string, any>;
   action_url: string | null;
   created_at: string;
+  read_at: string | null;
 }
 
 export function useNotifications() {
@@ -35,17 +36,33 @@ export function useNotifications() {
       setLoading(true);
       setError(null);
 
+      // Fetch notifications - using existing notifications table
       const { data, error: fetchError } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, tenant_id, user_id, template_key, subject, body, created_at, read_at, payload')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (fetchError) throw fetchError;
 
-      setNotifications(data || []);
-      setUnreadCount((data || []).filter(n => !n.read).length);
+      // Transform data to match our interface
+      const transformed = (data || []).map((n: any) => ({
+        id: n.id,
+        tenant_id: n.tenant_id,
+        user_id: n.user_id,
+        type: n.template_key,
+        title: n.subject,
+        content: n.body,
+        read: !!n.read_at,
+        metadata: n.payload || {},
+        action_url: null,
+        created_at: n.created_at,
+        read_at: n.read_at,
+      }));
+
+      setNotifications(transformed);
+      setUnreadCount(transformed.filter(n => !n.read).length);
     } catch (err) {
       console.error('Error fetching notifications:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch notifications');
@@ -61,9 +78,9 @@ export function useNotifications() {
     try {
       const { data, error: countError } = await supabase
         .from('notifications')
-        .select('id', { count: 'exact', head: false })
+        .select('id, read_at')
         .eq('user_id', user.id)
-        .eq('read', false);
+        .is('read_at', null);
 
       if (countError) throw countError;
 
@@ -73,19 +90,18 @@ export function useNotifications() {
     }
   }, [user?.id]);
 
-  // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
       const { error: updateError } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ read_at: new Date().toISOString() })
         .eq('id', notificationId)
         .eq('user_id', user?.id);
 
       if (updateError) throw updateError;
 
       setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+        prev.map(n => (n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n))
       );
       setUnreadCount(prev => Math.max(0, prev - 1));
 
@@ -102,21 +118,20 @@ export function useNotifications() {
     }
   }, [user?.id, toast]);
 
-  // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
     if (!user?.id) return;
 
     try {
       const { error: updateError } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .update({ read_at: new Date().toISOString() })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .is('read_at', null);
 
       if (updateError) throw updateError;
 
       setNotifications(prev =>
-        prev.map(n => ({ ...n, read: true }))
+        prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() }))
       );
       setUnreadCount(0);
 
@@ -184,7 +199,20 @@ export function useNotifications() {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newNotification = payload.new as Notification;
+            const raw = payload.new as any;
+            const newNotification: Notification = {
+              id: raw.id,
+              tenant_id: raw.tenant_id,
+              user_id: raw.user_id,
+              type: raw.template_key,
+              title: raw.subject,
+              content: raw.body,
+              read: !!raw.read_at,
+              metadata: raw.payload || {},
+              action_url: null,
+              created_at: raw.created_at,
+              read_at: raw.read_at,
+            };
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
             
@@ -194,8 +222,22 @@ export function useNotifications() {
               description: newNotification.content,
             });
           } else if (payload.eventType === 'UPDATE') {
+            const raw = payload.new as any;
+            const updatedNotification: Notification = {
+              id: raw.id,
+              tenant_id: raw.tenant_id,
+              user_id: raw.user_id,
+              type: raw.template_key,
+              title: raw.subject,
+              content: raw.body,
+              read: !!raw.read_at,
+              metadata: raw.payload || {},
+              action_url: null,
+              created_at: raw.created_at,
+              read_at: raw.read_at,
+            };
             setNotifications(prev =>
-              prev.map(n => (n.id === payload.new.id ? payload.new as Notification : n))
+              prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
             );
             fetchUnreadCount();
           } else if (payload.eventType === 'DELETE') {

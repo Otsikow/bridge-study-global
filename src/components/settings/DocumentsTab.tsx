@@ -59,15 +59,25 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<any>(null);
 
-  // Fetch user documents
+  // Fetch student documents
   const { data: documents, isLoading } = useQuery({
     queryKey: ['userDocuments', profile.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_documents')
-        .select('*')
+      // Get student ID first
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
         .eq('profile_id', profile.id)
-        .order('uploaded_at', { ascending: false });
+        .maybeSingle();
+
+      if (studentError) throw studentError;
+      if (!studentData) return [];
+
+      const { data, error } = await supabase
+        .from('student_documents')
+        .select('*')
+        .eq('student_id', studentData.id)
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -81,16 +91,16 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
       if (!document) throw new Error('Document not found');
 
       // Delete from storage
-      const fileName = document.file_url.split('/').slice(-2).join('/');
+      const fileName = document.storage_path.split('/').slice(-2).join('/');
       const { error: storageError } = await supabase.storage
-        .from('user-documents')
+        .from('student-documents')
         .remove([fileName]);
 
       if (storageError) throw storageError;
 
       // Delete from database
       const { error: dbError } = await supabase
-        .from('user_documents')
+        .from('student_documents')
         .delete()
         .eq('id', documentId);
 
@@ -138,12 +148,21 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
     setIsUploading(true);
 
     try {
+      // Get student ID first
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
+
+      if (studentError) throw studentError;
+
       // Upload to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${profile.id}/${Date.now()}-${documentType}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('user-documents')
+        .from('student-documents')
         .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false,
@@ -153,16 +172,15 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
 
       // Get public URL
       const { data } = supabase.storage
-        .from('user-documents')
+        .from('student-documents')
         .getPublicUrl(fileName);
 
       // Save to database
-      const { error: dbError } = await supabase.from('user_documents').insert({
-        tenant_id: profile.tenant_id,
-        profile_id: profile.id,
+      const { error: dbError } = await supabase.from('student_documents').insert({
+        student_id: studentData.id,
         document_type: documentType,
-        document_name: file.name,
-        file_url: data.publicUrl,
+        file_name: file.name,
+        storage_path: fileName,
         file_size: file.size,
         mime_type: file.type,
       });
@@ -195,21 +213,20 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
 
   const handleDownload = async (document: any) => {
     try {
-      const fileName = document.file_url.split('/').slice(-2).join('/');
       const { data, error } = await supabase.storage
-        .from('user-documents')
-        .download(fileName);
+        .from('student-documents')
+        .download(document.storage_path);
 
       if (error) throw error;
 
       // Create download link
       const url = window.URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.document_name;
-      document.body.appendChild(a);
+      a.download = document.file_name;
+      window.document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
       toast({
@@ -297,7 +314,7 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
             <h3 className="font-semibold">Uploaded Documents</h3>
             {!documents || documents.length === 0 ? (
               <EmptyState
-                icon={FileText}
+                icon={<FileText />}
                 title="No documents uploaded"
                 description="Upload your first document to get started"
               />
@@ -311,14 +328,14 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       {getFileIcon(document.mime_type)}
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{document.document_name}</p>
+                        <p className="font-medium truncate">{document.file_name}</p>
                         <div className="flex gap-2 text-xs text-muted-foreground">
                           <span className="capitalize">{document.document_type}</span>
                           <span>•</span>
                           <span>{formatFileSize(document.file_size)}</span>
                           <span>•</span>
                           <span>
-                            {new Date(document.uploaded_at).toLocaleDateString()}
+                            {new Date(document.updated_at).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
@@ -353,7 +370,7 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Document</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{documentToDelete?.document_name}"? This
+              Are you sure you want to delete "{documentToDelete?.file_name}"? This
               action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

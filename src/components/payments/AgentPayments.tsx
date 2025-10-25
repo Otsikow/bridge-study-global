@@ -32,14 +32,16 @@ interface Commission {
   paid_at: string | null;
   approved_at: string | null;
   applications: {
-    program_name: string;
     students: {
       profiles: {
         full_name: string;
       };
     };
-    universities: {
+    programs: {
       name: string;
+      universities: {
+        name: string;
+      };
     };
   } | null;
 }
@@ -79,14 +81,16 @@ export function AgentPayments() {
         .select(`
           *,
           applications (
-            program_name,
             students (
               profiles (
                 full_name
               )
             ),
-            universities (
-              name
+            programs (
+              name,
+              universities (
+                name
+              )
             )
           )
         `)
@@ -476,10 +480,10 @@ export function AgentPayments() {
                           {commission.applications?.students?.profiles?.full_name || 'N/A'}
                         </TableCell>
                         <TableCell className="min-w-[200px]">
-                          {commission.applications?.program_name || 'N/A'}
+                          {commission.applications?.programs?.name || 'N/A'}
                         </TableCell>
                         <TableCell className="min-w-[200px]">
-                          {commission.applications?.universities?.name || 'N/A'}
+                          {commission.applications?.programs?.universities?.name || 'N/A'}
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge variant="outline">{commission.rate_percent}%</Badge>

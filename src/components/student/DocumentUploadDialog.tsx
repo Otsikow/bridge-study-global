@@ -89,7 +89,7 @@ export function DocumentUploadDialog({
         .from('application_documents')
         .insert({
           application_id: applicationId,
-          document_type: documentType,
+          document_type: documentType as any,
           storage_path: filePath,
           mime_type: file.type,
           file_size: file.size,

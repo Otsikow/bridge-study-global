@@ -20,9 +20,11 @@ interface Payment {
   application_id: string | null;
   stripe_payment_intent: string | null;
   applications?: {
-    program_name: string;
-    universities: {
+    programs: {
       name: string;
+      universities: {
+        name: string;
+      };
     };
   };
 }
@@ -72,9 +74,11 @@ export function StudentPayments() {
         .select(`
           *,
           applications (
-            program_name,
-            universities (
-              name
+            programs (
+              name,
+              universities (
+                name
+              )
             )
           )
         `)
@@ -258,10 +262,10 @@ export function StudentPayments() {
                       <TableCell className="min-w-[240px]">
                         <div>
                           <div className="font-medium">{getPurposeLabel(payment.purpose)}</div>
-                          {payment.applications && (
+                          {payment.applications?.programs && (
                             <div className="text-sm text-muted-foreground">
-                              {payment.applications.program_name} at{' '}
-                              {payment.applications.universities?.name}
+                              {payment.applications.programs.name} at{' '}
+                              {payment.applications.programs.universities?.name}
                             </div>
                           )}
                         </div>
