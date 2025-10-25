@@ -105,7 +105,7 @@ const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/Feed
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
 const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
-const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
+const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
 const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
 const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
@@ -215,7 +215,23 @@ const App = () => (
                     <Route
                       path="/student/payments"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/agent/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
                           <Payments />
                         </ProtectedRoute>
                       }
