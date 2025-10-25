@@ -14,7 +14,8 @@ import {
   UserCircle,
   Bell,
   LogOut,
-  TrendingUp
+  TrendingUp,
+  Search
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +40,7 @@ const menuItems = {
   student: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'My Profile', url: '/student/profile', icon: UserCircle },
+    { title: 'Discover Courses', url: '/courses', icon: Search },
     { title: 'Search Universities', url: '/search', icon: BookOpen },
     { title: 'My Applications', url: '/student/applications', icon: FileText },
     { title: 'Documents', url: '/student/documents', icon: Upload },
