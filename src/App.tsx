@@ -87,6 +87,7 @@ const ForgotPassword = lazyWithErrorHandling(() => import("./pages/auth/ForgotPa
 const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPassword"));
 const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
 const UniversitySearch = lazyWithErrorHandling(() => import("./pages/UniversitySearch"));
+const CourseDiscovery = lazyWithErrorHandling(() => import("./pages/CourseDiscovery"));
 const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
 const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
 const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
@@ -102,9 +103,11 @@ const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
 const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
 const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
 const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
@@ -138,6 +141,7 @@ const App = () => (
                     <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                     <Route path="/auth/reset-password" element={<ResetPassword />} />
                     <Route path="/search" element={<UniversitySearch />} />
+                    <Route path="/courses" element={<CourseDiscovery />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/blog" element={<Blog />} />
@@ -240,8 +244,30 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
-
-                    {/* Additional Features */}
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <ProfileSettings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/university/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
+                          <UniversityDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="/intake" element={<IntakeForm />} />
                     <Route path="/intake/:formId" element={<IntakeForm />} />
                     <Route path="/visa-calculator" element={<VisaCalculator />} />
@@ -259,14 +285,6 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="/university/dashboard"
-                      element={
-                        <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
-                          <UniversityDashboard />
                         </ProtectedRoute>
                       }
                     />

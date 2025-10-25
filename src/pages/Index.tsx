@@ -185,10 +185,10 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                 </Button>
               </Link>
-              <Link to="/search" className="flex-1 sm:flex-initial">
+              <Link to="/courses" className="flex-1 sm:flex-initial">
                 <Button size="lg" variant="outline" className="w-full text-base px-6 h-12 sm:h-14">
-                  <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
-                  Search Universities
+                  <Search className="mr-2 h-4 w-4 flex-shrink-0" />
+                  Discover Courses
                 </Button>
               </Link>
               <Link to="/visa-calculator" className="flex-1 sm:flex-initial">
