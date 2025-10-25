@@ -102,6 +102,7 @@ const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
 const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
 const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
@@ -258,6 +259,14 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <AdminDashboard />
                         </ProtectedRoute>
                       }
                     />
