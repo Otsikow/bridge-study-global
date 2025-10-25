@@ -27,10 +27,10 @@ const AppNavbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2 transition-transform duration-300 hover:scale-105">
           <img src={gegLogo} alt="GEG" className="h-8" />
         </Link>
 
@@ -38,25 +38,25 @@ const AppNavbar = () => {
         <nav className="hidden md:flex items-center gap-6">
           <Link
             to="/"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="text-sm font-medium transition-all duration-300 hover:text-primary hover:-translate-y-0.5"
           >
             Home
           </Link>
           <Link
             to="/search"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="text-sm font-medium transition-all duration-300 hover:text-primary hover:-translate-y-0.5"
           >
             Search
           </Link>
           <Link
             to="/blog"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="text-sm font-medium transition-all duration-300 hover:text-primary hover:-translate-y-0.5"
           >
             Blog
           </Link>
           <Link
             to="/contact"
-            className="text-sm font-medium transition-colors hover:text-primary"
+            className="text-sm font-medium transition-all duration-300 hover:text-primary hover:-translate-y-0.5"
           >
             Contact
           </Link>

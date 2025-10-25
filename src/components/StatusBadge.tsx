@@ -28,7 +28,7 @@ export const StatusBadge = ({ status, className }: StatusBadgeProps) => {
   const config = statusConfig[status] || { label: status, className: 'status-draft' };
   
   return (
-    <Badge className={cn(config.className, 'px-2 py-1', className)}>
+    <Badge className={cn(config.className, 'px-2 py-1 transition-all duration-200 hover:scale-105', className)}>
       {config.label}
     </Badge>
   );

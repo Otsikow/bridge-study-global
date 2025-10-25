@@ -253,21 +253,21 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="absolute inset-0 bg-grid-white/5" />
         <div className="container relative mx-auto px-4 py-24 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
-            <Sparkles className="h-4 w-4" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6 animate-fade-in-down">
+            <Sparkles className="h-4 w-4 animate-pulse-subtle" />
             <span>Trusted by 5000+ students worldwide</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
+          <h1 className="text-5xl font-bold mb-4 animate-fade-in-up">
             Your Gateway to{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
               Global Education
             </span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up animate-delay-100">
             Connect with top universities, track applications in real-time, and
             receive expert guidance from verified agents.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4 animate-fade-in-up animate-delay-200">
             <Link to="/auth/signup">
               <Button size="lg">
                 <FileCheck className="mr-2 h-5 w-5" />
@@ -287,9 +287,13 @@ const Index = () => {
       {/* Stats Section */}
       <section className="container mx-auto px-4 py-16 grid grid-cols-2 md:grid-cols-4 gap-6">
         {stats.map((s, i) => (
-          <Card key={i} className="text-center hover:shadow-lg transition">
+          <Card 
+            key={i} 
+            className="text-center hover:shadow-lg transition-all animate-fade-in-up"
+            style={{ animationDelay: `${i * 100}ms` }}
+          >
             <CardContent className="p-6">
-              <s.icon className="h-8 w-8 mx-auto mb-3 text-primary" />
+              <s.icon className="h-8 w-8 mx-auto mb-3 text-primary transition-transform duration-300 hover:scale-110" />
               <div className="text-3xl font-bold text-primary">{s.value}</div>
               <div className="text-muted-foreground">{s.label}</div>
             </CardContent>
@@ -299,22 +303,23 @@ const Index = () => {
 
       {/* Features */}
       <section className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold text-center mb-12">
+        <h2 className="text-4xl font-bold text-center mb-12 animate-fade-in-down">
           Why Choose GEG?
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((f, i) => (
             <Card
               key={i}
-              className="relative overflow-hidden group hover:shadow-2xl transition"
+              className="relative overflow-hidden group hover:shadow-2xl transition-all animate-fade-in-up"
+              style={{ animationDelay: `${i * 150}ms` }}
             >
               <CardContent className="p-8">
                 <div
-                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}
+                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
                 >
                   <f.icon className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                <h3 className="text-2xl font-bold mb-2 group-hover:text-primary transition-colors duration-300">{f.title}</h3>
                 <p className="text-muted-foreground">{f.description}</p>
               </CardContent>
             </Card>
@@ -332,12 +337,12 @@ const Index = () => {
                 i % 2 === 1 ? "md:flex-row-reverse" : ""
               }`}
             >
-              <div>
+              <div className={i % 2 === 0 ? "animate-fade-in-left" : "animate-fade-in-right"}>
                 <div className="text-8xl text-primary/10 font-bold absolute">
                   {step.step}
                 </div>
                 <div className="relative z-10">
-                  <div className="inline-flex p-4 bg-primary/10 rounded-2xl mb-6">
+                  <div className="inline-flex p-4 bg-primary/10 rounded-2xl mb-6 transition-all duration-300 hover:scale-110 hover:bg-primary/20">
                     <step.icon className="h-10 w-10 text-primary" />
                   </div>
                   <h3 className="text-3xl font-bold mb-4">{step.title}</h3>
@@ -349,11 +354,11 @@ const Index = () => {
                   </Link>
                 </div>
               </div>
-              <div>
+              <div className={i % 2 === 0 ? "animate-fade-in-right" : "animate-fade-in-left"}>
                 <img
                   src={step.image}
                   alt={step.title}
-                  className="rounded-2xl shadow-xl"
+                  className="rounded-2xl shadow-xl transition-transform duration-500 hover:scale-105"
                 />
               </div>
             </div>
@@ -363,16 +368,20 @@ const Index = () => {
 
       {/* Testimonials */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-4xl font-bold mb-12">Success Stories</h2>
-        <Card className="max-w-3xl mx-auto border-2 shadow-xl">
+        <h2 className="text-4xl font-bold mb-12 animate-fade-in-down">Success Stories</h2>
+        <Card className="max-w-3xl mx-auto border-2 shadow-xl animate-scale-in transition-all duration-300 hover:shadow-2xl">
           <CardContent className="p-10">
-            <Quote className="h-10 w-10 text-primary/20 mb-6 mx-auto" />
+            <Quote className="h-10 w-10 text-primary/20 mb-6 mx-auto animate-bounce-subtle" />
             <p className="italic text-xl mb-6">
               "{testimonials[currentTestimonial].quote}"
             </p>
             <div className="flex justify-center gap-1 mb-6">
               {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-primary text-primary" />
+                <Star 
+                  key={i} 
+                  className="h-5 w-5 fill-primary text-primary transition-transform duration-300 hover:scale-125" 
+                  style={{ animationDelay: `${i * 100}ms` }}
+                />
               ))}
             </div>
             <div className="text-lg font-bold">
@@ -385,10 +394,10 @@ const Index = () => {
           </CardContent>
         </Card>
         <div className="flex justify-center gap-4 mt-8">
-          <Button variant="ghost" size="icon" onClick={prevTestimonial}>
+          <Button variant="ghost" size="icon" onClick={prevTestimonial} className="hover:scale-110">
             <ChevronLeft className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={nextTestimonial}>
+          <Button variant="ghost" size="icon" onClick={nextTestimonial} className="hover:scale-110">
             <ChevronRight className="h-6 w-6" />
           </Button>
         </div>

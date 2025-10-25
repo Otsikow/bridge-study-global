@@ -45,11 +45,11 @@ export function CourseCard({ course }: CourseCardProps) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+    <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col animate-fade-in-up hover:scale-[1.01]">
       <CardContent className="pt-6 pb-4 flex-1">
         {/* University Header */}
         <div className="flex items-start gap-3 mb-4">
-          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border">
+          <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 overflow-hidden border transition-transform duration-300 group-hover:scale-110">
             {course.university_logo_url ? (
               <img 
                 src={course.university_logo_url} 
@@ -74,7 +74,7 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
 
         {/* Course Title */}
-        <h2 className="text-lg font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
+        <h2 className="text-lg font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors duration-300">
           {course.name}
         </h2>
 

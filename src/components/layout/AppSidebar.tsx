@@ -133,8 +133,12 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {items.map((item, index) => (
+                <SidebarMenuItem 
+                  key={item.title}
+                  className="animate-fade-in-left"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                   <SidebarMenuButton
                     asChild
                     tooltip={state === "collapsed" ? item.title : undefined}
@@ -144,16 +148,16 @@ export function AppSidebar() {
                       end={item.url === "/dashboard"}
                       className={({ isActive }) =>
                         isActive
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
-                          : "hover:bg-accent transition-colors"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-all duration-200 hover:shadow-md"
+                          : "hover:bg-accent transition-all duration-200 hover:translate-x-1"
                       }
                     >
                       <div className="relative">
-                        <item.icon className="h-4 w-4 flex-shrink-0" />
+                        <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
                         {item.title === "Notifications" && unreadCount > 0 && (
                           <Badge
                             variant="destructive"
-                            className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px]"
+                            className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] animate-pulse"
                           >
                             {unreadCount > 9 ? "9+" : unreadCount}
                           </Badge>
@@ -165,7 +169,7 @@ export function AppSidebar() {
                           {item.title === "Notifications" && unreadCount > 0 && (
                             <Badge
                               variant="destructive"
-                              className="ml-auto h-5 w-5 flex items-center justify-center text-[10px]"
+                              className="ml-auto h-5 w-5 flex items-center justify-center text-[10px] animate-pulse"
                             >
                               {unreadCount > 9 ? "9+" : unreadCount}
                             </Badge>
