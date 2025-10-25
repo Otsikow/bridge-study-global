@@ -39,7 +39,8 @@ const menuItems = {
   student: [
     { title: 'Dashboard', url: '/dashboard', icon: Home },
     { title: 'My Profile', url: '/student/profile', icon: UserCircle },
-    { title: 'Search Universities', url: '/search', icon: BookOpen },
+    { title: 'Universities', url: '/universities', icon: Building2 },
+    { title: 'Search Programs', url: '/search', icon: BookOpen },
     { title: 'My Applications', url: '/student/applications', icon: FileText },
     { title: 'Documents', url: '/student/documents', icon: Upload },
     { title: 'Messages', url: '/student/messages', icon: MessageSquare },

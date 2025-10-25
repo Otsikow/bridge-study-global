@@ -130,6 +130,11 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4 flex-shrink-0">
               <ThemeToggle />
+              <Link to="/universities" className="hidden sm:inline-block">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Universities
+                </Button>
+              </Link>
               <Link to="/feedback" className="hidden sm:inline-block">
                 <Button variant="ghost" size="sm" className="hidden md:inline-flex">
                   Feedback
@@ -185,10 +190,10 @@ const Index = () => {
                   <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                 </Button>
               </Link>
-              <Link to="/search" className="flex-1 sm:flex-initial">
+              <Link to="/universities" className="flex-1 sm:flex-initial">
                 <Button size="lg" variant="outline" className="w-full text-base px-6 h-12 sm:h-14">
                   <BookOpen className="mr-2 h-4 w-4 flex-shrink-0" />
-                  Search Universities
+                  Browse Universities
                 </Button>
               </Link>
               <Link to="/visa-calculator" className="flex-1 sm:flex-initial">

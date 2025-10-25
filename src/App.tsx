@@ -87,6 +87,8 @@ const ForgotPassword = lazyWithErrorHandling(() => import("./pages/auth/ForgotPa
 const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPassword"));
 const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
 const UniversitySearch = lazyWithErrorHandling(() => import("./pages/UniversitySearch"));
+const UniversityDirectory = lazyWithErrorHandling(() => import("./pages/UniversityDirectory"));
+const UniversityProfile = lazyWithErrorHandling(() => import("./pages/UniversityProfile"));
 const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
 const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
 const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
@@ -137,6 +139,8 @@ const App = () => (
                     <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                     <Route path="/auth/reset-password" element={<ResetPassword />} />
                     <Route path="/search" element={<UniversitySearch />} />
+                    <Route path="/universities" element={<UniversityDirectory />} />
+                    <Route path="/universities/:id" element={<UniversityProfile />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/faq" element={<FAQ />} />
                     <Route path="/blog" element={<Blog />} />
