@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 
-type SignupRole = 'student' | 'agent' | 'staff';
+type SignupRole = 'student' | 'agent' | 'partner' | 'admin' | 'staff';
 
 interface Profile {
   id: string;
@@ -20,6 +20,8 @@ interface Profile {
     | 'school_rep';
   full_name: string;
   email: string;
+  phone?: string;
+  country?: string;
   avatar_url?: string;
   onboarded: boolean;
 }
@@ -34,7 +36,9 @@ interface AuthContextType {
     email: string,
     password: string,
     fullName: string,
-    role?: SignupRole
+    role?: SignupRole,
+    phone?: string,
+    country?: string
   ) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -139,6 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: user.email || '',
         full_name: user.user_metadata?.full_name || 'User',
         role: user.user_metadata?.role || 'student',
+        phone: user.user_metadata?.phone || '',
+        country: user.user_metadata?.country || '',
         onboarded: false,
       });
 
@@ -239,7 +245,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     email: string,
     password: string,
     fullName: string,
-    role: SignupRole = 'student'
+    role: SignupRole = 'student',
+    phone?: string,
+    country?: string
   ) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
@@ -252,6 +260,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             full_name: fullName,
             role,
+            phone: phone || '',
+            country: country || '',
           },
         },
       });

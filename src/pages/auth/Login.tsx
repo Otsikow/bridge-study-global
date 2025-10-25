@@ -52,11 +52,13 @@ const Login = () => {
     } else {
       toast({
         title: 'Welcome back!',
-        description: 'Successfully logged in. Redirecting to dashboard...',
+        description: 'Successfully logged in. Redirecting...',
       });
+      // Role-based redirect will be handled by useAuth hook
+      // Just wait a moment for the profile to load
       setTimeout(() => {
         navigate('/dashboard');
-      }, 1000);
+      }, 1500);
     }
   };
 
