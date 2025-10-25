@@ -105,6 +105,7 @@ const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"))
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // ✅ Main App component
@@ -258,6 +259,14 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/university/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
+                          <UniversityDashboard />
                         </ProtectedRoute>
                       }
                     />
