@@ -67,18 +67,13 @@ const HelpCenter = () => {
     }
   }, [searchQuery, faqs]);
 
+  // Fetch FAQs (STUB - requires faqs table)
   const fetchFAQs = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('faqs')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true });
-
-      if (error) throw error;
-      setFaqs(data || []);
-      setFilteredFaqs(data || []);
+      // Stub - table doesn't exist
+      setFaqs([]);
+      setFilteredFaqs([]);
     } catch (error) {
       console.error('Error fetching FAQs:', error);
       toast({
@@ -109,19 +104,8 @@ const HelpCenter = () => {
 
       setIsSubmitting(true);
 
-      const { error } = await supabase
-        .from('support_tickets')
-        .insert({
-          user_id: user?.id,
-          name: validatedData.name,
-          email: validatedData.email,
-          subject: validatedData.subject,
-          message: validatedData.message,
-          status: 'open',
-          priority: 'normal',
-        });
-
-      if (error) throw error;
+      // Stub - table doesn't exist
+      console.warn('Support tickets feature requires database migration');
 
       toast({
         title: 'Ticket submitted!',

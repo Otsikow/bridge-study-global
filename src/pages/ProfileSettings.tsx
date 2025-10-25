@@ -62,7 +62,7 @@ const ProfileSettings = () => {
         .from('applications')
         .select('id, status')
         .eq('student_id', roleData.data.id)
-        .in('status', ['submitted', 'under_review', 'accepted']);
+        .in('status', ['submitted', 'screening', 'enrolled']);
 
       if (error) throw error;
       return data;
@@ -90,7 +90,7 @@ const ProfileSettings = () => {
   // Calculate profile completion percentage
   useEffect(() => {
     if (profile && roleData) {
-      const percentage = calculateProfileCompletion(profile, roleData);
+      const percentage = calculateProfileCompletion(profile, roleData as any);
       setCompletionPercentage(percentage);
     }
   }, [profile, roleData]);
@@ -101,7 +101,7 @@ const ProfileSettings = () => {
         <AppNavbar />
         <div className="container mx-auto py-8">
           <EmptyState
-            icon={User}
+            icon={<User />}
             title="Not Authenticated"
             description="Please log in to access your profile settings."
           />
@@ -162,7 +162,7 @@ const ProfileSettings = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Referral Code:</span>
-                    <p className="font-mono font-bold">{roleData.data.referral_code || 'Not assigned'}</p>
+                    <p className="font-mono font-bold">{(roleData.data as any).referral_code || 'Not assigned'}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Total Referrals:</span>

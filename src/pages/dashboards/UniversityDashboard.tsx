@@ -386,7 +386,7 @@ export default function UniversityDashboard() {
       <DashboardLayout>
         <div className="p-8">
           <EmptyState 
-            icon={Building2}
+            icon={<Building2 />}
             title="No University Found"
             description="Unable to load university information"
           />
@@ -496,7 +496,7 @@ export default function UniversityDashboard() {
                 </ResponsiveContainer>
               ) : (
                 <EmptyState 
-                  icon={FileText}
+                  icon={<FileText />}
                   title="No Data"
                   description="No applications yet"
                 />
@@ -648,7 +648,7 @@ export default function UniversityDashboard() {
                   </div>
                 ) : (
                   <EmptyState 
-                    icon={FileText}
+                    icon={<FileText />}
                     title="No Applications"
                     description="No applications match your filters"
                   />
@@ -854,17 +854,17 @@ export default function UniversityDashboard() {
                     </Table>
                   </div>
                 ) : (
-                  <EmptyState 
-                    icon={Building2}
-                    title="No Courses"
-                    description="Add your first course to get started"
-                    action={
-                      <Button onClick={() => setIsAddCourseOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Course
-                      </Button>
-                    }
-                  />
+                  <div className="text-center py-12">
+                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-semibold mb-2">No Courses</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Add your first course to get started
+                    </p>
+                    <Button onClick={() => setIsAddCourseOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Course
+                    </Button>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -917,7 +917,7 @@ export default function UniversityDashboard() {
                   </div>
                 ) : (
                   <EmptyState 
-                    icon={Users}
+                    icon={<Users />}
                     title="No Agents"
                     description="No agents are currently connected to your university"
                   />

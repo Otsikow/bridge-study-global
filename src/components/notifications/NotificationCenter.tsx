@@ -37,7 +37,7 @@ export function NotificationCenter() {
   const [filter, setFilter] = useState<FilterType>('all');
   const navigate = useNavigate();
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'application_status': return FileText;
       case 'message': return MessageSquare;
@@ -47,7 +47,7 @@ export function NotificationCenter() {
     }
   };
 
-  const getNotificationColor = (type: NotificationType) => {
+  const getNotificationColor = (type: string) => {
     switch (type) {
       case 'application_status': return 'text-blue-600 dark:text-blue-400';
       case 'message': return 'text-purple-600 dark:text-purple-400';
@@ -57,7 +57,7 @@ export function NotificationCenter() {
     }
   };
 
-  const getTypeLabel = (type: NotificationType) => {
+  const getTypeLabel = (type: string) => {
     switch (type) {
       case 'application_status': return 'Application';
       case 'message': return 'Message';

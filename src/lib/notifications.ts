@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface CreateNotificationParams {
   userId: string;
   tenantId: string;
-  type: 'application_status' | 'message' | 'commission' | 'course_recommendation' | 'general';
+  type: string;
   title: string;
   content: string;
   metadata?: Record<string, any>;
@@ -11,37 +11,21 @@ export interface CreateNotificationParams {
 }
 
 /**
- * Create a custom notification for a user
- * 
- * @example
- * ```typescript
- * await createNotification({
- *   userId: user.id,
- *   tenantId: tenant.id,
- *   type: 'general',
- *   title: 'Welcome!',
- *   content: 'Welcome to the platform!',
- *   actionUrl: '/dashboard'
- * });
- * ```
+ * Create a custom notification using the database function
  */
 export async function createNotification(params: CreateNotificationParams) {
   const { userId, tenantId, type, title, content, metadata = {}, actionUrl } = params;
 
   try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert({
-        user_id: userId,
-        tenant_id: tenantId,
-        type,
-        title,
-        content,
-        metadata,
-        action_url: actionUrl,
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_notification', {
+      p_tenant_id: tenantId,
+      p_user_id: userId,
+      p_type: type,
+      p_title: title,
+      p_content: content,
+      p_metadata: metadata,
+      p_action_url: actionUrl,
+    });
 
     if (error) throw error;
 
@@ -54,16 +38,6 @@ export async function createNotification(params: CreateNotificationParams) {
 
 /**
  * Send a course recommendation notification to a student
- * This calls the database function that handles all the logic
- * 
- * @example
- * ```typescript
- * await sendCourseRecommendation(
- *   'student-uuid',
- *   'program-uuid',
- *   'This program matches your academic profile'
- * );
- * ```
  */
 export async function sendCourseRecommendation(
   studentId: string,
@@ -87,14 +61,13 @@ export async function sendCourseRecommendation(
 }
 
 /**
- * Mark a notification as read
+ * Mark a notification as read using the database function
  */
 export async function markNotificationAsRead(notificationId: string) {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', notificationId);
+    const { data, error } = await supabase.rpc('mark_notification_read', {
+      p_notification_id: notificationId
+    });
 
     if (error) throw error;
 
@@ -110,11 +83,9 @@ export async function markNotificationAsRead(notificationId: string) {
  */
 export async function markAllNotificationsAsRead(userId: string) {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('user_id', userId)
-      .eq('read', false);
+    const { data, error } = await supabase.rpc('mark_all_notifications_read', {
+      p_user_id: userId
+    });
 
     if (error) throw error;
 
@@ -149,15 +120,15 @@ export async function deleteNotification(notificationId: string) {
  */
 export async function getUnreadCount(userId: string): Promise<number> {
   try {
-    const { count, error } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('id')
       .eq('user_id', userId)
-      .eq('read', false);
+      .is('read_at', null);
 
     if (error) throw error;
 
-    return count || 0;
+    return data?.length || 0;
   } catch (error) {
     console.error('Error getting unread count:', error);
     return 0;

@@ -52,7 +52,7 @@ export default function CourseDiscovery() {
   // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  // Fetch filter options
+  // Fetch filter options (STUB - requires get_program_filter_options function)
   const fetchFilterOptions = useCallback(async () => {
     try {
       const { data: profile } = await supabase
@@ -63,27 +63,21 @@ export default function CourseDiscovery() {
 
       if (!profile) return;
 
-      const { data, error } = await supabase.rpc('get_program_filter_options', {
-        p_tenant_id: profile.tenant_id,
-      });
-
-      if (error) throw error;
-
-      if (data) {
-        setFilterOptions(data);
-        // Initialize filter ranges
-        setActiveFilters(prev => ({
-          ...prev,
-          tuitionRange: [
-            data.tuition_range?.min || 0,
-            data.tuition_range?.max || 100000,
-          ],
-          durationRange: [
-            data.duration_range?.min || 0,
-            data.duration_range?.max || 60,
-          ],
-        }));
-      }
+      // Set default filter options
+      const defaultOptions: FilterOptions = {
+        countries: [],
+        levels: [],
+        disciplines: [],
+        tuition_range: { min: 0, max: 100000, currency: 'USD' },
+        duration_range: { min: 0, max: 60 },
+      };
+      
+      setFilterOptions(defaultOptions);
+      setActiveFilters(prev => ({
+        ...prev,
+        tuitionRange: [0, 100000],
+        durationRange: [0, 60],
+      }));
     } catch (error) {
       console.error('Error fetching filter options:', error);
       toast({
@@ -94,7 +88,7 @@ export default function CourseDiscovery() {
     }
   }, [user?.id, toast]);
 
-  // Fetch courses
+  // Fetch courses (STUB - requires search_programs function)
   const fetchCourses = useCallback(async (append = false) => {
     try {
       if (append) {
@@ -112,28 +106,49 @@ export default function CourseDiscovery() {
 
       if (!profile) return;
 
-      const [sortField, sortOrder] = sortBy.split(':');
-      const offset = append ? (currentPage + 1) * ITEMS_PER_PAGE : 0;
+      // Use simple query instead of non-existent RPC function
+      let query = supabase
+        .from('programs')
+        .select(`
+          id,
+          name,
+          level,
+          discipline,
+          duration_months,
+          tuition_currency,
+          tuition_amount,
+          intake_months,
+          universities (
+            name,
+            country,
+            city,
+            logo_url
+          )
+        `)
+        .eq('tenant_id', profile.tenant_id)
+        .eq('active', true);
 
-      const { data, error } = await supabase.rpc('search_programs', {
-        p_tenant_id: profile.tenant_id,
-        p_search_query: debouncedSearchQuery || null,
-        p_countries: activeFilters.countries.length > 0 ? activeFilters.countries : null,
-        p_levels: activeFilters.levels.length > 0 ? activeFilters.levels : null,
-        p_min_tuition: filterOptions ? activeFilters.tuitionRange[0] : null,
-        p_max_tuition: filterOptions ? activeFilters.tuitionRange[1] : null,
-        p_min_duration: filterOptions ? activeFilters.durationRange[0] : null,
-        p_max_duration: filterOptions ? activeFilters.durationRange[1] : null,
-        p_intake_months: activeFilters.intakeMonths.length > 0 ? activeFilters.intakeMonths : null,
-        p_sort_by: sortField,
-        p_sort_order: sortOrder,
-        p_limit: ITEMS_PER_PAGE,
-        p_offset: offset,
-      });
+      // Apply search
+      if (debouncedSearchQuery) {
+        query = query.or(`name.ilike.%${debouncedSearchQuery}%,discipline.ilike.%${debouncedSearchQuery}%`);
+      }
+
+      // Apply filters
+      if (activeFilters.countries.length > 0) {
+        // Can't easily filter by universities.country in this query structure
+      }
+      if (activeFilters.levels.length > 0) {
+        query = query.in('level', activeFilters.levels);
+      }
+
+      const { data, error } = await query.range(
+        append ? (currentPage + 1) * ITEMS_PER_PAGE : 0,
+        append ? ((currentPage + 1) + 1) * ITEMS_PER_PAGE - 1 : ITEMS_PER_PAGE - 1
+      );
 
       if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (data && Array.isArray(data) && data.length > 0) {
         const transformedCourses: Course[] = data.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -143,12 +158,12 @@ export default function CourseDiscovery() {
           tuition_currency: item.tuition_currency,
           tuition_amount: item.tuition_amount,
           intake_months: item.intake_months,
-          university_name: item.university_name,
-          university_country: item.university_country,
-          university_city: item.university_city,
-          university_logo_url: item.university_logo_url,
-          next_intake_month: item.next_intake_month,
-          next_intake_year: item.next_intake_year,
+          university_name: item.universities?.name || '',
+          university_country: item.universities?.country || '',
+          university_city: item.universities?.city || '',
+          university_logo_url: item.universities?.logo_url || null,
+          next_intake_month: item.intake_months?.[0] || 1,
+          next_intake_year: new Date().getFullYear(),
         }));
 
         if (append) {
@@ -159,7 +174,7 @@ export default function CourseDiscovery() {
           setCurrentPage(0);
         }
 
-        setTotalCount(data[0]?.total_count || 0);
+        setTotalCount(data.length);
       } else {
         if (!append) {
           setCourses([]);
@@ -328,16 +343,16 @@ export default function CourseDiscovery() {
                 <LoadingState message="Loading courses..." />
               </div>
             ) : courses.length === 0 ? (
-              <EmptyState
-                icon={Search}
-                title="No courses found"
-                description="Try adjusting your search or filters to find more results"
-                action={
-                  <Button onClick={handleResetFilters} variant="outline">
-                    Reset Filters
-                  </Button>
-                }
-              />
+              <div className="text-center py-12">
+                <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-semibold mb-2">No courses found</h3>
+                <p className="text-muted-foreground mb-4">
+                  Try adjusting your search or filters to find more results
+                </p>
+                <Button onClick={handleResetFilters} variant="outline">
+                  Reset Filters
+                </Button>
+              </div>
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

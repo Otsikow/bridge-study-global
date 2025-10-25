@@ -153,7 +153,7 @@ export default function ApplicationTracking() {
 
         const existingTypes = existingDocs?.map((d) => d.document_type) || [];
         const missing = REQUIRED_DOCUMENTS.filter(
-          (doc) => !existingTypes.includes(doc.type)
+          (doc) => !existingTypes.includes(doc.type as any)
         );
 
         if (missing.length > 0) {
