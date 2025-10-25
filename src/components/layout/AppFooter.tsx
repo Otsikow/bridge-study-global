@@ -11,6 +11,7 @@ import {
   Shield,
   FileText,
   Newspaper,
+  HelpCircle,
 } from 'lucide-react';
 
 export function AppFooter() {
@@ -94,6 +95,15 @@ export function AppFooter() {
           <div>
             <h3 className="text-sm font-semibold mb-4">Support</h3>
             <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  to="/help"
+                  className="inline-flex items-center gap-2 hover:underline"
+                >
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  Help Center
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/contact"
