@@ -293,13 +293,21 @@ export default function ApplicationTrackingSystem() {
             </CardDescription>
           </div>
         </div>
-        <Button asChild size="sm" className="hover-scale flex-shrink-0">
-          <Link to="/student/applications/new">
-            <Plus className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">New Application</span>
-            <span className="sm:hidden">New</span>
-          </Link>
-        </Button>
+        <div className="flex gap-2 flex-shrink-0">
+          <Button asChild variant="outline" size="sm" className="hover-scale">
+            <Link to="/student/application-tracking">
+              <ArrowUpRight className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Full View</span>
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="hover-scale">
+            <Link to="/student/applications/new">
+              <Plus className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">New Application</span>
+              <span className="sm:hidden">New</span>
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-4 flex-1 px-4 sm:px-6">
