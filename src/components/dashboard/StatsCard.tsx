@@ -14,17 +14,17 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, icon: Icon, description, trend }: StatsCardProps) {
   return (
-    <Card className="hover:shadow-lg">
+    <Card className="hover:shadow-lg animate-fade-in-up">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:scale-110" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold transition-colors duration-200">{value}</div>
         {(description || trend) && (
           <div className="flex items-center gap-2 mt-1">
             {trend && (
-              <span className={trend.isPositive ? 'text-success' : 'text-destructive'}>
+              <span className={`transition-all duration-300 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
                 {trend.isPositive ? '+' : ''}{trend.value}%
               </span>
             )}
