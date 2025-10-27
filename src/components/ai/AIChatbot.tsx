@@ -229,19 +229,12 @@ export default function AIChatbot() {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
       const filePath = `chat-uploads/${session.user.id}/${fileName}`;
 
-      console.log("Uploading chat attachment:", {
-        bucket: "public",
-        path: filePath,
-        fileName: file.name,
-        size: file.size,
-        type: file.type,
-      });
-
-      const { data: uploadData, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("public")
         .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
       if (error) throw error;
+
       const { data } = supabase.storage.from("public").getPublicUrl(filePath);
       if (!data?.publicUrl) throw new Error("Failed to get public URL");
 
