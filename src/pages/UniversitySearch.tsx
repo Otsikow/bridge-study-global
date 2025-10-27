@@ -21,12 +21,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { useAIRecommendations } from "@/hooks/useAIRecommendations";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import BackButton from "@/components/BackButton";
 import ProgramRecommendations from "@/components/ai/ProgramRecommendations";
 import SoPGenerator from "@/components/ai/SoPGenerator";
 import InterviewPractice from "@/components/ai/InterviewPractice";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BackButton from "@/components/BackButton";
 import {
   Search,
   GraduationCap,
@@ -124,16 +123,21 @@ export default function UniversitySearch() {
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("search");
 
-  const { recommendations } = useAIRecommendations();
-
+  // Load filter options
   useEffect(() => {
     loadFilterOptions();
   }, []);
 
   const loadFilterOptions = async () => {
     try {
-      const { data: universities } = await supabase.from("universities").select("country").eq("active", true);
-      const { data: programs } = await supabase.from("programs").select("level, discipline").eq("active", true);
+      const { data: universities } = await supabase
+        .from("universities")
+        .select("country")
+        .eq("active", true);
+      const { data: programs } = await supabase
+        .from("programs")
+        .select("level, discipline")
+        .eq("active", true);
 
       if (universities)
         setCountries([...new Set(universities.map((u) => u.country))].sort());
@@ -217,8 +221,8 @@ export default function UniversitySearch() {
             <TabsTrigger value="interview"><MessageSquare className="mr-2 h-4 w-4" />Interview Practice</TabsTrigger>
           </TabsList>
 
+          {/* SEARCH TAB */}
           <TabsContent value="search" className="space-y-6">
-            {/* Filters */}
             <Card>
               <CardHeader>
                 <CardTitle>Search Filters</CardTitle>
@@ -314,19 +318,33 @@ export default function UniversitySearch() {
               {loading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <Card key={i}><CardHeader><Skeleton className="h-8 w-64" /><Skeleton className="h-4 w-32" /></CardHeader><CardContent><Skeleton className="h-20 w-full" /></CardContent></Card>
+                    <Card key={i}>
+                      <CardHeader>
+                        <Skeleton className="h-8 w-64" />
+                        <Skeleton className="h-4 w-32" />
+                      </CardHeader>
+                      <CardContent>
+                        <Skeleton className="h-20 w-full" />
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               ) : results.length === 0 ? (
-                <Card><CardContent className="py-12 text-center text-muted-foreground">
-                  No universities found. Try adjusting your filters.
-                </CardContent></Card>
+                <Card>
+                  <CardContent className="py-12 text-center text-muted-foreground">
+                    No universities found. Try adjusting your filters.
+                  </CardContent>
+                </Card>
               ) : (
                 results.map((r) => (
                   <Card key={r.university.id} className="hover:shadow-lg transition overflow-hidden">
                     <div className="flex flex-col md:flex-row">
                       <div className="md:w-64 h-48 md:h-auto bg-muted flex-shrink-0">
-                        <img src={getUniversityVisual(r.university.name, r.university.logo_url)} alt={r.university.name} className="w-full h-full object-cover" />
+                        <img
+                          src={getUniversityVisual(r.university.name, r.university.logo_url)}
+                          alt={r.university.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="flex-1">
                         <CardHeader>
@@ -387,7 +405,10 @@ export default function UniversitySearch() {
                               </h4>
                               <div className="space-y-1">
                                 {r.scholarships.slice(0, 3).map((s) => (
-                                  <div key={s.id} className="text-sm flex items-center justify-between p-2 rounded-md bg-muted/30">
+                                  <div
+                                    key={s.id}
+                                    className="text-sm flex items-center justify-between p-2 rounded-md bg-muted/30"
+                                  >
                                     <span>{s.name}</span>
                                     {s.amount_cents ? (
                                       <Badge variant="secondary" className="text-xs">
@@ -409,10 +430,23 @@ export default function UniversitySearch() {
                             </div>
                           )}
 
-                          {/* Actions */}
                           <div className="flex gap-2 pt-4">
                             <Button asChild className="flex-1">
                               <Link to={`/search/${r.university.id}`}>View Details</Link>
                             </Button>
-                            <Button variant="outline" asChild>
-                              <a href
+                            {r.university.website && (
+                              <Button variant="outline" asChild>
+                                <a href={r.university.website} target="_blank" rel="noopener noreferrer">
+                                  Visit Site
+                                </a>
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent
