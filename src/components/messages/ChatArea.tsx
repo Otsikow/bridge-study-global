@@ -2,12 +2,13 @@ import { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { format, isToday, isYesterday } from 'date-fns';
+import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { MessageInput } from './MessageInput';
 import type { Message, TypingIndicator, Conversation } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
+import type { UserPresence } from '@/hooks/usePresence';
 
 interface ChatAreaProps {
   conversation: Conversation | null;
@@ -17,6 +18,8 @@ interface ChatAreaProps {
   onSendMessage: (content: string) => void;
   onStartTyping: () => void;
   onStopTyping: () => void;
+  getUserPresence?: (userId: string) => UserPresence | null;
+  isUserOnline?: (userId: string) => boolean;
 }
 
 export function ChatArea({
@@ -26,7 +29,9 @@ export function ChatArea({
   loading,
   onSendMessage,
   onStartTyping,
-  onStopTyping
+  onStopTyping,
+  getUserPresence,
+  isUserOnline
 }: ChatAreaProps) {
   const { user } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -59,10 +64,46 @@ export function ChatArea({
     return otherParticipant?.profile?.avatar_url || null;
   };
 
-  const getOnlineStatus = () => {
-    // This would be connected to user_presence table
-    // For now, just return offline
-    return 'offline';
+  const getPresenceDetails = () => {
+    if (!conversation || !user?.id) {
+      return { label: 'Offline', indicator: 'bg-gray-400' };
+    }
+
+    const otherParticipant = conversation.participants?.find(
+      (participant) => participant.user_id !== user.id
+    );
+
+    if (!otherParticipant) {
+      return { label: 'Offline', indicator: 'bg-gray-400' };
+    }
+
+    if (isUserOnline && isUserOnline(otherParticipant.user_id)) {
+      return { label: 'Online', indicator: 'bg-green-500' };
+    }
+
+    const presence = getUserPresence?.(otherParticipant.user_id);
+
+    if (!presence) {
+      return { label: 'Offline', indicator: 'bg-gray-400' };
+    }
+
+    if (presence.status === 'online') {
+      return { label: 'Online', indicator: 'bg-green-500' };
+    }
+
+    if (presence.status === 'away') {
+      return { label: 'Away', indicator: 'bg-amber-500' };
+    }
+
+    const lastSeen = presence.last_seen || presence.updated_at;
+    if (!lastSeen) {
+      return { label: 'Offline', indicator: 'bg-gray-400' };
+    }
+
+    return {
+      label: `Last seen ${formatDistanceToNow(new Date(lastSeen), { addSuffix: true })}`,
+      indicator: 'bg-gray-400',
+    };
   };
 
   const getInitials = (name: string) => {
@@ -123,7 +164,7 @@ export function ChatArea({
 
   const conversationName = getConversationName();
   const avatarUrl = getConversationAvatar();
-  const onlineStatus = getOnlineStatus();
+  const presenceDetails = getPresenceDetails();
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -139,10 +180,10 @@ export function ChatArea({
             <span
               className={cn(
                 'inline-block w-2 h-2 rounded-full',
-                onlineStatus === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                presenceDetails.indicator
               )}
             />
-            {onlineStatus === 'online' ? 'Online' : 'Offline'}
+            {presenceDetails.label}
           </p>
         </div>
       </div>
@@ -228,13 +269,28 @@ export function ChatArea({
             {typingUsers.length > 0 && (
               <div className="flex gap-2 items-end mt-4">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback>...</AvatarFallback>
+                  <AvatarFallback>•••</AvatarFallback>
                 </Avatar>
                 <div className="bg-muted rounded-2xl px-4 py-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-2">
+                    {typingUsers
+                      .map((indicator) => indicator.profile?.full_name || 'Someone')
+                      .join(', ')}{' '}
+                    {typingUsers.length === 1 ? 'is' : 'are'} typing…
+                  </p>
                   <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span
+                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                      style={{ animationDelay: '0ms' }}
+                    />
+                    <span
+                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                      style={{ animationDelay: '150ms' }}
+                    />
+                    <span
+                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                      style={{ animationDelay: '300ms' }}
+                    />
                   </div>
                 </div>
               </div>
@@ -250,6 +306,7 @@ export function ChatArea({
         onSendMessage={onSendMessage}
         onStartTyping={onStartTyping}
         onStopTyping={onStopTyping}
+        disabled={loading}
       />
     </div>
   );

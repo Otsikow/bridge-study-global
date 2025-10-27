@@ -549,6 +549,157 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+          referencedColumns: ["id"]
+        },
+      ]
+      }
+      conversation_messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          message_type: Database["public"]["Enums"]["message_type"] | null
+          reply_to_id: string | null
+          sender_id: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: Database["public"]["Enums"]["message_type"] | null
+          reply_to_id?: string | null
+          sender_id: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: Database["public"]["Enums"]["message_type"] | null
+          reply_to_id?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_admin: boolean | null
+          joined_at: string | null
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_admin?: boolean | null
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_group: boolean | null
+          name: string | null
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_group?: boolean | null
+          name?: string | null
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_group?: boolean | null
+          name?: string | null
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1861,7 +2012,75 @@ export type Database = {
             foreignKeyName: "user_feedback_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
-            referencedRelation: "tenants"
+          referencedRelation: "tenants"
+          referencedColumns: ["id"]
+        },
+      ]
+      }
+      typing_indicators: {
+        Row: {
+          conversation_id: string
+          expires_at: string
+          id: string
+          started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          expires_at?: string
+          id?: string
+          started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          expires_at?: string
+          id?: string
+          started_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_indicators_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "typing_indicators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_presence: {
+        Row: {
+          id: string
+          last_seen: string | null
+          status: "online" | "offline" | "away" | null
+          updated_at: string | null
+        }
+        Insert: {
+          id: string
+          last_seen?: string | null
+          status?: "online" | "offline" | "away" | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          last_seen?: string | null
+          status?: "online" | "offline" | "away" | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_presence_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1900,6 +2119,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_expired_typing_indicators: { Args: Record<string, never>; Returns: void }
       create_notification: {
         Args: {
           p_action_url?: string
@@ -1912,9 +2132,21 @@ export type Database = {
         }
         Returns: string
       }
+      get_or_create_conversation: {
+        Args: {
+          p_tenant_id: string
+          p_user1_id: string
+          p_user2_id: string
+        }
+        Returns: string
+      }
       get_primary_role: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_unread_count: {
+        Args: { p_conversation_id: string; p_user_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { user_id: string }

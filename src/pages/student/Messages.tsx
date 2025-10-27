@@ -29,7 +29,7 @@ interface Profile {
 }
 
 export default function Messages() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const {
     conversations,
@@ -43,8 +43,7 @@ export default function Messages() {
     stopTyping,
     getOrCreateConversation
   } = useMessages();
-
-  usePresence(); // Initialize presence tracking
+  const { getUserPresence, isUserOnline } = usePresence();
 
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,16 +82,22 @@ export default function Messages() {
   const searchProfiles = async () => {
     setSearchingProfiles(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
         .select('id, full_name, email, avatar_url, role')
         .neq('id', user?.id)
         .ilike('full_name', `%${searchQuery}%`)
         .limit(20);
 
+      if (profile?.tenant_id) {
+        query = query.eq('tenant_id', profile.tenant_id);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       setProfiles(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error searching profiles:', error);
       toast({
         title: 'Error',
@@ -157,6 +162,8 @@ export default function Messages() {
           onSendMessage={handleSendMessage}
           onStartTyping={handleStartTyping}
           onStopTyping={handleStopTyping}
+          getUserPresence={getUserPresence}
+          isUserOnline={isUserOnline}
         />
       </div>
 
@@ -171,6 +178,8 @@ export default function Messages() {
             onSendMessage={handleSendMessage}
             onStartTyping={handleStartTyping}
             onStopTyping={handleStopTyping}
+            getUserPresence={getUserPresence}
+            isUserOnline={isUserOnline}
           />
         </div>
       )}
