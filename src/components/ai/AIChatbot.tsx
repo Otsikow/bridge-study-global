@@ -190,7 +190,7 @@ export default function AIChatbot() {
 
   // ---- File Uploads ----
   const uploadFile = async (file: File) => {
-    if (!session?.access_token || !session.user?.id) {
+    if (!session?.access_token) {
       toast({ title: "Sign in required", description: "Please sign in to upload files." });
       return;
     }
@@ -225,9 +225,16 @@ export default function AIChatbot() {
     }
 
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (!user) {
+        toast({ title: "Sign in required", description: "Please sign in to upload files." });
+        return;
+      }
+
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-      const filePath = `chat-uploads/${session.user.id}/${fileName}`;
+      const filePath = `chat-uploads/${user.id}/${fileName}`;
 
       const { error } = await supabase.storage
         .from("public")

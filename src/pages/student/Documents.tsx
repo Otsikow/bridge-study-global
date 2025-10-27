@@ -35,7 +35,7 @@ const DOCUMENT_TYPES = [
   'personal_statement',
   'cv_resume',
   'financial_document',
-  'other'
+  'other',
 ];
 
 export default function Documents() {
@@ -46,7 +46,6 @@ export default function Documents() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
-
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
 
@@ -70,7 +69,7 @@ export default function Documents() {
         toast({
           title: 'Error',
           description: 'Student profile not found. Please complete your profile first.',
-          variant: 'destructive'
+          variant: 'destructive',
         });
         return;
       }
@@ -84,6 +83,7 @@ export default function Documents() {
         .order('created_at', { ascending: false });
 
       if (docsError) throw docsError;
+
       setDocuments(docsData || []);
     } catch (error) {
       logError(error, 'Documents.fetchStudentAndDocuments');
@@ -106,7 +106,7 @@ export default function Documents() {
       toast({
         title: 'Error',
         description: 'Please select a file and document type',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -115,7 +115,7 @@ export default function Documents() {
       toast({
         title: 'Error',
         description: 'File size must be less than 10MB',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -126,14 +126,14 @@ export default function Documents() {
       'image/png',
       'image/jpg',
       'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     ];
 
     if (!allowedTypes.includes(selectedFile.type)) {
       toast({
         title: 'Error',
         description: 'Unsupported file type. Please upload PDF, DOC, DOCX, JPG, or PNG files.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -148,7 +148,7 @@ export default function Documents() {
         path: filePath,
         fileName: selectedFile.name,
         size: selectedFile.size,
-        type: selectedFile.type
+        type: selectedFile.type,
       });
 
       const { error: uploadError } = await supabase.storage
@@ -166,7 +166,7 @@ export default function Documents() {
           file_size: selectedFile.size,
           mime_type: selectedFile.type,
           storage_path: filePath,
-          verified_status: 'pending'
+          verified_status: 'pending',
         });
 
       if (dbError) {
@@ -186,7 +186,7 @@ export default function Documents() {
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Upload failed',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setUploading(false);
@@ -212,7 +212,7 @@ export default function Documents() {
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Download failed',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
@@ -230,7 +230,7 @@ export default function Documents() {
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Delete failed',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     }
   };
