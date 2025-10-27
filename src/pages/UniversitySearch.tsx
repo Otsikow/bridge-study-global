@@ -344,6 +344,10 @@ export default function UniversitySearch() {
                           src={getUniversityVisual(r.university.name, r.university.logo_url)}
                           alt={r.university.name}
                           className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = defaultUniversityImg;
+                          }}
                         />
                       </div>
                       <div className="flex-1">
@@ -383,8 +387,8 @@ export default function UniversitySearch() {
                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <Badge variant="outline">{p.level}</Badge>
                                     <span className="flex items-center gap-1">
-                                      <DollarSign className="h-3 w-3" />{" "}
-                                      {p.tuition_amount.toLocaleString()} {p.tuition_currency}
+                                      <DollarSign className="h-3 w-3" /> {p.tuition_amount.toLocaleString()}{" "}
+                                      {p.tuition_currency}
                                     </span>
                                   </div>
                                   <Button size="sm" variant="outline" className="w-full text-xs" asChild>
@@ -439,16 +443,4 @@ export default function UniversitySearch() {
                             </Button>
                             {r.university.website && (
                               <Button variant="outline" asChild>
-                                <a href={r.university.website} target="_blank" rel="noopener noreferrer">
-                                  Visit Site
-                                </a>
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div
+                                <a href={r
