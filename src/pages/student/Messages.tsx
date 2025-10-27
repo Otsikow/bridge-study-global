@@ -19,6 +19,7 @@ import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import BackButton from '@/components/BackButton';
 
 interface Profile {
   id: string;
@@ -141,35 +142,24 @@ export default function Messages() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex">
-      {/* Left Panel - Chat List */}
-      <div className="w-full md:w-96 flex-shrink-0">
-        <ChatList
-          conversations={conversations}
-          currentConversation={currentConversation}
-          onSelectConversation={handleSelectConversation}
-          onNewChat={handleNewChat}
-        />
+    <div className="h-[calc(100vh-4rem)] flex flex-col">
+      <div className="border-b bg-background px-4 py-2">
+        <BackButton variant="ghost" size="sm" className="md:w-auto" fallback="/dashboard" />
       </div>
 
-      {/* Right Panel - Chat Area */}
-      <div className="hidden md:flex flex-1">
-        <ChatArea
-          conversation={currentConversationData || null}
-          messages={messages}
-          typingUsers={typingUsers}
-          loading={loading}
-          onSendMessage={handleSendMessage}
-          onStartTyping={handleStartTyping}
-          onStopTyping={handleStopTyping}
-          getUserPresence={getUserPresence}
-          isUserOnline={isUserOnline}
-        />
-      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel - Chat List */}
+        <div className="w-full md:w-96 flex-shrink-0 h-full">
+          <ChatList
+            conversations={conversations}
+            currentConversation={currentConversation}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+          />
+        </div>
 
-      {/* Mobile - Show chat area when conversation is selected */}
-      {currentConversation && (
-        <div className="md:hidden fixed inset-0 z-50 bg-background">
+        {/* Right Panel - Chat Area */}
+        <div className="hidden md:flex flex-1">
           <ChatArea
             conversation={currentConversationData || null}
             messages={messages}
@@ -180,6 +170,25 @@ export default function Messages() {
             onStopTyping={handleStopTyping}
             getUserPresence={getUserPresence}
             isUserOnline={isUserOnline}
+            onBack={() => setCurrentConversation(null)}
+          />
+        </div>
+      </div>
+
+      {/* Mobile - Show chat area when conversation is selected */}
+      {currentConversation && (
+        <div className="md:hidden fixed inset-0 z-50 bg-background flex flex-col">
+          <ChatArea
+            conversation={currentConversationData || null}
+            messages={messages}
+            typingUsers={typingUsers}
+            loading={loading}
+            onSendMessage={handleSendMessage}
+            onStartTyping={handleStartTyping}
+            onStopTyping={handleStopTyping}
+            getUserPresence={getUserPresence}
+            isUserOnline={isUserOnline}
+            onBack={() => setCurrentConversation(null)}
           />
         </div>
       )}
