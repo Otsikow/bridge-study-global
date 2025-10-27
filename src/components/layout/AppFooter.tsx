@@ -19,10 +19,10 @@ export function AppFooter() {
 
   return (
     <footer className="border-t bg-background">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 xl:grid-cols-4">
           {/* Logo & About Section */}
-          <div className="col-span-2 md:col-span-1 space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
                 src={gegLogo}
@@ -50,7 +50,7 @@ export function AppFooter() {
 
           {/* Platform Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-4">Platform</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Platform</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
@@ -93,7 +93,7 @@ export function AppFooter() {
 
           {/* Support Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-4">Support</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Support</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
@@ -136,7 +136,7 @@ export function AppFooter() {
 
           {/* Account & Legal Links */}
           <div>
-            <h3 className="text-sm font-semibold mb-4">Account & Legal</h3>
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">Account & Legal</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
@@ -179,16 +179,13 @@ export function AppFooter() {
         </div>
 
         {/* Footer Bottom */}
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-6 text-center sm:flex-row sm:text-left">
           <p className="text-xs text-muted-foreground">
             © {year} GEG — Global Education Gateway. All rights reserved.
           </p>
           <div className="text-xs text-muted-foreground">
             <span className="hidden sm:inline">Questions? </span>
-            <a
-              className="hover:underline"
-              href="mailto:info@globaltalentgateway.net"
-            >
+            <a className="hover:underline" href="mailto:info@globaltalentgateway.net">
               Email us
             </a>
           </div>
