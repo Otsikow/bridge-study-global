@@ -1900,6 +1900,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_content: string
+          p_metadata?: Json
+          p_tenant_id: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_primary_role: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -1917,6 +1929,18 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_staff: { Args: { user_id: string }; Returns: boolean }
+      mark_all_notifications_read: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: boolean
+      }
+      notify_course_recommendation: {
+        Args: { p_program_id: string; p_reason?: string; p_student_id: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role:

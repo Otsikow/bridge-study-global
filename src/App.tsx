@@ -79,6 +79,7 @@ const queryClient = new QueryClient({
 const Index = lazyWithErrorHandling(() => import("./pages/Index"));
 const Contact = lazyWithErrorHandling(() => import("./pages/Contact"));
 const FAQ = lazyWithErrorHandling(() => import("./pages/FAQ"));
+const HelpCenter = lazyWithErrorHandling(() => import("./pages/HelpCenter"));
 const LegalPrivacy = lazyWithErrorHandling(() => import("./pages/LegalPrivacy"));
 const LegalTerms = lazyWithErrorHandling(() => import("./pages/LegalTerms"));
 const Login = lazyWithErrorHandling(() => import("./pages/auth/Login"));
@@ -87,10 +88,14 @@ const ForgotPassword = lazyWithErrorHandling(() => import("./pages/auth/ForgotPa
 const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPassword"));
 const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
 const UniversitySearch = lazyWithErrorHandling(() => import("./pages/UniversitySearch"));
+const CourseDiscovery = lazyWithErrorHandling(() => import("./pages/CourseDiscovery"));
+const UniversityDirectory = lazyWithErrorHandling(() => import("./pages/UniversityDirectory"));
+const UniversityProfile = lazyWithErrorHandling(() => import("./pages/UniversityProfile"));
 const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
 const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
 const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
 const Applications = lazyWithErrorHandling(() => import("./pages/student/Applications"));
+const ApplicationTracking = lazyWithErrorHandling(() => import("./pages/student/ApplicationTracking"));
 const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
 const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/ApplicationDetails"));
 const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
@@ -102,10 +107,21 @@ const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
 const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
 const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
-const Payments = lazyWithErrorHandling(() => import("./pages/student/Payments"));
+const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
+const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
+const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
+
+// Staff Dashboard Pages
+const StaffApplications = lazyWithErrorHandling(() => import("./pages/dashboard/StaffApplications"));
+const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
+const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
+const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
+const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
 
 // ✅ Main App component
 const App = () => (
@@ -137,20 +153,66 @@ const App = () => (
                     <Route path="/auth/forgot-password" element={<ForgotPassword />} />
                     <Route path="/auth/reset-password" element={<ResetPassword />} />
                     <Route path="/search" element={<UniversitySearch />} />
+                    <Route path="/courses" element={<CourseDiscovery />} />
+                    <Route path="/universities" element={<UniversityDirectory />} />
+                    <Route path="/universities/:id" element={<UniversityProfile />} />
                     <Route path="/contact" element={<Contact />} />
                     <Route path="/faq" element={<FAQ />} />
+                    <Route path="/help" element={<HelpCenter />} />
                     <Route path="/blog" element={<Blog />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
 
                     {/* Protected Routes */}
                     <Route
-                      path="/dashboard/*"
+                      path="/dashboard"
                       element={
                         <ProtectedRoute>
                           <Dashboard />
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/dashboard/applications"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
+                          <StaffApplications />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/students"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                          <StaffStudents />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/tasks"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
+                          <StaffTasks />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/messages"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
+                          <StaffMessages />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard/reports"
+                      element={
+                        <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                          <StaffReports />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Student Routes */}
                     <Route
                       path="/student/onboarding"
                       element={
@@ -184,6 +246,14 @@ const App = () => (
                       }
                     />
                     <Route
+                      path="/student/application-tracking"
+                      element={
+                        <ProtectedRoute>
+                          <ApplicationTracking />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
                       path="/student/applications/new"
                       element={
                         <ProtectedRoute>
@@ -210,7 +280,23 @@ const App = () => (
                     <Route
                       path="/student/payments"
                       element={
-                        <ProtectedRoute>
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/agent/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["agent"]}>
+                          <Payments />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/payments"
+                      element={
+                        <ProtectedRoute allowedRoles={["student", "agent"]}>
                           <Payments />
                         </ProtectedRoute>
                       }
@@ -240,7 +326,33 @@ const App = () => (
                       }
                     />
 
-                    {/* Additional Features */}
+                    {/* Settings & Dashboards */}
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <ProfileSettings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin-dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/university/dashboard"
+                      element={
+                        <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
+                          <UniversityDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Other Routes */}
                     <Route path="/intake" element={<IntakeForm />} />
                     <Route path="/intake/:formId" element={<IntakeForm />} />
                     <Route path="/visa-calculator" element={<VisaCalculator />} />
@@ -258,6 +370,14 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/analytics"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <Analytics />
                         </ProtectedRoute>
                       }
                     />

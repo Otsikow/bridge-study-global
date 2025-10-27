@@ -11,6 +11,7 @@ import {
   Shield,
   FileText,
   Newspaper,
+  HelpCircle,
 } from 'lucide-react';
 
 export function AppFooter() {
@@ -29,7 +30,7 @@ export function AppFooter() {
                 className="h-9 w-9 object-contain dark:brightness-0 dark:invert"
               />
               <span className="font-semibold text-lg">
-                GEG — Global Talent Gateway
+                GEG — Global Education Gateway
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -94,6 +95,15 @@ export function AppFooter() {
           <div>
             <h3 className="text-sm font-semibold mb-4">Support</h3>
             <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  to="/help"
+                  className="inline-flex items-center gap-2 hover:underline"
+                >
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  Help Center
+                </Link>
+              </li>
               <li>
                 <Link
                   to="/contact"
@@ -171,7 +181,7 @@ export function AppFooter() {
         {/* Footer Bottom */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
           <p className="text-xs text-muted-foreground">
-            © {year} GEG — Global Talent Gateway. All rights reserved.
+            © {year} GEG — Global Education Gateway. All rights reserved.
           </p>
           <div className="text-xs text-muted-foreground">
             <span className="hidden sm:inline">Questions? </span>
