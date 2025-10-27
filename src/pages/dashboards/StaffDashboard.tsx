@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckSquare, Users, Clock, AlertCircle, TrendingUp } from 'lucide-react';
+import { FileText, CheckSquare, Users, Clock, AlertCircle, TrendingUp, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/StatusBadge';
 import BackButton from '@/components/BackButton';
@@ -87,6 +87,12 @@ export default function StaffDashboard() {
               <Link to="/dashboard/students">
                 <Users className="mr-2 h-4 w-4" />
                 Student List
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/blog">
+                <Newspaper className="mr-2 h-4 w-4" />
+                Manage Blog
               </Link>
             </Button>
           </CardContent>

@@ -227,4 +227,93 @@ All colors MUST be HSL.
   .scrollbar-hide::-webkit-scrollbar {
     display: none;  /* Chrome, Safari and Opera */
   }
+
+  /* Animation utilities */
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+
+  /* Smooth transitions for interactive elements */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .transition-quick {
+    @apply transition-all duration-150 ease-out;
+  }
+
+  /* Hover lift effect */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-lg;
+  }
+
+  /* Interactive card */
+  .card-interactive {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .card-interactive:hover {
+    @apply -translate-y-1 shadow-lg scale-[1.01];
+  }
+
+  /* Button press effect */
+  .button-press:active {
+    @apply scale-[0.97];
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.7) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    @apply animate-shimmer;
+  }
+
+  /* Stagger children animations */
+  .stagger-children > * {
+    @apply opacity-0 animate-fade-in-up;
+  }
+  
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+  .stagger-children > *:nth-child(6) { animation-delay: 500ms; }
+  .stagger-children > *:nth-child(7) { animation-delay: 600ms; }
+  .stagger-children > *:nth-child(8) { animation-delay: 700ms; }
+
+  /* Page entrance animation */
+  .page-enter {
+    @apply animate-fade-in;
+  }
+
+  /* Modal/dialog entrance */
+  .modal-enter {
+    @apply animate-scale-in;
+  }
 }

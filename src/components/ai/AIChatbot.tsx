@@ -17,6 +17,7 @@ import {
   Image,
   X as XIcon,
   Loader2,
+  Paperclip,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -88,7 +89,8 @@ function FormattedMessage({ content }: { content: string }) {
       if (match) listItems.push(match[1]);
     } else if (line.trim() === "") {
       flushList();
-      if (elements.length > 0) elements.push(<div key={elements.length} className="h-2" />);
+      if (elements.length > 0)
+        elements.push(<div key={elements.length} className="h-2" />);
     } else {
       flushList();
       elements.push(
@@ -116,24 +118,23 @@ export default function AIChatbot() {
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+
   const { toast } = useToast();
   const { session } = useAuth();
-
-  const isImage = (mime: string) => mime.startsWith("image/");
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
-  // Voice Recording
+  // ---- Voice Recording ----
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -157,7 +158,7 @@ export default function AIChatbot() {
     } catch {
       toast({
         title: "Microphone not accessible",
-        description: "Please allow microphone access to record.",
+        description: "Please allow microphone access.",
         variant: "destructive",
       });
     }
@@ -188,34 +189,13 @@ export default function AIChatbot() {
     }
   };
 
-  // File Uploads
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    setIsUploading(true);
-    try {
-      const uploadPromises = Array.from(files).map(file => uploadFile(file));
-      await Promise.all(uploadPromises);
-    } catch (error) {
-      console.error('Batch upload error:', error);
-      toast({ 
-        title: "Upload failed", 
-        description: "Some files failed to upload. Please try again.",
-        variant: "destructive" 
-      });
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
+  // ---- File Uploads ----
   const uploadFile = async (file: File) => {
     if (!session?.access_token) {
       toast({ title: "Sign in required", description: "Please sign in to upload files." });
       return;
     }
-    
+
     const allowed = [
       "image/jpeg",
       "image/png",
@@ -226,21 +206,21 @@ export default function AIChatbot() {
       "application/msword",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
-    
+
     if (!allowed.includes(file.type)) {
-      toast({ 
-        title: "Invalid file type", 
+      toast({
+        title: "Invalid file type",
         description: "Please upload images, PDFs, or text files only.",
-        variant: "destructive" 
+        variant: "destructive",
       });
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      toast({ 
-        title: "File too large", 
-        description: "File size must be less than 10MB", 
-        variant: "destructive" 
+      toast({
+        title: "File too large",
+        description: "File size must be less than 10MB",
+        variant: "destructive",
       });
       return;
     }
@@ -249,34 +229,13 @@ export default function AIChatbot() {
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
       const filePath = `chat-attachments/${fileName}`;
-
-      console.log('Uploading chat attachment:', {
-        bucket: 'public',
-        path: filePath,
-        fileName: file.name,
-        size: file.size,
-        type: file.type
-      });
-
       const { data: uploadData, error } = await supabase.storage
         .from("public")
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
 
-      if (error) {
-        console.error('Storage upload error:', error);
-        throw new Error(`Upload failed: ${error.message}`);
-      }
-
-      console.log('Upload successful:', uploadData);
-
+      if (error) throw error;
       const { data } = supabase.storage.from("public").getPublicUrl(filePath);
-      
-      if (!data?.publicUrl) {
-        throw new Error('Failed to get public URL');
-      }
+      if (!data?.publicUrl) throw new Error("Failed to get public URL");
 
       const attachment: Attachment = {
         id: fileName,
@@ -285,26 +244,29 @@ export default function AIChatbot() {
         url: data.publicUrl,
         size: file.size,
       };
-      
+
       setAttachments((prev) => [...prev, attachment]);
-      toast({ 
-        title: "Success", 
-        description: `${file.name} uploaded successfully.` 
-      });
+      toast({ title: "Success", description: `${file.name} uploaded successfully.` });
     } catch (error) {
-      console.error('Upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Upload failed';
-      toast({ 
-        title: "Upload failed", 
-        description: errorMessage,
-        variant: "destructive" 
-      });
+      const msg = error instanceof Error ? error.message : "Upload failed";
+      toast({ title: "Upload failed", description: msg, variant: "destructive" });
     }
   };
 
-  const removeAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    setIsUploading(true);
+    try {
+      await Promise.all(Array.from(files).map(uploadFile));
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
+
+  const removeAttachment = (id: string) =>
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -312,21 +274,13 @@ export default function AIChatbot() {
     const files = Array.from(e.dataTransfer.files);
     setIsUploading(true);
     try {
-      const uploadPromises = files.map(file => uploadFile(file));
-      await Promise.all(uploadPromises);
-    } catch (error) {
-      console.error('Drop upload error:', error);
-      toast({ 
-        title: "Upload failed", 
-        description: "Some files failed to upload. Please try again.",
-        variant: "destructive" 
-      });
+      await Promise.all(files.map(uploadFile));
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Send Message
+  // ---- Send Message ----
   const sendMessage = async () => {
     if ((!input.trim() && attachments.length === 0) || isLoading) return;
     if (!session?.access_token) {
@@ -361,7 +315,6 @@ export default function AIChatbot() {
       });
 
       if (!response.ok || !response.body) throw new Error("Failed to get response");
-
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
@@ -396,16 +349,15 @@ export default function AIChatbot() {
           }
         }
       }
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast({ title: "Error", description: "Message failed", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // UI
-  if (!isOpen) {
+  // ---- UI ----
+  if (!isOpen)
     return (
       <Button
         onClick={() => setIsOpen(true)}
@@ -416,7 +368,6 @@ export default function AIChatbot() {
         <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
       </Button>
     );
-  }
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -428,7 +379,7 @@ export default function AIChatbot() {
 
   return (
     <Card className="fixed bottom-4 right-4 left-4 h-[calc(100vh-2rem)] shadow-2xl flex flex-col xs:left-auto xs:w-[380px] xs:h-[85vh] xs:max-h-[600px] md:bottom-6 md:right-6 z-50">
-      <CardHeader className="flex items-center justify-between space-y-0 pb-3 px-4 pt-4">
+      <CardHeader className="flex items-center justify-between pb-3 px-4 pt-4">
         <CardTitle className="flex items-center gap-2 text-base md:text-lg">
           <Bot className="h-5 w-5" /> AI Assistant
         </CardTitle>
@@ -436,16 +387,14 @@ export default function AIChatbot() {
           <X className="h-4 w-4" />
         </Button>
       </CardHeader>
+
       <CardContent className="flex-1 flex flex-col p-0 min-h-0">
         <ScrollArea className="flex-1 px-3 md:px-4" ref={scrollRef}>
           <div className="space-y-3 md:space-y-4 py-3 md:py-4">
             {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
+              <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 {msg.role === "assistant" && (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                 )}
@@ -461,7 +410,11 @@ export default function AIChatbot() {
                     <div className="mt-2 space-y-1">
                       {msg.attachments.map((a) => (
                         <div key={a.id} className="flex items-center gap-2 text-xs opacity-90">
-                          {a.type.startsWith("image/") ? <Image className="h-3 w-3" /> : <FileText className="h-3 w-3" />}
+                          {a.type.startsWith("image/") ? (
+                            <Image className="h-3 w-3" />
+                          ) : (
+                            <FileText className="h-3 w-3" />
+                          )}
                           <a
                             href={a.url}
                             target="_blank"
@@ -537,21 +490,15 @@ export default function AIChatbot() {
             onDrop={handleDrop}
             className={`flex gap-2 items-center ${isDragOver ? "bg-primary/5 rounded-lg p-2" : ""}`}
           >
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message..."
-              disabled={isLoading || isUploading}
-              className="flex-1"
-            />
             <input
-              type="file"
               ref={fileInputRef}
-              onChange={handleFileUpload}
+              type="file"
               multiple
               accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileUpload}
               className="hidden"
             />
+
             <Button
               type="button"
               variant="ghost"
@@ -562,6 +509,7 @@ export default function AIChatbot() {
             >
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
             </Button>
+
             <Button
               type="button"
               variant="ghost"
@@ -572,6 +520,15 @@ export default function AIChatbot() {
             >
               {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
             </Button>
+
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask me anything..."
+              disabled={isLoading || isUploading}
+              className="flex-1"
+            />
+
             <Button type="submit" size="icon" disabled={isLoading || isUploading} className="h-9 w-9">
               <Send className="h-4 w-4" />
             </Button>
