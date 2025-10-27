@@ -1,275 +1,320 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Bell, 
-  Check, 
-  X, 
-  AlertCircle, 
-  Info, 
-  CheckCircle, 
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Bell,
+  Check,
+  X,
+  Trash2,
+  Settings,
+  Info,
+  CheckCircle,
+  AlertCircle,
+  AlertTriangle,
+  FileText,
+  MessageSquare,
+  DollarSign,
+  BookOpen,
   Clock,
   CheckCheck,
-  DollarSign,
-  MessageSquare,
-  FileText,
-  BookOpen,
-  Loader2
-} from 'lucide-react';
-import { useNotifications } from '@/hooks/useNotifications';
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
-type NotificationType = 'application_status' | 'message' | 'commission' | 'course_recommendation';
-type FilterType = 'all' | 'unread' | 'application_status' | 'message' | 'commission' | 'course_recommendation';
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "success" | "warning" | "error" | "application_status" | "message" | "commission" | "course_recommendation";
+  read: boolean;
+  created_at: string;
+  action_url?: string;
+  metadata?: Record<string, any>;
+}
 
-export function NotificationCenter() {
-  const { 
-    notifications, 
-    unreadCount, 
-    loading, 
-    markAsRead, 
-    markAllAsRead, 
-    deleteNotification 
-  } = useNotifications();
-  const [filter, setFilter] = useState<FilterType>('all');
+interface NotificationSettings {
+  email: boolean;
+  push: boolean;
+  applicationUpdates: boolean;
+  messages: boolean;
+  documents: boolean;
+  deadlines: boolean;
+}
+
+export default function NotificationCenter() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<"all" | "unread" | "read" | "application_status" | "message" | "commission" | "course_recommendation">("all");
+  const [settings, setSettings] = useState<NotificationSettings>({
+    email: true,
+    push: true,
+    applicationUpdates: true,
+    messages: true,
+    documents: true,
+    deadlines: true,
+  });
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'application_status': return FileText;
-      case 'message': return MessageSquare;
-      case 'commission': return DollarSign;
-      case 'course_recommendation': return BookOpen;
+  const fetchNotifications = useCallback(async () => {
+    if (!user) return;
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const mapped = (data || []).map((n) => ({
+        id: n.id,
+        title: n.title,
+        message: n.message,
+        type: (n.type as any) || "info",
+        read: n.read || false,
+        created_at: n.created_at,
+        action_url: n.action_url,
+        metadata: n.metadata as Record<string, any>,
+      }));
+
+      setNotifications(mapped);
+      setUnreadCount(mapped.filter((n) => !n.read).length);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      toast({ title: "Error", description: "Failed to load notifications", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [user, toast]);
+
+  useEffect(() => {
+    fetchNotifications();
+    if (!user) return;
+    const channel = supabase
+      .channel("notifications")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => fetchNotifications()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchNotifications]);
+
+  const markAsRead = async (id: string) => {
+    try {
+      const { error } = await supabase.from("notifications").update({ read: true }).eq("id", id);
+      if (error) throw error;
+      setNotifications((p) => p.map((n) => (n.id === id ? { ...n, read: true } : n)));
+      setUnreadCount((c) => Math.max(0, c - 1));
+    } catch {
+      toast({ title: "Error", description: "Failed to mark as read", variant: "destructive" });
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from("notifications").update({ read: true }).eq("user_id", user.id).eq("read", false);
+      if (error) throw error;
+      setNotifications((p) => p.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+      toast({ title: "Success", description: "All notifications marked as read" });
+    } catch {
+      toast({ title: "Error", description: "Failed to mark all as read", variant: "destructive" });
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      const { error } = await supabase.from("notifications").delete().eq("id", id);
+      if (error) throw error;
+      const wasUnread = notifications.find((n) => n.id === id)?.read === false;
+      setNotifications((p) => p.filter((n) => n.id !== id));
+      if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
+      toast({ title: "Deleted", description: "Notification removed" });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete notification", variant: "destructive" });
+    }
+  };
+
+  const clearAll = async () => {
+    if (!user || !confirm("Delete all notifications?")) return;
+    try {
+      const { error } = await supabase.from("notifications").delete().eq("user_id", user.id);
+      if (error) throw error;
+      setNotifications([]);
+      setUnreadCount(0);
+      toast({ title: "Success", description: "All notifications cleared" });
+    } catch {
+      toast({ title: "Error", description: "Failed to clear notifications", variant: "destructive" });
+    }
+  };
+
+  const handleClick = (n: Notification) => {
+    if (!n.read) markAsRead(n.id);
+    if (n.action_url) navigate(n.action_url);
+  };
+
+  const iconFor = (t: string) => {
+    switch (t) {
+      case "success": return CheckCircle;
+      case "warning": return AlertTriangle;
+      case "error": return AlertCircle;
+      case "application_status": return FileText;
+      case "message": return MessageSquare;
+      case "commission": return DollarSign;
+      case "course_recommendation": return BookOpen;
       default: return Info;
     }
   };
 
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'application_status': return 'text-blue-600 dark:text-blue-400';
-      case 'message': return 'text-purple-600 dark:text-purple-400';
-      case 'commission': return 'text-green-600 dark:text-green-400';
-      case 'course_recommendation': return 'text-orange-600 dark:text-orange-400';
-      default: return 'text-gray-600 dark:text-gray-400';
+  const colorFor = (t: string) => {
+    switch (t) {
+      case "application_status": return "text-blue-600 dark:text-blue-400";
+      case "message": return "text-purple-600 dark:text-purple-400";
+      case "commission": return "text-green-600 dark:text-green-400";
+      case "course_recommendation": return "text-orange-600 dark:text-orange-400";
+      default: return "text-gray-600 dark:text-gray-400";
     }
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'application_status': return 'Application';
-      case 'message': return 'Message';
-      case 'commission': return 'Commission';
-      case 'course_recommendation': return 'Recommendation';
-      default: return 'Notification';
-    }
-  };
-
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
-  };
-
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === 'unread') return !notification.read;
-    if (filter === 'all') return true;
-    return notification.type === filter;
+  const filtered = notifications.filter((n) => {
+    if (filter === "unread") return !n.read;
+    if (filter === "read") return n.read;
+    if (filter === "all") return true;
+    return n.type === filter;
   });
 
-  const handleNotificationClick = (notification: typeof notifications[0]) => {
-    if (!notification.read) {
-      markAsRead(notification.id);
-    }
-    if (notification.action_url) {
-      navigate(notification.action_url);
-    }
-  };
-
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            <CardTitle>Notifications</CardTitle>
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="ml-2">
-                {unreadCount}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={markAllAsRead}
-                className="text-xs"
-              >
-                <CheckCheck className="h-3 w-3 mr-1" />
-                Mark all read
-              </Button>
-            )}
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Bell className="h-5 w-5" />
+          <h2 className="text-2xl font-bold">Notifications</h2>
+          {unreadCount > 0 && <Badge variant="destructive">{unreadCount}</Badge>}
         </div>
-        <CardDescription>
-          Stay updated with your application progress and important updates
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={filter} onValueChange={(value: any) => setFilter(value)}>
-          <TabsList className="grid w-full grid-cols-3 mb-4">
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              All
-              {notifications.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {notifications.length}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="unread" className="flex items-center gap-2">
-              Unread
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="text-xs">
-                  {unreadCount}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="application_status" className="flex items-center gap-2">
-              <FileText className="h-3 w-3" />
-              Apps
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="flex gap-2 mb-4">
-            <Button
-              variant={filter === 'message' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('message')}
-            >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              Messages
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <Button variant="outline" size="sm" onClick={markAllAsRead}>
+              <CheckCheck className="h-4 w-4 mr-1" /> Mark all read
             </Button>
-            <Button
-              variant={filter === 'commission' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('commission')}
-            >
-              <DollarSign className="h-3 w-3 mr-1" />
-              Commissions
-            </Button>
-            <Button
-              variant={filter === 'course_recommendation' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setFilter('course_recommendation')}
-            >
-              <BookOpen className="h-3 w-3 mr-1" />
-              Courses
-            </Button>
-          </div>
-
-          <TabsContent value={filter} className="mt-0">
-            {loading ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-8 w-8 mx-auto animate-spin text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">Loading notifications...</p>
+          )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm"><Settings className="h-4 w-4" /></Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72">
+              <div className="space-y-3">
+                <h4 className="font-semibold">Notification Settings</h4>
+                {Object.entries(settings).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between">
+                    <Label>{key}</Label>
+                    <Switch checked={value} onCheckedChange={(checked) => setSettings((p) => ({ ...p, [key]: checked }))} />
+                  </div>
+                ))}
+                <Button onClick={() => toast({ title: "Saved", description: "Settings updated" })} className="w-full">Save</Button>
               </div>
-            ) : filteredNotifications.length === 0 ? (
-              <div className="text-center py-8">
-                <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">No notifications found</p>
-              </div>
-            ) : (
-              <ScrollArea className="h-96">
-                <div className="space-y-3">
-                  {filteredNotifications.map((notification) => {
-                    const Icon = getNotificationIcon(notification.type);
-                    return (
-                      <div
-                        key={notification.id}
-                        className={`p-4 rounded-lg border transition-all hover:shadow-sm cursor-pointer ${
-                          notification.read 
-                            ? 'bg-muted/50 opacity-75' 
-                            : 'bg-background border-primary/20'
-                        }`}
-                        onClick={() => handleNotificationClick(notification)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className={`mt-1 ${getNotificationColor(notification.type)}`}>
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium text-sm">
-                                    {notification.title}
-                                  </h4>
-                                  <Badge 
-                                    variant="outline" 
-                                    className="text-xs"
-                                  >
-                                    {getTypeLabel(notification.type)}
-                                  </Badge>
-                                  {!notification.read && (
-                                    <div className="w-2 h-2 bg-primary rounded-full" />
+            </PopoverContent>
+          </Popover>
+          {notifications.length > 0 && (
+            <Button variant="outline" size="sm" onClick={clearAll}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+        <TabsList className="flex flex-wrap gap-2">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="unread">Unread</TabsTrigger>
+          <TabsTrigger value="read">Read</TabsTrigger>
+          <TabsTrigger value="application_status">Apps</TabsTrigger>
+          <TabsTrigger value="message">Messages</TabsTrigger>
+          <TabsTrigger value="commission">Commissions</TabsTrigger>
+          <TabsTrigger value="course_recommendation">Courses</TabsTrigger>
+        </TabsList>
+        <TabsContent value={filter}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent</CardTitle>
+              <CardDescription>Stay updated with your activity</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">
+                  <Loader2 className="animate-spin mx-auto h-6 w-6 mb-3" />
+                  <p className="text-muted-foreground">Loading...</p>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="text-center py-8">
+                  <Bell className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No notifications</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[600px]">
+                  <div className="divide-y">
+                    {filtered.map((n) => {
+                      const Icon = iconFor(n.type);
+                      return (
+                        <div
+                          key={n.id}
+                          className={`p-4 hover:bg-muted/50 transition cursor-pointer ${!n.read ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}
+                          onClick={() => handleClick(n)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Icon className={`h-5 w-5 mt-1 ${colorFor(n.type)}`} />
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-medium">{n.title}</p>
+                                  <p className="text-sm text-muted-foreground">{n.message}</p>
+                                </div>
+                                <div className="flex gap-1">
+                                  {!n.read && (
+                                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}>
+                                      <Check className="h-4 w-4" />
+                                    </Button>
                                   )}
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {notification.content}
-                                </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {formatTimestamp(new Date(notification.created_at))}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1 ml-2">
-                                {!notification.read && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      markAsRead(notification.id);
-                                    }}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    <Check className="h-3 w-3" />
+                                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}>
+                                    <X className="h-4 w-4" />
                                   </Button>
-                                )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteNotification(notification.id);
-                                  }}
-                                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </Button>
+                                </div>
                               </div>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                              </p>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            )}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -111,6 +111,7 @@ const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/Ad
 const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
 const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/UniversityDashboard"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
@@ -210,6 +211,8 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Student Routes */}
                     <Route
                       path="/student/onboarding"
                       element={
@@ -322,6 +325,8 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Settings & Dashboards */}
                     <Route
                       path="/settings"
                       element={
@@ -346,6 +351,8 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Other Routes */}
                     <Route path="/intake" element={<IntakeForm />} />
                     <Route path="/intake/:formId" element={<IntakeForm />} />
                     <Route path="/visa-calculator" element={<VisaCalculator />} />
@@ -363,6 +370,14 @@ const App = () => (
                       element={
                         <ProtectedRoute allowedRoles={["admin", "staff"]}>
                           <BlogAdmin />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/analytics"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin", "staff"]}>
+                          <Analytics />
                         </ProtectedRoute>
                       }
                     />
