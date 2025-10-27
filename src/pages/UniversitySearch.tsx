@@ -443,4 +443,37 @@ export default function UniversitySearch() {
                             </Button>
                             {r.university.website && (
                               <Button variant="outline" asChild>
-                                <a href={r
+                                <a href={r.university.website} target="_blank" rel="noopener noreferrer">
+                                  Visit Website
+                                </a>
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* AI RECOMMENDATIONS TAB */}
+          <TabsContent value="recommendations">
+            <ProgramRecommendations />
+          </TabsContent>
+
+          {/* SOP GENERATOR TAB */}
+          <TabsContent value="sop">
+            <SoPGenerator />
+          </TabsContent>
+
+          {/* INTERVIEW PRACTICE TAB */}
+          <TabsContent value="interview">
+            <InterviewPractice />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
