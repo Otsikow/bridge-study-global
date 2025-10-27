@@ -22,6 +22,7 @@ interface ChatAreaProps {
   getUserPresence?: (userId: string) => UserPresence | null;
   isUserOnline?: (userId: string) => boolean;
   onBack?: () => void;
+  showBackButton?: boolean;
 }
 
 export function ChatArea({
@@ -34,7 +35,8 @@ export function ChatArea({
   onStopTyping,
   getUserPresence,
   isUserOnline,
-  onBack
+  onBack,
+  showBackButton,
 }: ChatAreaProps) {
   const { user } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -47,22 +49,18 @@ export function ChatArea({
 
   const getConversationName = () => {
     if (!conversation) return '';
-    
     if (conversation.is_group) {
       return conversation.name || 'Group Chat';
     }
-    
     const otherParticipant = conversation.participants?.find(p => p.user_id !== user?.id);
     return otherParticipant?.profile?.full_name || 'Unknown User';
   };
 
   const getConversationAvatar = () => {
     if (!conversation) return null;
-    
     if (conversation.avatar_url) {
       return conversation.avatar_url;
     }
-    
     const otherParticipant = conversation.participants?.find(p => p.user_id !== user?.id);
     return otherParticipant?.profile?.avatar_url || null;
   };
@@ -73,7 +71,7 @@ export function ChatArea({
     }
 
     const otherParticipant = conversation.participants?.find(
-      (participant) => participant.user_id !== user.id
+      participant => participant.user_id !== user.id
     );
 
     if (!otherParticipant) {
@@ -85,7 +83,6 @@ export function ChatArea({
     }
 
     const presence = getUserPresence?.(otherParticipant.user_id);
-
     if (!presence) {
       return { label: 'Offline', indicator: 'bg-gray-400' };
     }
@@ -120,14 +117,9 @@ export function ChatArea({
 
   const formatMessageDate = (date: string) => {
     const messageDate = new Date(date);
-    
-    if (isToday(messageDate)) {
-      return 'Today';
-    } else if (isYesterday(messageDate)) {
-      return 'Yesterday';
-    } else {
-      return format(messageDate, 'MMMM dd, yyyy');
-    }
+    if (isToday(messageDate)) return 'Today';
+    if (isYesterday(messageDate)) return 'Yesterday';
+    return format(messageDate, 'MMMM dd, yyyy');
   };
 
   const formatMessageTime = (date: string) => {
@@ -136,23 +128,17 @@ export function ChatArea({
 
   const shouldShowDateDivider = (currentMsg: Message, previousMsg: Message | null) => {
     if (!previousMsg) return true;
-    
     const currentDate = new Date(currentMsg.created_at).toDateString();
     const previousDate = new Date(previousMsg.created_at).toDateString();
-    
     return currentDate !== previousDate;
   };
 
   const shouldGroupMessage = (currentMsg: Message, previousMsg: Message | null) => {
     if (!previousMsg) return false;
-    
-    const timeDiff = new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime();
+    const timeDiff =
+      new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime();
     const fiveMinutes = 5 * 60 * 1000;
-    
-    return (
-      currentMsg.sender_id === previousMsg.sender_id &&
-      timeDiff < fiveMinutes
-    );
+    return currentMsg.sender_id === previousMsg.sender_id && timeDiff < fiveMinutes;
   };
 
   if (!conversation) {
@@ -173,13 +159,13 @@ export function ChatArea({
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b bg-background flex items-center gap-3">
-        {onBack && (
+        {showBackButton && onBack && (
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
             onClick={onBack}
-            aria-label="Go back"
+            className="md:hidden"
+            aria-label="Go back to conversations"
           >
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back to conversations</span>
@@ -193,10 +179,7 @@ export function ChatArea({
           <h2 className="font-semibold">{conversationName}</h2>
           <p className="text-xs text-muted-foreground flex items-center gap-1">
             <span
-              className={cn(
-                'inline-block w-2 h-2 rounded-full',
-                presenceDetails.indicator
-              )}
+              className={cn('inline-block w-2 h-2 rounded-full', presenceDetails.indicator)}
             />
             {presenceDetails.label}
           </p>
@@ -289,7 +272,7 @@ export function ChatArea({
                 <div className="bg-muted rounded-2xl px-4 py-3">
                   <p className="text-xs font-medium text-muted-foreground mb-2">
                     {typingUsers
-                      .map((indicator) => indicator.profile?.full_name || 'Someone')
+                      .map(indicator => indicator.profile?.full_name || 'Someone')
                       .join(', ')}{' '}
                     {typingUsers.length === 1 ? 'is' : 'are'} typing…
                   </p>

@@ -3,6 +3,7 @@ import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
 import { useMessages } from '@/hooks/useMessages';
 import { usePresence } from '@/hooks/usePresence';
+import BackButton from '@/components/BackButton';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,6 @@ import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import BackButton from '@/components/BackButton';
 
 interface Profile {
   id: string;
@@ -42,8 +42,9 @@ export default function Messages() {
     sendMessage,
     startTyping,
     stopTyping,
-    getOrCreateConversation
+    getOrCreateConversation,
   } = useMessages();
+
   const { getUserPresence, isUserOnline } = usePresence();
 
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
@@ -51,7 +52,9 @@ export default function Messages() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [searchingProfiles, setSearchingProfiles] = useState(false);
 
-  const currentConversationData = conversations.find(c => c.id === currentConversation);
+  const currentConversationData = conversations.find(
+    (c) => c.id === currentConversation
+  );
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversation(conversationId);
@@ -103,7 +106,7 @@ export default function Messages() {
       toast({
         title: 'Error',
         description: 'Failed to search users',
-        variant: 'destructive'
+        variant: 'destructive',
       });
     } finally {
       setSearchingProfiles(false);
@@ -119,14 +122,13 @@ export default function Messages() {
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
+  const getInitials = (name: string) =>
+    name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2);
-  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -142,11 +144,18 @@ export default function Messages() {
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
+    <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
+      {/* Header */}
       <div className="border-b bg-background px-4 py-2">
-        <BackButton variant="ghost" size="sm" className="md:w-auto" fallback="/dashboard" />
+        <BackButton
+          variant="ghost"
+          size="sm"
+          className="md:w-auto"
+          fallback="/dashboard"
+        />
       </div>
 
+      {/* Main layout */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Chat List */}
         <div className="w-full md:w-96 flex-shrink-0 h-full">
@@ -175,7 +184,7 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Mobile - Show chat area when conversation is selected */}
+      {/* Mobile Chat View */}
       {currentConversation && (
         <div className="md:hidden fixed inset-0 z-50 bg-background flex flex-col">
           <ChatArea
@@ -189,6 +198,7 @@ export default function Messages() {
             getUserPresence={getUserPresence}
             isUserOnline={isUserOnline}
             onBack={() => setCurrentConversation(null)}
+            showBackButton
           />
         </div>
       )}
