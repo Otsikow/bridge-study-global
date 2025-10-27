@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.send-contact-email]
 verify_jwt = true
+
+[functions.audio-transcribe]
+verify_jwt = true

@@ -1,0 +1,5 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" rx="20" fill="#A31F34"/>
+  <text x="100" y="120" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">MIT</text>
+  <text x="100" y="150" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="white">Massachusetts Institute of Technology</text>
+</svg>
