@@ -2,12 +2,13 @@ import { useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { MessageInput } from './MessageInput';
 import type { Message, TypingIndicator, Conversation } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { UserPresence } from '@/hooks/usePresence';
 
 interface ChatAreaProps {
@@ -20,6 +21,7 @@ interface ChatAreaProps {
   onStopTyping: () => void;
   getUserPresence?: (userId: string) => UserPresence | null;
   isUserOnline?: (userId: string) => boolean;
+  onBack?: () => void;
 }
 
 export function ChatArea({
@@ -31,7 +33,8 @@ export function ChatArea({
   onStartTyping,
   onStopTyping,
   getUserPresence,
-  isUserOnline
+  isUserOnline,
+  onBack
 }: ChatAreaProps) {
   const { user } = useAuth();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -170,6 +173,18 @@ export function ChatArea({
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b bg-background flex items-center gap-3">
+        {onBack && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={onBack}
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Back to conversations</span>
+          </Button>
+        )}
         <Avatar className="h-10 w-10">
           <AvatarImage src={avatarUrl || undefined} alt={conversationName} />
           <AvatarFallback>{getInitials(conversationName)}</AvatarFallback>
