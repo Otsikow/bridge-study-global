@@ -66,7 +66,7 @@ export const Skeleton = ({ className = '', lines = 1 }: SkeletonProps) => {
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 bg-muted animate-pulse rounded"
+          className="h-4 bg-muted shimmer rounded"
           style={{ width: `${100 - i * 10}%` }}
         />
       ))}

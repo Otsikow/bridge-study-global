@@ -122,7 +122,7 @@ export const useErrorHandler = (options: UseErrorHandlerOptions = {}) => {
 };
 
 // Hook for handling async operations with error handling
-export const useAsyncOperation = <T>(
+export const useAsyncOperation = <T,>(
   operation: () => Promise<T>,
   options: UseErrorHandlerOptions = {}
 ) => {
@@ -146,9 +146,10 @@ export const useAsyncOperation = <T>(
     }
   }, [operation, errorHandler]);
 
-  const retry = useCallback(async () => {
-    return errorHandler.retry(execute);
-  }, [errorHandler, execute]);
+  const retry = useCallback(async (): Promise<T | undefined> => {
+    const result = await execute();
+    return result;
+  }, [execute]);
 
   return {
     ...errorHandler,
@@ -164,7 +165,7 @@ export const useFormErrorHandler = (options: UseErrorHandlerOptions = {}) => {
   const errorHandler = useErrorHandler(options);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = useCallback(async <T>(
+  const handleSubmit = useCallback(async <T,>(
     submitFn: () => Promise<T>
   ): Promise<T | null> => {
     setIsSubmitting(true);
