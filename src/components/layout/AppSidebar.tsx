@@ -77,6 +77,7 @@ const menuItems = {
     { title: "Tasks", url: "/dashboard/tasks", icon: CheckSquare },
     { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
     { title: "Reports", url: "/dashboard/reports", icon: BarChart3 },
+    { title: "Blog", url: "/admin/blog", icon: FileText },
   ],
   admin: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
@@ -88,6 +89,7 @@ const menuItems = {
     { title: "Commissions", url: "/dashboard/commissions", icon: DollarSign },
     { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
+    { title: "Blog", url: "/admin/blog", icon: FileText },
   ],
 };
 
@@ -102,7 +104,8 @@ export function AppSidebar() {
     navigate("/auth/login");
   };
 
-  const items = profile?.role ? menuItems[profile.role] || menuItems.student : menuItems.student;
+  const items =
+    profile?.role ? menuItems[profile.role] || menuItems.student : menuItems.student;
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14 md:w-16" : "w-56 md:w-64"}>
@@ -134,7 +137,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item, index) => (
-                <SidebarMenuItem 
+                <SidebarMenuItem
                   key={item.title}
                   className="animate-fade-in-left"
                   style={{ animationDelay: `${index * 50}ms` }}
@@ -190,7 +193,9 @@ export function AppSidebar() {
         <div className="space-y-2">
           {state !== "collapsed" && (
             <div className="px-2.5 md:px-3 py-2 bg-muted rounded-lg">
-              <p className="text-xs md:text-sm font-medium truncate">{profile?.full_name}</p>
+              <p className="text-xs md:text-sm font-medium truncate">
+                {profile?.full_name}
+              </p>
               <p className="text-[10px] md:text-xs text-muted-foreground truncate">
                 {profile?.email}
               </p>

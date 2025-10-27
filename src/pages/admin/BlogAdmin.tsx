@@ -1,56 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import DOMPurify from "dompurify";
+import { toast } from "sonner";
 import {
   Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter,
 } from "@/components/ui/card";
 import {
   Tabs, TabsList, TabsTrigger, TabsContent,
 } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
-} from "@/components/ui/select";
+  Input,
+  Textarea,
+  Label,
+  Badge,
+  Switch,
+  Separator,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Button,
+} from "@/components/ui";
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader,
   AlertDialogTitle, AlertDialogDescription, AlertDialogFooter,
   AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
-  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import {
-  Eye, Star, FileText, Pencil, Trash2, CheckCircle, Filter, Search,
-  Clock, TrendingUp, ImageIcon, Plus, X, Save, Settings, Link2,
-  Copy, ExternalLink, MoreHorizontal, Calendar, Globe, CheckCircle2, Edit3, Download
+  Eye, FileText, Pencil, Trash2, CheckCircle, Filter, Search,
+  Download, Plus, Save, Edit3, Globe,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BlogAnalytics } from "@/components/blog/BlogAnalytics";
 import { BlogPreview } from "@/components/blog/BlogPreview";
 
-// Simple slug generator
-const generateSlug = (title: string): string => {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-};
+const generateSlug = (title: string): string =>
+  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-export default function AdminBlogPage() {
+export default function BlogAdmin() {
+  const qc = useQueryClient();
   const [posts, setPosts] = useState<any[]>([]);
-  const [filteredPosts, setFilteredPosts] = useState<any[]>([]);
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState<any>({});
@@ -59,10 +56,6 @@ export default function AdminBlogPage() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("created_at");
-  const [sortOrder, setSortOrder] = useState("desc");
-
-  const qc = useQueryClient();
 
   // --- Delete post mutation
   const deleteMutation = useMutation({
@@ -82,14 +75,13 @@ export default function AdminBlogPage() {
     if (deleteId) deleteMutation.mutate(deleteId);
   };
 
-  // --- Bulk delete
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: string[]) => {
       const { error } = await supabase.from("blog_posts").delete().in("id", ids);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(`${selectedPosts.length} posts deleted successfully`);
+      toast.success(`${selectedPosts.length} posts deleted`);
       setSelectedPosts([]);
       setShowBulkActions(false);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
@@ -101,7 +93,6 @@ export default function AdminBlogPage() {
     if (selectedPosts.length > 0) bulkDeleteMutation.mutate(selectedPosts);
   };
 
-  // --- Bulk status update
   const bulkStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: "draft" | "published" }) => {
       const { error } = await supabase
@@ -115,7 +106,7 @@ export default function AdminBlogPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success(`${selectedPosts.length} posts updated successfully`);
+      toast.success(`${selectedPosts.length} posts updated`);
       setSelectedPosts([]);
       setShowBulkActions(false);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
@@ -124,12 +115,12 @@ export default function AdminBlogPage() {
   });
 
   const handleBulkStatusChange = (status: "draft" | "published") => {
-    if (selectedPosts.length > 0) bulkStatusMutation.mutate({ ids: selectedPosts, status });
+    if (selectedPosts.length > 0)
+      bulkStatusMutation.mutate({ ids: selectedPosts, status });
   };
 
   const clearSelection = () => setSelectedPosts([]);
 
-  // --- Render
   return (
     <div className="space-y-6 p-6">
       {/* Header + Filters */}
@@ -151,7 +142,7 @@ export default function AdminBlogPage() {
                   className="pl-10"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+              <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -161,13 +152,8 @@ export default function AdminBlogPage() {
                   <SelectItem value="draft">Draft</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBulkActions(!showBulkActions)}
-              >
-                <Filter className="h-4 w-4 mr-2" />
-                Bulk Actions
+              <Button variant="outline" size="sm" onClick={() => setShowBulkActions(true)}>
+                <Filter className="h-4 w-4 mr-2" /> Bulk Actions
               </Button>
             </div>
             <div className="flex items-center gap-2">
@@ -192,12 +178,11 @@ export default function AdminBlogPage() {
       {/* Tabs */}
       <Tabs defaultValue="list" value="list">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="list">All Posts ({filteredPosts.length})</TabsTrigger>
+          <TabsTrigger value="list">All Posts</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="edit">{editing ? "Edit Post" : "Create Post"}</TabsTrigger>
+          <TabsTrigger value="edit">Create/Edit</TabsTrigger>
         </TabsList>
 
-        {/* Posts Table */}
         <TabsContent value="list" className="mt-4">
           <Card>
             <CardContent className="p-0">
@@ -212,13 +197,12 @@ export default function AdminBlogPage() {
           <BlogAnalytics />
         </TabsContent>
 
-        {/* Editor */}
         <TabsContent value="edit" className="mt-4">
           <Card>
             <CardHeader>
               <CardTitle>{editing ? "Edit Post" : "Create New Post"}</CardTitle>
               <CardDescription>
-                {editing ? "Modify your existing post" : "Compose a new blog post"}
+                {editing ? "Modify existing post" : "Compose a new one"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -264,27 +248,22 @@ export default function AdminBlogPage() {
       </Tabs>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the blog post.
-            </AlertDialogDescription>
+            <AlertDialogDescription>This will permanently delete the blog post.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={executeDelete}
-              className="bg-destructive text-destructive-foreground"
-            >
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-white">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Actions */}
+      {/* Bulk Actions Dialog */}
       <Dialog open={showBulkActions} onOpenChange={setShowBulkActions}>
         <DialogContent>
           <DialogHeader>
@@ -294,29 +273,14 @@ export default function AdminBlogPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Button
-              variant="outline"
-              onClick={() => handleBulkStatusChange("published")}
-              disabled={bulkStatusMutation.isPending}
-              className="w-full"
-            >
+            <Button onClick={() => handleBulkStatusChange("published")} className="w-full">
               <CheckCircle className="h-4 w-4 mr-2" /> Publish Selected
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleBulkStatusChange("draft")}
-              disabled={bulkStatusMutation.isPending}
-              className="w-full"
-            >
+            <Button onClick={() => handleBulkStatusChange("draft")} className="w-full">
               <Edit3 className="h-4 w-4 mr-2" /> Move to Draft
             </Button>
             <Separator />
-            <Button
-              variant="destructive"
-              onClick={handleBulkDelete}
-              disabled={bulkDeleteMutation.isPending}
-              className="w-full"
-            >
+            <Button variant="destructive" onClick={handleBulkDelete} className="w-full">
               <Trash2 className="h-4 w-4 mr-2" /> Delete Selected
             </Button>
           </div>
@@ -328,14 +292,7 @@ export default function AdminBlogPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview Dialog */}
-      {preview && (
-        <BlogPreview
-          post={preview}
-          open={!!preview}
-          onOpenChange={() => setPreview(null)}
-        />
-      )}
+      {preview && <BlogPreview post={preview} open={!!preview} onOpenChange={() => setPreview(null)} />}
     </div>
   );
 }
