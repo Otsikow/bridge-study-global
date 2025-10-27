@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { PostgrestError, RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
@@ -115,6 +115,30 @@ type RawTypingIndicator = {
   profile?: {
     full_name: string;
   } | null;
+};
+
+type SupabaseError =
+  | PostgrestError
+  | Error
+  | { message?: string; details?: string | null; hint?: string | null }
+  | null;
+
+const getErrorDescription = (error: SupabaseError, fallback: string) => {
+  if (!error) return fallback;
+
+  if (error instanceof Error) {
+    return error.message || fallback;
+  }
+
+  const supabaseError = error as PostgrestError | { message?: string; details?: string | null; hint?: string | null };
+  if (supabaseError && typeof supabaseError === 'object' && 'message' in supabaseError && supabaseError.message) {
+    const { message, details, hint } = supabaseError;
+    if (details) return details;
+    if (hint) return `${message} (${hint})`;
+    return message;
+  }
+
+  return fallback;
 };
 
 export function useMessages() {
@@ -520,9 +544,13 @@ export function useMessages() {
       }
     } catch (error) {
       console.error('Error getting or creating conversation:', error);
+      const description = getErrorDescription(
+        error as SupabaseError,
+        'An unexpected error occurred while starting the conversation.'
+      );
       toast({
-        title: 'Error',
-        description: 'Failed to start conversation',
+        title: 'Unable to start conversation',
+        description,
         variant: 'destructive',
       });
     }
