@@ -1,9 +1,59 @@
--- Fix infinite recursion in RLS policies
 -- The issue is circular dependencies between students and applications tables
+
+-- Ensure applications table stores a direct reference to the student profile
+ALTER TABLE public.applications
+  ADD COLUMN IF NOT EXISTS student_profile_id UUID;
+
+-- Backfill the profile reference for existing rows
+UPDATE public.applications a
+SET student_profile_id = s.profile_id
+FROM public.students s
+WHERE a.student_id = s.id
+  AND (a.student_profile_id IS DISTINCT FROM s.profile_id OR a.student_profile_id IS NULL);
+
+-- Enforce presence of the new reference and maintain referential integrity
+ALTER TABLE public.applications
+  ALTER COLUMN student_profile_id SET NOT NULL;
+
+ALTER TABLE public.applications
+  DROP CONSTRAINT IF EXISTS applications_student_profile_id_fkey;
+
+ALTER TABLE public.applications
+  ADD CONSTRAINT applications_student_profile_id_fkey
+  FOREIGN KEY (student_profile_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+
+-- Keep student_profile_id in sync whenever the student_id changes
+CREATE OR REPLACE FUNCTION public.set_application_student_profile_id()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  SELECT profile_id
+    INTO NEW.student_profile_id
+  FROM public.students
+  WHERE id = NEW.student_id;
+
+  IF NEW.student_profile_id IS NULL THEN
+    RAISE EXCEPTION 'No student profile found for student %', NEW.student_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_set_application_student_profile_id ON public.applications;
+
+CREATE TRIGGER trg_set_application_student_profile_id
+  BEFORE INSERT OR UPDATE OF student_id ON public.applications
+  FOR EACH ROW
+  EXECUTE FUNCTION public.set_application_student_profile_id();
 
 -- Drop all problematic policies
 DROP POLICY IF EXISTS "Students can view their own applications" ON public.applications;
 DROP POLICY IF EXISTS "Students can create and update their applications" ON public.applications;
+DROP POLICY IF EXISTS "Students can create applications" ON public.applications;
 DROP POLICY IF EXISTS "Students can update their draft applications" ON public.applications;
 DROP POLICY IF EXISTS "Agents can view their students' applications" ON public.applications;
 DROP POLICY IF EXISTS "Partners can view applications to their university" ON public.applications;
@@ -94,11 +144,7 @@ CREATE POLICY "Students can view their own applications"
 ON public.applications
 FOR SELECT
 USING (
-  EXISTS (
-    SELECT 1 FROM public.students s
-    WHERE s.id = applications.student_id
-    AND s.profile_id = auth.uid()
-  )
+  student_profile_id = auth.uid()
 );
 
 -- Students can create applications (direct join)
@@ -106,11 +152,7 @@ CREATE POLICY "Students can create applications"
 ON public.applications
 FOR INSERT
 WITH CHECK (
-  EXISTS (
-    SELECT 1 FROM public.students s
-    WHERE s.id = applications.student_id
-    AND s.profile_id = auth.uid()
-  )
+  student_profile_id = auth.uid()
 );
 
 -- Students can update their draft applications (direct join)
@@ -118,11 +160,7 @@ CREATE POLICY "Students can update their draft applications"
 ON public.applications
 FOR UPDATE
 USING (
-  EXISTS (
-    SELECT 1 FROM public.students s
-    WHERE s.id = applications.student_id
-    AND s.profile_id = auth.uid()
-  )
+  student_profile_id = auth.uid()
   AND status = 'draft'
 );
 
