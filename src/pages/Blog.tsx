@@ -44,12 +44,12 @@ export default function Blog() {
 
   return (
     <div className="container mx-auto px-4 py-10">
-      <div className="flex items-end justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Insights & Guides</h1>
-          <p className="text-muted-foreground">Advice for international students, agents, and partners.</p>
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+        <div className="space-y-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Insights & Guides</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Advice for international students, agents, and partners.</p>
         </div>
-        <div className="w-full max-w-xs">
+        <div className="w-full sm:w-auto sm:min-w-[280px] sm:max-w-xs">
           <Input placeholder="Search articles…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
       </div>

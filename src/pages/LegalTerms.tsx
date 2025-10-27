@@ -152,7 +152,7 @@ const LegalTerms = () => {
 
           <h2 id="contact">Contact</h2>
           <p>
-            Questions about these Terms? Email <a className="text-primary" href="mailto:info@globaltalentgateway.com">info@globaltalentgateway.com</a>.
+            Questions about these Terms? Email <a className="text-primary" href="mailto:info@globaleducationgateway.com">info@globaleducationgateway.com</a>.
           </p>
 
           <p className="text-sm text-muted-foreground">Last updated: {lastUpdated}</p>

@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { LoadingState } from '@/components/LoadingState';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -13,7 +13,10 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <LoadingState 
+          message="Authenticating..." 
+          size="md"
+        />
       </div>
     );
   }
