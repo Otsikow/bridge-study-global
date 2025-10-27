@@ -57,9 +57,10 @@ export const signupSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
   confirmPassword: z.string(),
-  role: z.enum(['student', 'agent', 'staff'], {
-    required_error: 'Please select a role',
-  }),
+  role: z.union([z.literal('student'), z.literal('agent'), z.literal('staff')])
+    .refine((val) => ['student', 'agent', 'staff'].includes(val), {
+      message: 'Please select a role',
+    }),
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: 'You must accept the terms and conditions',
   }),
@@ -295,7 +296,7 @@ export function validateField<T>(
     return { success: true, data };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.issues[0].message };
     }
     return { success: false, error: 'Validation failed' };
   }
@@ -310,7 +311,7 @@ export function getValidationErrors<T>(
     return {};
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return error.errors.reduce((acc, err) => {
+      return error.issues.reduce((acc, err) => {
         const path = err.path.join('.');
         acc[path] = err.message;
         return acc;

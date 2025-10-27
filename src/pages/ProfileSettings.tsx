@@ -223,7 +223,6 @@ export default function ProfileSettings() {
             <AccountTab profile={profile} />
           </TabsContent>
         </Tabs>
-      </div>
     </div>
   );
 }

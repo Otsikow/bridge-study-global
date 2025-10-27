@@ -321,7 +321,7 @@ export function useMessages() {
 
       if (error) throw error;
 
-      const typedData = (data || []) as RawConversation[];
+      const typedData = (data || []) as unknown as RawConversation[];
 
       const formatted = typedData.map((conversation) => {
         const participants: ConversationParticipant[] = (conversation.participants || []).map(
