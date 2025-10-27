@@ -8,7 +8,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { LoadingState } from '@/components/LoadingState';
 import { EmptyState } from '@/components/EmptyState';
-import AppNavbar from '@/components/layout/AppNavbar';
 import ProfileInfoTab from '@/components/settings/ProfileInfoTab';
 import DocumentsTab from '@/components/settings/DocumentsTab';
 import NotificationsTab from '@/components/settings/NotificationsTab';
@@ -16,7 +15,7 @@ import PasswordSecurityTab from '@/components/settings/PasswordSecurityTab';
 import AccountTab from '@/components/settings/AccountTab';
 import { calculateProfileCompletion } from '@/lib/profileCompletion';
 
-const ProfileSettings = () => {
+export default function ProfileSettings() {
   const { profile, user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [completionPercentage, setCompletionPercentage] = useState(0);
@@ -97,35 +96,27 @@ const ProfileSettings = () => {
 
   if (!profile || !user) {
     return (
-      <div className="min-h-screen">
-        <AppNavbar />
-        <div className="container mx-auto py-8">
-          <EmptyState
-            icon={<User />}
-            title="Not Authenticated"
-            description="Please log in to access your profile settings."
-          />
-        </div>
+      <div className="mx-auto flex w-full max-w-5xl justify-center px-4 py-16">
+        <EmptyState
+          icon={<User />}
+          title="Not Authenticated"
+          description="Please log in to access your profile settings."
+        />
       </div>
     );
   }
 
   if (roleDataLoading) {
     return (
-      <div className="min-h-screen">
-        <AppNavbar />
-        <div className="container mx-auto py-8">
-          <LoadingState message="Loading profile data..." />
-        </div>
+      <div className="mx-auto flex w-full max-w-5xl justify-center px-4 py-16">
+        <LoadingState message="Loading profile data..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppNavbar />
-      <div className="container mx-auto py-8 px-4 max-w-6xl">
-        {/* Header Section */}
+    <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Profile & Settings</h1>
           <p className="text-muted-foreground">
@@ -189,7 +180,7 @@ const ProfileSettings = () => {
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Profile</span>
@@ -235,6 +226,4 @@ const ProfileSettings = () => {
       </div>
     </div>
   );
-};
-
-export default ProfileSettings;
+}

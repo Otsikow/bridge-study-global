@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppFooter from "@/components/layout/AppFooter";
+import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -147,20 +147,118 @@ const App = () => (
                 <div className="flex-1">
                   <Routes>
                     {/* Public Routes */}
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth/login" element={<Login />} />
-                    <Route path="/auth/signup" element={<Signup />} />
-                    <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/auth/reset-password" element={<ResetPassword />} />
-                    <Route path="/search" element={<UniversitySearch />} />
-                    <Route path="/courses" element={<CourseDiscovery />} />
-                    <Route path="/universities" element={<UniversityDirectory />} />
-                    <Route path="/universities/:id" element={<UniversityProfile />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/faq" element={<FAQ />} />
-                    <Route path="/help" element={<HelpCenter />} />
-                    <Route path="/blog" element={<Blog />} />
-                    <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route
+                      path="/"
+                      element={
+                        <PublicLayout>
+                          <Index />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/auth/login"
+                      element={
+                        <PublicLayout>
+                          <Login />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/auth/signup"
+                      element={
+                        <PublicLayout>
+                          <Signup />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/auth/forgot-password"
+                      element={
+                        <PublicLayout>
+                          <ForgotPassword />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/auth/reset-password"
+                      element={
+                        <PublicLayout>
+                          <ResetPassword />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/search"
+                      element={
+                        <PublicLayout>
+                          <UniversitySearch />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/courses"
+                      element={
+                        <PublicLayout>
+                          <CourseDiscovery />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/universities"
+                      element={
+                        <PublicLayout>
+                          <UniversityDirectory />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/universities/:id"
+                      element={
+                        <PublicLayout>
+                          <UniversityProfile />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/contact"
+                      element={
+                        <PublicLayout>
+                          <Contact />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/faq"
+                      element={
+                        <PublicLayout>
+                          <FAQ />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/help"
+                      element={
+                        <PublicLayout>
+                          <HelpCenter />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/blog"
+                      element={
+                        <PublicLayout>
+                          <Blog />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/blog/:slug"
+                      element={
+                        <PublicLayout>
+                          <BlogPost />
+                        </PublicLayout>
+                      }
+                    />
 
                     {/* Protected Routes */}
                     <Route
@@ -331,7 +429,9 @@ const App = () => (
                       path="/settings"
                       element={
                         <ProtectedRoute>
-                          <ProfileSettings />
+                          <PublicLayout>
+                            <ProfileSettings />
+                          </PublicLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -353,10 +453,38 @@ const App = () => (
                     />
 
                     {/* Other Routes */}
-                    <Route path="/intake" element={<IntakeForm />} />
-                    <Route path="/intake/:formId" element={<IntakeForm />} />
-                    <Route path="/visa-calculator" element={<VisaCalculator />} />
-                    <Route path="/feedback" element={<UserFeedback />} />
+                    <Route
+                      path="/intake"
+                      element={
+                        <PublicLayout>
+                          <IntakeForm />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/intake/:formId"
+                      element={
+                        <PublicLayout>
+                          <IntakeForm />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/visa-calculator"
+                      element={
+                        <PublicLayout>
+                          <VisaCalculator />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/feedback"
+                      element={
+                        <PublicLayout>
+                          <UserFeedback />
+                        </PublicLayout>
+                      }
+                    />
                     <Route
                       path="/admin/feedback-analytics"
                       element={
@@ -381,12 +509,32 @@ const App = () => (
                         </ProtectedRoute>
                       }
                     />
-                    <Route path="/legal/privacy" element={<LegalPrivacy />} />
-                    <Route path="/legal/terms" element={<LegalTerms />} />
-                    <Route path="*" element={<NotFound />} />
+                    <Route
+                      path="/legal/privacy"
+                      element={
+                        <PublicLayout>
+                          <LegalPrivacy />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/legal/terms"
+                      element={
+                        <PublicLayout>
+                          <LegalTerms />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <PublicLayout>
+                          <NotFound />
+                        </PublicLayout>
+                      }
+                    />
                   </Routes>
                 </div>
-                <AppFooter />
               </div>
             </Suspense>
           </AuthProvider>
