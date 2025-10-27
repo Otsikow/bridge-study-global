@@ -30,7 +30,7 @@ export function AppFooter() {
                 className="h-9 w-9 object-contain dark:brightness-0 dark:invert"
               />
               <span className="font-semibold text-lg">
-                GEG — Global Talent Gateway
+                GEG — Global Education Gateway
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
@@ -181,7 +181,7 @@ export function AppFooter() {
         {/* Footer Bottom */}
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
           <p className="text-xs text-muted-foreground">
-            © {year} GEG — Global Talent Gateway. All rights reserved.
+            © {year} GEG — Global Education Gateway. All rights reserved.
           </p>
           <div className="text-xs text-muted-foreground">
             <span className="hidden sm:inline">Questions? </span>
