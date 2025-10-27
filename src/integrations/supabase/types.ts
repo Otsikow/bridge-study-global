@@ -161,6 +161,7 @@ export type Database = {
           risk_flags_json: Json | null
           status: Database["public"]["Enums"]["application_status"] | null
           student_id: string
+          student_profile_id: string
           submission_channel: string | null
           submitted_at: string | null
           tenant_id: string
@@ -183,6 +184,7 @@ export type Database = {
           risk_flags_json?: Json | null
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id: string
+          student_profile_id?: string
           submission_channel?: string | null
           submitted_at?: string | null
           tenant_id: string
@@ -205,6 +207,7 @@ export type Database = {
           risk_flags_json?: Json | null
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id?: string
+          student_profile_id?: string
           submission_channel?: string | null
           submitted_at?: string | null
           tenant_id?: string
@@ -238,6 +241,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_student_profile_id_fkey"
+            columns: ["student_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
