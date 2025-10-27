@@ -15,7 +15,7 @@ const Contact = () => {
               <h1 className="text-3xl md:text-4xl font-bold">Contact Us</h1>
               <p className="text-muted-foreground text-lg">We typically respond within one business day.</p>
               <p className="text-sm">
-                Prefer email? <a className="text-primary hover:underline font-medium" href="mailto:info@globaltalentgateway.com">info@globaltalentgateway.com</a>
+                Prefer email? <a className="text-primary hover:underline font-medium" href="mailto:info@globaleducationgateway.com">info@globaleducationgateway.com</a>
               </p>
             </div>
             <div className="hidden md:block">
