@@ -89,7 +89,7 @@ interface SearchResult {
   scholarships: Scholarship[];
 }
 
-// Helper: choose logo or fallback image
+// --- Helper: choose logo or fallback image ---
 const getUniversityVisual = (name: string, logo: string | null): string => {
   const lower = name.toLowerCase();
   if (logo) return logo;
@@ -353,12 +353,14 @@ export default function UniversitySearch() {
                               <CardTitle className="text-2xl">{r.university.name}</CardTitle>
                               <CardDescription className="flex items-center gap-2">
                                 <MapPin className="h-4 w-4" />
-                                {r.university.city && `${r.university.city}, `}{r.university.country}
+                                {r.university.city && `${r.university.city}, `}
+                                {r.university.country}
                               </CardDescription>
                             </div>
                             {r.scholarships.length > 0 && (
                               <Badge variant="secondary" className="flex items-center gap-1">
-                                <Award className="h-3 w-3" /> {r.scholarships.length} Scholarship{r.scholarships.length > 1 ? "s" : ""}
+                                <Award className="h-3 w-3" /> {r.scholarships.length} Scholarship
+                                {r.scholarships.length > 1 ? "s" : ""}
                               </Badge>
                             )}
                           </div>
@@ -381,7 +383,8 @@ export default function UniversitySearch() {
                                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <Badge variant="outline">{p.level}</Badge>
                                     <span className="flex items-center gap-1">
-                                      <DollarSign className="h-3 w-3" /> {p.tuition_amount.toLocaleString()} {p.tuition_currency}
+                                      <DollarSign className="h-3 w-3" />{" "}
+                                      {p.tuition_amount.toLocaleString()} {p.tuition_currency}
                                     </span>
                                   </div>
                                   <Button size="sm" variant="outline" className="w-full text-xs" asChild>
@@ -448,5 +451,4 @@ export default function UniversitySearch() {
                   </Card>
                 ))
               )}
-            </div>
-          </TabsContent
+            </div
