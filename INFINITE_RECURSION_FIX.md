@@ -50,9 +50,10 @@ The fix eliminates circular dependencies by:
 
 2. **Avoiding Helper Functions in Cross-Table Policies**: Replaced `is_admin_or_staff(auth.uid())` calls with direct profile queries to avoid potential recursion.
 
-3. **Restructured Policy Logic**: 
+3. **Restructured Policy Logic**:
    - Students policies now check agents/applications tables WITHOUT triggering their RLS
    - Applications policies check students table WITHOUT triggering student RLS recursively
+   - A dedicated `agent_can_view_student()` helper runs as a security definer so agent lookups avoid RLS recursion entirely
 
 ### Key Changes
 
@@ -69,17 +70,11 @@ USING (
   )
 );
 
--- NEW (No Recursion)
 CREATE POLICY "Agents can view their students"
 ON students FOR SELECT
 USING (
-  EXISTS (
-    SELECT 1 
-    FROM public.agents ag
-    INNER JOIN public.applications a ON a.agent_id = ag.id
-    WHERE ag.profile_id = auth.uid()
-    AND a.student_id = students.id
-  )
+  -- NEW (Security definer helper avoids recursion)
+  public.agent_can_view_student(auth.uid(), students.id)
 );
 ```
 
