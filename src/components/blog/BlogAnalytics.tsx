@@ -80,7 +80,10 @@ export function BlogAnalytics({ className = "" }: BlogAnalyticsProps) {
       const recent_posts = posts.filter(p => new Date(p.created_at) > weekAgo).length;
 
       // Top posts (top 10 by views)
-      const top_posts = posts.slice(0, 10);
+      const top_posts = posts.slice(0, 10).map(post => ({
+        ...post,
+        status: post.status as "draft" | "published"
+      }));
 
       // Calculate trends
       const oldViews = oldPosts.reduce((sum, p) => sum + (p.views_count || 0), 0);

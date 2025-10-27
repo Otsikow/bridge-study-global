@@ -14,87 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      blog_posts: {
-        Row: {
-          id: string
-          tenant_id: string
-          author_id: string
-          slug: string
-          title: string
-          excerpt: string | null
-          content_md: string | null
-          content_html: string | null
-          cover_image_url: string | null
-          tags: string[]
-          status: Database["public"]["Enums"]["blog_status"]
-          featured: boolean
-          seo_title: string | null
-          seo_description: string | null
-          published_at: string | null
-          created_at: string
-          updated_at: string
-          views_count: number
-          likes_count: number
-        }
-        Insert: {
-          id?: string
-          tenant_id: string
-          author_id: string
-          slug: string
-          title: string
-          excerpt?: string | null
-          content_md?: string | null
-          content_html?: string | null
-          cover_image_url?: string | null
-          tags?: string[]
-          status?: Database["public"]["Enums"]["blog_status"]
-          featured?: boolean
-          seo_title?: string | null
-          seo_description?: string | null
-          published_at?: string | null
-          created_at?: string
-          updated_at?: string
-          views_count?: number
-          likes_count?: number
-        }
-        Update: {
-          id?: string
-          tenant_id?: string
-          author_id?: string
-          slug?: string
-          title?: string
-          excerpt?: string | null
-          content_md?: string | null
-          content_html?: string | null
-          cover_image_url?: string | null
-          tags?: string[]
-          status?: Database["public"]["Enums"]["blog_status"]
-          featured?: boolean
-          seo_title?: string | null
-          seo_description?: string | null
-          published_at?: string | null
-          created_at?: string
-          updated_at?: string
-          views_count?: number
-          likes_count?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blog_posts_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blog_posts_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       agents: {
         Row: {
           active: boolean | null
@@ -399,7 +318,7 @@ export type Database = {
           entity: string
           entity_id: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           tenant_id: string
           user_agent: string | null
           user_id: string | null
@@ -411,7 +330,7 @@ export type Database = {
           entity: string
           entity_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           tenant_id: string
           user_agent?: string | null
           user_id?: string | null
@@ -423,7 +342,7 @@ export type Database = {
           entity?: string
           entity_id?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           tenant_id?: string
           user_agent?: string | null
           user_id?: string | null
@@ -441,6 +360,87 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blog_posts: {
+        Row: {
+          author_id: string
+          content_html: string | null
+          content_md: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          excerpt: string | null
+          featured: boolean | null
+          id: string
+          likes_count: number | null
+          published_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          tenant_id: string
+          title: string
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          author_id: string
+          content_html?: string | null
+          content_md?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          id?: string
+          likes_count?: number | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          tenant_id: string
+          title: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          author_id?: string
+          content_html?: string | null
+          content_md?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          id?: string
+          likes_count?: number | null
+          published_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blog_posts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -1866,26 +1866,83 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_content: string
+          p_metadata?: Json
+          p_tenant_id: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
+      get_primary_role: {
+        Args: { p_user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
-      get_user_tenant: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      is_admin_or_staff: {
-        Args: { user_id: string }
+      get_user_tenant: { Args: { user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
         Returns: boolean
+      }
+      is_admin_or_staff: { Args: { user_id: string }; Returns: boolean }
+      mark_all_notifications_read: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: boolean
+      }
+      notify_course_recommendation: {
+        Args: { p_program_id: string; p_reason?: string; p_student_id: string }
+        Returns: string
       }
     }
     Enums: {
-      blog_status: "draft" | "published"
       app_role:
         | "student"
         | "agent"
