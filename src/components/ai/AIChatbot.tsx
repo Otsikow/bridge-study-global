@@ -211,7 +211,7 @@ export default function AIChatbot() {
   };
 
   const uploadFile = async (file: File) => {
-    if (!session?.access_token) {
+    if (!session?.access_token || !session.user?.id) {
       toast({ title: "Sign in required", description: "Please sign in to upload files." });
       return;
     }
@@ -248,7 +248,8 @@ export default function AIChatbot() {
     try {
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-      const filePath = `chat-attachments/${fileName}`;
+      // Use chat-uploads/{userId} path to align with storage policies
+      const filePath = `chat-uploads/${session.user.id}/${fileName}`;
 
       console.log('Uploading chat attachment:', {
         bucket: 'public',
