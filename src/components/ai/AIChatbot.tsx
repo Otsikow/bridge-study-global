@@ -17,7 +17,6 @@ import {
   Image,
   X as XIcon,
   Loader2,
-  Paperclip,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -191,7 +190,7 @@ export default function AIChatbot() {
 
   // ---- File Uploads ----
   const uploadFile = async (file: File) => {
-    if (!session?.access_token) {
+    if (!session?.access_token || !session.user?.id) {
       toast({ title: "Sign in required", description: "Please sign in to upload files." });
       return;
     }
@@ -228,7 +227,16 @@ export default function AIChatbot() {
     try {
       const ext = file.name.split(".").pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${ext}`;
-      const filePath = `chat-attachments/${fileName}`;
+      const filePath = `chat-uploads/${session.user.id}/${fileName}`;
+
+      console.log("Uploading chat attachment:", {
+        bucket: "public",
+        path: filePath,
+        fileName: file.name,
+        size: file.size,
+        type: file.type,
+      });
+
       const { data: uploadData, error } = await supabase.storage
         .from("public")
         .upload(filePath, file, { cacheControl: "3600", upsert: false });
