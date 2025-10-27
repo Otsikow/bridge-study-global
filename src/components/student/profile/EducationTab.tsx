@@ -12,9 +12,10 @@ import type { Tables } from '@/integrations/supabase/types';
 
 interface EducationTabProps {
   studentId: string;
+  onUpdate?: () => void;
 }
 
-export function EducationTab({ studentId }: EducationTabProps) {
+export function EducationTab({ studentId, onUpdate }: EducationTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [educationRecords, setEducationRecords] = useState<Tables<'education_records'>[]>([]);
@@ -84,6 +85,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
       setEditingRecord(null);
       resetForm();
       fetchEducationRecords();
+      onUpdate?.();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
@@ -108,6 +110,7 @@ export function EducationTab({ studentId }: EducationTabProps) {
       if (error) throw error;
       toast({ title: 'Success', description: 'Education record deleted' });
       fetchEducationRecords();
+      onUpdate?.();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
