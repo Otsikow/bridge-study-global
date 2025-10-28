@@ -40,7 +40,6 @@ import heroBanner from "@/assets/hero-banner.jpg";
 import campusWalk from "@/assets/campus-walk.png";
 import studentJourney from "@/assets/student-journey.png";
 import acceptanceLetter from "@/assets/acceptance-letter.png";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
@@ -222,33 +221,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Navbar */}
-      <nav className="border-b bg-background/95 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-3">
-            <img
-              src={gegLogo}
-              alt="GEG Logo"
-              className="h-10 w-10 object-contain dark:brightness-0 dark:invert"
-            />
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-              Global Education Gateway
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Link to="/auth/login">
-              <Button variant="ghost" size="sm">
-                Login
-              </Button>
-            </Link>
-            <Link to="/auth/signup">
-              <Button size="sm">Sign Up</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="absolute inset-0 bg-grid-white/5" />
