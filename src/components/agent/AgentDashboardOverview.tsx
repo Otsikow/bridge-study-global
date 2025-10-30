@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,12 +26,16 @@ import {
   Search,
   ExternalLink,
   TrendingUp,
+  BadgeCheck,
+  Sparkles,
+  GraduationCap,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/StatusBadge';
+import AgentEnablementCenter from '@/components/agent/AgentEnablementCenter';
 
 interface DashboardStats {
   totalStudents: number;
@@ -71,6 +75,83 @@ export default function AgentDashboardOverview() {
   const [referralCode, setReferralCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
+
+  const pipelineStages = useMemo(() => {
+    const stageDefinitions = [
+      {
+        key: 'draft',
+        label: 'New Leads',
+        description: 'Students captured but not yet submitted',
+        icon: UserPlus,
+        color: 'from-sky-500 to-blue-500',
+      },
+      {
+        key: 'submitted',
+        label: 'Applications Submitted',
+        description: 'Applications sent to partner universities',
+        icon: FileCheck,
+        color: 'from-purple-500 to-indigo-500',
+      },
+      {
+        key: 'screening',
+        label: 'In Screening',
+        description: 'Documents under review by admissions teams',
+        icon: Search,
+        color: 'from-amber-500 to-orange-500',
+      },
+      {
+        key: 'conditional_offer',
+        label: 'Conditional Offers',
+        description: 'Awaiting outstanding requirements from students',
+        icon: BadgeCheck,
+        color: 'from-emerald-500 to-green-500',
+      },
+      {
+        key: 'unconditional_offer',
+        label: 'Ready to Enroll',
+        description: 'Students with final offers ready for enrollment',
+        icon: Sparkles,
+        color: 'from-pink-500 to-rose-500',
+      },
+      {
+        key: 'enrolled',
+        label: 'Enrolled Students',
+        description: 'Students who have completed enrollment',
+        icon: GraduationCap,
+        color: 'from-slate-500 to-slate-700',
+      },
+    ] as const;
+
+    return stageDefinitions.map((stage) => ({
+      ...stage,
+      count: students.filter((student) => student.status === stage.key).length,
+    }));
+  }, [students]);
+
+  const pipelineSummary = useMemo(() => {
+    const total = students.length;
+    const enrolled = pipelineStages.find((stage) => stage.key === 'enrolled')?.count ?? 0;
+    const active = Math.max(total - enrolled, 0);
+
+    const recent = students.filter((student) => {
+      const created = new Date(student.created_at);
+      if (Number.isNaN(created.getTime())) {
+        return false;
+      }
+      const diffInDays = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
+      return diffInDays <= 7;
+    }).length;
+
+    const conversionRate = total > 0 ? Math.round((enrolled / total) * 100) : 0;
+
+    return {
+      total,
+      enrolled,
+      active,
+      conversionRate,
+      recent,
+    };
+  }, [students, pipelineStages]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -470,6 +551,8 @@ export default function AgentDashboardOverview() {
           </div>
         </CardContent>
       </Card>
+
+      <AgentEnablementCenter pipelineStages={pipelineStages} summary={pipelineSummary} />
 
       {/* Referred Students Table */}
       <Card>
