@@ -1901,6 +1901,10 @@ export type Database = {
           commission_terms_json: Json | null
           country: string
           created_at: string | null
+          featured: boolean | null
+          featured_highlight: string | null
+          featured_priority: number | null
+          featured_summary: string | null
           description: string | null
           id: string
           logo_url: string | null
@@ -1919,6 +1923,10 @@ export type Database = {
           commission_terms_json?: Json | null
           country: string
           created_at?: string | null
+          featured?: boolean | null
+          featured_highlight?: string | null
+          featured_priority?: number | null
+          featured_summary?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null
@@ -1937,6 +1945,10 @@ export type Database = {
           commission_terms_json?: Json | null
           country?: string
           created_at?: string | null
+          featured?: boolean | null
+          featured_highlight?: string | null
+          featured_priority?: number | null
+          featured_summary?: string | null
           description?: string | null
           id?: string
           logo_url?: string | null

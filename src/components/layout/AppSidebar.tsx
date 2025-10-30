@@ -16,6 +16,7 @@ import {
   LogOut,
   TrendingUp,
   Search,
+  Sparkles,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -83,6 +84,11 @@ const menuItems = {
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Users", url: "/dashboard/users", icon: Users },
     { title: "Universities", url: "/dashboard/universities", icon: Building2 },
+    {
+      title: "Featured Universities",
+      url: "/admin/featured-universities",
+      icon: Sparkles,
+    },
     { title: "Programs", url: "/dashboard/programs", icon: BookOpen },
     { title: "Applications", url: "/dashboard/applications", icon: FileText },
     { title: "Agents", url: "/dashboard/agents", icon: Share2 },
