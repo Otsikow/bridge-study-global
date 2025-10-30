@@ -42,6 +42,7 @@ interface ContactEmailRequest {
   name: string;
   email: string;
   message: string;
+  whatsapp?: string;
 }
 
 const sendEmail = async (to: string[], subject: string, html: string) => {
@@ -85,17 +86,19 @@ const handler = async (req: Request): Promise<Response> => {
   if (authError) return authError;
 
   try {
-    const { name, email, message }: ContactEmailRequest = await req.json();
+    const { name, email, message, whatsapp }: ContactEmailRequest = await req.json();
     if (
       typeof name !== 'string' ||
       typeof email !== 'string' ||
       typeof message !== 'string' ||
+      (whatsapp !== undefined && typeof whatsapp !== 'string') ||
       name.length === 0 ||
       email.length === 0 ||
       message.length === 0 ||
       name.length > 100 ||
       email.length > 255 ||
-      message.length > 2000
+      message.length > 2000 ||
+      (whatsapp !== undefined && whatsapp.length > 30)
     ) {
       return new Response(JSON.stringify({ error: 'Invalid request body' }), {
         status: 400,
@@ -113,6 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
         <h2>New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
+        <p><strong>WhatsApp:</strong> ${whatsapp ? whatsapp : 'Not provided'}</p>
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
       `
@@ -125,6 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
       `
         <h1>Thank you for reaching out, ${name}!</h1>
         <p>We have received your message and will get back to you as soon as possible.</p>
+        <p><strong>Your WhatsApp:</strong> ${whatsapp ? whatsapp : 'Not provided'}</p>
         <p><strong>Your message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>
         <br>

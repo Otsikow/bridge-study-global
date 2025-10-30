@@ -10,12 +10,19 @@ import { z } from "zod";
 const contactSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
   email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-  message: z.string().trim().min(1, "Message is required").max(1000, "Message must be less than 1000 characters")
+  message: z.string().trim().min(1, "Message is required").max(1000, "Message must be less than 1000 characters"),
+  whatsapp: z
+    .string()
+    .trim()
+    .regex(/^[0-9+()\-\s]*$/, "WhatsApp number can only contain numbers and phone symbols")
+    .max(30, "WhatsApp number must be less than 30 characters")
+    .optional(),
 });
 
 export const ContactForm = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -34,7 +41,12 @@ export const ContactForm = () => {
         return;
       }
       // Validate input
-      const validatedData = contactSchema.parse({ name, email, message });
+      const validatedData = contactSchema.parse({
+        name,
+        email,
+        message,
+        whatsapp: whatsapp.trim() ? whatsapp.trim() : undefined,
+      });
 
       setIsSubmitting(true);
 
@@ -55,6 +67,7 @@ export const ContactForm = () => {
       // Clear form
       setName("");
       setEmail("");
+      setWhatsapp("");
       setMessage("");
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -95,6 +108,15 @@ export const ContactForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           maxLength={255}
+        />
+      </div>
+      <div>
+        <Input
+          type="tel"
+          placeholder="Your WhatsApp Number (optional)"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          maxLength={30}
         />
       </div>
       <div>
