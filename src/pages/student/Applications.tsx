@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
+import { logError, formatErrorForToast } from '@/lib/errorUtils';
 import {
   FileText,
   Plus,
@@ -21,8 +21,6 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
-import { handleDbError } from '@/lib/errorHandling';
-import { safeQuery } from '@/lib/supabaseErrorHandling';
 
 interface Application {
   id: string;
@@ -44,7 +42,6 @@ interface Application {
 }
 
 export default function Applications() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   const errorHandler = useErrorHandler({ context: 'Applications' });
@@ -61,14 +58,7 @@ export default function Applications() {
       setLoading(true);
       errorHandler.clearError();
 
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', user?.id)
-        .maybeSingle();
-
-      if (studentError) throw studentError;
-      if (!studentData) {
+      if (!user?.id) {
         setApplications([]);
         setAllCountries([]);
         return;
@@ -94,7 +84,7 @@ export default function Applications() {
             )
           )
         `)
-        .eq('student_id', studentData.id)
+        .eq('student_profile_id', user.id)
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;

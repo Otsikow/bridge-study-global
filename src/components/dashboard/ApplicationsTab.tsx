@@ -25,17 +25,15 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Application {
   id: string;
-  student_id: string;
+  student_profile_id: string;
   program_id: string;
   status: string;
   intake_month: number;
   intake_year: number;
   created_at: string;
-  students?: {
-    profiles?: {
-      full_name: string;
-      email: string;
-    };
+  student_profile?: {
+    full_name: string;
+    email: string;
   };
   programs?: {
     name: string;
@@ -70,17 +68,15 @@ export default function ApplicationsTab() {
         .from('applications')
         .select(`
           id,
-          student_id,
+          student_profile_id,
           program_id,
           status,
           intake_month,
           intake_year,
           created_at,
-          students (
-            profiles (
-              full_name,
-              email
-            )
+          student_profile:profiles!applications_student_profile_id_fkey (
+            full_name,
+            email
           ),
           programs (
             name,
@@ -112,8 +108,8 @@ export default function ApplicationsTab() {
     if (searchQuery) {
       filtered = filtered.filter(
         (app) =>
-          app.students?.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          app.students?.profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          app.student_profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          app.student_profile?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           app.programs?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           app.programs?.universities?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
@@ -291,10 +287,10 @@ export default function ApplicationsTab() {
                     <TableCell>
                       <div>
                         <div className="font-medium">
-                          {app.students?.profiles?.full_name || 'N/A'}
+                          {app.student_profile?.full_name || 'N/A'}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {app.students?.profiles?.email || 'N/A'}
+                          {app.student_profile?.email || 'N/A'}
                         </div>
                       </div>
                     </TableCell>
