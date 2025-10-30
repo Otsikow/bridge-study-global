@@ -2170,6 +2170,22 @@ export type Database = {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: number
       }
+      get_public_featured_universities: {
+        Args: { p_tenant_slug?: string | null }
+        Returns: {
+          city: string | null
+          country: string | null
+          featured: boolean | null
+          featured_highlight: string | null
+          featured_priority: number | null
+          featured_summary: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          ranking: Json | null
+          website: string | null
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
