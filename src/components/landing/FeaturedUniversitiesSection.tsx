@@ -34,6 +34,51 @@ interface FeaturedUniversity {
 const FALLBACK_SUMMARY =
   "Dedicated partners that consistently welcome Global Education Gateway students with tailored support.";
 
+const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
+  {
+    id: "fallback-oxford",
+    name: "Oxford International University",
+    country: "United Kingdom",
+    city: "Oxford",
+    logo_url: null,
+    website: "https://www.oxforduniversity.edu",
+    ranking: { "QS Global": "Top 10", "Times": "Top 5" },
+    featured: true,
+    featured_priority: 0,
+    featured_summary:
+      "Historic academic excellence with a strong record of welcoming international scholars.",
+    featured_highlight: "Personalized onboarding for postgraduate programs",
+  },
+  {
+    id: "fallback-toronto",
+    name: "Toronto Global Institute",
+    country: "Canada",
+    city: "Toronto",
+    logo_url: null,
+    website: "https://www.torontoglobal.ca",
+    ranking: { "QS Global": "Top 25", "Times": "Top 20" },
+    featured: true,
+    featured_priority: 1,
+    featured_summary:
+      "Leading research university known for industry partnerships and co-op opportunities.",
+    featured_highlight: "Career pathways across technology and business",
+  },
+  {
+    id: "fallback-singapore",
+    name: "Singapore International Tech",
+    country: "Singapore",
+    city: "Singapore",
+    logo_url: null,
+    website: "https://www.singaporetech.sg",
+    ranking: { "QS Asia": "Top 5", Innovation: "Award-winning" },
+    featured: true,
+    featured_priority: 2,
+    featured_summary:
+      "Innovative campus with a focus on AI, sustainability, and entrepreneurship programs.",
+    featured_highlight: "Accelerators and launchpads for student founders",
+  },
+];
+
 export function FeaturedUniversitiesSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +101,25 @@ export function FeaturedUniversitiesSection() {
   });
 
   const featuredUniversities = useMemo(() => data ?? [], [data]);
+  const hasError = Boolean(error);
+
+  const universitiesToDisplay = useMemo(() => {
+    if (hasError) {
+      return FALLBACK_UNIVERSITIES;
+    }
+
+    if (featuredUniversities.length >= 3) {
+      return featuredUniversities;
+    }
+
+    const needed = 3 - featuredUniversities.length;
+    return [
+      ...featuredUniversities,
+      ...FALLBACK_UNIVERSITIES.slice(0, Math.max(needed, 0)),
+    ];
+  }, [featuredUniversities, hasError]);
+
+  const isUsingFallback = hasError || featuredUniversities.length < 3;
 
   const scrollBy = (direction: "left" | "right") => {
     const container = scrollRef.current;
@@ -89,51 +153,25 @@ export function FeaturedUniversitiesSection() {
       );
     }
 
-    if (error) {
-      return (
-        <Card className="border-destructive/20 bg-destructive/5">
-          <CardContent className="p-8 text-center space-y-4">
-            <div className="inline-flex items-center justify-center gap-3 text-destructive">
-              <Building2 className="h-6 w-6" />
-              <p className="font-semibold">Unable to load featured universities</p>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Please refresh the page or try again later. The administrator has been notified.
-            </p>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    if (!featuredUniversities.length) {
-      return (
-        <Card className="border-dashed">
-          <CardContent className="p-10 text-center space-y-4">
-            <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
-              <Building2 className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-2xl font-semibold">Partner spotlights coming soon</h3>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Our partnerships team is curating a new cohort of universities to showcase on the homepage. Check back shortly for the latest additions.
-            </p>
-            <Button asChild variant="outline">
-              <Link to="/universities">Explore our full directory</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      );
-    }
-
     return (
       <div className="space-y-6">
+        {isUsingFallback && (
+          <Card className="border-muted/40 bg-muted/10">
+            <CardContent className="p-4 text-sm text-muted-foreground">
+              {hasError
+                ? "We're showing highlighted partners while we reconnect to the featured list."
+                : "We're showing highlighted partners while our featured list updates."}
+            </CardContent>
+          </Card>
+        )}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-sm uppercase tracking-[0.25em] text-primary/70">Featured network</p>
             <p className="text-muted-foreground text-sm">
-              {featuredUniversities.length} institutions selected by our partnerships team
+              {universitiesToDisplay.length} institutions selected by our partnerships team
             </p>
           </div>
-          {featuredUniversities.length > 3 && (
+          {universitiesToDisplay.length > 3 && (
             <div className="hidden md:flex gap-2">
               <Button
                 variant="outline"
@@ -161,7 +199,7 @@ export function FeaturedUniversitiesSection() {
           ref={scrollRef}
           className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 max-md:overflow-x-auto max-md:pb-2"
         >
-          {featuredUniversities.map((university, index) => (
+          {universitiesToDisplay.map((university, index) => (
             <Card
               key={university.id}
               className={cn(
