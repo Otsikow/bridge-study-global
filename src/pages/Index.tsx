@@ -364,6 +364,103 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured Universities */}
+      <section className="relative py-20">
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/5 via-background to-primary/10" />
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <h2 className="text-4xl font-bold mb-4">Featured Universities</h2>
+            <p className="text-muted-foreground">
+              A snapshot of the global institutions partnering with Global Education Gateway to welcome international students.
+            </p>
+          </div>
+          {universities && universities.length > 0 ? (
+            <Card className="border-2 shadow-lg">
+              <CardContent className="p-8">
+                <div className="flex flex-col gap-8">
+                  <div className="flex justify-between items-center">
+                    <div className="text-left">
+                      <p className="text-sm uppercase tracking-widest text-primary/80 font-semibold">
+                        Global Network
+                      </p>
+                      <p className="text-muted-foreground">
+                        {universities.length}+ verified institutions and counting
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={prevLogo}
+                        className="hover:scale-110"
+                        aria-label="Previous universities"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={nextLogo}
+                        className="hover:scale-110"
+                        aria-label="Next universities"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                    {getVisibleLogos().map((university) => (
+                      <div
+                        key={university.id}
+                        className="group relative overflow-hidden rounded-xl border bg-card/60 backdrop-blur transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      >
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        <div className="flex h-full flex-col items-center gap-4 p-6 text-center">
+                          <div className="flex h-20 w-20 items-center justify-center rounded-full border bg-background p-3 shadow-inner">
+                            {university.logo_url ? (
+                              <img
+                                src={university.logo_url}
+                                alt={`${university.name} logo`}
+                                className="h-full w-full object-contain"
+                              />
+                            ) : (
+                              <GraduationCap className="h-10 w-10 text-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-lg font-semibold text-foreground">
+                              {university.name}
+                            </p>
+                            {university.country && (
+                              <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                                <MapPin className="h-4 w-4 text-primary" />
+                                {university.country}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-dashed">
+              <CardContent className="p-10 text-center space-y-4">
+                <div className="inline-flex items-center justify-center rounded-full bg-primary/10 p-4">
+                  <Building2 className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-semibold">Partner Universities Coming Soon</h3>
+                <p className="text-muted-foreground">
+                  We&apos;re curating a world-class roster of institutions. Check back shortly to explore the universities that trust GEG.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
       {/* How It Works */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4 space-y-24">
