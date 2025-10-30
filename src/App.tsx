@@ -12,6 +12,7 @@ import { lazy, Suspense, ComponentType } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import Messages from "./pages/student/Messages";
 
 // ✅ Lazy loading wrapper with error handling
 const lazyWithErrorHandling = <T extends ComponentType<any>>(
@@ -114,7 +115,6 @@ const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
   () => import("./pages/admin/FeaturedUniversitiesAdmin")
 );
 const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
-const Messages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
