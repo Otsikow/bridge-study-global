@@ -10,10 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Globe, MapPin, Building2, Users, FileText, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Mail, Phone, Globe, MapPin, Building2, Users, FileText, TrendingUp, CheckCircle, XCircle, ClipboardList, Stamp, GraduationCap, Target } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { LoadingState } from '@/components/LoadingState';
 import { EmptyState } from '@/components/EmptyState';
@@ -348,8 +350,8 @@ export default function UniversityDashboard() {
   const acceptanceRate = totalCount > 0 ? ((acceptedCount / totalCount) * 100).toFixed(1) : '0';
 
   const statusCounts = [
-    { 
-      name: 'Accepted', 
+    {
+      name: 'Accepted',
       value: acceptedCount,
       color: '#10b981',
     },
@@ -370,6 +372,111 @@ export default function UniversityDashboard() {
   ];
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+  const getStatusCount = (statuses: string[]) =>
+    applications.filter((app) => statuses.includes(app.status)).length;
+
+  const pipelineStageDefinitions: {
+    key: string;
+    label: string;
+    description: string;
+    statuses: string[];
+    icon: LucideIcon;
+  }[] = [
+    {
+      key: 'submitted',
+      label: 'New Applications',
+      description: 'Submitted and awaiting review',
+      statuses: ['submitted'],
+      icon: FileText,
+    },
+    {
+      key: 'screening',
+      label: 'In Review',
+      description: 'Applications in screening and assessment',
+      statuses: ['screening'],
+      icon: ClipboardList,
+    },
+    {
+      key: 'offers',
+      label: 'Offers Issued',
+      description: 'Students with conditional or unconditional offers',
+      statuses: ['conditional_offer', 'unconditional_offer'],
+      icon: CheckCircle,
+    },
+    {
+      key: 'visa',
+      label: 'Visa & CAS',
+      description: 'Students preparing documentation',
+      statuses: ['cas_loa', 'visa'],
+      icon: Stamp,
+    },
+    {
+      key: 'enrolled',
+      label: 'Enrolled Students',
+      description: 'Confirmed students ready to start',
+      statuses: ['enrolled'],
+      icon: GraduationCap,
+    },
+  ];
+
+  const pipelineStages = pipelineStageDefinitions.map((stage) => {
+    const count = getStatusCount(stage.statuses);
+    return {
+      key: stage.key,
+      label: stage.label,
+      description: stage.description,
+      icon: stage.icon,
+      count,
+      percentage: totalCount > 0 ? Math.round((count / totalCount) * 100) : 0,
+    };
+  });
+
+  const trackedStatuses = new Set(
+    pipelineStageDefinitions.flatMap((stage) => stage.statuses)
+  );
+  const otherCount = applications.filter(
+    (app) => !trackedStatuses.has(app.status)
+  ).length;
+
+  if (otherCount > 0) {
+    pipelineStages.push({
+      key: 'other',
+      label: 'Other Outcomes',
+      description: 'Withdrawn or deferred applications',
+      icon: XCircle,
+      count: otherCount,
+      percentage: totalCount > 0 ? Math.round((otherCount / totalCount) * 100) : 0,
+    });
+  }
+
+  const offerCount = getStatusCount(['conditional_offer', 'unconditional_offer']);
+  const visaCount = getStatusCount(['cas_loa', 'visa']);
+  const enrolledCount = getStatusCount(['enrolled']);
+
+  const conversionMetrics = [
+    {
+      key: 'offer',
+      label: 'Offer Rate',
+      value: totalCount > 0 ? Math.round((offerCount / totalCount) * 100) : 0,
+      description: `${offerCount} offers issued`,
+      icon: CheckCircle,
+    },
+    {
+      key: 'visa',
+      label: 'Visa Progress',
+      value: offerCount > 0 ? Math.round((visaCount / offerCount) * 100) : 0,
+      description: `${visaCount} students in visa or CAS stage`,
+      icon: Stamp,
+    },
+    {
+      key: 'enrolled',
+      label: 'Enrollment Rate',
+      value: totalCount > 0 ? Math.round((enrolledCount / totalCount) * 100) : 0,
+      description: `${enrolledCount} students enrolled`,
+      icon: GraduationCap,
+    },
+  ];
 
   if (loading) {
     return (
@@ -461,6 +568,104 @@ export default function UniversityDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Pipeline & Conversion Metrics */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Applicant Pipeline
+              </CardTitle>
+              <CardDescription>Track progression across each recruitment stage</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {totalCount > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Total applications in pipeline</span>
+                    <span className="font-medium text-foreground">{totalCount}</span>
+                  </div>
+                  <div className="grid gap-3">
+                    {pipelineStages.map((stage) => {
+                      const StageIcon = stage.icon;
+                      return (
+                        <div key={stage.key} className="rounded-lg border p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <div className="rounded-full bg-primary/10 p-2">
+                                <StageIcon className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <div className="font-semibold">{stage.label}</div>
+                                <div className="text-xs text-muted-foreground">{stage.description}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-semibold">{stage.count}</div>
+                              <div className="text-xs text-muted-foreground">{stage.percentage}%</div>
+                            </div>
+                          </div>
+                          <Progress value={stage.percentage} className="mt-3 h-2" />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<FileText />}
+                  title="No Applications"
+                  description="New applications will appear in your pipeline as soon as they are submitted"
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Conversion Metrics
+              </CardTitle>
+              <CardDescription>Measure conversion health from application to enrollment</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {totalCount > 0 ? (
+                <div className="space-y-4">
+                  {conversionMetrics.map((metric) => {
+                    const MetricIcon = metric.icon;
+                    return (
+                      <div key={metric.key} className="rounded-lg border p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="rounded-full bg-primary/10 p-2">
+                              <MetricIcon className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-semibold">{metric.label}</div>
+                              <div className="text-xs text-muted-foreground">{metric.description}</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-semibold">{metric.value}%</div>
+                          </div>
+                        </div>
+                        <Progress value={metric.value} className="mt-3 h-2" />
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={<TrendingUp />}
+                  title="No Conversion Data"
+                  description="Start receiving applications to unlock conversion analytics"
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Charts Row */}
         <div className="grid gap-6 md:grid-cols-2">
