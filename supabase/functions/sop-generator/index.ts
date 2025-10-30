@@ -18,7 +18,7 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
   }
 }
 
-function requireAuthenticatedUser(req: Request): Response | null {
+function requireAuthorizedRequest(req: Request): Response | null {
   const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) {
     return new Response(JSON.stringify({ error: 'Missing or invalid Authorization header' }), {
@@ -26,17 +26,28 @@ function requireAuthenticatedUser(req: Request): Response | null {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
+
   const token = authHeader.slice(7);
-  const payload = decodeJwtPayload(token);
-  const role = (payload?.role || payload?.['user_role']) as string | undefined;
-  const sub = payload?.sub as string | undefined;
-  if (!payload || role !== 'authenticated' || !sub) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+  if ((anonKey && token === anonKey) || (serviceRoleKey && token === serviceRoleKey)) {
+    return null;
   }
-  return null;
+
+  if (token.split('.').length === 3) {
+    const payload = decodeJwtPayload(token);
+    const role = (payload?.role || payload?.['user_role']) as string | undefined;
+    const sub = payload?.sub as string | undefined;
+    if (payload && sub && ['authenticated', 'service_role'].includes(role ?? '')) {
+      return null;
+    }
+  }
+
+  return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    status: 401,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
 
 serve(async (req) => {
@@ -45,7 +56,7 @@ serve(async (req) => {
   }
 
   // Require authentication
-  const authError = requireAuthenticatedUser(req);
+  const authError = requireAuthorizedRequest(req);
   if (authError) return authError;
 
   try {
