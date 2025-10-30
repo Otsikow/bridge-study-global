@@ -225,6 +225,11 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="absolute inset-0 bg-grid-white/5" />
         <div className="container relative mx-auto px-4 py-24 text-center">
+          <img
+            src={gegLogo}
+            alt="Global Education Gateway logo"
+            className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+          />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6 animate-fade-in-down">
             <Sparkles className="h-4 w-4 animate-pulse-subtle" />
             <span>Trusted by 5000+ students worldwide</span>
