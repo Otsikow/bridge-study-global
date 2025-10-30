@@ -169,24 +169,74 @@ const Index = () => {
 
   const faqs = [
     {
-      question: "How does GEG help me apply to universities?",
-      answer:
-        "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
+      audience: "Students",
+      items: [
+        {
+          question: "How does GEG help me apply to universities?",
+          answer:
+            "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
+        },
+        {
+          question: "Is there a fee to use the platform?",
+          answer:
+            "Creating an account and exploring universities is free. Agents may charge consulting fees, clearly shown before commitment.",
+        },
+        {
+          question: "What documents do I need to apply?",
+          answer:
+            "Academic transcripts, English test scores (IELTS/TOEFL), recommendations, personal statement, and passport copy are typically required.",
+        },
+        {
+          question: "Can I apply to multiple universities?",
+          answer:
+            "Yes! You can apply to multiple universities at once and track all applications in one dashboard.",
+        },
+        {
+          question: "How do I stay informed about my application status?",
+          answer:
+            "Your personalized dashboard shows real-time updates, deadlines, and next steps so you always know what to do next.",
+        },
+      ],
     },
     {
-      question: "Is there a fee to use the platform?",
-      answer:
-        "Creating an account and exploring universities is free. Agents may charge consulting fees, clearly shown before commitment.",
+      audience: "Universities",
+      items: [
+        {
+          question: "How can our university partner with GEG?",
+          answer:
+            "Submit a partnership request through the University Portal or contact our partnerships team. We'll verify your institution and set up onboarding within a few business days.",
+        },
+        {
+          question: "What insights do universities receive?",
+          answer:
+            "Universities gain access to dashboards showing applicant pipelines, conversion metrics, and regional interest so you can plan recruitment campaigns with confidence.",
+        },
+        {
+          question: "Can we manage offers directly on the platform?",
+          answer:
+            "Yes. Admissions teams can issue conditional or unconditional offers, request missing documents, and communicate with students and agents from a single workspace.",
+        },
+      ],
     },
     {
-      question: "What documents do I need to apply?",
-      answer:
-        "Academic transcripts, English test scores (IELTS/TOEFL), recommendations, personal statement, and passport copy are typically required.",
-    },
-    {
-      question: "Can I apply to multiple universities?",
-      answer:
-        "Yes! You can apply to multiple universities at once and track all applications in one dashboard.",
+      audience: "Agents",
+      items: [
+        {
+          question: "What support do agents receive on GEG?",
+          answer:
+            "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programs quickly.",
+        },
+        {
+          question: "How are agent commissions handled?",
+          answer:
+            "Commission structures are transparent. Universities define the terms, and payouts are tracked within the agent dashboard for easy reconciliation.",
+        },
+        {
+          question: "Can agents collaborate with university admissions teams?",
+          answer:
+            "Absolutely. Shared workspaces and messaging threads keep all parties aligned on student progress, missing documents, and interview scheduling.",
+        },
+      ],
     },
   ];
 
@@ -398,18 +448,33 @@ const Index = () => {
             Quick answers to common questions
           </p>
         </div>
-        <Accordion type="single" collapsible className="max-w-3xl mx-auto space-y-4">
-          {faqs.map((faq, i) => (
-            <AccordionItem key={i} value={`item-${i}`} className="border rounded-lg bg-card">
-              <AccordionTrigger className="py-6 px-4 font-semibold text-left">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="px-4 pb-6 text-muted-foreground">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
+        <div className="max-w-4xl mx-auto space-y-12">
+          {faqs.map((section, sectionIndex) => (
+            <div key={section.audience} className="space-y-6">
+              <h3 className="text-2xl font-semibold text-left">For {section.audience}</h3>
+              <Accordion
+                type="single"
+                collapsible
+                className="space-y-4"
+              >
+                {section.items.map((faq, faqIndex) => (
+                  <AccordionItem
+                    key={`${sectionIndex}-${faqIndex}`}
+                    value={`item-${sectionIndex}-${faqIndex}`}
+                    className="border rounded-lg bg-card"
+                  >
+                    <AccordionTrigger className="py-6 px-4 font-semibold text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-6 text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
           ))}
-        </Accordion>
+        </div>
       </section>
 
       {/* Contact Section */}
