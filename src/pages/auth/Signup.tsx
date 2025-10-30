@@ -159,6 +159,20 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (step === 1) {
+      if (validateStep1()) {
+        setStep(2);
+      }
+      return;
+    }
+
+    if (step === 2) {
+      if (validateStep2()) {
+        setStep(3);
+      }
+      return;
+    }
+
     if (!validateStep3()) {
       return;
     }
