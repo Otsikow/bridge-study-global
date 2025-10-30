@@ -13,71 +13,25 @@ import {
   Users,
   FileCheck,
   GraduationCap,
-  ArrowRight,
-  CheckCircle,
   Search,
   Clock,
   TrendingUp,
-  MapPin,
   Star,
   Quote,
   ChevronLeft,
   ChevronRight,
-  Mail,
-  Phone,
-  Facebook,
-  Twitter,
-  Linkedin,
-  Instagram,
   Building2,
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import gegLogo from "@/assets/geg-logo.png";
-import heroBanner from "@/assets/hero-banner.jpg";
 import campusWalk from "@/assets/campus-walk.png";
 import studentJourney from "@/assets/student-journey.png";
 import acceptanceLetter from "@/assets/acceptance-letter.png";
+import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 
 const Index = () => {
-  const [currentLogoIndex, setCurrentLogoIndex] = useState(0);
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-
-  // Fetch universities for carousel
-  const { data: universities } = useQuery({
-    queryKey: ["universities-carousel"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("universities")
-        .select("id, name, logo_url, country")
-        .eq("active", true)
-        .limit(12);
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  // Auto-rotate logos
-  useEffect(() => {
-    if (universities && universities.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentLogoIndex(
-          (prev) => (prev + 1) % Math.ceil(universities.length / 4)
-        );
-      }, 4000);
-      return () => clearInterval(interval);
-    }
-  }, [universities]);
-
-  // Auto-rotate testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const stats = [
     { value: "200+", label: "Partner Universities", icon: Building2 },
@@ -167,6 +121,16 @@ const Index = () => {
     },
   ];
 
+  const testimonialCount = testimonials.length;
+
+  // Auto-rotate testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonialCount]);
+
   const faqs = [
     {
       audience: "Students",
@@ -240,33 +204,11 @@ const Index = () => {
     },
   ];
 
-  const getVisibleLogos = () => {
-    if (!universities || universities.length === 0) return [];
-    const perSlide = 4;
-    const start = currentLogoIndex * perSlide;
-    return universities.slice(start, start + perSlide);
-  };
-
-  const nextLogo = () => {
-    if (universities?.length) {
-      setCurrentLogoIndex(
-        (prev) => (prev + 1) % Math.ceil(universities.length / 4)
-      );
-    }
-  };
-  const prevLogo = () => {
-    if (universities?.length) {
-      setCurrentLogoIndex((prev) =>
-        prev === 0 ? Math.ceil(universities.length / 4) - 1 : prev - 1
-      );
-    }
-  };
-
   const nextTestimonial = () =>
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
   const prevTestimonial = () =>
     setCurrentTestimonial((prev) =>
-      prev === 0 ? testimonials.length - 1 : prev - 1
+      prev === 0 ? testimonialCount - 1 : prev - 1
     );
 
   return (
@@ -363,6 +305,8 @@ const Index = () => {
           ))}
         </div>
       </section>
+
+      <FeaturedUniversitiesSection />
 
       {/* How It Works */}
       <section className="py-20 bg-muted/30">

@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
-  ResponsiveContainer, PieChart, Pie, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles } from 'lucide-react';
 
 interface OverviewTabProps {
   metrics: {
@@ -39,6 +43,10 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
   const [topAgents, setTopAgents] = useState<AgentData[]>([]);
   const [topPrograms, setTopPrograms] = useState<ProgramData[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [showcaseStats, setShowcaseStats] = useState<{ count: number; lastUpdated: string | null }>({
+    count: 0,
+    lastUpdated: null,
+  });
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -124,6 +132,23 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
 
         setTopPrograms(topProgramsData);
 
+        const { count: featuredCount } = await supabase
+          .from('universities')
+          .select('*', { count: 'exact', head: true })
+          .eq('featured', true);
+
+        const { data: featuredUpdated } = await supabase
+          .from('universities')
+          .select('updated_at')
+          .eq('featured', true)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        setShowcaseStats({
+          count: featuredCount || 0,
+          lastUpdated: featuredUpdated?.[0]?.updated_at ?? null,
+        });
+
       } catch (error) {
         console.error('Error fetching analytics:', error);
       } finally {
@@ -202,6 +227,40 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
                 </div>
                 <span className="font-medium">-</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2 border-dashed">
+          <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="h-4 w-4 text-primary" /> Featured university showcase
+              </CardTitle>
+              <CardDescription>
+                Control the carousel content that appears on the marketing site.
+              </CardDescription>
+            </div>
+            <Button size="sm" asChild>
+              <Link to="/admin/featured-universities">Manage</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Active spotlights</p>
+              <Badge className="text-lg px-3 py-1">
+                {analyticsLoading ? '...' : showcaseStats.count}
+              </Badge>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Last curated</p>
+              <p className="text-sm font-medium">
+                {analyticsLoading
+                  ? 'Loading...'
+                  : showcaseStats.lastUpdated
+                  ? new Date(showcaseStats.lastUpdated).toLocaleString()
+                  : 'Not available'}
+              </p>
             </div>
           </CardContent>
         </Card>
