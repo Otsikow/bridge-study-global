@@ -22,6 +22,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SoPGeneratorProps {
   programName?: string;
@@ -62,13 +63,15 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
 
     try {
       const { VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY } = import.meta.env;
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token || VITE_SUPABASE_PUBLISHABLE_KEY;
       const url = `${VITE_SUPABASE_URL}/functions/v1/sop-generator`;
 
       const res = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           background: formData.academicBackground,
