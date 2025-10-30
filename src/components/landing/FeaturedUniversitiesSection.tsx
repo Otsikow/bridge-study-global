@@ -37,21 +37,20 @@ const FALLBACK_SUMMARY =
 export function FeaturedUniversitiesSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["featured-universities"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("universities")
-        .select(
-          "id, name, country, city, logo_url, website, ranking, featured, featured_priority, featured_summary, featured_highlight"
-        )
-        .eq("active", true)
-        .eq("featured", true)
-        .order("featured_priority", { ascending: true })
-        .order("name", { ascending: true })
-        .limit(12);
+  const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
 
-      if (error) throw error;
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["featured-universities", DEFAULT_TENANT_SLUG],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_public_featured_universities", {
+        p_tenant_slug: DEFAULT_TENANT_SLUG,
+      });
+
+      if (error) {
+        console.error("Error fetching public featured universities:", error);
+        throw error;
+      }
+
       return (data as FeaturedUniversity[]) ?? [];
     },
   });
