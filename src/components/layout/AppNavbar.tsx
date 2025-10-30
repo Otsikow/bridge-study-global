@@ -60,7 +60,11 @@ const AppNavbar = () => {
                     className="flex items-center gap-2"
                     onClick={() => setMobileOpen(false)}
                   >
-                    <img src={gegLogo} alt="GEG" className="h-8 w-8 object-contain" />
+                    <img
+                      src={gegLogo}
+                      alt="GEG"
+                      className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
+                    />
                     <span className="text-base font-semibold">GEG</span>
                   </Link>
                   <ThemeToggle />
@@ -127,7 +131,11 @@ const AppNavbar = () => {
           </Sheet>
 
           <Link to="/" className="flex items-center gap-2 transition-transform duration-300 hover:scale-105">
-            <img src={gegLogo} alt="GEG" className="h-8 w-8 object-contain" />
+            <img
+              src={gegLogo}
+              alt="GEG"
+              className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
+            />
             <span className="text-base font-semibold hidden sm:inline">Global Education Gateway</span>
           </Link>
         </div>
