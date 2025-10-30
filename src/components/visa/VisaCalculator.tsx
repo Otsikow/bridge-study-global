@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Calculator, 
   CheckCircle, 
@@ -14,8 +17,6 @@ import {
   XCircle,
   Globe,
   DollarSign,
-  GraduationCap,
-  FileText,
   Clock,
   TrendingUp,
   Shield,
@@ -107,6 +108,72 @@ const VISA_REQUIREMENTS: Record<string, VisaRequirements> = {
   }
 };
 
+type NumericVisaRequirementKey = Exclude<keyof VisaRequirements, 'country' | 'currency'>;
+
+interface ComparisonInsight {
+  key: string;
+  icon: typeof TrendingUp;
+  title: string;
+  description: string;
+}
+
+const MAX_COMPARISON_COUNTRIES = 3;
+
+const COMPARISON_METRICS: Array<{
+  key: NumericVisaRequirementKey;
+  label: string;
+  better: 'higher' | 'lower';
+  format?: (requirements: VisaRequirements) => string;
+}> = [
+  {
+    key: 'success_rate',
+    label: 'Success Rate',
+    better: 'higher',
+    format: (req) => `${req.success_rate}%`
+  },
+  {
+    key: 'processing_time_days',
+    label: 'Processing Time',
+    better: 'lower',
+    format: (req) => `${req.processing_time_days} days`
+  },
+  {
+    key: 'bank_balance_min',
+    label: 'Bank Balance Requirement',
+    better: 'lower',
+    format: (req) => `${req.currency} ${req.bank_balance_min.toLocaleString()}`
+  },
+  {
+    key: 'ielts_min',
+    label: 'IELTS Minimum',
+    better: 'lower',
+    format: (req) => req.ielts_min.toFixed(1).replace(/\.0$/, '')
+  },
+  {
+    key: 'toefl_min',
+    label: 'TOEFL Minimum',
+    better: 'lower'
+  },
+  {
+    key: 'gpa_min',
+    label: 'GPA Minimum',
+    better: 'lower',
+    format: (req) => req.gpa_min.toFixed(1)
+  },
+  {
+    key: 'work_experience_min',
+    label: 'Work Experience',
+    better: 'lower',
+    format: (req) => `${req.work_experience_min} years`
+  },
+  {
+    key: 'age_limit',
+    label: 'Age Limit',
+    better: 'higher',
+    format: (req) => `${req.age_limit} years`
+  }
+];
+
 export default function VisaCalculator() {
   const { toast } = useToast();
   const [selectedCountry, setSelectedCountry] = useState('');
@@ -123,6 +190,8 @@ export default function VisaCalculator() {
   });
   const [eligibility, setEligibility] = useState<VisaEligibility | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [compareDialogOpen, setCompareDialogOpen] = useState(false);
+  const [comparisonCountries, setComparisonCountries] = useState<string[]>([]);
 
   const calculateEligibility = async () => {
     if (!selectedCountry || !studentProfile.ielts_score || !studentProfile.gpa) {
@@ -261,6 +330,111 @@ export default function VisaCalculator() {
     return 'text-destructive';
   };
 
+  const handleOpenCompare = () => {
+    setCompareDialogOpen(true);
+
+    if (!selectedCountry) {
+      return;
+    }
+
+    setComparisonCountries((prev) => {
+      if (prev.includes(selectedCountry)) {
+        return prev;
+      }
+
+      if (prev.length >= MAX_COMPARISON_COUNTRIES) {
+        return [...prev.slice(1), selectedCountry];
+      }
+
+      return [...prev, selectedCountry];
+    });
+  };
+
+  const handleCountryToggle = (countryKey: string, checked: boolean | 'indeterminate') => {
+    const isChecked = checked === true;
+
+    if (isChecked) {
+      setComparisonCountries((prev) => {
+        if (prev.includes(countryKey)) {
+          return prev;
+        }
+
+        if (prev.length >= MAX_COMPARISON_COUNTRIES) {
+          toast({
+            title: 'Selection limit reached',
+            description: `You can compare up to ${MAX_COMPARISON_COUNTRIES} countries at a time.`,
+            variant: 'destructive'
+          });
+          return prev;
+        }
+
+        return [...prev, countryKey];
+      });
+    } else {
+      setComparisonCountries((prev) => prev.filter((country) => country !== countryKey));
+    }
+  };
+
+  const getMetricBestValue = (metricKey: NumericVisaRequirementKey, better: 'higher' | 'lower') => {
+    if (comparisonCountries.length === 0) {
+      return null;
+    }
+
+    const values = comparisonCountries
+      .map((countryKey) => VISA_REQUIREMENTS[countryKey]?.[metricKey])
+      .filter((value): value is number => typeof value === 'number');
+
+    if (values.length === 0) {
+      return null;
+    }
+
+    return better === 'higher' ? Math.max(...values) : Math.min(...values);
+  };
+
+  const comparisonData = comparisonCountries
+    .filter((countryKey) => Boolean(VISA_REQUIREMENTS[countryKey]))
+    .map((countryKey) => ({
+      key: countryKey,
+      requirements: VISA_REQUIREMENTS[countryKey]
+    }));
+
+  const insights: ComparisonInsight[] = comparisonData.length >= 2
+    ? (() => {
+        const highestSuccess = comparisonData.reduce((prev, current) =>
+          current.requirements.success_rate > prev.requirements.success_rate ? current : prev
+        );
+
+        const fastestProcessing = comparisonData.reduce((prev, current) =>
+          current.requirements.processing_time_days < prev.requirements.processing_time_days ? current : prev
+        );
+
+        const lowestBankRequirement = comparisonData.reduce((prev, current) =>
+          current.requirements.bank_balance_min < prev.requirements.bank_balance_min ? current : prev
+        );
+
+        return [
+          {
+            key: 'success',
+            icon: TrendingUp,
+            title: `${highestSuccess.requirements.country} offers the highest approval chances`,
+            description: `${highestSuccess.requirements.success_rate}% estimated success rate`
+          },
+          {
+            key: 'processing',
+            icon: Clock,
+            title: `${fastestProcessing.requirements.country} has the quickest processing time`,
+            description: `${fastestProcessing.requirements.processing_time_days} day average processing`
+          },
+          {
+            key: 'bank',
+            icon: DollarSign,
+            title: `${lowestBankRequirement.requirements.country} has the lowest financial requirement`,
+            description: `${lowestBankRequirement.requirements.currency} ${lowestBankRequirement.requirements.bank_balance_min.toLocaleString()} minimum balance`
+          }
+        ];
+      })()
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -270,12 +444,116 @@ export default function VisaCalculator() {
           <p className="text-muted-foreground">Check your visa eligibility for different countries</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleOpenCompare}>
             <Globe className="h-4 w-4 mr-2" />
             Compare Countries
           </Button>
         </div>
       </div>
+
+      <Dialog open={compareDialogOpen} onOpenChange={setCompareDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Compare Visa Requirements</DialogTitle>
+            <DialogDescription>
+              Select up to {MAX_COMPARISON_COUNTRIES} countries to view their visa requirements side by side.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Countries</Label>
+              <ScrollArea className="h-48 rounded-md border">
+                <div className="grid gap-2 p-3 sm:grid-cols-2">
+                  {Object.entries(VISA_REQUIREMENTS).map(([countryKey, requirement]) => {
+                    const isSelected = comparisonCountries.includes(countryKey);
+
+                    return (
+                      <label
+                        key={countryKey}
+                        htmlFor={`compare-${countryKey}`}
+                        className={`flex items-center justify-between gap-3 rounded-md border p-3 text-sm transition hover:border-primary ${isSelected ? 'border-primary bg-primary/5' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`compare-${countryKey}`}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleCountryToggle(countryKey, checked)}
+                          />
+                          <span className="font-medium">{requirement.country}</span>
+                        </div>
+                        {isSelected && <Badge variant="secondary">Selected</Badge>}
+                      </label>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {comparisonData.length === 0 ? (
+              <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                Select at least one country to start a comparison.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {comparisonData.length >= 2 && (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {insights.map((insight) => (
+                      <div key={insight.key} className="rounded-lg border bg-muted/40 p-4">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <insight.icon className="h-4 w-4 text-primary" />
+                          <span>{insight.title}</span>
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground">{insight.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <ScrollArea className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Requirement</TableHead>
+                        {comparisonData.map(({ key, requirements }) => (
+                          <TableHead key={key} className="text-right">
+                            {requirements.country}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {COMPARISON_METRICS.map((metric) => {
+                        const bestValue = getMetricBestValue(metric.key, metric.better);
+
+                        return (
+                          <TableRow key={metric.key}>
+                            <TableCell className="font-medium">{metric.label}</TableCell>
+                            {comparisonData.map(({ key, requirements }) => {
+                              const value = requirements[metric.key];
+                              const displayValue = metric.format ? metric.format(requirements) : value;
+                              const isBest = typeof bestValue === 'number' && value === bestValue;
+
+                              return (
+                                <TableCell
+                                  key={key}
+                                  className={`text-right text-sm ${isBest ? 'font-semibold text-success' : ''}`}
+                                >
+                                  {displayValue}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Input Form */}
