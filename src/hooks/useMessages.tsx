@@ -117,11 +117,54 @@ type RawTypingIndicator = {
   } | null;
 };
 
+type DirectConversationCandidate = {
+  conversation_id: string;
+  conversation: {
+    is_group: boolean | null;
+  } | null;
+};
+
 type SupabaseError =
   | PostgrestError
   | Error
   | { message?: string; details?: string | null; hint?: string | null }
   | null;
+
+const getErrorMessage = (error: SupabaseError) => {
+  if (!error) return '';
+
+  if (error instanceof Error) {
+    return error.message || '';
+  }
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    return (error.message as string) || '';
+  }
+
+  return '';
+};
+
+const getErrorDetails = (error: SupabaseError) => {
+  if (!error || error instanceof Error) return '';
+
+  if (error && typeof error === 'object' && 'details' in error) {
+    return (error.details as string | null) || '';
+  }
+
+  return '';
+};
+
+const isMissingRpcFunctionError = (error: SupabaseError) => {
+  const message = `${getErrorMessage(error)} ${getErrorDetails(error)}`.toLowerCase();
+
+  if (!message) return false;
+
+  return (
+    message.includes('no matches were found in the schema cache') ||
+    message.includes('function get_or_create_conversation') ||
+    message.includes('function public.get_or_create_conversation')
+  );
+};
 
 const getErrorDescription = (error: SupabaseError, fallback: string) => {
   if (!error) return fallback;
@@ -519,44 +562,146 @@ export function useMessages() {
     }
   }, [user?.id]);
 
-  const getOrCreateConversation = useCallback(async (otherUserId: string) => {
-    if (!user?.id || !profile?.tenant_id) {
-      toast({
-        title: 'Unable to start conversation',
-        description: 'Please try again after signing in.',
-        variant: 'destructive',
-      });
-      return null;
-    }
-
-    try {
-      const { data, error } = await supabase.rpc('get_or_create_conversation', {
-        p_user1_id: user.id,
-        p_user2_id: otherUserId,
-        p_tenant_id: profile.tenant_id,
-      });
-
-      if (error) throw error;
-
-      if (data) {
-        await fetchConversations();
-        return data as string;
+  const createConversationFallback = useCallback(
+    async (otherUserId: string) => {
+      if (!user?.id || !profile?.tenant_id) {
+        return null;
       }
-    } catch (error) {
-      console.error('Error getting or creating conversation:', error);
-      const description = getErrorDescription(
-        error as SupabaseError,
-        'An unexpected error occurred while starting the conversation.'
-      );
-      toast({
-        title: 'Unable to start conversation',
-        description,
-        variant: 'destructive',
-      });
-    }
 
-    return null;
-  }, [fetchConversations, profile?.tenant_id, toast, user?.id]);
+      try {
+        const { data: candidates, error: candidatesError } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id, conversation:conversations ( is_group )')
+          .eq('user_id', user.id);
+
+        if (candidatesError) throw candidatesError;
+
+        const directConversationIds = ((candidates || []) as DirectConversationCandidate[])
+          .filter(candidate => candidate.conversation?.is_group === false)
+          .map(candidate => candidate.conversation_id)
+          .filter(Boolean) as string[];
+
+        if (directConversationIds.length > 0) {
+          const { data: shared, error: sharedError } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .in('conversation_id', directConversationIds)
+            .eq('user_id', otherUserId)
+            .limit(1);
+
+          if (sharedError) throw sharedError;
+
+          const sharedData = (shared || []) as { conversation_id?: string }[];
+          const existingConversationId = sharedData[0]?.conversation_id;
+          if (existingConversationId) {
+            return existingConversationId;
+          }
+        }
+
+        const { data: conversation, error: conversationError } = await supabase
+          .from('conversations')
+          .insert({
+            tenant_id: profile.tenant_id,
+            is_group: false,
+            created_by: user.id,
+          })
+          .select('id')
+          .single();
+
+        if (conversationError) throw conversationError;
+
+        const conversationId = conversation?.id as string | undefined;
+        if (!conversationId) {
+          throw new Error('Failed to create conversation');
+        }
+
+        const { error: participantsError } = await supabase
+          .from('conversation_participants')
+          .insert([
+            {
+              conversation_id: conversationId,
+              user_id: user.id,
+              is_admin: true,
+            },
+            {
+              conversation_id: conversationId,
+              user_id: otherUserId,
+            },
+          ]);
+
+        if (participantsError) throw participantsError;
+
+        return conversationId;
+      } catch (fallbackError) {
+        console.error('Fallback conversation creation failed:', fallbackError);
+        throw fallbackError;
+      }
+    },
+    [profile?.tenant_id, user?.id]
+  );
+
+  const getOrCreateConversation = useCallback(
+    async (otherUserId: string) => {
+      if (!user?.id || !profile?.tenant_id) {
+        toast({
+          title: 'Unable to start conversation',
+          description: 'Please try again after signing in.',
+          variant: 'destructive',
+        });
+        return null;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('get_or_create_conversation', {
+          p_user1_id: user.id,
+          p_user2_id: otherUserId,
+          p_tenant_id: profile.tenant_id,
+        });
+
+        if (error) {
+          if (isMissingRpcFunctionError(error)) {
+            console.warn(
+              'get_or_create_conversation RPC not available. Falling back to client-side creation.'
+            );
+            const conversationId = await createConversationFallback(otherUserId);
+            if (conversationId) {
+              await fetchConversations();
+              return conversationId;
+            }
+          }
+
+          throw error;
+        }
+
+        if (data) {
+          await fetchConversations();
+          return data as string;
+        }
+      } catch (error) {
+        console.error('Error getting or creating conversation:', error);
+
+        const fallbackMessage = isMissingRpcFunctionError(error as SupabaseError)
+          ? 'Messaging is almost ready. Please ensure the latest database migrations have been applied.'
+          : 'An unexpected error occurred while starting the conversation.';
+
+        const description = getErrorDescription(error as SupabaseError, fallbackMessage);
+        toast({
+          title: 'Unable to start conversation',
+          description,
+          variant: 'destructive',
+        });
+      }
+
+      return null;
+    },
+    [
+      createConversationFallback,
+      fetchConversations,
+      profile?.tenant_id,
+      toast,
+      user?.id,
+    ]
+  );
 
   useEffect(() => {
     if (!user?.id) {
