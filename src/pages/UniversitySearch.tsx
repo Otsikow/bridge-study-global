@@ -214,11 +214,35 @@ export default function UniversitySearch() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full flex justify-start md:justify-center">
-            <TabsTrigger value="search"><Search className="mr-2 h-4 w-4" />Search</TabsTrigger>
-            <TabsTrigger value="recommendations"><Sparkles className="mr-2 h-4 w-4" />AI Recommendations</TabsTrigger>
-            <TabsTrigger value="sop"><FileText className="mr-2 h-4 w-4" />SOP Generator</TabsTrigger>
-            <TabsTrigger value="interview"><MessageSquare className="mr-2 h-4 w-4" />Interview Practice</TabsTrigger>
+          <TabsList className="w-full flex flex-wrap gap-3 justify-start md:justify-center">
+            <TabsTrigger
+              value="search"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium"
+            >
+              <Search className="h-4 w-4" />
+              Search
+            </TabsTrigger>
+            <TabsTrigger
+              value="recommendations"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium"
+            >
+              <Sparkles className="h-4 w-4" />
+              AI Recommendations
+            </TabsTrigger>
+            <TabsTrigger
+              value="sop"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium"
+            >
+              <FileText className="h-4 w-4" />
+              SOP Generator
+            </TabsTrigger>
+            <TabsTrigger
+              value="interview"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Interview Practice
+            </TabsTrigger>
           </TabsList>
 
           {/* SEARCH TAB */}
