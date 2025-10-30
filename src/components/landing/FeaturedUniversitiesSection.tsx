@@ -29,6 +29,7 @@ interface FeaturedUniversity {
   featured_priority: number | null;
   featured_summary: string | null;
   featured_highlight: string | null;
+  featured_image_url?: string | null;
 }
 
 const FALLBACK_SUMMARY =
@@ -37,45 +38,71 @@ const FALLBACK_SUMMARY =
 const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
   {
     id: "fallback-oxford",
-    name: "Oxford International University",
+    name: "University of Oxford",
     country: "United Kingdom",
     city: "Oxford",
-    logo_url: null,
-    website: "https://www.oxforduniversity.edu",
-    ranking: { "QS Global": "Top 10", "Times": "Top 5" },
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/en/thumb/2/2e/University_of_Oxford_coat_of_arms.svg/1200px-University_of_Oxford_coat_of_arms.svg.png",
+    website: "https://www.ox.ac.uk",
+    ranking: { "QS Global": "Top 5", "Times": "Top 1" },
     featured: true,
     featured_priority: 0,
     featured_summary:
       "Historic academic excellence with a strong record of welcoming international scholars.",
     featured_highlight: "Personalized onboarding for postgraduate programs",
+    featured_image_url:
+      "https://images.unsplash.com/photo-1521996319423-5650972f7195?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "fallback-toronto",
-    name: "Toronto Global Institute",
+    name: "University of Toronto",
     country: "Canada",
     city: "Toronto",
-    logo_url: null,
-    website: "https://www.torontoglobal.ca",
-    ranking: { "QS Global": "Top 25", "Times": "Top 20" },
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/University_of_Toronto_coat_of_arms.svg/1024px-University_of_Toronto_coat_of_arms.svg.png",
+    website: "https://www.utoronto.ca",
+    ranking: { "QS Global": "Top 20", "Times": "Top 20" },
     featured: true,
     featured_priority: 1,
     featured_summary:
       "Leading research university known for industry partnerships and co-op opportunities.",
     featured_highlight: "Career pathways across technology and business",
+    featured_image_url:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "fallback-singapore",
-    name: "Singapore International Tech",
+    name: "National University of Singapore",
     country: "Singapore",
     city: "Singapore",
-    logo_url: null,
-    website: "https://www.singaporetech.sg",
-    ranking: { "QS Asia": "Top 5", Innovation: "Award-winning" },
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/National_University_of_Singapore_coat_of_arms.svg/1024px-National_University_of_Singapore_coat_of_arms.svg.png",
+    website: "https://www.nus.edu.sg",
+    ranking: { "QS Asia": "Top 1", Innovation: "Award-winning" },
     featured: true,
     featured_priority: 2,
     featured_summary:
       "Innovative campus with a focus on AI, sustainability, and entrepreneurship programs.",
     featured_highlight: "Accelerators and launchpads for student founders",
+    featured_image_url:
+      "https://images.unsplash.com/photo-1523905330026-b8bd1f5f320e?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "fallback-melbourne",
+    name: "University of Melbourne",
+    country: "Australia",
+    city: "Melbourne",
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/en/thumb/8/88/University_of_Melbourne_coat_of_arms.svg/1024px-University_of_Melbourne_coat_of_arms.svg.png",
+    website: "https://www.unimelb.edu.au",
+    ranking: { "QS Global": "Top 40", "Times": "Top 35" },
+    featured: true,
+    featured_priority: 3,
+    featured_summary:
+      "Vibrant campus culture with deep ties to Asia-Pacific innovation ecosystems.",
+    featured_highlight: "Global internships spanning research and industry",
+    featured_image_url:
+      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -108,18 +135,28 @@ export function FeaturedUniversitiesSection() {
       return FALLBACK_UNIVERSITIES;
     }
 
-    if (featuredUniversities.length >= 3) {
+    if (featuredUniversities.length >= 4) {
       return featuredUniversities;
     }
 
-    const needed = 3 - featuredUniversities.length;
+    const needed = 4 - featuredUniversities.length;
     return [
       ...featuredUniversities,
       ...FALLBACK_UNIVERSITIES.slice(0, Math.max(needed, 0)),
     ];
   }, [featuredUniversities, hasError]);
 
-  const isUsingFallback = hasError || featuredUniversities.length < 3;
+  const isUsingFallback = hasError || featuredUniversities.length < 4;
+
+  const formatWebsiteUrl = (website: string | null) => {
+    if (!website) return null;
+    const trimmed = website.trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
+  };
 
   const scrollBy = (direction: "left" | "right") => {
     const container = scrollRef.current;
@@ -199,91 +236,111 @@ export function FeaturedUniversitiesSection() {
           ref={scrollRef}
           className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 max-md:overflow-x-auto max-md:pb-2"
         >
-          {universitiesToDisplay.map((university, index) => (
-            <Card
-              key={university.id}
-              className={cn(
-                "relative h-full border-muted/50 bg-card/80 backdrop-blur transition-all",
-                "hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl"
-              )}
-            >
-              <CardHeader className="space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background p-2 shadow-inner">
-                      {university.logo_url ? (
-                        <img
-                          src={university.logo_url}
-                          alt={`${university.name} logo`}
-                          className="h-full w-full object-contain"
-                        />
-                      ) : (
-                        <Building2 className="h-6 w-6 text-primary" />
-                      )}
+          {universitiesToDisplay.map((university, index) => {
+            const formattedWebsite = formatWebsiteUrl(university.website);
+
+            return (
+              <Card
+                key={university.id}
+                className={cn(
+                  "relative h-full overflow-hidden border-muted/50 bg-card/80 backdrop-blur transition-all",
+                  "hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl"
+                )}
+              >
+                <div className="relative h-40 w-full bg-muted/40">
+                  {university.featured_image_url ? (
+                    <img
+                      src={university.featured_image_url}
+                      alt={`${university.name} campus`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                      <Building2 className="h-12 w-12" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg leading-tight">
-                        {university.name}
-                      </CardTitle>
-                      {(university.city || university.country) && (
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
-                          <MapPin className="h-4 w-4 text-primary" />
-                          {[university.city, university.country].filter(Boolean).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/5 to-transparent" />
                   {index < 3 && (
-                    <Badge className="bg-primary/10 text-primary" variant="secondary">
+                    <Badge className="absolute left-4 top-4 bg-primary/90 text-primary-foreground" variant="secondary">
                       <Sparkles className="mr-1 h-3 w-3" /> Top pick
                     </Badge>
                   )}
                 </div>
-                {typeof university.featured_priority === "number" && (
-                  <Badge variant="outline" className="self-start text-xs">
-                    Priority #{university.featured_priority + 1}
-                  </Badge>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {university.featured_summary || university.featured_highlight || FALLBACK_SUMMARY}
-                </p>
-                {university.ranking && typeof university.ranking === "object" && (
-                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                    {Object.entries(university.ranking)
-                      .filter(([, value]) => value !== null && value !== "")
-                      .slice(0, 3)
-                      .map(([label, value]) => (
-                        <Badge key={label} variant="outline" className="bg-muted/40">
-                          {label}: {String(value)}
-                        </Badge>
-                      ))}
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border bg-background p-2 shadow-inner">
+                        {university.logo_url ? (
+                          <img
+                            src={university.logo_url}
+                            alt={`${university.name} logo`}
+                            className="h-full w-full object-contain"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Building2 className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <CardTitle className="text-lg leading-tight">
+                          {university.name}
+                        </CardTitle>
+                        {(university.city || university.country) && (
+                          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4 text-primary" />
+                            {[university.city, university.country].filter(Boolean).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">
-                    {university.featured_highlight || "Dedicated student success partner"}
-                  </div>
-                  {university.website ? (
-                    <Button asChild variant="ghost" size="sm" className="gap-1">
-                      <Link to={university.website} target="_blank" rel="noopener noreferrer">
-                        Visit site
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button asChild variant="ghost" size="sm" className="gap-1" disabled>
-                      <span className="flex items-center gap-1 text-muted-foreground/70">
-                        Visit site
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </span>
-                    </Button>
+                  {typeof university.featured_priority === "number" && (
+                    <Badge variant="outline" className="self-start text-xs">
+                      Priority #{university.featured_priority + 1}
+                    </Badge>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {university.featured_summary || university.featured_highlight || FALLBACK_SUMMARY}
+                  </p>
+                  {university.ranking && typeof university.ranking === "object" && (
+                    <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {Object.entries(university.ranking)
+                        .filter(([, value]) => value !== null && value !== "")
+                        .slice(0, 3)
+                        .map(([label, value]) => (
+                          <Badge key={label} variant="outline" className="bg-muted/40">
+                            {label}: {String(value)}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      {university.featured_highlight || "Dedicated student success partner"}
+                    </div>
+                    {formattedWebsite ? (
+                      <Button asChild variant="ghost" size="sm" className="gap-1">
+                        <a href={formattedWebsite} target="_blank" rel="noopener noreferrer">
+                          Visit site
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button asChild variant="ghost" size="sm" className="gap-1" disabled>
+                        <span className="flex items-center gap-1 text-muted-foreground/70">
+                          Visit site
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </span>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border bg-card/70 p-6">
