@@ -252,7 +252,7 @@ const Index = () => {
                 Join as Agent
               </Button>
             </Link>
-            <Link to="/contact?type=university-partnership">
+            <Link to="/partnership">
               <Button
                 variant="secondary"
                 size="lg"

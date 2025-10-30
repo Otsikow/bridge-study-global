@@ -89,6 +89,9 @@ const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPass
 const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
 const UniversitySearch = lazyWithErrorHandling(() => import("./pages/UniversitySearch"));
 const CourseDiscovery = lazyWithErrorHandling(() => import("./pages/CourseDiscovery"));
+const UniversityPartnership = lazyWithErrorHandling(
+  () => import("./pages/UniversityPartnership")
+);
 const UniversityDirectory = lazyWithErrorHandling(() => import("./pages/UniversityDirectory"));
 const UniversityProfile = lazyWithErrorHandling(() => import("./pages/UniversityProfile"));
 const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
@@ -200,6 +203,14 @@ const App = () => (
                       element={
                         <PublicLayout>
                           <CourseDiscovery />
+                        </PublicLayout>
+                      }
+                    />
+                    <Route
+                      path="/partnership"
+                      element={
+                        <PublicLayout>
+                          <UniversityPartnership />
                         </PublicLayout>
                       }
                     />
