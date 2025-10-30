@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
 import { useMessages } from '@/hooks/useMessages';
@@ -80,38 +80,52 @@ export default function Messages() {
 
   const handleNewChat = () => {
     setShowNewChatDialog(true);
-    searchProfiles();
   };
 
-  const searchProfiles = async () => {
-    setSearchingProfiles(true);
-    try {
-      let query = supabase
-        .from('profiles')
-        .select('id, full_name, email, avatar_url, role')
-        .neq('id', user?.id)
-        .ilike('full_name', `%${searchQuery}%`)
-        .limit(20);
+  const searchProfiles = useCallback(
+    async (queryText: string) => {
+      const trimmedQuery = queryText.trim();
+      setSearchingProfiles(true);
+      try {
+        let query = supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url, role')
+          .neq('id', user?.id)
+          .limit(20);
 
-      if (profile?.tenant_id) {
-        query = query.eq('tenant_id', profile.tenant_id);
+        if (trimmedQuery) {
+          query = query.or(
+            `full_name.ilike.%${trimmedQuery}%,email.ilike.%${trimmedQuery}%`
+          );
+        }
+
+        if (profile?.tenant_id) {
+          query = query.eq('tenant_id', profile.tenant_id);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (error) {
+        console.error('Error searching profiles:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to search users',
+          variant: 'destructive',
+        });
+      } finally {
+        setSearchingProfiles(false);
       }
+    },
+    [profile?.tenant_id, toast, user?.id]
+  );
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setProfiles(data || []);
-    } catch (error) {
-      console.error('Error searching profiles:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to search users',
-        variant: 'destructive',
-      });
-    } finally {
-      setSearchingProfiles(false);
+  useEffect(() => {
+    if (showNewChatDialog) {
+      searchProfiles('');
     }
-  };
+  }, [searchProfiles, showNewChatDialog]);
 
   const handleSelectProfile = async (profileId: string) => {
     const conversationId = await getOrCreateConversation(profileId);
@@ -220,10 +234,16 @@ export default function Messages() {
                 placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchProfiles(searchQuery);
+                  }
+                }}
                 className="pl-9"
               />
               <Button
-                onClick={searchProfiles}
+                onClick={() => searchProfiles(searchQuery)}
                 className="absolute right-1 top-1/2 transform -translate-y-1/2"
                 size="sm"
                 disabled={searchingProfiles}
