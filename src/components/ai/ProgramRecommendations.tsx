@@ -68,14 +68,14 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
     preferences: {
       countries: ['Canada', 'United Kingdom', 'Australia'],
       budget_range: [20000, 80000],
-      program_level: ['Master', 'Bachelor'],
+      program_level: ['Postgraduate', 'Undergraduate'],
       disciplines: ['Computer Science', 'Business', 'Engineering']
     },
     education_history: {}
   });
 
   const countries = ['Canada', 'United States', 'United Kingdom', 'Australia', 'Germany', 'Netherlands', 'Sweden', 'Norway'];
-  const programLevels = ['Bachelor', 'Master', 'PhD', 'Diploma'];
+  const programLevels = ['Undergraduate', 'Postgraduate', 'PHD'];
   const disciplines = ['Computer Science', 'Business', 'Engineering', 'Medicine', 'Law', 'Arts', 'Sciences', 'Education'];
 
   useEffect(() => {

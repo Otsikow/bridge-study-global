@@ -52,6 +52,8 @@ import imperialImg from "@/assets/university-imperial.jpg";
 import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
 
+const PROGRAM_LEVELS = ["Undergraduate", "Postgraduate", "PHD"];
+
 interface University {
   id: string;
   name: string;
@@ -119,7 +121,7 @@ export default function UniversitySearch() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
-  const [levels, setLevels] = useState<string[]>([]);
+  const [levels, setLevels] = useState<string[]>(PROGRAM_LEVELS);
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("search");
 
@@ -142,7 +144,7 @@ export default function UniversitySearch() {
       if (universities)
         setCountries([...new Set(universities.map((u) => u.country))].sort());
       if (programs) {
-        setLevels([...new Set(programs.map((p) => p.level))].sort());
+        setLevels(PROGRAM_LEVELS);
         setDisciplines([...new Set(programs.map((p) => p.discipline))].sort());
       }
     } catch (error) {
