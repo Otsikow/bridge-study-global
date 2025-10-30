@@ -63,8 +63,8 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
 
     try {
       const { VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY } = import.meta.env;
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token || VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token || VITE_SUPABASE_PUBLISHABLE_KEY;
       const url = `${VITE_SUPABASE_URL}/functions/v1/sop-generator`;
 
       const res = await fetch(url, {
@@ -88,8 +88,8 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
       });
 
       if (!res.ok) throw new Error('Generation failed');
-      const data = await res.json();
-      const generatedText: string = data.sop || '';
+      const responseData = await res.json();
+      const generatedText: string = responseData.sop || '';
 
       setGeneratedSOP(generatedText);
       setEditedSOP(generatedText);

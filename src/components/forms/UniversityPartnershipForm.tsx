@@ -126,8 +126,8 @@ const partnershipSchema = z
       .trim()
       .min(10, "Describe the support you expect")
       .max(600, "Support summary is too long"),
-    termsAccepted: z.literal(true, {
-      errorMap: () => ({ message: "You must accept the collaboration terms" }),
+    termsAccepted: z.boolean().refine((val) => val === true, {
+      message: "You must accept the collaboration terms",
     }),
   })
   .refine(
