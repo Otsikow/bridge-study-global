@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -30,40 +30,71 @@ export function MessageInput({
   const [isTyping, setIsTyping] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingEventRef = useRef<number>(0);
 
   useEffect(() => {
-    // Cleanup typing timeout on unmount
+    // Cleanup typing timeout and notify stop typing on unmount
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      onStopTyping();
     };
-  }, []);
+  }, [onStopTyping]);
+
+  const emitStopTyping = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    setIsTyping(prev => {
+      if (prev) {
+        return false;
+      }
+      return prev;
+    });
+
+    lastTypingEventRef.current = 0;
+    onStopTyping();
+  }, [onStopTyping]);
+
+  const scheduleStopTyping = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      emitStopTyping();
+    }, 3000);
+  }, [emitStopTyping]);
+
+  const emitTypingEvent = useCallback(() => {
+    const now = Date.now();
+
+    if (!isTyping) {
+      setIsTyping(true);
+      onStartTyping();
+      lastTypingEventRef.current = now;
+      return;
+    }
+
+    if (now - lastTypingEventRef.current >= 2000) {
+      onStartTyping();
+      lastTypingEventRef.current = now;
+    }
+  }, [isTyping, onStartTyping]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setMessage(value);
 
     // Typing indicator logic
-    if (value.trim() && !isTyping) {
-      setIsTyping(true);
-      onStartTyping();
-    }
-
-    // Clear existing timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set new timeout to stop typing
     if (value.trim()) {
-      typingTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-        onStopTyping();
-      }, 3000);
+      emitTypingEvent();
+      scheduleStopTyping();
     } else {
-      setIsTyping(false);
-      onStopTyping();
+      emitStopTyping();
     }
   };
 
@@ -72,9 +103,8 @@ export function MessageInput({
 
     onSendMessage(message);
     setMessage('');
-    setIsTyping(false);
-    onStopTyping();
-    
+    emitStopTyping();
+
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
@@ -87,6 +117,15 @@ export function MessageInput({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+  };
+
+  const handleBlur = () => {
+    if (message.trim()) {
+      emitStopTyping();
+    } else if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
     }
   };
 
@@ -164,6 +203,7 @@ export function MessageInput({
             value={message}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
             placeholder="Type a message..."
             disabled={disabled}
             className="min-h-[44px] max-h-32 resize-none pr-12"
