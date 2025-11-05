@@ -175,42 +175,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let lastUserId: string | undefined = undefined;
+
+    const handleAuthChange = async (session: Session | null) => {
+      if (!isMounted) return;
+
+      const currentUser = session?.user ?? null;
+      const currentUserId = currentUser?.id;
+
+      setUser(currentUser);
+      setSession(session);
+
+      // Fetch profile only if user has changed
+      if (currentUserId && currentUserId !== lastUserId) {
+        await fetchProfile(currentUserId);
+      } else if (!currentUserId) {
+        setProfile(null);
+      }
+
+      lastUserId = currentUserId;
+    };
 
     const init = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
-        const initialSession = data.session ?? null;
-        if (!isMounted) return;
-
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-
-        if (initialSession?.user) {
-          await fetchProfile(initialSession.user.id);
-        } else {
-          setProfile(null);
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        await handleAuthChange(session);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
-    // Initialize
+    // Initial check
     init();
 
-    // Listen for auth changes
+    // Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log('Auth state changed:', event, currentSession?.user?.id);
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-
-        if (currentSession?.user) {
-          setTimeout(async () => {
-            await fetchProfile(currentSession.user.id);
-          }, 1000);
-        } else {
-          setProfile(null);
+      (event, session) => {
+        // The event SIGNED_IN is already handled by the initial check.
+        // TOKEN_REFRESHED should not re-trigger profile fetching unless needed.
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+          handleAuthChange(session);
+        } else if (event === 'TOKEN_REFRESHED') {
+          if (session?.user?.id !== lastUserId) {
+             handleAuthChange(session);
+          } else {
+             // If the user ID is the same, we might not need to do anything,
+             // or just update the session without re-fetching the profile.
+             if (isMounted) setSession(session);
+          }
         }
       }
     );
