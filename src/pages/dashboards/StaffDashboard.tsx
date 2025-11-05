@@ -1,20 +1,18 @@
-import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckSquare, Users, Clock, AlertCircle, TrendingUp, Newspaper } from 'lucide-react';
+import { FileText, CheckSquare, Users, Clock, AlertCircle, Newspaper } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { StatusBadge } from '@/components/StatusBadge';
 import BackButton from '@/components/BackButton';
 
 export default function StaffDashboard() {
-  const navigate = useNavigate();
   const stats = [
-    { title: 'Assigned Tasks', value: '18', icon: CheckSquare, description: '5 due today' },
-    { title: 'Applications to Review', value: '42', icon: FileText, description: '12 urgent' },
-    { title: 'Active Students', value: '156', icon: Users, trend: { value: 8, isPositive: true } },
-    { title: 'Avg. Processing Time', value: '3.2 days', icon: Clock, trend: { value: 10, isPositive: false } },
+    { title: 'Assigned Tasks', value: '18', icon: CheckSquare, description: '5 due today', to: '/dashboard/tasks' },
+    { title: 'Applications to Review', value: '42', icon: FileText, description: '12 urgent', to: '/dashboard/applications' },
+    { title: 'Active Students', value: '156', icon: Users, trend: { value: 8, isPositive: true }, to: '/dashboard/students' },
+    { title: 'Avg. Processing Time', value: '3.2 days', icon: Clock, trend: { value: 10, isPositive: false }, to: '/dashboard/reports' },
   ];
 
   const myTasks = [
