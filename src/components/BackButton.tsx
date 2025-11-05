@@ -13,16 +13,6 @@ export default function BackButton({ fallback = '/', label = 'Back', className, 
   const navigate = useNavigate();
 
   const handleClick = () => {
-    try {
-      // Prefer history back when possible
-      if (window.history.length > 1) {
-        navigate(-1);
-        return;
-      }
-    } catch (_) {
-      // no-op, fallback below
-    }
-    // Safe fallback
     navigate(fallback);
   };
 
