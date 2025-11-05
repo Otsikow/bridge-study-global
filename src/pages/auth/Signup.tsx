@@ -244,7 +244,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 px-4 py-8">
-      <Card className="w-full max-w-2xl shadow-2xl border-2 relative overflow-hidden">
+        <Card className="w-full max-w-3xl shadow-2xl border-2 relative overflow-hidden">
         {/* Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-muted">
           <div
@@ -279,7 +279,7 @@ const Signup = () => {
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6 px-8">
+            <CardContent className="space-y-6 px-4 sm:px-8">
             {/* Step 1: Role Selection */}
             <div
               className={cn(
@@ -288,34 +288,36 @@ const Signup = () => {
               )}
             >
               <div className="space-y-4">
-                <Label className="text-lg font-semibold flex items-center gap-2">
+                  <Label className="text-lg font-semibold flex items-center gap-2">
                   <UserCircle className="h-5 w-5" />
                   Select Account Type
                 </Label>
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {(['student', 'agent', 'partner', 'admin'] as UserRole[]).map((roleType) => (
                     <button
                       key={roleType}
                       type="button"
                       onClick={() => setRole(roleType)}
                       className={cn(
-                        'p-6 rounded-xl border-2 transition-all duration-300 text-left hover:shadow-lg hover:scale-105',
+                          'w-full rounded-2xl border-2 transition-all duration-300 text-left hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 px-5 py-4 sm:px-6 sm:py-6',
                         role === roleType
-                          ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
-                          : 'border-border hover:border-primary/50'
+                            ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/50'
                       )}
                     >
-                      <div className="flex items-start gap-4">
-                        <span className="text-4xl">{getRoleIcon(roleType)}</span>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg capitalize mb-1">{roleType}</h3>
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            {getRoleDescription(roleType)}
-                          </p>
-                        </div>
-                        {role === roleType && (
-                          <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                        )}
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+                          <span className="text-3xl sm:text-4xl">{getRoleIcon(roleType)}</span>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                              <h3 className="font-semibold text-lg sm:text-xl capitalize">{roleType}</h3>
+                              {role === roleType && (
+                                <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
+                              {getRoleDescription(roleType)}
+                            </p>
+                          </div>
                       </div>
                     </button>
                   ))}
@@ -451,7 +453,7 @@ const Signup = () => {
             </div>
           </CardContent>
 
-          <CardFooter className="flex flex-col space-y-4 px-8 pb-8">
+            <CardFooter className="flex flex-col space-y-4 px-4 pb-8 sm:px-8">
             {/* Navigation Buttons */}
             <div className="flex gap-3 w-full">
               {step > 1 && (
