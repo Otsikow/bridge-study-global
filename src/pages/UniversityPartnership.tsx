@@ -133,10 +133,10 @@ const UniversityPartnership = () => {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
-                  <Link to="#partnership-form" className="flex items-center gap-2">
+                  <a href="#partnership-form" className="flex items-center gap-2">
                     Start the conversation
                     <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  </a>
                 </Button>
                 <Button variant="ghost" size="lg" asChild>
                   <Link to="/contact">Talk to our team</Link>
