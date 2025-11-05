@@ -1,7 +1,8 @@
 import { PostgrestError } from '@supabase/supabase-js';
 import { AppError, parseError } from './errorHandling';
+import { dbLogger } from './databaseLogger';
 
-// Enhanced Supabase error handling with specific error messages
+// Enhanced Supabase error handling with specific error messages and logging
 export const handleSupabaseError = (error: PostgrestError, context: string): never => {
   const appError = new AppError(
     getSupabaseErrorMessage(error, context),
@@ -10,6 +11,14 @@ export const handleSupabaseError = (error: PostgrestError, context: string): nev
     getSuggestedAction(error),
     error
   );
+  
+  // Log the error with full context
+  dbLogger.error(context, error, {
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+    message: error.message,
+  });
   
   console.error(`Supabase error in ${context}:`, error);
   throw appError;
@@ -134,80 +143,117 @@ const getSuggestedAction = (error: PostgrestError): string => {
   }
 };
 
-// Utility function for common Supabase operations with error handling
+// Utility function for common Supabase operations with error handling and logging
 export const safeSupabaseOperation = async <T>(
   operation: () => Promise<{ data: T | null; error: PostgrestError | null }>,
-  context: string
+  context: string,
+  logParams?: Record<string, any>
 ): Promise<T> => {
+  const startTime = performance.now();
+  
   try {
+    dbLogger.debug(`Starting operation: ${context}`, logParams);
+    
     const { data, error } = await operation();
     
+    const duration = Math.round(performance.now() - startTime);
+    
     if (error) {
+      dbLogger.error(`Operation failed: ${context}`, error, { duration, ...logParams });
       handleSupabaseError(error, context);
     }
     
     if (data === null) {
-      throw new AppError(
+      const noDataError = new AppError(
         `${context}: No data returned`,
         'not_found',
         false,
         'Check if the resource exists',
         null
       );
+      dbLogger.warn(`Operation returned no data: ${context}`, { duration, ...logParams });
+      throw noDataError;
     }
     
+    dbLogger.info(`Operation successful: ${context}`, { duration, ...logParams });
     return data;
   } catch (error) {
+    const duration = Math.round(performance.now() - startTime);
+    
     if (error instanceof AppError) {
       throw error;
     }
     
     // Handle non-Supabase errors
-    throw new AppError(
+    const appError = new AppError(
       `${context}: ${error instanceof Error ? error.message : 'Unknown error'}`,
       'unknown',
       true,
       'Try again',
       error
     );
+    
+    dbLogger.error(`Operation failed with unknown error: ${context}`, error as Error, { duration, ...logParams });
+    throw appError;
   }
 };
 
-// Utility for handling Supabase queries with better error messages
+// Utility for handling Supabase queries with better error messages and logging
 export const safeQuery = async <T>(
   query: () => Promise<{ data: T | null; error: PostgrestError | null }>,
   context: string,
-  allowNull: boolean = false
+  allowNull: boolean = false,
+  logParams?: Record<string, any>
 ): Promise<T | null> => {
+  const startTime = performance.now();
+  
   try {
+    dbLogger.debug(`Starting query: ${context}`, logParams);
+    
     const { data, error } = await query();
     
+    const duration = Math.round(performance.now() - startTime);
+    
     if (error) {
+      dbLogger.error(`Query failed: ${context}`, error, { duration, ...logParams });
       handleSupabaseError(error, context);
     }
     
     if (!allowNull && data === null) {
-      throw new AppError(
+      const noDataError = new AppError(
         `${context}: No data found`,
         'not_found',
         false,
         'Check if the resource exists',
         null
       );
+      dbLogger.warn(`Query returned no data: ${context}`, { duration, ...logParams });
+      throw noDataError;
     }
+    
+    dbLogger.info(`Query successful: ${context}`, { 
+      duration, 
+      hasData: data !== null,
+      ...logParams 
+    });
     
     return data;
   } catch (error) {
+    const duration = Math.round(performance.now() - startTime);
+    
     if (error instanceof AppError) {
       throw error;
     }
     
-    throw new AppError(
+    const appError = new AppError(
       `${context}: ${error instanceof Error ? error.message : 'Unknown error'}`,
       'unknown',
       true,
       'Try again',
       error
     );
+    
+    dbLogger.error(`Query failed with unknown error: ${context}`, error as Error, { duration, ...logParams });
+    throw appError;
   }
 };
