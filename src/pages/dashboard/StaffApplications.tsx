@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type KeyboardEvent } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/StatusBadge';
 import BackButton from '@/components/BackButton';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -23,6 +24,8 @@ import {
 } from '@/components/ui/table';
 import { Search, Filter, FileText, Download, Eye, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+type QuickAction = 'total' | 'assigned' | 'highPriority' | 'pendingReview';
 
 interface Application {
   id: string;
@@ -42,6 +45,7 @@ export default function StaffApplications() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
+  const [activeQuickAction, setActiveQuickAction] = useState<QuickAction>('total');
 
   // Mock data - replace with actual data from your backend
   const applications: Application[] = [
@@ -114,7 +118,69 @@ export default function StaffApplications() {
       app.program.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || app.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+    const matchesQuickAction = (() => {
+      switch (activeQuickAction) {
+        case 'assigned':
+          return app.assignedTo === 'You';
+        case 'highPriority':
+          return app.priority === 'high';
+        case 'pendingReview':
+          return app.status === 'submitted' || app.status === 'screening';
+        default:
+          return true;
+      }
+    })();
+    return matchesSearch && matchesStatus && matchesPriority && matchesQuickAction;
+  });
+
+  const quickActionLabels: Record<QuickAction, string> = {
+    total: 'Total Applications',
+    assigned: 'Assigned to Me',
+    highPriority: 'High Priority',
+    pendingReview: 'Pending Review',
+  };
+
+  const activeQuickActionLabel =
+    activeQuickAction !== 'total'
+      ? quickActionLabels[activeQuickAction]
+      : null;
+
+  const handleQuickAction = (action: QuickAction) => {
+    if (action === 'total') {
+      setActiveQuickAction('total');
+      setStatusFilter('all');
+      setPriorityFilter('all');
+      return;
+    }
+
+    const isSameAction = activeQuickAction === action;
+    const nextAction = isSameAction ? 'total' : action;
+
+    setActiveQuickAction(nextAction);
+
+    if (!isSameAction) {
+      setStatusFilter('all');
+      setPriorityFilter('all');
+    }
+  };
+
+  const getCardInteractionProps = (action: QuickAction) => ({
+    role: 'button' as const,
+    tabIndex: 0,
+    'aria-label': quickActionLabels[action],
+    'aria-pressed': activeQuickAction === action,
+    onClick: () => handleQuickAction(action),
+    onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        handleQuickAction(action);
+      }
+    },
+    className: cn(
+      'cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      activeQuickAction === action &&
+        'border-primary ring-2 ring-primary/50 focus-visible:ring-primary/80',
+    ),
   });
 
   const getPriorityBadge = (priority: string) => {
@@ -143,7 +209,7 @@ export default function StaffApplications() {
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+          <Card {...getCardInteractionProps('total')}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Applications
@@ -153,7 +219,7 @@ export default function StaffApplications() {
               <div className="text-2xl font-bold">{applications.length}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card {...getCardInteractionProps('assigned')}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Assigned to Me
@@ -165,7 +231,7 @@ export default function StaffApplications() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card {...getCardInteractionProps('highPriority')}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 High Priority
@@ -177,7 +243,7 @@ export default function StaffApplications() {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card {...getCardInteractionProps('pendingReview')}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pending Review
@@ -190,6 +256,20 @@ export default function StaffApplications() {
             </CardContent>
           </Card>
         </div>
+
+        {activeQuickActionLabel && (
+          <div className="flex items-center justify-between rounded-2xl border border-primary/40 bg-primary/5 px-4 py-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="uppercase tracking-wide">
+                {activeQuickActionLabel}
+              </Badge>
+              <span className="text-muted-foreground">Quick filter applied</span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => handleQuickAction('total')}>
+              Clear
+            </Button>
+          </div>
+        )}
 
         {/* Filters and Search */}
         <Card>
