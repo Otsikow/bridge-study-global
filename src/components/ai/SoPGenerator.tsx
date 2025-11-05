@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,34 +8,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  FileText, 
-  Brain, 
-  Edit3, 
-  Download, 
-  Copy, 
+import {
+  FileText,
+  Brain,
+  Edit3,
+  Download,
+  Copy,
   RefreshCw,
   CheckCircle,
   AlertCircle,
   Target,
   BookOpen,
-  GraduationCap
+  GraduationCap,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
+interface LoadedStatement {
+  content: string;
+  fileName?: string;
+}
+
 interface SoPGeneratorProps {
   programName?: string;
   universityName?: string;
-  onSave?: (sop: string) => void;
+  onSave?: (sop: string) => Promise<void> | void;
+  loadedStatement?: LoadedStatement | null;
+  onLoadedStatementApplied?: () => void;
 }
 
-export default function SoPGenerator({ programName, universityName, onSave }: SoPGeneratorProps) {
+export default function SoPGenerator({
+  programName,
+  universityName,
+  onSave,
+  loadedStatement,
+  onLoadedStatementApplied
+}: SoPGeneratorProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [generatedSOP, setGeneratedSOP] = useState('');
   const [editedSOP, setEditedSOP] = useState('');
   const [activeTab, setActiveTab] = useState('generate');
+  const [currentDocumentName, setCurrentDocumentName] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState({
@@ -91,9 +107,10 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
       const responseData = await res.json();
       const generatedText: string = responseData.sop || '';
 
-      setGeneratedSOP(generatedText);
-      setEditedSOP(generatedText);
-      setActiveTab('edit');
+        setGeneratedSOP(generatedText);
+        setEditedSOP(generatedText);
+        setActiveTab('edit');
+        setCurrentDocumentName(null);
       analyzeSOP(generatedText);
 
       toast({
@@ -112,37 +129,45 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
     }
   };
 
-  const analyzeSOP = (text: string) => {
-    const wordCount = text.split(/\s+/).length;
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    const avgWordsPerSentence = wordCount / sentences.length;
-    
+  const analyzeSOP = useCallback((text: string) => {
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+    const avgWordsPerSentence = sentences.length === 0 ? wordCount : wordCount / sentences.length;
+
     // Simple readability score (0-100)
-    const readability = Math.max(0, 100 - (avgWordsPerSentence * 1.5));
-    
+    const readability = Math.max(0, 100 - avgWordsPerSentence * 1.5);
+
     // Completeness score based on key elements
     const keyElements = [
-      'academic background', 'career goals', 'motivation', 'program interest',
-      'university interest', 'achievements', 'skills'
+      'academic background',
+      'career goals',
+      'motivation',
+      'program interest',
+      'university interest',
+      'achievements',
+      'skills'
     ];
-    const foundElements = keyElements.filter(element => 
+    const foundElements = keyElements.filter((element) =>
       text.toLowerCase().includes(element.toLowerCase())
     );
     const completeness = (foundElements.length / keyElements.length) * 100;
-    
-    const suggestions = [];
-    if (wordCount < 400) suggestions.push('Consider adding more detail to strengthen your application');
-    if (wordCount > 800) suggestions.push('Consider condensing some sections to stay within recommended length');
+
+    const suggestions: string[] = [];
+    if (wordCount < 400)
+      suggestions.push('Consider adding more detail to strengthen your application');
+    if (wordCount > 800)
+      suggestions.push('Consider condensing some sections to stay within recommended length');
     if (readability < 60) suggestions.push('Try using shorter sentences to improve readability');
-    if (completeness < 80) suggestions.push('Include more specific details about your background and goals');
-    
+    if (completeness < 80)
+      suggestions.push('Include more specific details about your background and goals');
+
     setSopMetrics({
       wordCount,
       readability: Math.round(readability),
       completeness: Math.round(completeness),
       suggestions
     });
-  };
+  }, []);
 
   const handleEdit = (value: string) => {
     setEditedSOP(value);
@@ -162,20 +187,50 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'statement-of-purpose.txt';
+    a.download = currentDocumentName ? currentDocumentName : 'statement-of-purpose.txt';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  const saveSOP = () => {
-    onSave?.(editedSOP);
-    toast({
-      title: 'Saved',
-      description: 'Statement of Purpose saved successfully'
-    });
+  const saveSOP = async () => {
+    if (!onSave) return;
+    setSaving(true);
+    try {
+      await onSave(editedSOP);
+      toast({
+        title: 'Saved',
+        description: 'Statement of Purpose saved successfully'
+      });
+    } catch (error) {
+      console.error('Error saving SOP:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save Statement of Purpose',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  useEffect(() => {
+    if (!loadedStatement) return;
+
+    setGeneratedSOP(loadedStatement.content);
+    setEditedSOP(loadedStatement.content);
+    setActiveTab('edit');
+    setCurrentDocumentName(loadedStatement.fileName || 'Saved Statement');
+    analyzeSOP(loadedStatement.content);
+    toast({
+      title: 'Loaded',
+      description: loadedStatement.fileName
+        ? `Loaded "${loadedStatement.fileName}" for editing`
+        : 'Loaded saved statement for editing'
+    });
+    onLoadedStatementApplied?.();
+  }, [loadedStatement, analyzeSOP, onLoadedStatementApplied, toast]);
 
   return (
     <div className="space-y-6">
@@ -350,7 +405,14 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Edit Your Statement of Purpose</CardTitle>
-                  <CardDescription>Review and refine the generated content to make it perfect</CardDescription>
+                  <CardDescription>
+                    Review and refine the generated content to make it perfect
+                  </CardDescription>
+                  {currentDocumentName && (
+                    <div className="mt-2">
+                      <Badge variant="outline">Editing: {currentDocumentName}</Badge>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" onClick={copyToClipboard}>
@@ -361,9 +423,13 @@ export default function SoPGenerator({ programName, universityName, onSave }: So
                     <Download className="h-4 w-4 mr-2" />
                     Download
                   </Button>
-                  <Button onClick={saveSOP}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save
+                  <Button onClick={saveSOP} disabled={saving}>
+                    {saving ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    {saving ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
               </div>
