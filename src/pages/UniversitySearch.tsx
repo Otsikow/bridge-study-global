@@ -53,6 +53,8 @@ import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
 
 const PROGRAM_LEVELS = ["Undergraduate", "Postgraduate", "PHD"];
+const TAB_TRIGGER_STYLES =
+  "gap-2 px-5 py-2 md:px-6 md:py-2.5 text-sm md:text-base font-semibold whitespace-nowrap min-w-[150px] md:min-w-0 snap-start rounded-xl";
 
 interface University {
   id: string;
@@ -216,24 +218,34 @@ export default function UniversitySearch() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="w-full flex-wrap justify-start gap-3 md:gap-4 md:justify-center">
-            <TabsTrigger value="search" className="gap-2 px-4">
-              <Search className="h-4 w-4" />
-              <span>Search</span>
-            </TabsTrigger>
-            <TabsTrigger value="recommendations" className="gap-2 px-4">
-              <Sparkles className="h-4 w-4" />
-              <span>AI Recommendations</span>
-            </TabsTrigger>
-            <TabsTrigger value="sop" className="gap-2 px-4">
-              <FileText className="h-4 w-4" />
-              <span>SOP Generator</span>
-            </TabsTrigger>
-            <TabsTrigger value="interview" className="gap-2 px-4">
-              <MessageSquare className="h-4 w-4" />
-              <span>Interview Practice</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="relative">
+            <TabsList className="w-full h-auto flex-nowrap justify-start gap-3 md:gap-4 md:justify-center px-4 sm:px-6 py-2 rounded-2xl bg-card/90 border border-border shadow-lg scroll-smooth snap-x snap-mandatory">
+              <TabsTrigger value="search" className={TAB_TRIGGER_STYLES}>
+                <Search className="h-4 w-4" />
+                <span>Search</span>
+              </TabsTrigger>
+              <TabsTrigger value="recommendations" className={TAB_TRIGGER_STYLES}>
+                <Sparkles className="h-4 w-4" />
+                <span>AI Recommendations</span>
+              </TabsTrigger>
+              <TabsTrigger value="sop" className={TAB_TRIGGER_STYLES}>
+                <FileText className="h-4 w-4" />
+                <span>SOP Generator</span>
+              </TabsTrigger>
+              <TabsTrigger value="interview" className={TAB_TRIGGER_STYLES}>
+                <MessageSquare className="h-4 w-4" />
+                <span>Interview Practice</span>
+              </TabsTrigger>
+            </TabsList>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background via-background/70 to-transparent"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background via-background/70 to-transparent"
+            />
+          </div>
 
           {/* SEARCH TAB */}
           <TabsContent value="search" className="space-y-6">
