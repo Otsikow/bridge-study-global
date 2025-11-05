@@ -19,6 +19,7 @@ import {
   Star,
   Quote,
   ChevronLeft,
+  ChevronRight,
   Building2,
   Sparkles,
   Compass,
