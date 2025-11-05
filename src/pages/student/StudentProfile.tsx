@@ -11,18 +11,23 @@ import { EducationTab } from '@/components/student/profile/EducationTab';
 import { TestScoresTab } from '@/components/student/profile/TestScoresTab';
 import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
-import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
+import { logError, formatErrorForToast } from '@/lib/errorUtils';
 import type { Tables } from '@/integrations/supabase/types';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
-import { handleDbError } from '@/lib/errorHandling';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const errorHandler = useErrorHandler({ context: 'Student Profile' });
+  const {
+    hasError,
+    error,
+    clearError,
+    handleError,
+    retry: retryWithHandler,
+  } = useErrorHandler({ context: 'Student Profile' });
 
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
@@ -69,7 +74,7 @@ export default function StudentProfile() {
   const fetchStudentData = useCallback(async () => {
     try {
       setLoading(true);
-      errorHandler.clearError();
+      clearError();
 
       const { data, error } = await supabase
         .from('students')
@@ -93,12 +98,12 @@ export default function StudentProfile() {
     } catch (error) {
       // ✅ Merge: both logError & structured handler
       logError(error, 'StudentProfile.fetchStudentData');
-      errorHandler.handleError(error, 'Failed to load profile data');
+      handleError(error, 'Failed to load profile data');
       toast(formatErrorForToast(error, 'Failed to load profile data'));
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast, navigate, recalcCompleteness, errorHandler]);
+  }, [user?.id, toast, navigate, recalcCompleteness, clearError, handleError]);
 
   useEffect(() => {
     if (user) {
@@ -127,15 +132,15 @@ export default function StudentProfile() {
     );
   }
 
-  if (errorHandler.hasError) {
+  if (hasError) {
     return (
       <div className="min-h-screen bg-gradient-subtle">
         <div className="container mx-auto py-6 md:py-8 px-4 space-y-6">
           <BackButton variant="ghost" size="sm" fallback="/dashboard" />
           <ErrorDisplay
-            error={errorHandler.error}
-            onRetry={() => errorHandler.retry(fetchStudentData)}
-            onClear={errorHandler.clearError}
+            error={error}
+            onRetry={() => retryWithHandler(fetchStudentData)}
+            onClear={clearError}
           />
         </div>
       </div>
