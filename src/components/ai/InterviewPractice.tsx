@@ -5,18 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  Video, 
-  Mic, 
-  Play, 
-  Pause, 
-  Square, 
-  Download, 
+import {
+  Video,
+  Mic,
+  Play,
+  Pause,
+  Square,
+  Download,
   RefreshCw,
-  CheckCircle,
   AlertCircle,
   Target,
-  Clock,
   Volume2,
   VolumeX,
   BookOpen,
@@ -39,7 +37,8 @@ interface InterviewSession {
   responses: {
     questionId: string;
     audioUrl?: string;
-    videoUrl?: string;
+    videoBlob?: Blob;
+    recordedAt?: string;
     transcript?: string;
     score?: number;
     feedback?: string;
@@ -56,13 +55,15 @@ export default function InterviewPractice() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const playbackUrlRef = useRef<string | null>(null);
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [currentSession, setCurrentSession] = useState<InterviewSession | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  
+  const [isMuted, setIsMuted] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
   const questions: InterviewQuestion[] = [
     {
@@ -173,18 +174,94 @@ export default function InterviewPractice() {
     return true;
   });
 
+  const currentQuestion = filteredQuestions[currentQuestionIndex] ?? null;
+
+  const cleanupStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const releasePlaybackUrl = () => {
+    if (playbackUrlRef.current) {
+      URL.revokeObjectURL(playbackUrlRef.current);
+      playbackUrlRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      cleanupStream();
+      releasePlaybackUrl();
+    };
+  }, []);
+
+  const getSupportedMimeType = () => {
+    const mimeTypes = [
+      'video/webm;codecs=vp9,opus',
+      'video/webm;codecs=vp8,opus',
+      'video/webm;codecs=h264,opus',
+      'video/webm;codecs=vp9',
+      'video/webm;codecs=vp8',
+      'video/webm'
+    ];
+
+    for (const type of mimeTypes) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        return type;
+      }
+    }
+
+    return undefined;
+  };
+
   const startRecording = async () => {
+    cleanupStream();
+    releasePlaybackUrl();
+    setRecordedBlob(null);
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
+      const questionInProgress = filteredQuestions[currentQuestionIndex];
+      if (!questionInProgress) {
+        toast({
+          title: 'No question selected',
+          description: 'Select a question before recording.',
+          variant: 'destructive'
+        });
+        return;
       }
 
-      const recorder = new MediaRecorder(stream);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      streamRef.current = stream;
+      setRecordedBlob(null);
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.src = '';
+        videoRef.current.muted = true;
+        await videoRef.current.play().catch(() => {
+          // Autoplay might be blocked; user interaction already happened via button click.
+        });
+      }
+
+      if (typeof MediaRecorder === 'undefined') {
+        toast({
+          title: 'Recording not supported',
+          description: 'Your browser does not support video recording.',
+          variant: 'destructive'
+        });
+        stream.getTracks().forEach(track => track.stop());
+        setIsProcessing(false);
+        return;
+      }
+
+      const mimeType = getSupportedMimeType();
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (event) => {
@@ -194,18 +271,43 @@ export default function InterviewPractice() {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        setRecordedChunks([blob]);
-        // In a real implementation, you would upload this to a server
+        cleanupStream();
+
+        const blob = new Blob(chunks, {
+          type: mimeType || 'video/webm'
+        });
+        releasePlaybackUrl();
+        setRecordedBlob(blob);
+        setIsProcessing(false);
+
+        setCurrentSession(prev => {
+          if (!prev) return prev;
+
+          const updatedResponses = prev.responses.filter(response => response.questionId !== questionInProgress.id);
+
+          return {
+            ...prev,
+            responses: [
+              ...updatedResponses,
+              {
+                questionId: questionInProgress.id,
+                videoBlob: blob,
+                recordedAt: new Date().toISOString()
+              }
+            ]
+          };
+        });
+
         toast({
           title: 'Recording Complete',
           description: 'Your response has been recorded successfully'
         });
       };
 
-      setMediaRecorder(recorder);
+      mediaRecorderRef.current = recorder;
       recorder.start();
       setIsRecording(true);
+      setIsProcessing(true);
     } catch (error) {
       console.error('Error accessing media devices:', error);
       toast({
@@ -213,26 +315,65 @@ export default function InterviewPractice() {
         description: 'Could not access camera/microphone. Please check permissions.',
         variant: 'destructive'
       });
+      setIsProcessing(false);
     }
   };
 
+  useEffect(() => {
+    if (isRecording) {
+      return;
+    }
+
+    if (!currentQuestion) {
+      releasePlaybackUrl();
+      setRecordedBlob(null);
+      setIsPlaying(false);
+      return;
+    }
+
+    const existingResponse = currentSession?.responses.find(
+      (response) => response.questionId === currentQuestion.id && response.videoBlob
+    );
+
+    releasePlaybackUrl();
+
+    if (existingResponse?.videoBlob) {
+      setRecordedBlob(existingResponse.videoBlob);
+      setIsPlaying(false);
+    } else {
+      setRecordedBlob(null);
+      setIsPlaying(false);
+    }
+  }, [currentQuestion, currentSession, isRecording]);
+
   const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
       setIsRecording(false);
     }
   };
 
   const playRecording = () => {
-    if (recordedChunks.length > 0) {
-      const blob = recordedChunks[0];
-      const url = URL.createObjectURL(blob);
-      if (videoRef.current) {
-        videoRef.current.src = url;
-        videoRef.current.play();
+    if (!recordedBlob || !videoRef.current) return;
+
+    releasePlaybackUrl();
+    const url = URL.createObjectURL(recordedBlob);
+    playbackUrlRef.current = url;
+
+    videoRef.current.pause();
+    videoRef.current.srcObject = null;
+    videoRef.current.src = url;
+    videoRef.current.muted = isMuted;
+    videoRef.current.currentTime = 0;
+    videoRef.current
+      .play()
+      .then(() => {
         setIsPlaying(true);
-      }
-    }
+      })
+      .catch(() => {
+        setIsPlaying(false);
+      });
   };
 
   const pauseRecording = () => {
@@ -242,6 +383,35 @@ export default function InterviewPractice() {
     }
   };
 
+  const retakeRecording = () => {
+    releasePlaybackUrl();
+    setRecordedBlob(null);
+    setIsPlaying(false);
+
+    setCurrentSession(prev => {
+      if (!prev) return prev;
+      if (!currentQuestion) return prev;
+      return {
+        ...prev,
+        responses: prev.responses.filter(response => response.questionId !== currentQuestion.id)
+      };
+    });
+
+    startRecording();
+  };
+
+  const downloadRecording = () => {
+    if (!recordedBlob || !currentQuestion) return;
+    const downloadUrl = URL.createObjectURL(recordedBlob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `interview-response-${currentQuestion.id}.webm`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    };
+
   const startNewSession = () => {
     const session: InterviewSession = {
       id: Date.now().toString(),
@@ -250,20 +420,63 @@ export default function InterviewPractice() {
     };
     setCurrentSession(session);
     setCurrentQuestionIndex(0);
-    setRecordedChunks([]);
+    releasePlaybackUrl();
+    setRecordedBlob(null);
+    setIsPlaying(false);
   };
 
   const nextQuestion = () => {
+    if (isRecording) {
+      toast({
+        title: 'Recording in progress',
+        description: 'Stop the recording before moving to the next question.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (currentQuestion) {
+      const hasRecording = currentSession?.responses.some(
+        (response) => response.questionId === currentQuestion.id && response.videoBlob
+      );
+
+      if (!hasRecording) {
+        toast({
+          title: 'Record your response',
+          description: 'Please record an answer before moving on.',
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     if (currentQuestionIndex < filteredQuestions.length - 1) {
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+      releasePlaybackUrl();
+      setIsPlaying(false);
       setCurrentQuestionIndex(prev => prev + 1);
-      setRecordedChunks([]);
     }
   };
 
   const previousQuestion = () => {
+    if (isRecording) {
+      toast({
+        title: 'Recording in progress',
+        description: 'Stop the recording before navigating to another question.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
     if (currentQuestionIndex > 0) {
+      if (videoRef.current) {
+        videoRef.current.pause();
+      }
+      releasePlaybackUrl();
+      setIsPlaying(false);
       setCurrentQuestionIndex(prev => prev - 1);
-      setRecordedChunks([]);
     }
   };
 
@@ -457,57 +670,66 @@ export default function InterviewPractice() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-center">
-                    <video
-                      ref={videoRef}
-                      className="w-full max-w-md rounded-lg"
-                      autoPlay
-                      muted={isMuted}
-                    />
+                      <video
+                        ref={videoRef}
+                        className="w-full max-w-md rounded-lg"
+                        autoPlay
+                        playsInline
+                        muted={isMuted}
+                        controls={false}
+                      />
                   </div>
 
                   <div className="flex items-center justify-center gap-4">
-                    {!isRecording ? (
-                      <Button onClick={startRecording} size="lg">
-                        <Video className="h-5 w-5 mr-2" />
-                        Start Recording
-                      </Button>
-                    ) : (
-                      <Button onClick={stopRecording} size="lg" variant="destructive">
-                        <Square className="h-5 w-5 mr-2" />
-                        Stop Recording
-                      </Button>
-                    )}
+                      {!isRecording ? (
+                        <Button onClick={startRecording} size="lg">
+                          <Video className="h-5 w-5 mr-2" />
+                          Start Recording
+                        </Button>
+                      ) : (
+                        <Button onClick={stopRecording} size="lg" variant="destructive">
+                          <Square className="h-5 w-5 mr-2" />
+                          Stop Recording
+                        </Button>
+                      )}
 
-                    {recordedChunks.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={isPlaying ? pauseRecording : playRecording}
-                        >
-                          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                        </Button>
-                        <Button variant="outline" onClick={() => setIsMuted(!isMuted)}>
-                          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    )}
+                      {recordedBlob && !isRecording && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={isPlaying ? pauseRecording : playRecording}
+                            disabled={isProcessing}
+                          >
+                            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="outline" onClick={() => setIsMuted(!isMuted)}>
+                            {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                          </Button>
+                          <Button variant="outline" onClick={downloadRecording}>
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" onClick={retakeRecording}>
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      onClick={previousQuestion}
-                      disabled={currentQuestionIndex === 0}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      onClick={nextQuestion}
-                      disabled={currentQuestionIndex === filteredQuestions.length - 1}
-                    >
-                      Next Question
-                    </Button>
-                  </div>
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={previousQuestion}
+                        disabled={currentQuestionIndex === 0 || isRecording}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        onClick={nextQuestion}
+                        disabled={currentQuestionIndex === filteredQuestions.length - 1 || isRecording}
+                      >
+                        Next Question
+                      </Button>
+                    </div>
                 </CardContent>
               </Card>
             </div>
@@ -568,25 +790,72 @@ export default function InterviewPractice() {
         </TabsContent>
 
         <TabsContent value="feedback" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Performance Analysis</CardTitle>
-              <CardDescription>
-                Review your interview performance and get personalized feedback
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12">
-                <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No recordings yet</h3>
-                <p className="text-muted-foreground">
-                  Complete a practice session to see your performance analysis
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Analysis</CardTitle>
+                <CardDescription>
+                  Review your interview performance and get personalized feedback
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {currentSession && currentSession.responses.length > 0 ? (
+                  <div className="space-y-6">
+                    {currentSession.responses.map((response) => {
+                      const question = questions.find((q) => q.id === response.questionId);
+                      if (!response.videoBlob || !question) return null;
+
+                      return (
+                        <div key={response.questionId} className="space-y-3 p-4 border rounded-lg">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="font-medium">{question.question}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Recorded on {response.recordedAt ? new Date(response.recordedAt).toLocaleString() : '—'}
+                              </p>
+                            </div>
+                            <Badge className={getDifficultyColor(question.difficulty)}>
+                              {question.difficulty}
+                            </Badge>
+                          </div>
+                          <RecordedVideoPlayer blob={response.videoBlob} />
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <AlertCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No recordings yet</h3>
+                    <p className="text-muted-foreground">
+                      Complete a practice session to see your performance analysis
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function RecordedVideoPlayer({ blob }: { blob: Blob }) {
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(blob);
+    setVideoUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [blob]);
+
+  return (
+    <video
+      className="w-full rounded-lg"
+      controls
+      src={videoUrl ?? undefined}
+    />
   );
 }
