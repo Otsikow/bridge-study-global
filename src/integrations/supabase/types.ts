@@ -553,6 +553,139 @@ export type Database = {
           },
         ]
       }
+      conversation_messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          id: string
+          message_type: string
+          read_by: string[] | null
+          reply_to_id: string | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: string
+          read_by?: string[] | null
+          reply_to_id?: string | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          id?: string
+          message_type?: string
+          read_by?: string[] | null
+          reply_to_id?: string | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "conversation_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          is_group: boolean
+          last_message_at: string | null
+          tenant_id: string
+          title: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          last_message_at?: string | null
+          tenant_id: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          last_message_at?: string | null
+          tenant_id?: string
+          title?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       education_records: {
         Row: {
           certificate_url: string | null
@@ -1733,6 +1866,38 @@ export type Database = {
           },
         ]
       }
+      typing_indicators: {
+        Row: {
+          conversation_id: string
+          expires_at: string
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          expires_at?: string
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          expires_at?: string
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_indicators_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       universities: {
         Row: {
           active: boolean | null
@@ -1741,6 +1906,10 @@ export type Database = {
           country: string
           created_at: string | null
           description: string | null
+          featured: boolean | null
+          featured_highlight: string | null
+          featured_priority: number | null
+          featured_summary: string | null
           id: string
           logo_url: string | null
           name: string
@@ -1759,6 +1928,10 @@ export type Database = {
           country: string
           created_at?: string | null
           description?: string | null
+          featured?: boolean | null
+          featured_highlight?: string | null
+          featured_priority?: number | null
+          featured_summary?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -1777,6 +1950,10 @@ export type Database = {
           country?: string
           created_at?: string | null
           description?: string | null
+          featured?: boolean | null
+          featured_highlight?: string | null
+          featured_priority?: number | null
+          featured_summary?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -1866,6 +2043,30 @@ export type Database = {
           },
         ]
       }
+      user_presence: {
+        Row: {
+          id: string
+          last_seen: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          last_seen?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          last_seen?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1912,9 +2113,34 @@ export type Database = {
         }
         Returns: string
       }
+      get_or_create_conversation: {
+        Args: {
+          p_other_user_id: string
+          p_tenant_id: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       get_primary_role: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_public_featured_universities: {
+        Args: never
+        Returns: {
+          city: string
+          country: string
+          featured_highlight: string
+          featured_priority: number
+          featured_summary: string
+          id: string
+          logo_url: string
+          name: string
+        }[]
+      }
+      get_unread_count: {
+        Args: { p_conversation_id: string; p_user_id: string }
+        Returns: number
       }
       get_user_role: {
         Args: { user_id: string }

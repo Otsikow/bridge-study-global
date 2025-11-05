@@ -254,30 +254,33 @@ export function useMessages() {
     try {
       const { data, error } = await supabase
         .from('typing_indicators')
-        .select(`
-          user_id,
-          conversation_id,
-          started_at,
-          expires_at,
-          profile:profiles!typing_indicators_user_id_fkey ( full_name )
-        `)
+        .select('user_id, conversation_id, started_at, expires_at')
         .eq('conversation_id', conversationId)
         .gt('expires_at', new Date().toISOString());
 
       if (error) throw error;
 
-      const typedData = (data || []) as RawTypingIndicator[];
+      // Fetch profiles separately
+      const userIds = (data || []).map((indicator: any) => indicator.user_id);
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds);
 
-      const formatted: TypingIndicator[] = typedData
-        .filter((indicator) => indicator.user_id !== user.id)
-        .map((indicator) => ({
+      const profilesMap = new Map(
+        (profilesData || []).map((p: any) => [p.id, p])
+      );
+
+      const formatted: TypingIndicator[] = (data || [])
+        .filter((indicator: any) => indicator.user_id !== user.id)
+        .map((indicator: any) => ({
           user_id: indicator.user_id,
           conversation_id: indicator.conversation_id,
           started_at: indicator.started_at,
           expires_at: indicator.expires_at,
-          profile: indicator.profile
+          profile: profilesMap.get(indicator.user_id)
             ? {
-              full_name: indicator.profile.full_name,
+              full_name: profilesMap.get(indicator.user_id)!.full_name,
             }
           : undefined,
         }));
@@ -306,20 +309,34 @@ export function useMessages() {
           reply_to_id,
           edited_at,
           deleted_at,
-          created_at,
-          sender:profiles!conversation_messages_sender_id_fkey (
-            id,
-            full_name,
-            avatar_url
-          )
+          created_at
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      const typedData = (data || []) as RawMessage[];
-      const formatted = typedData.map((message) => transformMessage(message));
+      // Fetch sender profiles separately
+      const senderIds = [...new Set((data || []).map((msg: any) => msg.sender_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', senderIds);
+
+      const profilesMap = new Map(
+        (profilesData || []).map((p: any) => [p.id, p])
+      );
+
+      const messagesWithProfiles = (data || []).map((msg: any) => ({
+        ...msg,
+        sender: profilesMap.get(msg.sender_id) || {
+          id: msg.sender_id,
+          full_name: 'Unknown User',
+          avatar_url: null,
+        },
+      }));
+
+      const formatted = messagesWithProfiles.map((message) => transformMessage(message as RawMessage));
       setMessages(formatted);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -484,18 +501,29 @@ export function useMessages() {
           reply_to_id,
           edited_at,
           deleted_at,
-          created_at,
-          sender:profiles!conversation_messages_sender_id_fkey (
-            id,
-            full_name,
-            avatar_url
-          )
+          created_at
         `)
         .single();
 
       if (error) throw error;
 
-      const formatted = transformMessage(data as RawMessage);
+      // Fetch sender profile separately
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      const messageWithProfile = {
+        ...data,
+        sender: profileData || {
+          id: user.id,
+          full_name: 'Unknown User',
+          avatar_url: null,
+        },
+      };
+
+      const formatted = transformMessage(messageWithProfile as RawMessage);
 
       if (currentConversation === conversationId) {
         setMessages(prev => [...prev, formatted]);
@@ -653,8 +681,8 @@ export function useMessages() {
 
       try {
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
-          p_user1_id: user.id,
-          p_user2_id: otherUserId,
+          p_user_id: user.id,
+          p_other_user_id: otherUserId,
           p_tenant_id: profile.tenant_id,
         });
 

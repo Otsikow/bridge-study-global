@@ -112,11 +112,9 @@ export function FeaturedUniversitiesSection() {
   const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["featured-universities", DEFAULT_TENANT_SLUG],
+    queryKey: ["featured-universities"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_featured_universities", {
-        p_tenant_slug: DEFAULT_TENANT_SLUG,
-      });
+      const { data, error } = await supabase.rpc("get_public_featured_universities");
 
       if (error) {
         console.error("Error fetching public featured universities:", error);

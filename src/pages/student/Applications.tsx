@@ -82,9 +82,12 @@ export default function Applications() {
               city,
               country
             )
+          ),
+          student:students!inner (
+            profile_id
           )
         `)
-        .eq('student_profile_id', user.id)
+        .eq('student.profile_id', user.id)
         .order('created_at', { ascending: false });
 
       if (appsError) throw appsError;

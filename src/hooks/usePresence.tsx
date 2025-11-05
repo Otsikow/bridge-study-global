@@ -23,7 +23,7 @@ export function usePresence() {
       const { error } = await supabase
         .from('user_presence')
         .upsert({
-          id: user.id,
+          user_id: user.id,
           status,
           last_seen: timestamp,
         });
@@ -38,14 +38,14 @@ export function usePresence() {
     try {
       const { data, error } = await supabase
         .from('user_presence')
-        .select('id, status, last_seen, updated_at');
+        .select('user_id, status, last_seen, updated_at');
 
       if (error) throw error;
 
       const mapped: Record<string, UserPresence> = {};
       (data || []).forEach((record: any) => {
-        mapped[record.id] = {
-          id: record.id,
+        mapped[record.user_id] = {
+          id: record.user_id,
           status: (record.status as UserPresence['status']) ?? 'offline',
           last_seen: record.last_seen,
           updated_at: record.updated_at,
@@ -106,7 +106,7 @@ export function usePresence() {
         table: 'user_presence',
       }, (payload) => {
         if (payload.eventType === 'DELETE') {
-          const deletedId = (payload.old as any)?.id;
+          const deletedId = (payload.old as any)?.user_id;
           if (!deletedId) return;
           setPresence(prev => {
             const updated = { ...prev };
@@ -119,8 +119,8 @@ export function usePresence() {
         const record = payload.new as any;
         setPresence(prev => ({
           ...prev,
-          [record.id]: {
-            id: record.id,
+          [record.user_id]: {
+            id: record.user_id,
             status: (record.status as UserPresence['status']) ?? 'offline',
             last_seen: record.last_seen,
             updated_at: record.updated_at,
