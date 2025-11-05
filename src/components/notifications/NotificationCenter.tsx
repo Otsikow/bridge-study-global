@@ -205,14 +205,14 @@ export default function NotificationCenter() {
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="space-y-4 w-full max-w-5xl mx-auto">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Bell className="h-5 w-5" />
           <h2 className="text-2xl font-bold">Notifications</h2>
           {unreadCount > 0 && <Badge variant="destructive">{unreadCount}</Badge>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           {unreadCount > 0 && (
             <Button variant="outline" size="sm" onClick={markAllAsRead}>
               <CheckCheck className="h-4 w-4 mr-1" /> Mark all read
@@ -222,7 +222,7 @@ export default function NotificationCenter() {
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm"><Settings className="h-4 w-4" /></Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72">
+            <PopoverContent className="w-[260px] sm:w-72">
               <div className="space-y-3">
                 <h4 className="font-semibold">Notification Settings</h4>
                 {Object.entries(settings).map(([key, value]) => (
@@ -244,7 +244,7 @@ export default function NotificationCenter() {
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-        <TabsList className="flex flex-wrap gap-2">
+        <TabsList className="flex w-full gap-2 overflow-x-auto rounded-full bg-muted/40 p-1 sm:flex-wrap sm:rounded-none sm:bg-transparent sm:p-0">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="unread">Unread</TabsTrigger>
           <TabsTrigger value="read">Read</TabsTrigger>
@@ -254,42 +254,42 @@ export default function NotificationCenter() {
           <TabsTrigger value="course_recommendation">Courses</TabsTrigger>
         </TabsList>
         <TabsContent value={filter}>
-          <Card>
-            <CardHeader>
+          <Card className="w-full border border-border/70 shadow-sm sm:rounded-2xl">
+            <CardHeader className="space-y-1.5 p-4 sm:p-6">
               <CardTitle>Recent</CardTitle>
               <CardDescription>Stay updated with your activity</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               {loading ? (
-                <div className="text-center py-8">
-                  <Loader2 className="animate-spin mx-auto h-6 w-6 mb-3" />
+                <div className="py-8 text-center">
+                  <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin" />
                   <p className="text-muted-foreground">Loading...</p>
                 </div>
               ) : filtered.length === 0 ? (
-                <div className="text-center py-8">
-                  <Bell className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                <div className="py-8 text-center">
+                  <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
                   <p className="text-muted-foreground">No notifications</p>
                 </div>
               ) : (
-                <ScrollArea className="h-[600px]">
+                <ScrollArea className="max-h-[65vh] sm:max-h-[60vh]">
                   <div className="divide-y">
                     {filtered.map((n) => {
                       const Icon = iconFor(n.type);
                       return (
                         <div
                           key={n.id}
-                          className={`p-4 hover:bg-muted/50 transition cursor-pointer ${!n.read ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}
+                          className={`p-4 transition hover:bg-muted/50 ${!n.read ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}
                           onClick={() => handleClick(n)}
                         >
                           <div className="flex items-start gap-3">
-                            <Icon className={`h-5 w-5 mt-1 ${colorFor(n.type)}`} />
+                            <Icon className={`mt-1 h-5 w-5 ${colorFor(n.type)}`} />
                             <div className="flex-1">
-                              <div className="flex justify-between items-start">
+                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
                                   <p className="font-medium">{n.title}</p>
                                   <p className="text-sm text-muted-foreground">{n.message}</p>
                                 </div>
-                                <div className="flex gap-1">
+                                <div className="flex shrink-0 gap-1 self-start">
                                   {!n.read && (
                                     <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}>
                                       <Check className="h-4 w-4" />
