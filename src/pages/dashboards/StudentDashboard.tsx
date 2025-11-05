@@ -347,30 +347,36 @@ export default function StudentDashboard() {
         {/* Profile Progress */}
         <Card className="border-l-4 border-l-primary shadow-md">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+              <div className="flex items-start gap-3 sm:items-center">
                 <div className="p-2 rounded-full bg-primary/10">
                   <CheckCircle2 className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Profile Completion</h3>
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-lg leading-tight">Profile Completion</h3>
                   <p className="text-sm text-muted-foreground">
                     Your profile is {profileCompleteness}% complete
                   </p>
                 </div>
               </div>
-              <Button asChild variant="outline" size="sm">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="w-full justify-center whitespace-nowrap sm:w-auto"
+              >
                 <Link to="/student/profile">
-                  Complete Profile <ArrowRight className="ml-2 h-4 w-4" />
+                  <span>Complete Profile</span>
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>
-            <Progress value={profileCompleteness} className="h-3" />
+            <Progress value={profileCompleteness} className="mt-4 h-3" />
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             { to: '/search', icon: Search, label: 'Search Courses' },
             { to: '/student/applications', icon: FileText, label: 'Track Applications' },
@@ -381,7 +387,7 @@ export default function StudentDashboard() {
               key={to}
               asChild
               size="lg"
-              className="h-auto py-6 flex-col gap-3 hover:scale-105 transition-transform shadow-lg"
+              className="h-auto flex-col gap-3 py-6 transition-transform shadow-lg hover:scale-105"
               variant="secondary"
             >
               <Link to={to}>
