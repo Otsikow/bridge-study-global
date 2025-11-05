@@ -213,15 +213,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       (event, session) => {
         // The event SIGNED_IN is already handled by the initial check.
         // TOKEN_REFRESHED should not re-trigger profile fetching unless needed.
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        // The event SIGNED_IN is already handled by the initial check.
+        // TOKEN_REFRESHED should not re-trigger profile fetching unless needed.
+        if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
           handleAuthChange(session);
-        } else if (event === 'TOKEN_REFRESHED') {
+        } else if (event === 'SIGNED_IN') {
+          // Only handle SIGNED_IN if the user is different, to prevent double-fetch on load
           if (session?.user?.id !== lastUserId) {
-             handleAuthChange(session);
-          } else {
-             // If the user ID is the same, we might not need to do anything,
-             // or just update the session without re-fetching the profile.
-             if (isMounted) setSession(session);
+            handleAuthChange(session);
+          }
+        } else if (event === 'TOKEN_REFRESHED') {
+          // Handle token refresh, which could be for a different user
+          if (session?.user?.id !== lastUserId) {
+            handleAuthChange(session);
+          } else if (isMounted) {
+            // If same user, just update the session
+            setSession(session);
           }
         }
       }
