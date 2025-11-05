@@ -187,65 +187,65 @@ export default function StudentProfile() {
           </p>
         </div>
 
-        {/* Progress Overview */}
-        <Card className="hover:shadow-lg transition-shadow animate-fade-in">
-          <CardHeader>
-            <CardTitle className="text-xl sm:text-2xl">Profile Completeness</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
-              {completeness}% complete • {completedSteps} of 5 steps completed
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="relative">
-              <Progress value={completeness} className="h-3" />
-              <span className="absolute right-2 -top-1 text-xs font-medium">
-                {completeness}%
-              </span>
-            </div>
-            {completeness < 100 && (
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Tip: Upload documents like passport and transcripts in the{' '}
-                <Link className="underline" to="/student/documents">
-                  Documents
-                </Link>{' '}
-                section to improve completeness.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          {/* Progress Overview */}
+          <Card className="hover:shadow-lg transition-shadow animate-fade-in">
+            <CardHeader>
+              <CardTitle className="text-xl sm:text-2xl">Profile Completeness</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                {completeness}% complete • {completedSteps} of 5 steps completed
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Progress value={completeness} className="h-3" />
+                <span className="absolute right-2 -top-1 text-xs font-medium">
+                  {completeness}%
+                </span>
+              </div>
+              {completeness < 100 && (
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Tip: Upload documents like passport and transcripts in the{' '}
+                  <Link className="underline" to="/student/documents">
+                    Documents
+                  </Link>{' '}
+                  section to improve completeness.
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 h-auto p-1 bg-muted/50">
-            <TabsTrigger value="personal" className="data-[state=active]:bg-background">
-              Personal Info
-            </TabsTrigger>
-            <TabsTrigger value="education" className="data-[state=active]:bg-background">
-              Education
-            </TabsTrigger>
-            <TabsTrigger value="tests" className="data-[state=active]:bg-background">
-              Test Scores
-            </TabsTrigger>
-            <TabsTrigger value="finances" className="data-[state=active]:bg-background">
-              Finances
-            </TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 h-auto p-1 sm:p-2">
+              <TabsTrigger value="personal" className="text-sm sm:text-base">
+                Personal Info
+              </TabsTrigger>
+              <TabsTrigger value="education" className="text-sm sm:text-base">
+                Education
+              </TabsTrigger>
+              <TabsTrigger value="tests" className="text-sm sm:text-base">
+                Test Scores
+              </TabsTrigger>
+              <TabsTrigger value="finances" className="text-sm sm:text-base">
+                Finances
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="personal" className="space-y-4 animate-fade-in">
-            <PersonalInfoTab student={student} onUpdate={fetchStudentData} />
-          </TabsContent>
+            <TabsContent value="personal" className="space-y-4 animate-fade-in">
+              <PersonalInfoTab student={student} onUpdate={fetchStudentData} />
+            </TabsContent>
 
-          <TabsContent value="education" className="space-y-4 animate-fade-in">
-            <EducationTab studentId={student.id} onUpdate={fetchStudentData} />
-          </TabsContent>
+            <TabsContent value="education" className="space-y-4 animate-fade-in">
+              <EducationTab studentId={student.id} onUpdate={fetchStudentData} />
+            </TabsContent>
 
-          <TabsContent value="tests" className="space-y-4 animate-fade-in">
-            <TestScoresTab studentId={student.id} onUpdate={fetchStudentData} />
-          </TabsContent>
+            <TabsContent value="tests" className="space-y-4 animate-fade-in">
+              <TestScoresTab studentId={student.id} onUpdate={fetchStudentData} />
+            </TabsContent>
 
-          <TabsContent value="finances" className="space-y-4 animate-fade-in">
-            <FinancesTab student={student} onUpdate={fetchStudentData} />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="finances" className="space-y-4 animate-fade-in">
+              <FinancesTab student={student} onUpdate={fetchStudentData} />
+            </TabsContent>
+          </Tabs>
       </div>
     </div>
   );
