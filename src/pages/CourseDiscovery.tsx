@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,249 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CourseCard, Course } from '@/components/student/CourseCard';
 import { FiltersBar, FilterOptions, ActiveFilters } from '@/components/student/FiltersBar';
 import { LoadingState } from '@/components/LoadingState';
-import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/hooks/use-toast';
-import { Search, Filter, X } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { Search, Filter, X, Sparkles } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useDebounce } from '@/hooks/useDebounce';
 
 const ITEMS_PER_PAGE = 12;
+const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'geg';
+const DEFAULT_TUITION_RANGE = { min: 0, max: 100000, currency: 'USD*' } as const;
+const DEFAULT_DURATION_RANGE = { min: 0, max: 60 } as const;
+
+const createDefaultFilterOptions = (): FilterOptions => ({
+  countries: [],
+  levels: [],
+  disciplines: [],
+  tuition_range: { ...DEFAULT_TUITION_RANGE },
+  duration_range: { ...DEFAULT_DURATION_RANGE },
+});
+
+const createDefaultActiveFilters = (): ActiveFilters => ({
+  countries: [],
+  levels: [],
+  tuitionRange: [DEFAULT_TUITION_RANGE.min, DEFAULT_TUITION_RANGE.max],
+  durationRange: [DEFAULT_DURATION_RANGE.min, DEFAULT_DURATION_RANGE.max],
+  intakeMonths: [],
+});
+
+const getNextIntakeYear = (month: number): number => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+  return month < currentMonth ? currentYear + 1 : currentYear;
+};
+
+const FALLBACK_COURSES: Course[] = [
+  {
+    id: 'fallback-oxford-cs-msc',
+    name: 'MSc Computer Science',
+    level: 'Postgraduate',
+    discipline: 'Computer Science',
+    duration_months: 12,
+    tuition_currency: 'GBP',
+    tuition_amount: 42000,
+    intake_months: [9],
+    university_name: 'University of Oxford',
+    university_country: 'United Kingdom',
+    university_city: 'Oxford',
+    university_logo_url: null,
+    next_intake_month: 9,
+    next_intake_year: getNextIntakeYear(9),
+  },
+  {
+    id: 'fallback-harvard-mba',
+    name: 'MBA (Leadership & Strategy)',
+    level: 'Postgraduate',
+    discipline: 'Business Administration',
+    duration_months: 24,
+    tuition_currency: 'USD',
+    tuition_amount: 73000,
+    intake_months: [1, 9],
+    university_name: 'Harvard University',
+    university_country: 'United States',
+    university_city: 'Cambridge',
+    university_logo_url: null,
+    next_intake_month: 1,
+    next_intake_year: getNextIntakeYear(1),
+  },
+  {
+    id: 'fallback-toronto-bsc-data',
+    name: 'BSc Data Science & Analytics',
+    level: 'Undergraduate',
+    discipline: 'Data Science',
+    duration_months: 48,
+    tuition_currency: 'CAD',
+    tuition_amount: 41000,
+    intake_months: [1, 5, 9],
+    university_name: 'University of Toronto',
+    university_country: 'Canada',
+    university_city: 'Toronto',
+    university_logo_url: null,
+    next_intake_month: 1,
+    next_intake_year: getNextIntakeYear(1),
+  },
+  {
+    id: 'fallback-melbourne-meng',
+    name: 'Master of Engineering (Software)',
+    level: 'Postgraduate',
+    discipline: 'Engineering',
+    duration_months: 24,
+    tuition_currency: 'AUD',
+    tuition_amount: 52000,
+    intake_months: [2, 7],
+    university_name: 'University of Melbourne',
+    university_country: 'Australia',
+    university_city: 'Melbourne',
+    university_logo_url: null,
+    next_intake_month: 2,
+    next_intake_year: getNextIntakeYear(2),
+  },
+  {
+    id: 'fallback-nus-beng-ai',
+    name: 'BEng Artificial Intelligence',
+    level: 'Undergraduate',
+    discipline: 'Artificial Intelligence',
+    duration_months: 48,
+    tuition_currency: 'SGD',
+    tuition_amount: 39000,
+    intake_months: [8],
+    university_name: 'National University of Singapore',
+    university_country: 'Singapore',
+    university_city: 'Singapore',
+    university_logo_url: null,
+    next_intake_month: 8,
+    next_intake_year: getNextIntakeYear(8),
+  },
+  {
+    id: 'fallback-ubc-msc-energy',
+    name: 'MSc Sustainable Energy Systems',
+    level: 'Postgraduate',
+    discipline: 'Sustainability',
+    duration_months: 18,
+    tuition_currency: 'CAD',
+    tuition_amount: 36000,
+    intake_months: [5],
+    university_name: 'University of British Columbia',
+    university_country: 'Canada',
+    university_city: 'Vancouver',
+    university_logo_url: null,
+    next_intake_month: 5,
+    next_intake_year: getNextIntakeYear(5),
+  },
+  {
+    id: 'fallback-imperial-msc-robotics',
+    name: 'MSc Robotics & Autonomous Systems',
+    level: 'Postgraduate',
+    discipline: 'Robotics',
+    duration_months: 12,
+    tuition_currency: 'GBP',
+    tuition_amount: 41000,
+    intake_months: [10],
+    university_name: 'Imperial College London',
+    university_country: 'United Kingdom',
+    university_city: 'London',
+    university_logo_url: null,
+    next_intake_month: 10,
+    next_intake_year: getNextIntakeYear(10),
+  },
+  {
+    id: 'fallback-sydney-mph',
+    name: 'Master of Public Health',
+    level: 'Postgraduate',
+    discipline: 'Public Health',
+    duration_months: 18,
+    tuition_currency: 'AUD',
+    tuition_amount: 38000,
+    intake_months: [3, 7],
+    university_name: 'University of Sydney',
+    university_country: 'Australia',
+    university_city: 'Sydney',
+    university_logo_url: null,
+    next_intake_month: 3,
+    next_intake_year: getNextIntakeYear(3),
+  },
+  {
+    id: 'fallback-stanford-msce',
+    name: 'MS Computer Engineering',
+    level: 'Postgraduate',
+    discipline: 'Computer Engineering',
+    duration_months: 24,
+    tuition_currency: 'USD',
+    tuition_amount: 60000,
+    intake_months: [9],
+    university_name: 'Stanford University',
+    university_country: 'United States',
+    university_city: 'Stanford',
+    university_logo_url: null,
+    next_intake_month: 9,
+    next_intake_year: getNextIntakeYear(9),
+  },
+  {
+    id: 'fallback-eth-msc-data',
+    name: 'MSc Data Science',
+    level: 'Postgraduate',
+    discipline: 'Data Science',
+    duration_months: 18,
+    tuition_currency: 'CHF',
+    tuition_amount: 25000,
+    intake_months: [2, 9],
+    university_name: 'ETH Zürich',
+    university_country: 'Switzerland',
+    university_city: 'Zürich',
+    university_logo_url: null,
+    next_intake_month: 2,
+    next_intake_year: getNextIntakeYear(2),
+  },
+  {
+    id: 'fallback-tokyo-msc-quantum',
+    name: 'MSc Quantum Computing',
+    level: 'Postgraduate',
+    discipline: 'Physics',
+    duration_months: 24,
+    tuition_currency: 'JPY',
+    tuition_amount: 4600000,
+    intake_months: [4],
+    university_name: 'The University of Tokyo',
+    university_country: 'Japan',
+    university_city: 'Tokyo',
+    university_logo_url: null,
+    next_intake_month: 4,
+    next_intake_year: getNextIntakeYear(4),
+  },
+  {
+    id: 'fallback-cape-town-bcom',
+    name: 'BCom Finance & Analytics',
+    level: 'Undergraduate',
+    discipline: 'Finance',
+    duration_months: 36,
+    tuition_currency: 'ZAR',
+    tuition_amount: 220000,
+    intake_months: [2, 7],
+    university_name: 'University of Cape Town',
+    university_country: 'South Africa',
+    university_city: 'Cape Town',
+    university_logo_url: null,
+    next_intake_month: 2,
+    next_intake_year: getNextIntakeYear(2),
+  },
+  {
+    id: 'fallback-uc-berkeley-msds',
+    name: 'Master of Information & Data Science',
+    level: 'Postgraduate',
+    discipline: 'Information Science',
+    duration_months: 20,
+    tuition_currency: 'USD',
+    tuition_amount: 52000,
+    intake_months: [1, 5, 9],
+    university_name: 'University of California, Berkeley',
+    university_country: 'United States',
+    university_city: 'Berkeley',
+    university_logo_url: null,
+    next_intake_month: 1,
+    next_intake_year: getNextIntakeYear(1),
+  },
+];
 
 const SORT_OPTIONS = [
   { value: 'name:asc', label: 'Name (A-Z)' },
@@ -30,84 +265,159 @@ export default function CourseDiscovery() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<string>('name:asc');
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>(() => createDefaultFilterOptions());
+  const [activeFilters, setActiveFilters] = useState<ActiveFilters>(() => createDefaultActiveFilters());
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [filterOptions, setFilterOptions] = useState<FilterOptions | null>(null);
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  
-  const [activeFilters, setActiveFilters] = useState<ActiveFilters>({
-    countries: [],
-    levels: [],
-    tuitionRange: [0, 100000],
-    durationRange: [0, 60],
-    intakeMonths: [],
-  });
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
+  const [usingFallbackData, setUsingFallbackData] = useState(false);
 
-  // Debounce search query
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const hasInitializedFilters = useRef(false);
+  const fallbackToastShownRef = useRef(false);
 
-  // Fetch filter options (STUB - requires get_program_filter_options function)
-  const fetchFilterOptions = useCallback(async () => {
+  const resolveTenantId = useCallback(async (): Promise<string | null> => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user?.id)
-        .single();
+      if (user?.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .maybeSingle();
 
-      if (!profile) return;
-
-      // Set default filter options
-      const defaultOptions: FilterOptions = {
-        countries: [],
-        levels: [],
-        disciplines: [],
-        tuition_range: { min: 0, max: 100000, currency: 'USD' },
-        duration_range: { min: 0, max: 60 },
-      };
-      
-      setFilterOptions(defaultOptions);
-      setActiveFilters(prev => ({
-        ...prev,
-        tuitionRange: [0, 100000],
-        durationRange: [0, 60],
-      }));
-    } catch (error) {
-      console.error('Error fetching filter options:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load filter options',
-        variant: 'destructive',
-      });
-    }
-  }, [user?.id, toast]);
-
-  // Fetch courses (STUB - requires search_programs function)
-  const fetchCourses = useCallback(async (append = false) => {
-    try {
-      if (append) {
-        setLoadingMore(true);
-      } else {
-        setLoading(true);
-        setCurrentPage(0);
+        if (!error && data?.tenant_id) {
+          return data.tenant_id;
+        }
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('tenant_id')
-        .eq('id', user?.id)
-        .single();
+      const { data: tenantBySlug, error: slugError } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('slug', DEFAULT_TENANT_SLUG)
+        .maybeSingle();
 
-      if (!profile) return;
+      if (!slugError && tenantBySlug?.id) {
+        return tenantBySlug.id;
+      }
 
-      // Use simple query instead of non-existent RPC function
-      let query = supabase
+      const { data: fallbackTenant, error: fallbackError } = await supabase
+        .from('tenants')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (!fallbackError && fallbackTenant?.id) {
+        return fallbackTenant.id;
+      }
+    } catch (error) {
+      console.error('Error resolving tenant ID:', error);
+    }
+
+    return null;
+  }, [user?.id]);
+
+  const updateFilterOptionsFromCourses = useCallback((courses: Course[], resetActiveFilters: boolean) => {
+    if (courses.length === 0) {
+      setFilterOptions(createDefaultFilterOptions());
+      if (resetActiveFilters) {
+        setActiveFilters(createDefaultActiveFilters());
+      }
+      return;
+    }
+
+    const countries = Array.from(new Set(courses.map((course) => course.university_country).filter(Boolean))).sort();
+    const levels = Array.from(new Set(courses.map((course) => course.level).filter(Boolean))).sort();
+    const disciplines = Array.from(new Set(courses.map((course) => course.discipline).filter(Boolean))).sort();
+
+    const tuitionValues = courses
+      .map((course) => course.tuition_amount)
+      .filter((value) => Number.isFinite(value));
+    const durationValues = courses
+      .map((course) => course.duration_months)
+      .filter((value) => Number.isFinite(value));
+
+    const minTuition = tuitionValues.length ? Math.min(...tuitionValues) : DEFAULT_TUITION_RANGE.min;
+    const maxTuition = tuitionValues.length ? Math.max(...tuitionValues) : DEFAULT_TUITION_RANGE.max;
+    const normalizedTuitionMin = Math.max(DEFAULT_TUITION_RANGE.min, Math.floor(minTuition / 1000) * 1000);
+    const normalizedTuitionMax = Math.max(
+      normalizedTuitionMin + 1000,
+      Math.ceil(maxTuition / 1000) * 1000
+    );
+
+    const minDuration = durationValues.length ? Math.min(...durationValues) : DEFAULT_DURATION_RANGE.min;
+    const maxDuration = durationValues.length ? Math.max(...durationValues) : DEFAULT_DURATION_RANGE.max;
+    const normalizedDurationMin = Math.max(DEFAULT_DURATION_RANGE.min, Math.floor(minDuration));
+    const normalizedDurationMax = Math.max(
+      normalizedDurationMin + 1,
+      Math.ceil(maxDuration)
+    );
+
+    const nextFilterOptions: FilterOptions = {
+      countries,
+      levels,
+      disciplines,
+      tuition_range: {
+        min: normalizedTuitionMin,
+        max: normalizedTuitionMax,
+        currency: DEFAULT_TUITION_RANGE.currency,
+      },
+      duration_range: {
+        min: normalizedDurationMin,
+        max: normalizedDurationMax,
+      },
+    };
+
+    setFilterOptions(nextFilterOptions);
+
+    if (resetActiveFilters) {
+      setActiveFilters({
+        countries: [],
+        levels: [],
+        intakeMonths: [],
+        tuitionRange: [nextFilterOptions.tuition_range.min, nextFilterOptions.tuition_range.max],
+        durationRange: [nextFilterOptions.duration_range.min, nextFilterOptions.duration_range.max],
+      });
+    } else {
+      setActiveFilters((prev) => {
+        const nextTuitionMin = Math.max(nextFilterOptions.tuition_range.min, prev.tuitionRange[0]);
+        const nextTuitionMax = Math.min(nextFilterOptions.tuition_range.max, prev.tuitionRange[1]);
+        const tuitionRange: [number, number] =
+          nextTuitionMin > nextTuitionMax
+            ? [nextFilterOptions.tuition_range.min, nextFilterOptions.tuition_range.max]
+            : [nextTuitionMin, nextTuitionMax];
+
+        const nextDurationMin = Math.max(nextFilterOptions.duration_range.min, prev.durationRange[0]);
+        const nextDurationMax = Math.min(nextFilterOptions.duration_range.max, prev.durationRange[1]);
+        const durationRange: [number, number] =
+          nextDurationMin > nextDurationMax
+            ? [nextFilterOptions.duration_range.min, nextFilterOptions.duration_range.max]
+            : [nextDurationMin, nextDurationMax];
+
+        return {
+          ...prev,
+          tuitionRange,
+          durationRange,
+        };
+      });
+    }
+  }, []);
+
+  const fetchCourses = useCallback(async () => {
+    setLoading(true);
+    setUsingFallbackData(false);
+
+    try {
+      const tenantId = await resolveTenantId();
+
+      if (!tenantId) {
+        throw new Error('Unable to determine tenant');
+      }
+
+      const { data, error } = await supabase
         .from('programs')
         .select(`
           id,
@@ -125,31 +435,34 @@ export default function CourseDiscovery() {
             logo_url
           )
         `)
-        .eq('tenant_id', profile.tenant_id)
+        .eq('tenant_id', tenantId)
         .eq('active', true);
 
-      // Apply search
-      if (debouncedSearchQuery) {
-        query = query.or(`name.ilike.%${debouncedSearchQuery}%,discipline.ilike.%${debouncedSearchQuery}%`);
+      if (error) {
+        throw error;
       }
 
-      // Apply filters
-      if (activeFilters.countries.length > 0) {
-        // Can't easily filter by universities.country in this query structure
-      }
-      if (activeFilters.levels.length > 0) {
-        query = query.in('level', activeFilters.levels);
+      if (!data || data.length === 0) {
+        throw new Error('No courses returned from Supabase');
       }
 
-      const { data, error } = await query.range(
-        append ? (currentPage + 1) * ITEMS_PER_PAGE : 0,
-        append ? ((currentPage + 1) + 1) * ITEMS_PER_PAGE - 1 : ITEMS_PER_PAGE - 1
-      );
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
 
-      if (error) throw error;
+      const transformedCourses: Course[] = (data as any[]).map((item) => {
+        const rawIntakes: number[] = Array.isArray(item.intake_months)
+          ? item.intake_months.filter((month: number) => Number.isFinite(month))
+          : [];
+        const sortedIntakes = [...rawIntakes].sort((a, b) => a - b);
+        const nextIntakeMonth = sortedIntakes.find((month) => month >= currentMonth) ?? sortedIntakes[0];
+        const nextIntakeYear = nextIntakeMonth
+          ? nextIntakeMonth < currentMonth
+            ? currentYear + 1
+            : currentYear
+          : undefined;
 
-      if (data && Array.isArray(data) && data.length > 0) {
-        const transformedCourses: Course[] = data.map((item: any) => ({
+        return {
           id: item.id,
           name: item.name,
           level: item.level,
@@ -157,86 +470,164 @@ export default function CourseDiscovery() {
           duration_months: item.duration_months,
           tuition_currency: item.tuition_currency,
           tuition_amount: item.tuition_amount,
-          intake_months: item.intake_months,
+          intake_months: rawIntakes,
           university_name: item.universities?.name || '',
           university_country: item.universities?.country || '',
           university_city: item.universities?.city || '',
           university_logo_url: item.universities?.logo_url || null,
-          next_intake_month: item.intake_months?.[0] || 1,
-          next_intake_year: new Date().getFullYear(),
-        }));
+          next_intake_month: nextIntakeMonth,
+          next_intake_year: nextIntakeYear,
+        } satisfies Course;
+      });
 
-        if (append) {
-          setCourses(prev => [...prev, ...transformedCourses]);
-          setCurrentPage(prev => prev + 1);
-        } else {
-          setCourses(transformedCourses);
-          setCurrentPage(0);
-        }
+      setAllCourses(transformedCourses);
+      updateFilterOptionsFromCourses(transformedCourses, !hasInitializedFilters.current);
+      hasInitializedFilters.current = true;
+      setUsingFallbackData(false);
+    } catch (error) {
+      console.warn('Falling back to sample course catalogue:', error);
+      setAllCourses(FALLBACK_COURSES);
+      updateFilterOptionsFromCourses(FALLBACK_COURSES, !hasInitializedFilters.current);
+      hasInitializedFilters.current = true;
+      setUsingFallbackData(true);
 
-        setTotalCount(data.length);
-      } else {
-        if (!append) {
-          setCourses([]);
-          setTotalCount(0);
+      if (!fallbackToastShownRef.current) {
+        toast({
+          title: 'Showing sample courses',
+          description: 'We could not load live course data, so a curated sample catalogue is displayed instead.',
+        });
+        fallbackToastShownRef.current = true;
+      }
+    } finally {
+      setVisibleCount(ITEMS_PER_PAGE);
+      setLoading(false);
+    }
+  }, [resolveTenantId, toast, updateFilterOptionsFromCourses]);
+
+  useEffect(() => {
+    hasInitializedFilters.current = false;
+    fallbackToastShownRef.current = false;
+    fetchCourses();
+  }, [fetchCourses]);
+
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [debouncedSearchQuery, activeFilters, sortBy]);
+
+  const filteredCourses = useMemo(() => {
+    const query = debouncedSearchQuery.trim().toLowerCase();
+
+    return allCourses.filter((course) => {
+      if (query) {
+        const haystack = `${course.name} ${course.university_name} ${course.university_country} ${course.discipline}`.toLowerCase();
+        if (!haystack.includes(query)) {
+          return false;
         }
       }
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load courses',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+
+      if (activeFilters.countries.length > 0 && !activeFilters.countries.includes(course.university_country)) {
+        return false;
+      }
+
+      if (activeFilters.levels.length > 0 && !activeFilters.levels.includes(course.level)) {
+        return false;
+      }
+
+      if (
+        course.tuition_amount < activeFilters.tuitionRange[0] ||
+        course.tuition_amount > activeFilters.tuitionRange[1]
+      ) {
+        return false;
+      }
+
+      if (
+        course.duration_months < activeFilters.durationRange[0] ||
+        course.duration_months > activeFilters.durationRange[1]
+      ) {
+        return false;
+      }
+
+      if (activeFilters.intakeMonths.length > 0) {
+        const sourceMonths = course.intake_months?.length
+          ? course.intake_months
+          : course.next_intake_month
+          ? [course.next_intake_month]
+          : [];
+
+        if (!sourceMonths.some((month) => activeFilters.intakeMonths.includes(month))) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [allCourses, debouncedSearchQuery, activeFilters]);
+
+  const sortedCourses = useMemo(() => {
+    const coursesToSort = [...filteredCourses];
+
+    switch (sortBy) {
+      case 'name:asc':
+        coursesToSort.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name:desc':
+        coursesToSort.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case 'tuition:asc':
+        coursesToSort.sort((a, b) => a.tuition_amount - b.tuition_amount);
+        break;
+      case 'tuition:desc':
+        coursesToSort.sort((a, b) => b.tuition_amount - a.tuition_amount);
+        break;
+      case 'intake:asc':
+        coursesToSort.sort((a, b) => {
+          const aMonth = a.next_intake_month ?? a.intake_months?.[0] ?? 13;
+          const bMonth = b.next_intake_month ?? b.intake_months?.[0] ?? 13;
+          return aMonth - bMonth;
+        });
+        break;
+      case 'duration:asc':
+        coursesToSort.sort((a, b) => a.duration_months - b.duration_months);
+        break;
+      case 'duration:desc':
+        coursesToSort.sort((a, b) => b.duration_months - a.duration_months);
+        break;
+      default:
+        break;
+    }
+
+    return coursesToSort;
+  }, [filteredCourses, sortBy]);
+
+  const displayedCourses = useMemo(
+    () => sortedCourses.slice(0, Math.min(visibleCount, sortedCourses.length)),
+    [sortedCourses, visibleCount]
+  );
+
+  const totalCount = sortedCourses.length;
+  const hasMoreResults = visibleCount < totalCount;
+
+  const handleLoadMore = useCallback(() => {
+    if (!hasMoreResults) {
+      return;
+    }
+
+    setLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount((prev) => Math.min(prev + ITEMS_PER_PAGE, totalCount));
       setLoadingMore(false);
-    }
-  }, [
-    user?.id,
-    debouncedSearchQuery,
-    activeFilters,
-    filterOptions,
-    sortBy,
-    currentPage,
-    toast,
-  ]);
+    }, 250);
+  }, [hasMoreResults, totalCount]);
 
-  // Initial load
-  useEffect(() => {
-    if (user) {
-      fetchFilterOptions();
-    }
-  }, [user, fetchFilterOptions]);
-
-  // Fetch courses when dependencies change
-  useEffect(() => {
-    if (filterOptions && user) {
-      fetchCourses(false);
-    }
-  }, [debouncedSearchQuery, activeFilters, sortBy, filterOptions]);
-
-  const handleLoadMore = () => {
-    fetchCourses(true);
-  };
-
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setActiveFilters({
       countries: [],
       levels: [],
-      tuitionRange: [
-        filterOptions?.tuition_range?.min || 0,
-        filterOptions?.tuition_range?.max || 100000,
-      ],
-      durationRange: [
-        filterOptions?.duration_range?.min || 0,
-        filterOptions?.duration_range?.max || 60,
-      ],
       intakeMonths: [],
+      tuitionRange: [filterOptions.tuition_range.min, filterOptions.tuition_range.max],
+      durationRange: [filterOptions.duration_range.min, filterOptions.duration_range.max],
     });
-  };
-
-  const hasMoreResults = courses.length < totalCount;
+  }, [filterOptions]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -313,12 +704,20 @@ export default function CourseDiscovery() {
             </div>
 
             {/* Results count */}
-            {!loading && (
-              <div className="text-sm text-muted-foreground">
-                Found <span className="font-semibold text-foreground">{totalCount}</span> course
-                {totalCount !== 1 ? 's' : ''}
-              </div>
-            )}
+              {!loading && (
+                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  <span>
+                    Found <span className="font-semibold text-foreground">{totalCount}</span> course
+                    {totalCount !== 1 ? 's' : ''}
+                  </span>
+                  {usingFallbackData && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      Showing sample catalogue
+                    </span>
+                  )}
+                </div>
+              )}
           </div>
         </div>
       </div>
@@ -337,12 +736,12 @@ export default function CourseDiscovery() {
           </aside>
 
           {/* Courses Grid */}
-          <div className="flex-1 min-w-0">
-            {loading ? (
+            <div className="flex-1 min-w-0">
+              {loading ? (
               <div className="flex items-center justify-center py-12">
                 <LoadingState message="Loading courses..." />
               </div>
-            ) : courses.length === 0 ? (
+              ) : displayedCourses.length === 0 ? (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold mb-2">No courses found</h3>
@@ -356,7 +755,7 @@ export default function CourseDiscovery() {
             ) : (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {courses.map((course) => (
+                    {displayedCourses.map((course) => (
                     <CourseCard key={course.id} course={course} />
                   ))}
                 </div>
@@ -365,7 +764,7 @@ export default function CourseDiscovery() {
                 {hasMoreResults && (
                   <div className="mt-8 flex justify-center">
                     <Button
-                      onClick={handleLoadMore}
+                        onClick={handleLoadMore}
                       disabled={loadingMore}
                       size="lg"
                       variant="outline"
@@ -376,7 +775,7 @@ export default function CourseDiscovery() {
                           Loading...
                         </>
                       ) : (
-                        `Load More (${totalCount - courses.length} remaining)`
+                          `Load More (${totalCount - displayedCourses.length} remaining)`
                       )}
                     </Button>
                   </div>
