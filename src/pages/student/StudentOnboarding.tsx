@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,8 +21,7 @@ interface ChecklistItem {
 }
 
 export default function StudentOnboarding() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
@@ -30,34 +29,88 @@ export default function StudentOnboarding() {
   const [completeness, setCompleteness] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Get student record
+      setLoading(true);
+
+      // Get student record (if it exists)
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .select('*')
-        .eq('profile_id', user?.id)
-        .single();
+        .eq('profile_id', user.id)
+        .maybeSingle();
 
       if (studentError) throw studentError;
-      setStudent(studentData);
 
-      // Get education records count
-      const { count: educationCount } = await supabase
-        .from('education_records')
-        .select('*', { count: 'exact', head: true })
-        .eq('student_id', studentData.id);
+      let currentStudent = studentData;
 
-      // Get test scores count
-      const { count: testScoresCount } = await supabase
-        .from('test_scores')
-        .select('*', { count: 'exact', head: true })
-        .eq('student_id', studentData.id);
+      if (!currentStudent) {
+        const resolveTenantId = async () => {
+          if (profile?.tenant_id) return profile.tenant_id;
 
-      // Get documents count
-      const { count: documentsCount } = await supabase
-        .from('student_documents')
-        .select('*', { count: 'exact', head: true })
-        .eq('student_id', studentData.id);
+          const { data: profileRecord, error: profileError } = await supabase
+            .from('profiles')
+            .select('tenant_id')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (profileError) throw profileError;
+          return profileRecord?.tenant_id ?? null;
+        };
+
+        const tenantId = await resolveTenantId();
+
+        if (!tenantId) {
+          throw new Error('Unable to determine tenant for current student profile');
+        }
+
+        const { data: createdStudent, error: createStudentError } = await supabase
+          .from('students')
+          .insert({ profile_id: user.id, tenant_id })
+          .select()
+          .single();
+
+        if (createStudentError) throw createStudentError;
+
+        currentStudent = createdStudent;
+      }
+
+      let educationCount = 0;
+      let testScoresCount = 0;
+      let documentsCount = 0;
+
+      if (currentStudent?.id) {
+        const [
+          { count: educationCountResult, error: educationError },
+          { count: testScoresCountResult, error: testScoresError },
+          { count: documentsCountResult, error: documentsError },
+        ] = await Promise.all([
+          supabase
+            .from('education_records')
+            .select('*', { count: 'exact', head: true })
+            .eq('student_id', currentStudent.id),
+          supabase
+            .from('test_scores')
+            .select('*', { count: 'exact', head: true })
+            .eq('student_id', currentStudent.id),
+          supabase
+            .from('student_documents')
+            .select('*', { count: 'exact', head: true })
+            .eq('student_id', currentStudent.id),
+        ]);
+
+        if (educationError) throw educationError;
+        if (testScoresError) throw testScoresError;
+        if (documentsError) throw documentsError;
+
+        educationCount = educationCountResult ?? 0;
+        testScoresCount = testScoresCountResult ?? 0;
+        documentsCount = documentsCountResult ?? 0;
+      }
 
       // Build checklist
       const items: ChecklistItem[] = [
@@ -65,7 +118,11 @@ export default function StudentOnboarding() {
           id: 'personal',
           title: 'Complete Personal Information',
           description: 'Add your legal name, contact details, and passport information',
-          completed: !!(studentData.legal_name && studentData.contact_email && studentData.passport_number),
+          completed: !!(
+            currentStudent?.legal_name &&
+            currentStudent?.contact_email &&
+            currentStudent?.passport_number
+          ),
           icon: FileText,
           link: '/student/profile',
         },
@@ -73,7 +130,7 @@ export default function StudentOnboarding() {
           id: 'education',
           title: 'Add Education History',
           description: 'Add at least one education record (high school or university)',
-          completed: (educationCount || 0) > 0,
+          completed: educationCount > 0,
           icon: GraduationCap,
           link: '/student/profile#education',
         },
@@ -81,7 +138,7 @@ export default function StudentOnboarding() {
           id: 'tests',
           title: 'Add English Test Scores',
           description: 'Upload your IELTS, TOEFL, or other English test results',
-          completed: (testScoresCount || 0) > 0,
+          completed: testScoresCount > 0,
           icon: Award,
           link: '/student/profile#tests',
         },
@@ -89,7 +146,12 @@ export default function StudentOnboarding() {
           id: 'finances',
           title: 'Complete Financial Information',
           description: 'Provide details about your finances and sponsorship',
-          completed: !!(studentData.finances_json && Object.keys(studentData.finances_json).length > 0),
+          completed: !!(
+            currentStudent?.finances_json &&
+            typeof currentStudent.finances_json === 'object' &&
+            currentStudent.finances_json !== null &&
+            Object.keys(currentStudent.finances_json as Record<string, unknown>).length > 0
+          ),
           icon: DollarSign,
           link: '/student/profile#finances',
         },
@@ -97,7 +159,7 @@ export default function StudentOnboarding() {
           id: 'documents',
           title: 'Upload Required Documents',
           description: 'Upload passport, transcripts, and other key documents',
-          completed: (documentsCount || 0) >= 2,
+          completed: documentsCount >= 2,
           icon: FileCheck,
           link: '/student/documents',
         },
@@ -111,12 +173,16 @@ export default function StudentOnboarding() {
       setCompleteness(percentage);
 
       // Update profile completeness in database
-      if (studentData.profile_completeness !== percentage) {
+      if (currentStudent && currentStudent.profile_completeness !== percentage) {
         await supabase
           .from('students')
           .update({ profile_completeness: percentage })
-          .eq('id', studentData.id);
+          .eq('id', currentStudent.id);
+
+        currentStudent = { ...currentStudent, profile_completeness: percentage };
       }
+
+      setStudent(currentStudent ?? null);
     } catch (error) {
       console.error('Error fetching student data:', error);
       toast({
@@ -127,7 +193,7 @@ export default function StudentOnboarding() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, profile?.tenant_id, toast]);
 
   useEffect(() => {
     if (user) {
