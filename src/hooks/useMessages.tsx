@@ -514,40 +514,39 @@ export function useMessages() {
         .eq('id', user.id)
         .single();
 
-      const messageWithProfile = {
-        ...data,
-        sender: profileData || {
-          id: user.id,
-          full_name: 'Unknown User',
-          avatar_url: null,
-        },
-      };
+        const messageWithProfile = {
+          ...data,
+          sender: profileData || {
+            id: user.id,
+            full_name: 'Unknown User',
+            avatar_url: null,
+          },
+        };
 
-      const formatted = transformMessage(messageWithProfile as RawMessage);
+        const formatted = transformMessage(messageWithProfile as RawMessage);
 
-      if (currentConversation === conversationId) {
-        setMessages(prev => [...prev, formatted]);
-        setTypingUsers([]);
-      }
+        if (currentConversation === conversationId) {
+          setMessages(prev => [...prev, formatted]);
+        }
 
-      setConversations(prev =>
-        prev
-          .map(conv =>
-            conv.id === conversationId
-              ? {
-                  ...conv,
-                  lastMessage: formatted,
-                  unreadCount: 0,
-                  updated_at: formatted.created_at,
-                }
-              : conv
-          )
-          .sort((a, b) => {
-            const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
-            const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
-            return bTime - aTime;
-          })
-      );
+        setConversations(prev =>
+          prev
+            .map(conv =>
+              conv.id === conversationId
+                ? {
+                    ...conv,
+                    lastMessage: formatted,
+                    unreadCount: 0,
+                    updated_at: formatted.created_at,
+                  }
+                : conv
+            )
+            .sort((a, b) => {
+              const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+              const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+              return bTime - aTime;
+            })
+        );
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -916,6 +915,32 @@ export function useMessages() {
       }
     };
   }, [currentConversation, fetchTypingIndicators]);
+
+  useEffect(() => {
+    if (typingUsers.length === 0) return;
+
+    const expirations = typingUsers
+      .map(indicator => (indicator.expires_at ? new Date(indicator.expires_at).getTime() : null))
+      .filter((timestamp): timestamp is number => timestamp !== null && !Number.isNaN(timestamp));
+
+    if (expirations.length === 0) return;
+
+    const nextExpiry = Math.min(...expirations);
+    const timeoutDelay = Math.max(nextExpiry - Date.now(), 0) + 50;
+
+    const timeoutId = setTimeout(() => {
+      setTypingUsers(prev =>
+        prev.filter(indicator => {
+          if (!indicator.expires_at) return true;
+          return new Date(indicator.expires_at).getTime() > Date.now();
+        })
+      );
+    }, timeoutDelay);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [typingUsers]);
 
   useEffect(() => {
     return () => {
