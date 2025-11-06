@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
 import zoeAvatar from "@/assets/professional-consultant.png";
 
 interface Attachment {
@@ -51,6 +52,8 @@ interface Message {
 }
 
 const STORAGE_KEY = "zoe-chat-session-id";
+const { url: SUPABASE_URL } = getSupabaseBrowserConfig();
+const SUPABASE_FUNCTIONS_BASE = `${SUPABASE_URL}/functions/v1`;
 
 const SUGGESTED_PROMPTS: { label: string; prompt: string }[] = [
   {
@@ -388,30 +391,30 @@ export default function ZoeChatbot() {
     }
   }, [isRecording]);
 
-  const transcribeBlob = useCallback(
-    async (blob: Blob) => {
-      if (!session?.access_token) return;
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/audio-transcribe`;
-      const formData = new FormData();
-      formData.append("audio", blob, "voice.webm");
+    const transcribeBlob = useCallback(
+      async (blob: Blob) => {
+        if (!session?.access_token) return;
+        const url = `${SUPABASE_FUNCTIONS_BASE}/audio-transcribe`;
+        const formData = new FormData();
+        formData.append("audio", blob, "voice.webm");
 
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${session.access_token}` },
-          body: formData,
-        });
-        const data = await res.json();
-        if (data?.text) {
-          setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
+        try {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            body: formData,
+          });
+          const data = await res.json();
+          if (data?.text) {
+            setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
+          }
+        } catch (error) {
+          console.error("Transcription failed", error);
+          toast({ title: "Transcription failed", variant: "destructive" });
         }
-      } catch (error) {
-        console.error("Transcription failed", error);
-        toast({ title: "Transcription failed", variant: "destructive" });
-      }
-    },
-    [session?.access_token, toast]
-  );
+      },
+      [session?.access_token, toast]
+    );
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -564,7 +567,7 @@ export default function ZoeChatbot() {
     notificationPlayedRef.current = false;
 
     try {
-      const chatUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chatbot`;
+      const chatUrl = `${SUPABASE_FUNCTIONS_BASE}/ai-chatbot`;
       const audience = profile?.role ?? undefined;
       const locale = typeof navigator !== "undefined" ? navigator.language : "en";
 
