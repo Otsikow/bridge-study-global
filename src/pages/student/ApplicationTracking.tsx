@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
+import { logError, formatErrorForToast } from '@/lib/errorUtils';
 import {
   FileText,
   MessageCircle,
@@ -33,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useStudentRecord } from '@/hooks/useStudentRecord';
 
 interface Application {
   id: string;
@@ -71,8 +71,12 @@ const REQUIRED_DOCUMENTS = [
 
 export default function ApplicationTracking() {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
   const { toast } = useToast();
+  const {
+    data: studentRecord,
+    isLoading: studentRecordLoading,
+    error: studentRecordError,
+  } = useStudentRecord();
 
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,20 +86,17 @@ export default function ApplicationTracking() {
   const [missingDocs, setMissingDocs] = useState<Record<string, MissingDocument[]>>({});
 
   const fetchApplications = useCallback(async () => {
+    const studentId = studentRecord?.id;
+
+    if (!studentId) {
+      setApplications([]);
+      setMissingDocs({});
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', user?.id)
-        .maybeSingle();
-
-      if (studentError) throw studentError;
-      if (!studentData) {
-        setApplications([]);
-        return;
-      }
 
       const { data: appsData, error: appsError } = await supabase
         .from('applications')
@@ -121,7 +122,7 @@ export default function ApplicationTracking() {
             )
           )
         `)
-        .eq('student_id', studentData.id)
+        .eq('student_id', studentId)
         .order('updated_at', { ascending: false });
 
       if (appsError) throw appsError;
@@ -137,7 +138,7 @@ export default function ApplicationTracking() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [studentRecord?.id, toast]);
 
   const fetchMissingDocuments = async (apps: Application[]) => {
     const missingDocsMap: Record<string, MissingDocument[]> = {};
@@ -168,8 +169,17 @@ export default function ApplicationTracking() {
   };
 
   useEffect(() => {
-    if (user) fetchApplications();
-  }, [user, fetchApplications]);
+    if (studentRecordLoading) return;
+
+    if (studentRecordError) {
+      logError(studentRecordError, 'ApplicationTracking.studentRecord');
+      toast(formatErrorForToast(studentRecordError, 'Failed to load student information'));
+      setLoading(false);
+      return;
+    }
+
+    fetchApplications();
+  }, [studentRecordLoading, studentRecordError, fetchApplications, toast]);
 
   const getIntakeLabel = (month: number, year: number) => {
     const monthNames = [
