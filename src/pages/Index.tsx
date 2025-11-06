@@ -38,6 +38,7 @@ import studentAirportTravel from "@/assets/student-airport-travel.png";
 import universityApplication from "@/assets/university-application.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
+import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
@@ -310,6 +311,13 @@ const Index = () => {
                 <Calculator className="h-5 w-5" /> Explore the Visa Calculator
               </Link>
             </Button>
+          </div>
+          <div className="relative">
+            <img
+              src={visaEligibilityImage}
+              alt="Student using laptop to check visa eligibility checklist"
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
           </div>
         </div>
       </section>
