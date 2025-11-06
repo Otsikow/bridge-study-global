@@ -1,6 +1,7 @@
-import { Loader2, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 
 interface LoadingStateProps {
   message?: string;
@@ -10,27 +11,29 @@ interface LoadingStateProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const LoadingState = ({ 
-  message = 'Loading...', 
-  showRetry = false, 
+export const LoadingState = ({
+  message,
+  showRetry = false,
   onRetry,
-  className = '',
-  size = 'md'
+  className = "",
+  size = "md",
 }: LoadingStateProps) => {
+  const { t } = useTranslation();
+  const displayMessage = message ?? t("components.loadingState.defaultMessage");
   const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12'
+    sm: "h-4 w-4",
+    md: "h-8 w-8",
+    lg: "h-12 w-12",
   };
 
   return (
     <div className={`flex flex-col items-center justify-center space-y-4 ${className}`}>
       <Loader2 className={`animate-spin text-primary ${sizeClasses[size]}`} />
-      <p className="text-muted-foreground text-sm">{message}</p>
+      <p className="text-muted-foreground text-sm">{displayMessage}</p>
       {showRetry && onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          {t("components.loadingState.retry")}
         </Button>
       )}
     </div>
@@ -42,10 +45,7 @@ interface LoadingCardProps {
   className?: string;
 }
 
-export const LoadingCard = ({ 
-  message = 'Loading...', 
-  className = '' 
-}: LoadingCardProps) => {
+export const LoadingCard = ({ message, className = "" }: LoadingCardProps) => {
   return (
     <Card className={className}>
       <CardContent className="p-6">

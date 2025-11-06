@@ -9,12 +9,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { WithTranslation, withTranslation } from "react-i18next";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
+
+type PropsWithTranslation = Props & WithTranslation;
 
 interface State {
   hasError: boolean;
@@ -23,10 +26,10 @@ interface State {
   retryCount: number;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryComponent extends Component<PropsWithTranslation, State> {
   private maxRetries = 3;
 
-  constructor(props: Props) {
+    constructor(props: PropsWithTranslation) {
     super(props);
     this.state = {
       hasError: false,
@@ -83,60 +86,71 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private getErrorMessage = (error: Error): string => {
-    if (error.message.includes("NetworkError") || error.message.includes("fetch"))
-      return "Network connection failed. Please check your internet connection and try again.";
+    const { t } = this.props;
 
-    if (
-      error.message.includes("ChunkLoadError") ||
-      error.message.includes("Loading chunk")
-    )
-      return "Failed to load application resources. This usually happens when the app has been updated.";
+    if (error.message.includes("NetworkError") || error.message.includes("fetch"))
+      return t("app.errorBoundary.networkMessage");
+
+    if (error.message.includes("ChunkLoadError") || error.message.includes("Loading chunk"))
+      return t("app.errorBoundary.chunkMessage");
 
     if (error.message.includes("Permission denied") || error.message.includes("403"))
-      return "You do not have permission to access this resource.";
+      return t("app.errorBoundary.permissionMessage");
 
     if (error.message.includes("Not found") || error.message.includes("404"))
-      return "The requested resource was not found.";
+      return t("app.errorBoundary.notFoundMessage");
 
     if (error.message.includes("Unauthorized") || error.message.includes("401"))
-      return "Your session has expired. Please log in again.";
+      return t("app.errorBoundary.unauthorizedMessage");
 
     if (error.message.includes("Supabase") || error.message.includes("database"))
-      return "Database connection failed. Please try again in a moment.";
+      return t("app.errorBoundary.databaseMessage");
 
     if (error.message.length < 100 && !error.message.includes("Error:"))
       return error.message;
 
-    return "An unexpected error occurred. Please try again.";
+    return t("app.errorBoundary.genericMessage");
   };
 
   private getErrorTitle = (error: Error): string => {
+    const { t } = this.props;
+
     if (error.message.includes("NetworkError") || error.message.includes("fetch"))
-      return "Connection Error";
-    if (
-      error.message.includes("ChunkLoadError") ||
-      error.message.includes("Loading chunk")
-    )
-      return "Loading Error";
+      return t("app.errorBoundary.networkTitle");
+
+    if (error.message.includes("ChunkLoadError") || error.message.includes("Loading chunk"))
+      return t("app.errorBoundary.chunkTitle");
+
     if (error.message.includes("Permission denied") || error.message.includes("403"))
-      return "Access Denied";
+      return t("app.errorBoundary.permissionTitle");
+
     if (error.message.includes("Not found") || error.message.includes("404"))
-      return "Not Found";
+      return t("app.errorBoundary.notFoundTitle");
+
     if (error.message.includes("Unauthorized") || error.message.includes("401"))
-      return "Session Expired";
-    return "Something went wrong";
+      return t("app.errorBoundary.unauthorizedTitle");
+
+    if (error.message.includes("Supabase") || error.message.includes("database"))
+      return t("app.errorBoundary.databaseTitle");
+
+    return t("app.errorBoundary.genericTitle");
   };
 
   render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) return this.props.fallback;
+    const { t, fallback } = this.props;
 
-      const { error } = this.state;
+    if (this.state.hasError) {
+      if (fallback) return fallback;
+
+      const { error, retryCount } = this.state;
       const errorMessage = error
         ? this.getErrorMessage(error)
-        : "An unexpected error occurred";
-      const errorTitle = error ? this.getErrorTitle(error) : "Error";
-      const canRetry = this.state.retryCount < this.maxRetries;
+        : t("app.errorBoundary.fallbackMessage");
+      const errorTitle = error
+        ? this.getErrorTitle(error)
+        : t("app.errorBoundary.fallbackTitle");
+      const canRetry = retryCount < this.maxRetries;
+      const remainingRetries = this.maxRetries - retryCount;
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -146,9 +160,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTriangle className="h-6 w-6 text-destructive" />
               </div>
               <CardTitle className="text-xl">{errorTitle}</CardTitle>
-              <CardDescription className="text-base">
-                {errorMessage}
-              </CardDescription>
+              <CardDescription className="text-base">{errorMessage}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Alert>
@@ -157,7 +169,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   {process.env.NODE_ENV === "development" && error && (
                     <details className="mt-2">
                       <summary className="cursor-pointer text-xs text-muted-foreground">
-                        Technical Details
+                        {t("app.errorBoundary.technicalDetails")}
                       </summary>
                       <pre className="mt-2 text-xs text-muted-foreground overflow-auto max-h-32">
                         {error.stack}
@@ -167,27 +179,22 @@ export class ErrorBoundary extends Component<Props, State> {
                 </AlertDescription>
               </Alert>
 
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 {canRetry && (
                   <Button onClick={this.handleRetry} className="flex-1">
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Try Again ({this.maxRetries - this.state.retryCount} left)
+                    {t("app.errorBoundary.tryAgainCount", { count: remainingRetries })}
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  onClick={this.handleReset}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={this.handleReset} className="flex-1">
                   <Home className="mr-2 h-4 w-4" />
-                  Go Home
+                  {t("app.errorBoundary.goHome")}
                 </Button>
               </div>
 
               {!canRetry && (
                 <div className="text-center text-sm text-muted-foreground">
-                  Maximum retry attempts reached. Please refresh the page or
-                  contact support.
+                  {t("app.errorBoundary.maxRetriesReached")}
                 </div>
               )}
             </CardContent>
@@ -208,4 +215,7 @@ export const useErrorHandler = () => {
   };
 };
 
-export default ErrorBoundary;
+const TranslatedErrorBoundary = withTranslation()(ErrorBoundaryComponent);
+
+export { TranslatedErrorBoundary as ErrorBoundary };
+export default TranslatedErrorBoundary;
