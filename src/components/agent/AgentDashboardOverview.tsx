@@ -36,6 +36,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/StatusBadge';
 import AgentEnablementCenter from '@/components/agent/AgentEnablementCenter';
+import { generateReferralLink } from '@/lib/referrals';
 
 interface DashboardStats {
   totalStudents: number;
@@ -61,6 +62,28 @@ interface MonthlyEarning {
   students: number;
 }
 
+interface ReferralRecord {
+  id: string;
+  referredUserId: string;
+  username: string;
+  fullName?: string | null;
+  level: number;
+  amount: number;
+  created_at: string;
+}
+
+interface SupabaseReferralRow {
+  id: string;
+  level: number;
+  amount: number | string | null;
+  created_at: string;
+  referred_user_id: string;
+  referred_user?: {
+    username?: string | null;
+    full_name?: string | null;
+  } | null;
+}
+
 export default function AgentDashboardOverview() {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -72,9 +95,32 @@ export default function AgentDashboardOverview() {
   const [monthlyEarnings, setMonthlyEarnings] = useState<MonthlyEarning[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [referralCode, setReferralCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
+  const [referrals, setReferrals] = useState<ReferralRecord[]>([]);
+  const [referralSummary, setReferralSummary] = useState({ direct: 0, levelTwo: 0, totalEarnings: 0 });
+
+  const referralUsername = profile?.username ?? '';
+  const referralLink = useMemo(() => generateReferralLink(referralUsername), [referralUsername]);
+
+  const formatReferralCurrency = useCallback(
+    (value: number) =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(value),
+    []
+  );
+
+  const formatReferralDate = useCallback(
+    (value: string) =>
+      new Date(value).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+    []
+  );
 
   const pipelineStages = useMemo(() => {
     const stageDefinitions = [
@@ -154,45 +200,60 @@ export default function AgentDashboardOverview() {
   }, [students, pipelineStages]);
 
   const fetchDashboardData = useCallback(async () => {
+    if (!profile?.id) return;
+
     try {
       // Get agent ID
       const { data: agentData, error: agentError } = await supabase
         .from('agents')
         .select('id')
-        .eq('profile_id', profile?.id)
+        .eq('profile_id', profile.id)
         .single();
 
       if (agentError) throw agentError;
       setAgentId(agentData.id);
 
-      // Fetch referral code
-      const { data: referralData } = await supabase
-        .from('referrals')
-        .select('code')
-        .eq('agent_id', agentData.id)
-        .eq('active', true)
-        .maybeSingle();
+      // Fetch referral relationships
+      const { data: referralData, error: referralError } = await supabase
+        .from('referral_relations')
+        .select(`
+          id,
+          level,
+          amount,
+          created_at,
+          referred_user_id,
+          referred_user:profiles!referral_relations_referred_user_id_fkey(
+            username,
+            full_name
+          )
+        `)
+        .eq('referrer_id', profile.id)
+        .order('created_at', { ascending: false });
 
-      if (referralData) {
-        setReferralCode(referralData.code);
-      } else {
-        // Generate a new referral code if none exists
-        const newCode = `AG-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-        const { data: newReferral } = await supabase
-          .from('referrals')
-          .insert({
-            tenant_id: profile!.tenant_id,
-            agent_id: agentData.id,
-            code: newCode,
-            active: true,
-          })
-          .select('code')
-          .single();
-        
-        if (newReferral) {
-          setReferralCode(newReferral.code);
-        }
-      }
+      if (referralError) throw referralError;
+
+      const typedReferralData = (referralData ?? []) as SupabaseReferralRow[];
+      const formattedReferrals: ReferralRecord[] = typedReferralData.map((record) => ({
+        id: record.id,
+        referredUserId: record.referred_user_id,
+        username: record.referred_user?.username ?? '—',
+        fullName: record.referred_user?.full_name ?? null,
+        level: record.level,
+        amount: Number(record.amount ?? 0),
+        created_at: record.created_at,
+      }));
+
+      setReferrals(formattedReferrals);
+
+      const direct = formattedReferrals.filter((ref) => ref.level === 1).length;
+      const levelTwo = formattedReferrals.filter((ref) => ref.level === 2).length;
+      const totalEarnings = formattedReferrals.reduce((sum, ref) => sum + ref.amount, 0);
+
+      setReferralSummary({
+        direct,
+        levelTwo,
+        totalEarnings,
+      });
 
       // Fetch applications with students and commissions
       const { data: applicationsData, error: appsError } = await supabase
@@ -316,7 +377,7 @@ export default function AgentDashboardOverview() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.id, toast]);
+  }, [profile?.id, profile?.tenant_id, toast]);
 
   useEffect(() => {
     if (profile?.id) {
@@ -345,7 +406,16 @@ export default function AgentDashboardOverview() {
   }, [searchTerm, statusFilter, students]);
 
   const copyReferralLink = () => {
-    const link = `${window.location.origin}/signup?ref=${referralCode}`;
+    if (!referralLink) {
+      toast({
+        title: 'Referral link unavailable',
+        description: 'Set your username in Profile Settings to generate a referral link.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const link = referralLink;
     navigator.clipboard.writeText(link);
     setCopied(true);
     toast({
@@ -460,31 +530,109 @@ export default function AgentDashboardOverview() {
         </CardContent>
       </Card>
 
-      {/* Referral Link Generator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ExternalLink className="h-5 w-5" />
-            Your Referral Link
-          </CardTitle>
-          <CardDescription>Share this unique link to track your referrals</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Input
-              value={`${window.location.origin}/signup?ref=${referralCode}`}
-              readOnly
-              className="font-mono text-sm"
-            />
-            <Button onClick={copyReferralLink} variant="outline" className="flex-shrink-0">
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </Button>
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Tracking ID: <span className="font-mono font-semibold">{referralCode}</span>
-          </p>
-        </CardContent>
-      </Card>
+        {/* Referral Link Generator */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              Your Referral Link
+            </CardTitle>
+            <CardDescription>Share this unique link to track your referrals</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Input
+                value={referralLink}
+                readOnly
+                className="font-mono text-sm"
+                placeholder="Your referral link will appear once your username is set"
+              />
+              <Button
+                onClick={copyReferralLink}
+                variant="outline"
+                className="flex-shrink-0"
+                disabled={!referralLink}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
+              Tracking ID{' '}
+              <span className="font-mono font-semibold">
+                {referralUsername ? `@${referralUsername}` : 'Set in Profile Settings'}
+              </span>
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* My Referrals */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              My Referrals
+            </CardTitle>
+            <CardDescription>Monitor your referral network and earnings</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Direct referrals</p>
+                <p className="text-2xl font-bold">{referralSummary.direct}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Level 2 referrals</p>
+                <p className="text-2xl font-bold">{referralSummary.levelTwo}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total referral earnings</p>
+                <p className="text-2xl font-bold text-primary">
+                  {formatReferralCurrency(referralSummary.totalEarnings)}
+                </p>
+              </div>
+            </div>
+
+            {referrals.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-muted p-6 text-center text-muted-foreground">
+                You don’t have any referrals yet. Share your link to start building your network.
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Level</TableHead>
+                      <TableHead>Joined</TableHead>
+                      <TableHead className="text-right">Earnings</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {referrals.map((referral) => (
+                      <TableRow key={referral.id}>
+                        <TableCell>
+                          <div className="font-semibold">@{referral.username}</div>
+                          {referral.fullName && (
+                            <p className="text-xs text-muted-foreground">{referral.fullName}</p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={referral.level === 1 ? 'default' : 'secondary'}>
+                            Level {referral.level}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatReferralDate(referral.created_at)}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatReferralCurrency(referral.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
       {/* Monthly Earnings Graph */}
       <Card>

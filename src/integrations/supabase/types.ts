@@ -12,76 +12,198 @@ export type Database = {
   }
   public: {
     Tables: {
-      agents: {
-        Row: {
-          active: boolean | null
-          commission_rate_l1: number | null
-          commission_rate_l2: number | null
-          company_name: string | null
-          created_at: string | null
-          id: string
-          parent_agent_id: string | null
-          payout_account: Json | null
-          profile_id: string
-          tenant_id: string
-          updated_at: string | null
-          verification_document_url: string | null
-          verification_status: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          commission_rate_l1?: number | null
-          commission_rate_l2?: number | null
-          company_name?: string | null
-          created_at?: string | null
-          id?: string
-          parent_agent_id?: string | null
-          payout_account?: Json | null
-          profile_id: string
-          tenant_id: string
-          updated_at?: string | null
-          verification_document_url?: string | null
-          verification_status?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          commission_rate_l1?: number | null
-          commission_rate_l2?: number | null
-          company_name?: string | null
-          created_at?: string | null
-          id?: string
-          parent_agent_id?: string | null
-          payout_account?: Json | null
-          profile_id?: string
-          tenant_id?: string
-          updated_at?: string | null
-          verification_document_url?: string | null
-          verification_status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "agents_parent_agent_id_fkey"
-            columns: ["parent_agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agents_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "agents_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
+        agents: {
+          Row: {
+            active: boolean | null
+            commission_rate_l1: number | null
+            commission_rate_l2: number | null
+            company_name: string | null
+            created_at: string | null
+            id: string
+            parent_agent_id: string | null
+            payout_account: Json | null
+            profile_id: string
+            tenant_id: string
+            updated_at: string | null
+            verification_document_url: string | null
+            verification_status: string | null
+            username: string
           }
-        ]
-      }
+          Insert: {
+            active?: boolean | null
+            commission_rate_l1?: number | null
+            commission_rate_l2?: number | null
+            company_name?: string | null
+            created_at?: string | null
+            id?: string
+            parent_agent_id?: string | null
+            payout_account?: Json | null
+            profile_id: string
+            tenant_id: string
+            updated_at?: string | null
+            verification_document_url?: string | null
+            verification_status?: string | null
+            username: string
+          }
+          Update: {
+            active?: boolean | null
+            commission_rate_l1?: number | null
+            commission_rate_l2?: number | null
+            company_name?: string | null
+            created_at?: string | null
+            id?: string
+            parent_agent_id?: string | null
+            payout_account?: Json | null
+            profile_id?: string
+            tenant_id?: string
+            updated_at?: string | null
+            verification_document_url?: string | null
+            verification_status?: string | null
+            username?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "agents_parent_agent_id_fkey"
+              columns: ["parent_agent_id"]
+              isOneToOne: false
+              referencedRelation: "agents"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "agents_profile_id_fkey"
+              columns: ["profile_id"]
+              isOneToOne: true
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "agents_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            }
+          ]
+        }
+
+        profiles: {
+          Row: {
+            active: boolean | null
+            avatar_url: string | null
+            country: string | null
+            created_at: string | null
+            email: string
+            full_name: string
+            id: string
+            locale: string | null
+            onboarded: boolean | null
+            phone: string | null
+            referrer_id: string | null
+            referred_by: string | null
+            role: Database["public"]["Enums"]["app_role"]
+            tenant_id: string
+            timezone: string | null
+            updated_at: string | null
+            username: string
+          }
+          Insert: {
+            active?: boolean | null
+            avatar_url?: string | null
+            country?: string | null
+            created_at?: string | null
+            email: string
+            full_name: string
+            id: string
+            locale?: string | null
+            onboarded?: boolean | null
+            phone?: string | null
+            referrer_id?: string | null
+            referred_by?: string | null
+            role?: Database["public"]["Enums"]["app_role"]
+            tenant_id: string
+            timezone?: string | null
+            updated_at?: string | null
+            username: string
+          }
+          Update: {
+            active?: boolean | null
+            avatar_url?: string | null
+            country?: string | null
+            created_at?: string | null
+            email?: string
+            full_name?: string
+            id?: string
+            locale?: string | null
+            onboarded?: boolean | null
+            phone?: string | null
+            referrer_id?: string | null
+            referred_by?: string | null
+            role?: Database["public"]["Enums"]["app_role"]
+            tenant_id?: string
+            timezone?: string | null
+            updated_at?: string | null
+            username?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "profiles_referrer_id_fkey"
+              columns: ["referrer_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "profiles_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            }
+          ]
+        }
+
+        referral_relations: {
+          Row: {
+            amount: number
+            created_at: string
+            id: string
+            level: number
+            referred_user_id: string
+            referrer_id: string
+          }
+          Insert: {
+            amount?: number
+            created_at?: string
+            id?: string
+            level: number
+            referred_user_id: string
+            referrer_id: string
+          }
+          Update: {
+            amount?: number
+            created_at?: string
+            id?: string
+            level?: number
+            referred_user_id?: string
+            referrer_id?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "referral_relations_referred_user_id_fkey"
+              columns: ["referred_user_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "referral_relations_referrer_id_fkey"
+              columns: ["referrer_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            }
+          ]
+        }
 
       /* --- (All other tables remain unchanged — same as in your provided schema) --- */
 

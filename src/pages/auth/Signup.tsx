@@ -21,9 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, UserCircle, Mail, Lock, Phone, Globe } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, UserCircle, Mail, Lock, Phone, Globe, AtSign } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import { cn } from '@/lib/utils';
+import { formatReferralUsername } from '@/lib/referrals';
 
 type UserRole = 'student' | 'agent' | 'partner';
 
@@ -75,6 +76,13 @@ const Signup = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
+    const [username, setUsername] = useState('');
+    const [usernameError, setUsernameError] = useState<string | null>(null);
+    const [checkingUsername, setCheckingUsername] = useState(false);
+    const [refParam, setRefParam] = useState<string | null>(null);
+    const [referrerInfo, setReferrerInfo] = useState<{ id: string; username: string; full_name?: string } | null>(null);
+    const [referrerError, setReferrerError] = useState<string | null>(null);
+    const [referrerLoading, setReferrerLoading] = useState(false);
   const [role, setRole] = useState<UserRole>('student');
   const [loading, setLoading] = useState(false);
 
@@ -90,12 +98,30 @@ const Signup = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const roleParam = params.get('role');
-    if (!roleParam) {
-      return;
+      const refQuery = params.get('ref');
+      if (!roleParam) {
+        // still check for referral parameter
+        if (refQuery) {
+          const normalizedRef = formatReferralUsername(refQuery);
+          setRefParam((prev) => (prev === normalizedRef ? prev : normalizedRef));
+        } else {
+          setRefParam((prev) => (prev !== null ? null : prev));
+          setReferrerInfo(null);
+          setReferrerError(null);
+        }
+        return;
     }
 
     const normalizedRole = roleParam.toLowerCase() as UserRole;
     if (!ROLE_OPTIONS.includes(normalizedRole)) {
+        if (refQuery) {
+          const normalizedRef = formatReferralUsername(refQuery);
+          setRefParam((prev) => (prev === normalizedRef ? prev : normalizedRef));
+        } else {
+          setRefParam((prev) => (prev !== null ? null : prev));
+          setReferrerInfo(null);
+          setReferrerError(null);
+        }
       return;
     }
 
@@ -106,7 +132,96 @@ const Signup = () => {
       setStep(1);
       return normalizedRole;
     });
+
+      if (refQuery) {
+        const normalizedRef = formatReferralUsername(refQuery);
+        setRefParam((prev) => (prev === normalizedRef ? prev : normalizedRef));
+      } else {
+        setRefParam((prev) => (prev !== null ? null : prev));
+        setReferrerInfo(null);
+        setReferrerError(null);
+      }
   }, [location.search]);
+
+    useEffect(() => {
+      if (!refParam) {
+        setReferrerInfo(null);
+        setReferrerError(null);
+        setReferrerLoading(false);
+        return;
+      }
+
+      let isActive = true;
+      setReferrerLoading(true);
+      setReferrerError(null);
+
+      supabase
+        .from('profiles')
+        .select('id, username, full_name')
+        .eq('username', refParam)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (!isActive) return;
+          if (error || !data) {
+            setReferrerInfo(null);
+            setReferrerError('We could not find a matching referrer for this link.');
+          } else {
+            setReferrerInfo({ id: data.id, username: data.username, full_name: data.full_name });
+            setReferrerError(null);
+          }
+        })
+        .finally(() => {
+          if (isActive) {
+            setReferrerLoading(false);
+          }
+        });
+
+      return () => {
+        isActive = false;
+      };
+    }, [refParam]);
+
+    useEffect(() => {
+      if (!username) {
+        setUsernameError(null);
+        setCheckingUsername(false);
+        return;
+      }
+
+      if (username.length < 3) {
+        setUsernameError('Username must be at least 3 characters.');
+        setCheckingUsername(false);
+        return;
+      }
+
+      setCheckingUsername(true);
+      let isCancelled = false;
+      const handler = setTimeout(async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('username', username)
+          .maybeSingle();
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (error) {
+          setUsernameError('Unable to verify username availability. Please try again.');
+        } else if (data) {
+          setUsernameError('This username is already taken. Try another one.');
+        } else {
+          setUsernameError(null);
+        }
+        setCheckingUsername(false);
+      }, 500);
+
+      return () => {
+        isCancelled = true;
+        clearTimeout(handler);
+      };
+    }, [username]);
 
   const handleGoogleSignUp = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -170,6 +285,30 @@ const Signup = () => {
   };
 
   const validateStep3 = () => {
+      if (!username.trim()) {
+        toast({
+          variant: 'destructive',
+          title: 'Username required',
+          description: 'Please choose a username to continue.',
+        });
+        return false;
+      }
+      if (username.length < 3) {
+        toast({
+          variant: 'destructive',
+          title: 'Username too short',
+          description: 'Usernames must be at least 3 characters long.',
+        });
+        return false;
+      }
+      if (usernameError) {
+        toast({
+          variant: 'destructive',
+          title: 'Username unavailable',
+          description: usernameError,
+        });
+        return false;
+      }
     if (!email.trim() || !email.includes('@')) {
       toast({
         variant: 'destructive',
@@ -235,7 +374,17 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const { error } = await signUp(email, password, fullName, role, phone, country);
+        const { error } = await signUp({
+          email,
+          password,
+          fullName,
+          role,
+          phone,
+          country,
+          username,
+          referrerId: referrerInfo?.id,
+          referrerUsername: referrerInfo?.username,
+        });
 
       if (error) {
         toast({
@@ -440,6 +589,38 @@ const Signup = () => {
                 step === 3 ? 'block opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-full'
               )}
             >
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="flex items-center gap-2">
+                    <AtSign className="h-4 w-4" />
+                    Username
+                  </Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      const normalized = formatReferralUsername(e.target.value);
+                      setUsername(normalized);
+                    }}
+                    placeholder="choose-a-username"
+                    className="h-11"
+                    aria-invalid={usernameError ? true : undefined}
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      This becomes your referral ID. Use lowercase letters, numbers, or underscores.
+                    </p>
+                    {checkingUsername && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Checking...
+                      </span>
+                    )}
+                  </div>
+                  {usernameError && (
+                    <p className="text-xs text-destructive">{usernameError}</p>
+                  )}
+                </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
@@ -501,6 +682,26 @@ const Signup = () => {
                   className="h-11"
                 />
               </div>
+
+                {refParam && (
+                  <div className="rounded-lg border border-dashed border-muted p-3 text-sm">
+                    {referrerLoading ? (
+                      <span className="text-muted-foreground flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Validating referral link...
+                      </span>
+                    ) : referrerInfo ? (
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        Referral link applied from <span className="font-semibold">@{referrerInfo.username}</span>
+                        {referrerInfo.full_name ? ` (${referrerInfo.full_name})` : ''}.
+                      </span>
+                    ) : (
+                      <span className="text-destructive">
+                        {referrerError || 'This referral link is not valid. You can continue without it.'}
+                      </span>
+                    )}
+                  </div>
+                )}
             </div>
           </CardContent>
 

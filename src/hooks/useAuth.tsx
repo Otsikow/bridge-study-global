@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { logFailedAuthentication } from '@/lib/securityLogger';
+import { formatReferralUsername } from '@/lib/referrals';
 
 type SignupRole = 'student' | 'agent' | 'partner' | 'admin' | 'staff';
 
@@ -25,6 +26,21 @@ interface Profile {
   country?: string;
   avatar_url?: string;
   onboarded: boolean;
+  username: string;
+  referrer_id?: string | null;
+  referred_by?: string | null;
+}
+
+interface SignUpParams {
+  email: string;
+  password: string;
+  fullName: string;
+  role?: SignupRole;
+  phone?: string;
+  country?: string;
+  username: string;
+  referrerId?: string;
+  referrerUsername?: string;
 }
 
 interface AuthContextType {
@@ -33,14 +49,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
-  signUp: (
-    email: string,
-    password: string,
-    fullName: string,
-    role?: SignupRole,
-    phone?: string,
-    country?: string
-  ) => Promise<{ error: unknown }>;
+  signUp: (params: SignUpParams) => Promise<{ error: unknown }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -99,7 +108,51 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Try to find the default tenant
+      const rawUsername = typeof user.user_metadata?.username === 'string'
+        ? user.user_metadata.username
+        : undefined;
+      let username = rawUsername ? formatReferralUsername(rawUsername) : '';
+      if (!username) {
+        username = `user_${userId.slice(0, 12)}`;
+      }
+
+      const { data: existingUsername } = await supabase
+        .from('profiles')
+        .select('id')
+        .ilike('username', username)
+        .maybeSingle();
+
+      if (existingUsername) {
+        username = `${username}_${userId.slice(0, 6)}`;
+      }
+
+      let referrerProfileId: string | null = null;
+      let referrerUsername: string | null = null;
+
+      if (typeof user.user_metadata?.referrer_id === 'string') {
+        referrerProfileId = user.user_metadata.referrer_id;
+      }
+
+      if (referrerProfileId) {
+        const { data: refProfile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', referrerProfileId)
+          .maybeSingle();
+        referrerUsername = refProfile?.username ?? null;
+      } else if (typeof user.user_metadata?.referrer_username === 'string') {
+        const normalizedReferrer = user.user_metadata.referrer_username.trim().toLowerCase();
+        if (normalizedReferrer) {
+          const { data: referrerProfile } = await supabase
+            .from('profiles')
+            .select('id, username')
+            .eq('username', normalizedReferrer)
+            .maybeSingle();
+          referrerProfileId = referrerProfile?.id ?? null;
+          referrerUsername = referrerProfile?.username ?? normalizedReferrer;
+        }
+      }
+
       let { data: tenant } = await supabase
         .from('tenants')
         .select('id')
@@ -115,7 +168,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         tenant = fallbackTenant;
       }
 
-      // If still no tenant, create a default one
       if (!tenant) {
         console.error('No tenant found, creating default tenant...');
         const { data: newTenant, error: tenantError } = await supabase
@@ -137,7 +189,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         tenant = newTenant;
       }
 
-      // Create user profile
       const { error: profileError } = await supabase.from('profiles').insert({
         id: userId,
         tenant_id: tenant.id,
@@ -146,6 +197,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: user.user_metadata?.role || 'student',
         phone: user.user_metadata?.phone || '',
         country: user.user_metadata?.country || '',
+        username,
+        referrer_id: referrerProfileId,
+        referred_by: referrerUsername,
         onboarded: false,
       });
 
@@ -154,7 +208,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Role-based record creation
       const role = user.user_metadata?.role || 'student';
       if (role === 'student') {
         await supabase.from('students').insert({
@@ -165,6 +218,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase.from('agents').insert({
           tenant_id: tenant.id,
           profile_id: userId,
+          username,
         });
       }
 
@@ -270,28 +324,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    fullName: string,
-    role: SignupRole = 'student',
-    phone?: string,
-    country?: string
-  ) => {
+  const signUp = async ({
+    email,
+    password,
+    fullName,
+    role = 'student',
+    phone,
+    country,
+    username,
+    referrerId,
+    referrerUsername,
+  }: SignUpParams) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
+
+      const sanitizedUsername = formatReferralUsername(username);
+
+      const metadata: Record<string, string> = {
+        full_name: fullName,
+        role,
+        phone: phone || '',
+        country: country || '',
+        username: sanitizedUsername || `user_${crypto.randomUUID().slice(0, 12)}`,
+      };
+
+      if (referrerUsername) {
+        metadata.referrer_username = referrerUsername;
+      }
+
+      if (referrerId) {
+        metadata.referrer_id = referrerId;
+      }
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            full_name: fullName,
-            role,
-            phone: phone || '',
-            country: country || '',
-          },
+          data: metadata,
         },
       });
 

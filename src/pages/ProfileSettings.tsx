@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,11 +14,22 @@ import NotificationsTab from '@/components/settings/NotificationsTab';
 import PasswordSecurityTab from '@/components/settings/PasswordSecurityTab';
 import AccountTab from '@/components/settings/AccountTab';
 import { calculateProfileCompletion } from '@/lib/profileCompletion';
+import { generateReferralLink } from '@/lib/referrals';
 
 export default function ProfileSettings() {
   const { profile, user } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [completionPercentage, setCompletionPercentage] = useState(0);
+  const referralLink = profile ? generateReferralLink(profile.username) : '';
+  const referralSummary = referralStats ?? { direct: 0, levelTwo: 0, totalEarnings: 0 };
+  const formattedReferralEarnings = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(referralSummary.totalEarnings),
+    [referralSummary.totalEarnings]
+  );
 
   // Fetch additional profile data based on role
   const { data: roleData, isLoading: roleDataLoading } = useQuery({
@@ -69,21 +80,28 @@ export default function ProfileSettings() {
     enabled: roleData?.type === 'student' && !!roleData?.data?.id,
   });
 
-  // Fetch referral count for agents
-  const { data: referralsData } = useQuery({
-    queryKey: ['agentReferrals', roleData?.data?.id],
+  // Fetch referral stats for agents
+  const { data: referralStats } = useQuery({
+    queryKey: ['agentReferrals', profile?.id],
     queryFn: async () => {
-      if (!roleData?.data?.id || roleData.type !== 'agent') return null;
+      if (!profile?.id || profile.role !== 'agent') {
+        return { direct: 0, levelTwo: 0, totalEarnings: 0 };
+      }
 
       const { data, error } = await supabase
-        .from('students')
-        .select('id')
-        .eq('tenant_id', profile?.tenant_id);
+        .from('referral_relations')
+        .select('level, amount')
+        .eq('referrer_id', profile.id);
 
       if (error) throw error;
-      return data;
+
+      const direct = data?.filter((row) => row.level === 1).length ?? 0;
+      const levelTwo = data?.filter((row) => row.level === 2).length ?? 0;
+      const totalEarnings = data?.reduce((sum, row) => sum + Number(row.amount ?? 0), 0) ?? 0;
+
+      return { direct, levelTwo, totalEarnings };
     },
-    enabled: roleData?.type === 'agent' && !!roleData?.data?.id,
+    enabled: profile?.role === 'agent' && !!profile?.id,
   });
 
   // Calculate profile completion percentage
@@ -150,16 +168,32 @@ export default function ProfileSettings() {
                   <Briefcase className="h-4 w-4" />
                   <span className="font-semibold">Agent Info</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Referral Code:</span>
-                    <p className="font-mono font-bold">{(roleData.data as any).referral_code || 'Not assigned'}</p>
+                  <div className="grid gap-4 text-sm sm:grid-cols-2">
+                    <div>
+                      <span className="text-muted-foreground block">Referral Username</span>
+                      <p className="font-mono font-bold">
+                        {profile.username ? `@${profile.username}` : 'Not assigned'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Referral Link</span>
+                      <p className="font-mono break-all">
+                        {referralLink || 'Available after username is set'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Direct Referrals</span>
+                      <p className="font-bold">{referralSummary.direct}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Level 2 Referrals</span>
+                      <p className="font-bold">{referralSummary.levelTwo}</p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <span className="text-muted-foreground block">Referral Earnings</span>
+                      <p className="font-bold">{formattedReferralEarnings}</p>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Total Referrals:</span>
-                    <p className="font-bold">{referralsData?.length || 0}</p>
-                  </div>
-                </div>
               </div>
             )}
 
