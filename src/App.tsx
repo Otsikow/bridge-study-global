@@ -282,13 +282,15 @@ const App = () => {
                         }
                       />
                       <Route
-                      path="/search"
-                      element={
-                        <PublicLayout>
-                          <UniversitySearch />
-                        </PublicLayout>
-                      }
-                    />
+                        path="/search"
+                        element={
+                          <ProtectedRoute allowedRoles={["student"]}>
+                            <PublicLayout>
+                              <UniversitySearch />
+                            </PublicLayout>
+                          </ProtectedRoute>
+                        }
+                      />
                     <Route
                       path="/courses"
                       element={

@@ -17,16 +17,13 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <LoadingState
-          message="Authenticating..."
-          size="md"
-        />
+        <LoadingState message="Authenticating..." size="md" />
       </div>
     );
   }
 
   if (!user) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/auth/login" replace state={{ from: location.pathname }} />;
   }
 
   if (!user.email_confirmed_at) {
