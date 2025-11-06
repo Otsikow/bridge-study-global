@@ -41,7 +41,7 @@ import gegLogo from "@/assets/geg-logo.png";
 import { cn } from "@/lib/utils";
 import { formatReferralUsername } from "@/lib/referrals";
 import { LoadingState } from "@/components/LoadingState";
-import { BackButton } from "@/components/BackButton"; // ensure this component exists
+import BackButton from "@/components/BackButton";
 
 type UserRole = "student" | "agent" | "partner";
 
