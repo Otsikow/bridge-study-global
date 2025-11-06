@@ -38,6 +38,19 @@ export default function BackButton({
 
   const hasHistory = previousEntries.length > 0;
   const immediatePrevious = hasHistory ? previousEntries[0] : null;
+  const currentFullPath = React.useMemo(() => {
+    if (!currentEntry) {
+      return "";
+    }
+
+    const pathname = currentEntry.pathname ?? "";
+    const search = currentEntry.search ?? "";
+    const hash = currentEntry.hash ?? "";
+
+    const combined = `${pathname}${search}${hash}`;
+
+    return combined.length > 0 ? combined : "/";
+  }, [currentEntry]);
 
   const handleNavigateToEntry = React.useCallback(
     (entry: typeof previousEntries[number]) => {
@@ -97,7 +110,6 @@ export default function BackButton({
         <ArrowLeft className="h-4 w-4" />
         <span>{label}</span>
       </Button>
-
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownMenuTrigger asChild>
           <Button
@@ -115,38 +127,48 @@ export default function BackButton({
             <ChevronDown className="h-3.5 w-3.5" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
-          <DropdownMenuLabel className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">Current page</span>
-            <span className="font-medium leading-tight">{currentEntry?.label ?? "Current"}</span>
-            {currentEntry?.pathname ? (
-              <span className="text-xs text-muted-foreground truncate">{currentEntry.pathname}</span>
+        <DropdownMenuContent
+          align="end"
+          sideOffset={8}
+          className="flex max-h-[min(70vh,26rem)] w-[min(85vw,22rem)] flex-col gap-1.5 overflow-y-auto rounded-lg border border-border/60 bg-popover p-2 text-popover-foreground shadow-lg sm:w-[22rem] sm:p-3"
+        >
+          <DropdownMenuLabel className="flex flex-col gap-1 rounded-md bg-muted/40 px-3 py-2 text-left !font-normal">
+            <span className="text-[0.65rem] uppercase tracking-wide text-muted-foreground">Current page</span>
+            <span className="text-sm font-medium leading-snug text-pretty">{currentEntry?.label ?? "Current"}</span>
+            {currentFullPath ? (
+              <span className="text-xs text-muted-foreground break-all">{currentFullPath}</span>
             ) : null}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {hasHistory ? (
-            previousEntries.map((entry) => (
-              <DropdownMenuItem
-                key={entry.id}
-                onSelect={(event) => {
-                  event.preventDefault();
-                  handleNavigateToEntry(entry);
-                }}
-                className="flex flex-col items-start gap-0.5"
-              >
-                <span className="flex items-center gap-2 text-sm font-medium">
-                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="truncate" title={entry.label}>
-                    {entry.label}
-                  </span>
-                </span>
-                <span className="text-xs text-muted-foreground truncate w-full" title={`${entry.pathname}${entry.search}${entry.hash}`}>
-                  {entry.pathname}
-                </span>
-              </DropdownMenuItem>
-            ))
+            previousEntries.map((entry) => {
+              const fullPath = `${entry.pathname ?? ""}${entry.search ?? ""}${entry.hash ?? ""}`;
+
+              return (
+                <DropdownMenuItem
+                  key={entry.id}
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    handleNavigateToEntry(entry);
+                  }}
+                  className="flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left leading-snug hover:translate-x-0 focus:translate-x-0 sm:px-3"
+                >
+                  <div className="flex w-full items-start gap-2">
+                    <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <div className="flex flex-1 flex-col gap-1">
+                      <span className="text-sm font-medium leading-snug text-pretty" title={entry.label}>
+                        {entry.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground break-all" title={fullPath}>
+                        {fullPath || "/"}
+                      </span>
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+              );
+            })
           ) : (
-            <DropdownMenuItem disabled className="text-sm text-muted-foreground">
+            <DropdownMenuItem disabled className="px-2 py-2 text-sm text-muted-foreground hover:translate-x-0 focus:translate-x-0">
               No recent pages
             </DropdownMenuItem>
           )}
@@ -157,13 +179,14 @@ export default function BackButton({
               handleFallbackNavigation();
               setMenuOpen(false);
             }}
+            className="flex items-center gap-2 px-2 py-2 text-sm hover:translate-x-0 focus:translate-x-0 sm:px-3"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Go to fallback
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={handleClearHistory}
-            className="text-destructive focus:text-destructive"
+            className="flex items-center gap-2 px-2 py-2 text-sm text-destructive hover:translate-x-0 focus:text-destructive focus:translate-x-0 sm:px-3"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Clear history
