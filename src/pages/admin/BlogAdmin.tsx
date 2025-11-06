@@ -412,15 +412,12 @@ export default function BlogAdmin() {
         throw new Error(uploadError.message);
       }
 
-      const { data: urlData, error: urlError } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from("public")
         .getPublicUrl(filePath);
 
-      if (urlError || !urlData?.publicUrl) {
-        throw new Error(
-          urlError?.message ??
-            "Unable to resolve public URL for the generated image.",
-        );
+      if (!urlData?.publicUrl) {
+        throw new Error("Unable to resolve public URL for the generated image.");
       }
 
       setForm((prev) => ({ ...prev, cover_image_url: urlData.publicUrl }));

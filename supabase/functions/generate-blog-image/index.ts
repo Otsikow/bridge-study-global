@@ -101,45 +101,38 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("NANO_BANANA_API_KEY");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
-      throw new Error("NANO_BANANA_API_KEY is not configured");
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
-
-    const apiUrl =
-      Deno.env.get("NANO_BANANA_API_URL")?.trim() ||
-      "https://api.nanobanana.ai/v1/images:generate";
-    const modelId =
-      Deno.env.get("NANO_BANANA_MODEL")?.trim() ||
-      "models/nano-banana-photorealistic-cover";
 
     const prompt = buildPrompt(title, excerpt, tags);
 
-    const response = await fetch(apiUrl, {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: modelId,
-        prompt,
-        negative_prompt:
-          "text, words, captions, watermark, logo, low resolution, blurry, distorted anatomy, extra limbs, cropped faces, artifacts",
-        aspect_ratio: "16:9",
-        output_format: "base64",
-        quality: "high",
-        style: "photorealistic",
+        model: "google/gemini-2.5-flash-image",
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        modalities: ["image", "text"],
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Nano Banana API error", response.status, errorText);
+      console.error("Lovable AI error", response.status, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({
-            error: "Nano Banana rate limit reached. Please try again soon.",
+            error: "Rate limit reached. Please try again soon.",
           }),
           {
             status: 429,
@@ -147,37 +140,29 @@ serve(async (req) => {
           },
         );
       }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({
+            error: "Payment required. Please add credits to your workspace.",
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
 
-      throw new Error(`Nano Banana API error: ${response.status}`);
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const result = await response.json();
-    const imagePayload =
-      result?.image ??
-      result?.data?.[0] ??
-      result?.output?.[0] ??
-      result?.images?.[0] ??
-      null;
-    const imageBase64 =
-      (typeof imagePayload === "string" ? imagePayload : null) ??
-      imagePayload?.base64 ??
-      imagePayload?.b64_json ??
-      imagePayload?.base64Data ??
-      imagePayload?.imageBase64 ??
-      imagePayload?.image?.base64Data ??
-      null;
-    const mimeType =
-      imagePayload?.mimeType ||
-      imagePayload?.mime_type ||
-      result?.mimeType ||
-      result?.mime_type ||
-      "image/png";
+    const imageUrl = result?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    if (!imageBase64) {
-      console.error("Nano Banana response missing image payload", result);
+    if (!imageUrl || !imageUrl.startsWith("data:image/")) {
+      console.error("Lovable AI response missing image", result);
       return new Response(
         JSON.stringify({
-          error: "Nano Banana response did not include an image",
+          error: "AI did not return an image",
         }),
         {
           status: 502,
@@ -185,6 +170,11 @@ serve(async (req) => {
         },
       );
     }
+
+    // Extract base64 data from data URL
+    const [mimeTypePart, base64Part] = imageUrl.split(",");
+    const mimeType = mimeTypePart.match(/data:(.*?);base64/)?.[1] || "image/png";
+    const imageBase64 = base64Part;
 
     return new Response(
       JSON.stringify({ imageBase64, mimeType }),
