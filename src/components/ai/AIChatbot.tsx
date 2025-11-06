@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Sparkles,
+    Sparkles,
   Send,
   X,
   Bot,
@@ -209,6 +209,8 @@ export default function ZoeChatbot() {
   const [isRecording, setIsRecording] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [hasConversationStarted, setHasConversationStarted] = useState(false);
+  const [suggestions, setSuggestions] = useState(SUGGESTED_PROMPTS);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -231,10 +233,93 @@ export default function ZoeChatbot() {
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const viewport = scrollRef.current?.querySelector(
+      "[data-radix-scroll-area-viewport]"
+    ) as HTMLDivElement | null;
+
+    if (!viewport) return;
+
+    requestAnimationFrame(() => {
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: hasConversationStarted ? "smooth" : "auto",
+      });
+    });
+  }, [messages, isLoading, hasConversationStarted]);
+
+  const generateSuggestions = useCallback((history: Message[]) => {
+    const lastUserMessage = [...history]
+      .reverse()
+      .find((message) => message.role === "user" && message.content.trim().length > 0);
+
+    if (!lastUserMessage) {
+      return SUGGESTED_PROMPTS;
     }
-  }, [messages, isLoading]);
+
+    const text = lastUserMessage.content.toLowerCase();
+    const dynamic: { label: string; prompt: string }[] = [];
+
+    const addSuggestion = (label: string, prompt: string) => {
+      if (!dynamic.some((item) => item.label === label)) {
+        dynamic.push({ label, prompt });
+      }
+    };
+
+    if (/(visa|immigration|permit|embassy)/.test(text)) {
+      addSuggestion("Visa checklist", "Can you provide a visa preparation checklist specific to my intake?");
+      addSuggestion("Interview prep", "What common visa interview questions should I prepare for?");
+    }
+
+    if (/(scholar|funding|financial aid|tuition)/.test(text)) {
+      addSuggestion("Funding comparison", "Could you compare scholarships and grants that fit my background?");
+    }
+
+    if (/(partner|university|institution|campus)/.test(text)) {
+      addSuggestion("Partner onboarding", "What milestones should a new university partner expect in the first 90 days?");
+    }
+
+    if (/(agent|compliance|training|certification)/.test(text)) {
+      addSuggestion("Compliance overview", "What compliance documents should our agents review this quarter?");
+    }
+
+    if (/(application|apply|admission|document)/.test(text)) {
+      addSuggestion("Application tracker", "How can I track outstanding documents for my application?");
+    }
+
+    if (/(timeline|deadline|schedule)/.test(text)) {
+      addSuggestion("Timeline planning", "Can you build a milestone timeline so I stay on track?");
+    }
+
+    if ((lastUserMessage.attachments?.length ?? 0) > 0) {
+      addSuggestion("Attachment summary", "Can you summarize the key points from the files I shared?");
+    }
+
+    if (!dynamic.length) {
+      addSuggestion(
+        "Explore services",
+        "What else can you help me with regarding my study abroad plans?"
+      );
+      addSuggestion("Talk to an advisor", "How do I schedule time with a human advisor if I need deeper support?");
+    }
+
+    const filled = [...dynamic];
+    for (const fallback of SUGGESTED_PROMPTS) {
+      if (filled.length >= 4) break;
+      if (!filled.some((item) => item.label === fallback.label)) {
+        filled.push(fallback);
+      }
+    }
+
+    return filled.slice(0, 4);
+  }, []);
+
+  useEffect(() => {
+    if (!hasConversationStarted) {
+      setSuggestions(SUGGESTED_PROMPTS);
+      return;
+    }
+    setSuggestions(generateSuggestions(messages));
+  }, [messages, hasConversationStarted, generateSuggestions]);
 
   const playNotification = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -460,13 +545,19 @@ export default function ZoeChatbot() {
       return;
     }
 
+    const userContent = input.trim();
+
     const userMessage: Message = {
       role: "user",
-      content: input.trim(),
+      content: userContent,
       attachments: attachments.length ? [...attachments] : undefined,
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedHistory = [...messages, userMessage];
+
+    setMessages(updatedHistory);
+    setSuggestions(generateSuggestions(updatedHistory));
+    setHasConversationStarted(true);
     setInput("");
     setAttachments([]);
     setIsLoading(true);
@@ -487,7 +578,7 @@ export default function ZoeChatbot() {
           session_id: sessionId,
           audience,
           locale,
-          messages: [...messages, userMessage],
+          messages: updatedHistory,
           metadata: {
             attachments: userMessage.attachments?.map((attachment) => ({
               name: attachment.name,
@@ -595,7 +686,18 @@ export default function ZoeChatbot() {
       notificationPlayedRef.current = false;
       setIsLoading(false);
     }
-  }, [attachments, input, isLoading, messages, playNotification, profile?.role, session?.access_token, sessionId, toast]);
+  }, [
+    attachments,
+    generateSuggestions,
+    input,
+    isLoading,
+    messages,
+    playNotification,
+    profile?.role,
+    session?.access_token,
+    sessionId,
+    toast,
+  ]);
 
   const quickPromptHandler = useCallback(
     (prompt: string) => {
@@ -605,37 +707,37 @@ export default function ZoeChatbot() {
     [isOpen]
   );
 
-  if (!isOpen) {
-    return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg md:bottom-6 md:right-6 md:h-14 md:w-14 z-40"
-        size="icon"
-        aria-label="Chat with Zoe"
-      >
-        <Sparkles className="h-5 w-5 md:h-6 md:w-6" />
-      </Button>
-    );
+    if (!isOpen) {
+      return (
+        <Button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-4 right-4 flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold shadow-xl transition hover:translate-y-[-2px] hover:shadow-2xl md:bottom-6 md:right-6 md:h-14 md:px-6 md:text-base"
+          aria-label="Chat with Zoe"
+        >
+          <Sparkles className="h-5 w-5" />
+          Chat
+        </Button>
+      );
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 left-4 h-[calc(100vh-2rem)] shadow-2xl flex flex-col xs:left-auto xs:w-[380px] xs:h-[85vh] xs:max-h-[620px] md:bottom-6 md:right-6 z-50 border border-primary/20 bg-gradient-to-br from-background to-primary/5">
-      <CardHeader className="pb-3 px-4 pt-4">
+      <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
+        <CardHeader className="px-5 pb-2 pt-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-primary/40">
               <img src={zoeAvatar} alt="Zoe avatar" className="h-full w-full object-cover" />
               <span className="absolute inset-0 rounded-full bg-primary/10" />
             </div>
-            <div>
-              <CardTitle className="text-base md:text-lg flex items-center gap-2">
-                Zoe
-                <span className="hidden text-xs font-medium text-primary/80 sm:inline-flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Always ready to help
-                </span>
+              <div className="space-y-1">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold md:text-lg">
+                  Zoe
+                  <span className="hidden items-center gap-1 text-xs font-medium uppercase tracking-wide text-primary/80 sm:inline-flex">
+                    <Sparkles className="h-3 w-3" /> Always ready to help
+                  </span>
               </CardTitle>
-              <p className="text-xs text-muted-foreground">
-                AI-powered support for students, universities, and recruitment partners
+                <p className="text-xs text-muted-foreground md:text-sm">
+                  AI-powered support for students, universities, and recruitment partners
               </p>
             </div>
           </div>
@@ -643,26 +745,28 @@ export default function ZoeChatbot() {
             <X className="h-4 w-4" />
           </Button>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {SUGGESTED_PROMPTS.map(({ label, prompt }) => (
-            <Button
-              key={label}
-              type="button"
-              size="sm"
-              variant="secondary"
-              className="h-8 rounded-full text-xs"
-              onClick={() => quickPromptHandler(prompt)}
-            >
-              <MessageSquareQuote className="mr-1.5 h-3 w-3" />
-              {label}
-            </Button>
-          ))}
-        </div>
+          {suggestions.length > 0 && input.trim().length === 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {suggestions.map(({ label, prompt }) => (
+                <Button
+                  key={label}
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-9 rounded-full bg-primary/10 text-xs font-medium text-primary shadow-inner transition hover:bg-primary/20"
+                  onClick={() => quickPromptHandler(prompt)}
+                >
+                  <MessageSquareQuote className="mr-1.5 h-3.5 w-3.5" />
+                  {label}
+                </Button>
+              ))}
+            </div>
+          ) : null}
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-0 min-h-0">
-        <ScrollArea ref={scrollRef} className="flex-1 px-3 md:px-4">
-          <div className="space-y-3 md:space-y-4 py-3 md:py-4">
+        <CardContent className="min-h-0 flex-1 p-0">
+          <ScrollArea ref={scrollRef} className="flex-1 px-5">
+            <div className="space-y-4 py-5">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               return (
@@ -672,11 +776,11 @@ export default function ZoeChatbot() {
                       <img src={zoeAvatar} alt="Zoe" className="h-full w-full object-cover" />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[77%] rounded-2xl px-4 py-3 shadow-sm transition-all ${
+                    <div
+                      className={`max-w-[80%] rounded-3xl px-5 py-4 shadow-sm transition-all ${
                       isUser
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-card border border-primary/10 text-foreground"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-card/90 border border-primary/10 text-foreground backdrop-blur"
                     }`}
                   >
                     <FormattedMessage content={message.content} />
@@ -713,20 +817,20 @@ export default function ZoeChatbot() {
                 </div>
               );
             })}
-            {isLoading && (
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30">
-                  <Bot className="h-4 w-4 text-primary" />
+              {isLoading && (
+                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="rounded-full bg-muted/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+                    Zoe is preparing a response…
+                  </div>
                 </div>
-                <div className="rounded-full bg-muted px-4 py-2 text-xs uppercase tracking-wide">
-                  Zoe is preparing a response…
-                </div>
-              </div>
-            )}
+              )}
           </div>
         </ScrollArea>
 
-        <div className="flex-shrink-0 border-t bg-background/80 p-3 md:p-4">
+          <div className="flex-shrink-0 border-t border-primary/10 bg-background/90 px-5 pb-5 pt-4">
           {attachments.length > 0 && (
             <div className="mb-3 space-y-2">
               {attachments.map((attachment) => (
@@ -755,10 +859,10 @@ export default function ZoeChatbot() {
             </div>
           )}
 
-          <form
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition ${
-              isDragOver ? "border-primary bg-primary/10" : "border-border"
-            }`}
+            <form
+              className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
+                isDragOver ? "border-primary bg-primary/5 shadow-inner" : "border-border bg-card/40"
+              }`}
             onSubmit={(event) => {
               event.preventDefault();
               void sendMessage();
@@ -782,47 +886,57 @@ export default function ZoeChatbot() {
               className="hidden"
             />
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isUploading}
-            >
-              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-xl"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || isUploading}
+                >
+                  {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                </Button>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isLoading}
-            >
-              {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
-            </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-xl"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading}
+                >
+                  {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
+                </Button>
 
-            <Input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
-              disabled={isLoading || isUploading}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0"
-            />
+                <div className="flex-1">
+                  <Textarea
+                    value={input}
+                    onChange={(event) => setInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !event.shiftKey) {
+                        event.preventDefault();
+                        void sendMessage();
+                      }
+                    }}
+                    placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
+                    disabled={isLoading || isUploading}
+                    className="min-h-[52px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                </div>
 
-            <Button
-              type="submit"
-              size="icon"
-              disabled={isLoading || isUploading || (!input.trim() && attachments.length === 0)}
-              className="h-9 w-9"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={isLoading || isUploading || (!input.trim() && attachments.length === 0)}
+                  className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
           </form>
 
-          <p className="mt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
             “Meet Zoe — your AI-powered student and university assistant, always ready to help.”
           </p>
         </div>
