@@ -24,13 +24,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  ArrowRight,
   Calculator,
   ShieldCheck,
   Globe2,
   TrendingUp,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 import gegLogo from "@/assets/geg-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
@@ -41,6 +39,7 @@ import universityBuildings from "@/assets/university-buildings.png";
 import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
+import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 
@@ -217,111 +216,112 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
-          <div className="container relative mx-auto px-4 py-24 text-center">
-            <img
-              src={gegLogo}
-              alt="Global Education Gateway logo"
-              className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
-            />
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
-              <Sparkles className="h-4 w-4 animate-pulse" />
-              <span>Trusted by 5000+ students worldwide</span>
-            </div>
-            <h1 className="text-5xl font-bold mb-4">
-              Your Gateway to{" "}
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Global Education
-              </span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Connect with top universities, track applications in real-time, and
-              receive expert guidance from verified agents.
-            </p>
-
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
-              {heroCtas.map((cta) => (
-                <Link key={cta.title} to={cta.href} className="block h-full">
-                  <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-                    <div className="relative h-48 overflow-hidden sm:h-56">
-                      <img
-                        src={cta.image}
-                        alt={cta.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                      <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
-                        {cta.badge}
-                      </Badge>
-                    </div>
-                    <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
-                      <h3 className="text-2xl font-bold leading-snug text-foreground">
-                        {cta.title}
-                      </h3>
-                      <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
-                        {cta.description}
-                      </p>
-                      <Button className="w-full sm:w-auto">{cta.action}</Button>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-            <JourneyRibbon />
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+        <div className="container relative mx-auto px-4 py-24 text-center">
+          <img
+            src={gegLogo}
+            alt="Global Education Gateway logo"
+            className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+          />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span>Trusted by 5000+ students worldwide</span>
           </div>
-        </section>
+          <h1 className="text-5xl font-bold mb-4">
+            Your Gateway to{" "}
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Global Education
+            </span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Connect with top universities, track applications in real-time, and
+            receive expert guidance from verified agents.
+          </p>
 
-        {/* Visa Calculator Spotlight */}
-        <section className="relative py-24">
-          <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-8">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
-                <Sparkles className="h-4 w-4" /> Feature Spotlight
-              </span>
-              <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-                Understand your visa eligibility before you apply
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
-              </p>
-              <Button asChild size="lg" className="gap-2">
-                <Link
-                  to="/visa-calculator"
-                  onClick={() => logVisaCalculatorCardClick("cta_button")}
-                >
-                  <Calculator className="h-5 w-5" /> Explore the Visa Calculator
-                </Link>
-              </Button>
-            </div>
-            <div className="relative">
-              <img
-                src={visaEligibilityImage}
-                alt="Student using laptop to check visa eligibility checklist"
-                className="w-full h-auto rounded-2xl shadow-2xl"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="container mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((f, i) => (
-              <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
-                <CardContent className="p-8">
-                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
-                    <f.icon className="h-8 w-8 text-white" />
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            {heroCtas.map((cta) => (
+              <Link key={cta.title} to={cta.href} className="block h-full">
+                <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="relative h-48 overflow-hidden sm:h-56">
+                    <img
+                      src={cta.image}
+                      alt={cta.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                      {cta.badge}
+                    </Badge>
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
-                  <p className="text-muted-foreground">{f.description}</p>
-                </CardContent>
-              </Card>
+                  <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
+                    <h3 className="text-2xl font-bold leading-snug text-foreground">
+                      {cta.title}
+                    </h3>
+                    <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                      {cta.description}
+                    </p>
+                    <Button className="w-full sm:w-auto">{cta.action}</Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </section>
+          <JourneyRibbon />
+        </div>
+      </section>
 
+      {/* Visa Calculator Spotlight */}
+      <section className="relative py-24">
+        <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+              <Sparkles className="h-4 w-4" /> Feature Spotlight
+            </span>
+            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+              Understand your visa eligibility before you apply
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
+            </p>
+            <Button asChild size="lg" className="gap-2">
+              <Link
+                to="/visa-calculator"
+                onClick={() => logVisaCalculatorCardClick("cta_button")}
+              >
+                <Calculator className="h-5 w-5" /> Explore the Visa Calculator
+              </Link>
+            </Button>
+          </div>
+          <div className="relative">
+            <img
+              src={visaEligibilityImage}
+              alt="Student using laptop to check visa eligibility checklist"
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {features.map((f, i) => (
+            <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
+              <CardContent className="p-8">
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
+                  <f.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                <p className="text-muted-foreground">{f.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <AIPoweredSearchSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
@@ -362,9 +362,7 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground">
-            Quick answers to common questions
-          </p>
+          <p className="text-muted-foreground">Quick answers to common questions</p>
         </div>
         <div className="max-w-4xl mx-auto space-y-12">
           {faqs.map((section, sectionIndex) => (
@@ -397,9 +395,7 @@ const Index = () => {
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-muted-foreground">
-            Have questions? We’d love to help.
-          </p>
+          <p className="text-muted-foreground">Have questions? We’d love to help.</p>
         </div>
         <Card className="max-w-2xl mx-auto border-2">
           <CardContent className="p-8">
