@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://gbustuntgvmwkcttjojo.supabase.co';
+const supabaseUrl = 'https://GlobalEducationGateway.com';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdidXN0dW50Z3Ztd2tjdHRqb2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA5OTk1MzQsImV4cCI6MjA3NjU3NTUzNH0.aACHZbMSTULC3Iziz6mGp6LgKYRiTPJEv5izU0HdDIw';
 
 const supabase = createClient(supabaseUrl, supabaseKey);

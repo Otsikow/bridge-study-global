@@ -3,7 +3,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'https://gbustuntgvmwkcttjojo.supabase.co';
+const SUPABASE_URL = 'https://GlobalEducationGateway.com';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key-here';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
