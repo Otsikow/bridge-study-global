@@ -80,6 +80,122 @@ type ApplicationDraftRow = Database['public']['Tables']['application_drafts']['R
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500;
 const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const LEGACY_DRAFT_STORAGE_KEY = 'application_draft';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const mergeLegacyFormData = (
+  current: ApplicationFormData,
+  legacy: unknown,
+): ApplicationFormData => {
+  if (!isRecord(legacy)) {
+    return current;
+  }
+
+  const personalInfoFields: Array<keyof ApplicationFormData['personalInfo']> = [
+    'fullName',
+    'email',
+    'phone',
+    'dateOfBirth',
+    'nationality',
+    'passportNumber',
+    'currentCountry',
+    'address',
+  ];
+
+  const personalInfo = { ...current.personalInfo };
+  const legacyPersonal = isRecord(legacy.personalInfo) ? legacy.personalInfo : null;
+  if (legacyPersonal) {
+    for (const field of personalInfoFields) {
+      const rawValue = legacyPersonal[field as keyof typeof legacyPersonal];
+      if (typeof rawValue === 'string') {
+        personalInfo[field] = rawValue;
+      }
+    }
+  }
+
+  const educationHistory = Array.isArray(legacy.educationHistory)
+    ? legacy.educationHistory
+        .map((entry, index) => {
+          if (!isRecord(entry)) return null;
+
+          const id = entry.id;
+          const level = entry.level;
+          const institutionName = entry.institutionName;
+          const country = entry.country;
+          const startDate = entry.startDate;
+          const endDate = entry.endDate;
+          const gpa = entry.gpa;
+          const gradeScale = entry.gradeScale;
+
+          return {
+            id: typeof id === 'string' && id.length > 0 ? id : `legacy-${index}`,
+            level: typeof level === 'string' ? level : '',
+            institutionName: typeof institutionName === 'string' ? institutionName : '',
+            country: typeof country === 'string' ? country : '',
+            startDate: typeof startDate === 'string' ? startDate : '',
+            endDate: typeof endDate === 'string' ? endDate : '',
+            gpa:
+              typeof gpa === 'string'
+                ? gpa
+                : typeof gpa === 'number'
+                ? gpa.toString()
+                : '',
+            gradeScale: typeof gradeScale === 'string' ? gradeScale : '',
+          };
+        })
+        .filter((entry): entry is ApplicationFormData['educationHistory'][number] => Boolean(entry))
+    : current.educationHistory;
+
+  const programSelection = { ...current.programSelection };
+  const legacyProgramSelection = isRecord(legacy.programSelection) ? legacy.programSelection : null;
+  if (legacyProgramSelection) {
+    const programId = legacyProgramSelection.programId;
+    const intakeYear = legacyProgramSelection.intakeYear;
+    const intakeMonth = legacyProgramSelection.intakeMonth;
+    const intakeId = legacyProgramSelection.intakeId;
+
+    if (typeof programId === 'string') {
+      programSelection.programId = programId;
+    }
+
+    const parsedYear =
+      typeof intakeYear === 'number'
+        ? intakeYear
+        : typeof intakeYear === 'string'
+        ? Number(intakeYear)
+        : NaN;
+    if (!Number.isNaN(parsedYear) && Number.isFinite(parsedYear)) {
+      programSelection.intakeYear = parsedYear;
+    }
+
+    const parsedMonth =
+      typeof intakeMonth === 'number'
+        ? intakeMonth
+        : typeof intakeMonth === 'string'
+        ? Number(intakeMonth)
+        : NaN;
+    if (!Number.isNaN(parsedMonth) && Number.isFinite(parsedMonth)) {
+      programSelection.intakeMonth = parsedMonth;
+    }
+
+    if (typeof intakeId === 'string') {
+      programSelection.intakeId = intakeId;
+    }
+  }
+
+  const notes = typeof legacy.notes === 'string' ? legacy.notes : current.notes;
+
+  return {
+    ...current,
+    personalInfo,
+    educationHistory,
+    programSelection,
+    documents: current.documents,
+    notes,
+  };
+};
 
 const sanitizeFormDataForDraft = (data: ApplicationFormData): ApplicationFormData => ({
   ...data,
@@ -117,6 +233,7 @@ export default function NewApplication() {
   const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
 
   const hasHydratedFromDraft = useRef(false);
+  const hasAttemptedLegacyMigration = useRef(false);
   const skipNextAutoSave = useRef(true);
   const tenantId = profile?.tenant_id || DEFAULT_TENANT_ID;
 
@@ -146,6 +263,11 @@ export default function NewApplication() {
     },
     notes: '',
   });
+
+  const formDataRef = useRef(formData);
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
 
   // Fetch student data and pre-fill personal info
   const fetchStudentData = useCallback(async () => {
@@ -259,6 +381,101 @@ export default function NewApplication() {
   }, [draftQuery.error, toast]);
 
   useEffect(() => {
+    if (hasAttemptedLegacyMigration.current) return;
+    if (!studentId) return;
+    if (!tenantId) return;
+    if (draftQuery.isLoading || draftQuery.isFetching) return;
+
+    if (draftQuery.data) {
+      hasAttemptedLegacyMigration.current = true;
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      hasAttemptedLegacyMigration.current = true;
+      return;
+    }
+
+    const legacyDraft = window.localStorage.getItem(LEGACY_DRAFT_STORAGE_KEY);
+    if (!legacyDraft) {
+      hasAttemptedLegacyMigration.current = true;
+      return;
+    }
+
+    hasAttemptedLegacyMigration.current = true;
+
+    try {
+      const parsed = JSON.parse(legacyDraft);
+      const mergedFormData = mergeLegacyFormData(formDataRef.current, parsed);
+      formDataRef.current = mergedFormData;
+      skipNextAutoSave.current = true;
+      setFormData(mergedFormData);
+
+      const legacyStep = (() => {
+        if (!isRecord(parsed)) return null;
+        const possibleKeys: Array<'currentStep' | 'lastStep' | 'step'> = ['currentStep', 'lastStep', 'step'];
+        for (const key of possibleKeys) {
+          const rawValue = parsed[key];
+          const numeric =
+            typeof rawValue === 'number'
+              ? rawValue
+              : typeof rawValue === 'string'
+              ? Number(rawValue)
+              : NaN;
+          if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+            const rounded = Math.round(numeric);
+            if (rounded >= 1 && rounded <= STEPS.length) {
+              return rounded;
+            }
+          }
+        }
+        return null;
+      })();
+
+      if (legacyStep) {
+        setCurrentStep(legacyStep);
+      }
+
+      const stepForDraft = legacyStep ?? currentStep;
+
+      void (async () => {
+        try {
+          const data = await upsertDraftMutationFn({
+            studentId,
+            tenantId,
+            programId: mergedFormData.programSelection.programId || null,
+            lastStep: stepForDraft,
+            formData: mergedFormData,
+          });
+          handleDraftSuccess(data);
+          window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
+          toast({
+            title: 'Draft Restored',
+            description: 'We moved your saved application progress to your account.',
+          });
+        } catch (migrationError) {
+          logError(migrationError, 'NewApplication.migrateLegacyDraft');
+          setAutoSaveError(getErrorMessage(migrationError));
+          toast(formatErrorForToast(migrationError, 'Failed to migrate saved draft'));
+        }
+      })();
+    } catch (error) {
+      logError(error, 'NewApplication.parseLegacyDraft');
+      window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
+    }
+  }, [
+    currentStep,
+    draftQuery.data,
+    draftQuery.isFetching,
+    draftQuery.isLoading,
+    handleDraftSuccess,
+    studentId,
+    tenantId,
+    toast,
+    upsertDraftMutationFn,
+  ]);
+
+  useEffect(() => {
     if (hasHydratedFromDraft.current) return;
     if (!draftQuery.data) {
       hasHydratedFromDraft.current = true;
@@ -289,7 +506,7 @@ export default function NewApplication() {
     hasHydratedFromDraft.current = true;
   }, [draftQuery.data]);
 
-  const upsertDraftMutationFn = async (
+  const upsertDraftMutationFn = useCallback(async (
     payload: DraftMutationPayload,
   ): Promise<ApplicationDraftRow> => {
     const draftRecord = {
@@ -311,9 +528,9 @@ export default function NewApplication() {
     }
 
     return data as ApplicationDraftRow;
-  };
+  }, []);
 
-  const handleDraftSuccess = (data: ApplicationDraftRow) => {
+  const handleDraftSuccess = useCallback((data: ApplicationDraftRow) => {
     queryClient.setQueryData(draftQueryKey, data);
     if (data.updated_at) {
       setLastSavedAt(new Date(data.updated_at));
@@ -321,7 +538,7 @@ export default function NewApplication() {
       setLastSavedAt(new Date());
     }
     setAutoSaveError(null);
-  };
+  }, [draftQueryKey, queryClient]);
 
   const autoSaveMutation = useMutation<ApplicationDraftRow, unknown, DraftMutationPayload>({
     mutationFn: upsertDraftMutationFn,
@@ -524,6 +741,9 @@ export default function NewApplication() {
           setLastSavedAt(null);
           setAutoSaveError(null);
           skipNextAutoSave.current = true;
+          if (typeof window !== 'undefined') {
+            window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
+          }
         } catch (draftCleanupError) {
           logError(draftCleanupError, 'NewApplication.clearDraftAfterSubmit');
         }
