@@ -241,6 +241,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
       setSession(session);
 
+      if (currentUser && !currentUser.email_confirmed_at) {
+        console.info('User email address is not verified yet. Redirecting to verification gate.');
+        setProfile(null);
+        return;
+      }
+
       // Fetch profile only if user has changed
       if (currentUserId && currentUserId !== lastUserId) {
         await fetchProfile(currentUserId);
@@ -312,6 +318,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
+      if (data?.user && !data.user.email_confirmed_at) {
+        console.warn('Sign-in blocked: email address is not verified yet.');
+        await supabase.auth.signOut();
+        return {
+          error: new Error('Please verify your email before signing in.'),
+        };
+      }
+
       console.log('Sign-in successful:', data);
       return { error: null };
     } catch (err) {
@@ -324,59 +338,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signUp = async ({
-    email,
-    password,
-    fullName,
-    role = 'student',
-    phone,
-    country,
-    username,
-    referrerId,
-    referrerUsername,
-  }: SignUpParams) => {
-    try {
-      const redirectUrl = `${window.location.origin}/`;
+    const signUp = async ({
+      email,
+      password,
+      fullName,
+      role = 'student',
+      phone,
+      country,
+      username,
+      referrerId,
+      referrerUsername,
+    }: SignUpParams) => {
+      try {
+        const redirectUrl = `${window.location.origin}/auth/callback`;
 
-      const sanitizedUsername = formatReferralUsername(username);
+        const sanitizedUsername = formatReferralUsername(username);
 
-      const metadata: Record<string, string> = {
-        full_name: fullName,
-        role,
-        phone: phone || '',
-        country: country || '',
-        username: sanitizedUsername || `user_${crypto.randomUUID().slice(0, 12)}`,
-      };
+        const metadata: Record<string, string> = {
+          full_name: fullName,
+          role,
+          phone: phone || '',
+          country: country || '',
+          username: sanitizedUsername || `user_${crypto.randomUUID().slice(0, 12)}`,
+        };
 
-      if (referrerUsername) {
-        metadata.referrer_username = referrerUsername;
+        if (referrerUsername) {
+          metadata.referrer_username = referrerUsername;
+        }
+
+        if (referrerId) {
+          metadata.referrer_id = referrerId;
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: redirectUrl,
+            data: metadata,
+          },
+        });
+
+        if (error) {
+          console.error('Sign-up error:', error);
+          return { error };
+        }
+
+        console.log('Sign-up successful. Verification email sent:', data);
+        return { error: null };
+      } catch (err) {
+        console.error('Sign-up exception:', err);
+        return { error: err };
       }
-
-      if (referrerId) {
-        metadata.referrer_id = referrerId;
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: metadata,
-        },
-      });
-
-      if (error) {
-        console.error('Sign-up error:', error);
-        return { error };
-      }
-
-      console.log('Sign-up successful:', data);
-      return { error: null };
-    } catch (err) {
-      console.error('Sign-up exception:', err);
-      return { error: err };
-    }
-  };
+    };
 
   const signOut = async () => {
     await supabase.auth.signOut();
