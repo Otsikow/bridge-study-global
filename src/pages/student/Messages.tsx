@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
-import { useMessages } from '@/hooks/useMessages';
+import { useMessages, type SendMessagePayload } from '@/hooks/useMessages';
 import { usePresence } from '@/hooks/usePresence';
 import BackButton from '@/components/BackButton';
 import {
@@ -60,9 +60,9 @@ export default function Messages() {
     setCurrentConversation(conversationId);
   };
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = (payload: SendMessagePayload) => {
     if (currentConversation) {
-      sendMessage(currentConversation, content);
+      sendMessage(currentConversation, payload);
     }
   };
 

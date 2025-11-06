@@ -8,11 +8,14 @@ export interface Conversation {
   id: string;
   tenant_id: string;
   name: string | null;
+  title?: string | null;
+  type?: string | null;
   is_group: boolean | null;
   avatar_url: string | null;
-  created_by: string | null;
+  created_by?: string | null;
   created_at: string | null;
   updated_at: string | null;
+  last_message_at?: string | null;
   participants?: ConversationParticipant[];
   lastMessage?: Message;
   unreadCount?: number;
@@ -24,7 +27,7 @@ export interface ConversationParticipant {
   user_id: string;
   joined_at: string | null;
   last_read_at: string | null;
-  is_admin: boolean | null;
+  is_admin?: boolean | null;
   profile?: {
     id: string;
     full_name: string;
@@ -39,7 +42,7 @@ export interface Message {
   sender_id: string;
   content: string;
   message_type: string | null;
-  attachments: unknown[];
+  attachments: MessageAttachment[];
   reply_to_id: string | null;
   edited_at: string | null;
   deleted_at: string | null;
@@ -59,6 +62,23 @@ export interface TypingIndicator {
   profile?: {
     full_name: string;
   };
+}
+
+export interface MessageAttachment {
+  id: string;
+  type: 'image' | 'file' | 'audio' | 'video' | string;
+  url: string;
+  name?: string | null;
+  size?: number | null;
+  mime_type?: string | null;
+  preview_url?: string | null;
+  meta?: Record<string, unknown> | null;
+}
+
+export interface SendMessagePayload {
+  content: string;
+  attachments?: MessageAttachment[];
+  messageType?: string;
 }
 
 type RawMessage = {
@@ -85,24 +105,21 @@ type RawParticipant = {
   user_id: string;
   joined_at: string | null;
   last_read_at: string | null;
-  is_admin: boolean | null;
-  profile?: {
-    id: string;
-    full_name: string;
-    avatar_url: string | null;
-    role: string;
-  } | null;
+  is_admin?: boolean | null;
 };
 
 type RawConversation = {
   id: string;
   tenant_id: string;
-  name: string | null;
+  name?: string | null;
+  title?: string | null;
+  type?: string | null;
   is_group: boolean | null;
-  avatar_url: string | null;
-  created_by: string | null;
+  avatar_url?: string | null;
+  created_by?: string | null;
   created_at: string | null;
   updated_at: string | null;
+  last_message_at?: string | null;
   participants: RawParticipant[];
   lastMessage?: RawMessage[];
 };
@@ -129,6 +146,104 @@ type SupabaseError =
   | Error
   | { message?: string; details?: string | null; hint?: string | null }
   | null;
+
+const createAttachmentId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const normalizeAttachment = (attachment: unknown): MessageAttachment | null => {
+  if (!attachment || typeof attachment !== 'object') {
+    return null;
+  }
+
+  const record = attachment as Record<string, any>;
+  const url = typeof record.url === 'string' ? record.url : null;
+  if (!url) {
+    return null;
+  }
+
+  const inferredType = () => {
+    if (typeof record.type === 'string') return record.type;
+    if (typeof record.mime_type === 'string') {
+      if (record.mime_type.startsWith('image/')) return 'image';
+      if (record.mime_type.startsWith('audio/')) return 'audio';
+      if (record.mime_type.startsWith('video/')) return 'video';
+      return 'file';
+    }
+    if (typeof record.mimeType === 'string') {
+      if (record.mimeType.startsWith('image/')) return 'image';
+      if (record.mimeType.startsWith('audio/')) return 'audio';
+      if (record.mimeType.startsWith('video/')) return 'video';
+      return 'file';
+    }
+    return 'file';
+  };
+
+  const sizeValue = () => {
+    if (typeof record.size === 'number') return record.size;
+    if (typeof record.file_size === 'number') return record.file_size;
+    if (typeof record.fileSize === 'number') return record.fileSize;
+    if (typeof record.size === 'string') {
+      const parsed = Number(record.size);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  };
+
+  return {
+    id: typeof record.id === 'string' && record.id ? record.id : createAttachmentId(),
+    type: inferredType(),
+    url,
+    name:
+      typeof record.name === 'string'
+        ? record.name
+        : typeof record.file_name === 'string'
+          ? record.file_name
+          : typeof record.fileName === 'string'
+            ? record.fileName
+            : null,
+    size: sizeValue(),
+    mime_type:
+      typeof record.mime_type === 'string'
+        ? record.mime_type
+        : typeof record.mimeType === 'string'
+          ? record.mimeType
+          : null,
+    preview_url:
+      typeof record.preview_url === 'string'
+        ? record.preview_url
+        : typeof record.previewUrl === 'string'
+          ? record.previewUrl
+          : url,
+    meta: (record.meta as Record<string, unknown> | null | undefined) ?? record.metadata ?? null,
+  };
+};
+
+const parseAttachments = (attachments: unknown): MessageAttachment[] => {
+  if (!attachments) return [];
+
+  let parsed: unknown = attachments;
+
+  if (typeof attachments === 'string') {
+    try {
+      parsed = JSON.parse(attachments);
+    } catch (error) {
+      console.warn('Failed to parse attachments payload', error);
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed
+    .map(normalizeAttachment)
+    .filter((attachment): attachment is MessageAttachment => Boolean(attachment && attachment.url));
+};
 
 const getErrorMessage = (error: SupabaseError) => {
   if (!error) return '';
@@ -186,20 +301,37 @@ const getErrorDescription = (error: SupabaseError, fallback: string) => {
 
 export function useMessages() {
   const { user, profile } = useAuth();
-  const { toast } = useToast();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
-  const [loading, setLoading] = useState(false);
+    const { toast } = useToast();
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [currentConversation, setCurrentConversation] = useState<string | null>(null);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
+    const [loading, setLoading] = useState(false);
 
-  const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
-  const messagesChannelRef = useRef<RealtimeChannel | null>(null);
-  const typingChannelRef = useRef<RealtimeChannel | null>(null);
+    const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
+    const messagesChannelRef = useRef<RealtimeChannel | null>(null);
+    const typingChannelRef = useRef<RealtimeChannel | null>(null);
+    const initialConversationIdRef = useRef<string | null>(
+      typeof window !== 'undefined' ? localStorage.getItem('messages:lastConversation') : null
+    );
 
-  const conversationIdsKey = useMemo(() => {
-    return conversations.map(conv => conv.id).sort().join(',');
-  }, [conversations]);
+    const conversationIdsKey = useMemo(() => {
+      return conversations.map(conv => conv.id).sort().join(',');
+    }, [conversations]);
+
+    useEffect(() => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      if (user?.id) {
+        if (!initialConversationIdRef.current) {
+          initialConversationIdRef.current = localStorage.getItem('messages:lastConversation');
+        }
+      } else {
+        initialConversationIdRef.current = localStorage.getItem('messages:lastConversation');
+      }
+    }, [user?.id]);
 
   const transformMessage = useCallback((message: RawMessage): Message => ({
     id: message.id,
@@ -207,7 +339,7 @@ export function useMessages() {
     sender_id: message.sender_id,
     content: message.content,
     message_type: message.message_type,
-    attachments: message.attachments ?? [],
+    attachments: parseAttachments(message.attachments ?? []),
     reply_to_id: message.reply_to_id,
     edited_at: message.edited_at,
     deleted_at: message.deleted_at,
@@ -350,39 +482,240 @@ export function useMessages() {
     }
   }, [transformMessage, toast, user?.id]);
 
-  const fetchConversations = useCallback(async () => {
-    if (!user?.id) {
-      setConversations([]);
-      return;
-    }
+    const fetchConversations = useCallback(async () => {
+      if (!user?.id) {
+        setConversations([]);
+        return;
+      }
 
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select(`
-          id,
-          tenant_id,
-          name,
-          is_group,
-          avatar_url,
-          created_by,
-          created_at,
-          updated_at,
-          participants:conversation_participants!inner (
+      try {
+        const { data, error } = await supabase
+          .from('conversations')
+          .select(`
             id,
-            conversation_id,
-            user_id,
-            joined_at,
-            last_read_at,
-            is_admin,
-            profile:profiles (
+            tenant_id,
+            title,
+            type,
+            is_group,
+            created_at,
+            updated_at,
+            last_message_at,
+            participants:conversation_participants!inner (
               id,
-              full_name,
-              avatar_url,
-              role
+              conversation_id,
+              user_id,
+              joined_at,
+              last_read_at
+            ),
+            lastMessage:conversation_messages(order_by: { created_at: desc }, limit: 1) (
+              id,
+              conversation_id,
+              sender_id,
+              content,
+              message_type,
+              attachments,
+              reply_to_id,
+              edited_at,
+              deleted_at,
+              created_at
             )
-          ),
-          lastMessage:conversation_messages(order_by: { created_at: desc }, limit: 1) (
+          `)
+          .eq('participants.user_id', user.id)
+          .order('last_message_at', { ascending: false, nullsLast: true })
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        const typedData = (data || []) as unknown as RawConversation[];
+
+        const participantIds = new Set<string>();
+        typedData.forEach((conversation) => {
+          (conversation.participants || []).forEach((participant) => {
+            if (participant?.user_id) {
+              participantIds.add(participant.user_id);
+            }
+          });
+
+          const rawLastMessage = conversation.lastMessage?.[0];
+          if (rawLastMessage?.sender_id) {
+            participantIds.add(rawLastMessage.sender_id);
+          }
+        });
+
+        let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null; role?: string | null }>();
+        if (participantIds.size > 0) {
+          const ids = Array.from(participantIds);
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, role')
+            .in('id', ids);
+
+          if (profilesError) {
+            console.error('Error fetching participant profiles:', profilesError);
+          } else if (profilesData) {
+            profilesMap = new Map(
+              profilesData.map((profile: any) => [
+                profile.id,
+                {
+                  id: profile.id,
+                  full_name: profile.full_name,
+                  avatar_url: profile.avatar_url ?? null,
+                  role: profile.role ?? null,
+                },
+              ])
+            );
+          }
+        }
+
+        const formatted = typedData.map((conversation) => {
+          const participants: ConversationParticipant[] = (conversation.participants || []).map(
+            (participant) => {
+              const profileRecord = profilesMap.get(participant.user_id);
+              return {
+                id: participant.id,
+                conversation_id: participant.conversation_id,
+                user_id: participant.user_id,
+                joined_at: participant.joined_at,
+                last_read_at: participant.last_read_at,
+                is_admin: participant.is_admin,
+                profile: profileRecord
+                  ? {
+                      id: profileRecord.id,
+                      full_name: profileRecord.full_name,
+                      avatar_url: profileRecord.avatar_url,
+                      role: profileRecord.role ?? 'student',
+                    }
+                  : undefined,
+              };
+            }
+          );
+
+          const rawLastMessage = conversation.lastMessage?.[0];
+          let lastMessage: Message | undefined;
+          if (rawLastMessage) {
+            const senderProfile = profilesMap.get(rawLastMessage.sender_id);
+            const messageWithProfile = {
+              ...rawLastMessage,
+              sender: senderProfile
+                ? {
+                    id: senderProfile.id,
+                    full_name: senderProfile.full_name,
+                    avatar_url: senderProfile.avatar_url,
+                  }
+                : undefined,
+            };
+            lastMessage = transformMessage(messageWithProfile as RawMessage);
+          }
+
+          const updatedAtCandidate = conversation.last_message_at ?? conversation.updated_at;
+
+          return {
+            id: conversation.id,
+            tenant_id: conversation.tenant_id,
+            name: conversation.name ?? conversation.title ?? null,
+            title: conversation.title ?? conversation.name ?? null,
+            type: conversation.type ?? (conversation.is_group ? 'group' : 'direct'),
+            is_group: conversation.is_group,
+            avatar_url: conversation.avatar_url ?? null,
+            created_by: conversation.created_by,
+            created_at: conversation.created_at,
+            updated_at: updatedAtCandidate,
+            last_message_at: conversation.last_message_at,
+            participants,
+            lastMessage,
+            unreadCount: 0,
+          } as Conversation;
+        });
+
+        const unreadCounts = await Promise.all(
+          formatted.map(async (conversation) => {
+            try {
+              const { data: unreadData, error: unreadError } = await supabase.rpc('get_unread_count', {
+                p_user_id: user.id,
+                p_conversation_id: conversation.id,
+              });
+
+              if (unreadError) throw unreadError;
+              return (unreadData as number | null) ?? 0;
+            } catch (rpcError) {
+              console.error('Error fetching unread count:', rpcError);
+              return 0;
+            }
+          })
+        );
+
+        const withUnread = formatted.map((conversation, index) => ({
+          ...conversation,
+          unreadCount: unreadCounts[index] ?? 0,
+        }));
+
+        withUnread.sort((a, b) => {
+          const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0;
+          const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0;
+          return bTime - aTime;
+        });
+
+        setConversations(withUnread);
+      } catch (error) {
+        console.error('Error fetching conversations:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load conversations',
+          variant: 'destructive',
+        });
+      }
+    }, [toast, transformMessage, user?.id]);
+
+    const sendMessage = useCallback(async (conversationId: string, payload: SendMessagePayload) => {
+      if (!user?.id) return;
+
+      const attachments = (payload.attachments ?? []).map((attachment) => ({
+        ...attachment,
+        id: attachment.id ?? createAttachmentId(),
+      }));
+
+      const trimmedContent = payload.content?.trim() ?? '';
+      const hasContent = trimmedContent.length > 0;
+      const hasAttachments = attachments.length > 0;
+
+      if (!hasContent && !hasAttachments) {
+        return;
+      }
+
+      const inferredMessageType = () => {
+        if (payload.messageType) return payload.messageType;
+        if (hasAttachments) {
+          const firstType = attachments[0]?.type;
+          if (attachments.every((attachment) => attachment.type === 'image')) {
+            return 'image';
+          }
+          return firstType || 'file';
+        }
+        return 'text';
+      };
+
+      const messageType = inferredMessageType();
+
+      const fallbackContent = () => {
+        if (messageType === 'image') return '[Image]';
+        if (messageType === 'video') return '[Video]';
+        if (messageType === 'audio') return '[Audio]';
+        return '[Attachment]';
+      };
+
+      const contentToSend = hasContent ? trimmedContent : fallbackContent();
+
+      try {
+        const { data, error } = await supabase
+          .from('conversation_messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: contentToSend,
+            message_type: messageType,
+            attachments,
+          })
+          .select(`
             id,
             conversation_id,
             sender_id,
@@ -392,127 +725,17 @@ export function useMessages() {
             reply_to_id,
             edited_at,
             deleted_at,
-            created_at,
-            sender:profiles!conversation_messages_sender_id_fkey (
-              id,
-              full_name,
-              avatar_url
-            )
-          )
-        `)
-        .eq('participants.user_id', user.id)
-        .order('updated_at', { ascending: false });
+            created_at
+          `)
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const typedData = (data || []) as unknown as RawConversation[];
-
-      const formatted = typedData.map((conversation) => {
-        const participants: ConversationParticipant[] = (conversation.participants || []).map(
-          (participant) => ({
-            id: participant.id,
-            conversation_id: participant.conversation_id,
-            user_id: participant.user_id,
-            joined_at: participant.joined_at,
-            last_read_at: participant.last_read_at,
-            is_admin: participant.is_admin,
-            profile: participant.profile
-              ? {
-                  id: participant.profile.id,
-                  full_name: participant.profile.full_name,
-                  avatar_url: participant.profile.avatar_url,
-                  role: participant.profile.role,
-                }
-              : undefined,
-          })
-        );
-
-        const lastMessageRaw = conversation.lastMessage?.[0];
-        const lastMessage = lastMessageRaw ? transformMessage(lastMessageRaw) : undefined;
-
-        return {
-          id: conversation.id,
-          tenant_id: conversation.tenant_id,
-          name: conversation.name,
-          is_group: conversation.is_group,
-          avatar_url: conversation.avatar_url,
-          created_by: conversation.created_by,
-          created_at: conversation.created_at,
-          updated_at: conversation.updated_at,
-          participants,
-          lastMessage,
-          unreadCount: 0,
-        } as Conversation;
-      });
-
-      const unreadCounts = await Promise.all(
-        formatted.map(async (conversation) => {
-          try {
-            const { data: unreadData, error: unreadError } = await supabase.rpc('get_unread_count', {
-              p_user_id: user.id,
-              p_conversation_id: conversation.id,
-            });
-
-            if (unreadError) throw unreadError;
-            return (unreadData as number | null) ?? 0;
-          } catch (rpcError) {
-            console.error('Error fetching unread count:', rpcError);
-            return 0;
-          }
-        })
-      );
-
-      const withUnread = formatted.map((conversation, index) => ({
-        ...conversation,
-        unreadCount: unreadCounts[index] ?? 0,
-      }));
-
-      setConversations(withUnread);
-    } catch (error) {
-      console.error('Error fetching conversations:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load conversations',
-        variant: 'destructive',
-      });
-    }
-  }, [toast, transformMessage, user?.id]);
-
-  const sendMessage = useCallback(async (conversationId: string, content: string) => {
-    if (!user?.id || !content.trim()) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('conversation_messages')
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          content,
-          message_type: 'text',
-          attachments: [],
-        })
-        .select(`
-          id,
-          conversation_id,
-          sender_id,
-          content,
-          message_type,
-          attachments,
-          reply_to_id,
-          edited_at,
-          deleted_at,
-          created_at
-        `)
-        .single();
-
-      if (error) throw error;
-
-      // Fetch sender profile separately
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .eq('id', user.id)
-        .single();
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .eq('id', user.id)
+          .single();
 
         const messageWithProfile = {
           ...data,
@@ -526,18 +749,19 @@ export function useMessages() {
         const formatted = transformMessage(messageWithProfile as RawMessage);
 
         if (currentConversation === conversationId) {
-          setMessages(prev => [...prev, formatted]);
+          setMessages((prev) => [...prev, formatted]);
         }
 
-        setConversations(prev =>
+        setConversations((prev) =>
           prev
-            .map(conv =>
+            .map((conv) =>
               conv.id === conversationId
                 ? {
                     ...conv,
                     lastMessage: formatted,
                     unreadCount: 0,
                     updated_at: formatted.created_at,
+                    last_message_at: formatted.created_at,
                   }
                 : conv
             )
@@ -547,15 +771,15 @@ export function useMessages() {
               return bTime - aTime;
             })
         );
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to send message',
-        variant: 'destructive',
-      });
-    }
-  }, [currentConversation, transformMessage, toast, user?.id]);
+      } catch (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to send message',
+          variant: 'destructive',
+        });
+      }
+    }, [currentConversation, transformMessage, toast, user?.id]);
 
   const startTyping = useCallback(async (conversationId: string) => {
     if (!user?.id) return;
@@ -730,16 +954,47 @@ export function useMessages() {
     ]
   );
 
-  useEffect(() => {
-    if (!user?.id) {
-      setConversations([]);
-      setMessages([]);
-      setTypingUsers([]);
-      return;
-    }
+    useEffect(() => {
+      if (!user?.id) {
+        setConversations([]);
+        setMessages([]);
+        setTypingUsers([]);
+        setCurrentConversation(null);
+        return;
+      }
 
-    fetchConversations();
-  }, [fetchConversations, user?.id]);
+      fetchConversations();
+    }, [fetchConversations, user?.id]);
+
+    useEffect(() => {
+      if (!user?.id || conversations.length === 0) {
+        return;
+      }
+
+      if (initialConversationIdRef.current) {
+        const savedId = initialConversationIdRef.current;
+        if (conversations.some((conversation) => conversation.id === savedId)) {
+          setCurrentConversation((prev) => prev ?? savedId);
+          initialConversationIdRef.current = null;
+          return;
+        }
+        initialConversationIdRef.current = null;
+      }
+
+      setCurrentConversation((prev) => prev ?? conversations[0]?.id ?? null);
+    }, [conversations, setCurrentConversation, user?.id]);
+
+    useEffect(() => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+
+      if (currentConversation) {
+        localStorage.setItem('messages:lastConversation', currentConversation);
+      } else if (user?.id) {
+        localStorage.removeItem('messages:lastConversation');
+      }
+    }, [currentConversation, user?.id]);
 
   useEffect(() => {
     if (!currentConversation) {
