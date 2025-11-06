@@ -25,6 +25,7 @@ import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, UserCircle, Mail, L
 import gegLogo from '@/assets/geg-logo.png';
 import { cn } from '@/lib/utils';
 import { formatReferralUsername } from '@/lib/referrals';
+import BackButton from '@/components/BackButton';
 
 type UserRole = 'student' | 'agent' | 'partner';
 
@@ -453,22 +454,24 @@ const Signup = () => {
           />
         </div>
 
-        <CardHeader className="space-y-1 text-center pt-8">
-          <Link
-            to="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 justify-center"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to login
-          </Link>
+          <CardHeader className="space-y-1 text-center pt-8">
+            <div className="flex justify-center mb-4">
+              <BackButton
+                variant="ghost"
+                size="sm"
+                fallback="/auth/login"
+                label="Back to login"
+                className="px-0 text-muted-foreground hover:text-foreground"
+              />
+            </div>
 
-          <div className="flex justify-center mb-4">
-            <img
-              src={gegLogo}
-              alt="GEG Logo"
-              className="h-20 w-20 object-contain dark:brightness-0 dark:invert"
-            />
-          </div>
+            <div className="flex justify-center mb-4">
+              <img
+                src={gegLogo}
+                alt="GEG Logo"
+                className="h-20 w-20 object-contain dark:brightness-0 dark:invert"
+              />
+            </div>
 
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             Join GEG

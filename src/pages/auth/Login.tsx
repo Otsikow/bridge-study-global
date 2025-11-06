@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
+import BackButton from '@/components/BackButton';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -62,22 +63,27 @@ const Login = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
-          <div className="flex justify-center mb-4">
-            <img src={gegLogo} alt="GEG Logo" className="h-24 w-24 object-contain dark:brightness-0 dark:invert" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Welcome to GEG</CardTitle>
-          <CardDescription>
-            Sign in to your Global Education Gateway account
-          </CardDescription>
-        </CardHeader>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <BackButton
+                variant="ghost"
+                size="sm"
+                fallback="/"
+                label="Back to home"
+                className="px-0 text-muted-foreground hover:text-foreground"
+              />
+            </div>
+            <div className="flex justify-center mb-4">
+              <img src={gegLogo} alt="GEG Logo" className="h-24 w-24 object-contain dark:brightness-0 dark:invert" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Welcome to GEG</CardTitle>
+            <CardDescription>
+              Sign in to your Global Education Gateway account
+            </CardDescription>
+          </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
