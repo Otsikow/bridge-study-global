@@ -116,18 +116,49 @@ const pt = {
       questions: "Dúvidas?",
     },
   },
-  components: {
-    loadingState: {
-      defaultMessage: "Carregando...",
-      retry: "Tentar novamente",
+    components: {
+      loadingState: {
+        defaultMessage: "Carregando...",
+        retry: "Tentar novamente",
+      },
+      emptyState: {
+        noRecentPages: "Nenhuma página recente",
+        goToFallback: "Ir para alternativa",
+        clearHistory: "Limpar histórico",
+        currentPage: "Página atual",
+      },
+      contactForm: {
+        placeholders: {
+          name: "Seu nome",
+          email: "Seu e-mail",
+          whatsapp: "Seu número de WhatsApp (opcional)",
+          message: "Sua mensagem",
+        },
+        submit: {
+          default: "Enviar mensagem",
+          loading: "Enviando...",
+        },
+        notifications: {
+          signInRequiredTitle: "É necessário entrar",
+          signInRequiredDescription: "Entre na plataforma para nos enviar uma mensagem.",
+          successTitle: "Mensagem enviada!",
+          successDescription: "Obrigado pelo contato. Responderemos em breve.",
+          validationTitle: "Erro de validação",
+          errorTitle: "Erro",
+          errorDescription: "Não foi possível enviar a mensagem. Tente novamente.",
+        },
+        errors: {
+          nameRequired: "O nome é obrigatório",
+          nameMax: "O nome deve ter menos de 100 caracteres",
+          emailInvalid: "E-mail inválido",
+          emailMax: "O e-mail deve ter menos de 255 caracteres",
+          messageRequired: "A mensagem é obrigatória",
+          messageMax: "A mensagem deve ter menos de 1000 caracteres",
+          whatsappInvalid: "O WhatsApp deve conter apenas números e símbolos de telefone",
+          whatsappMax: "O WhatsApp deve ter menos de 30 caracteres",
+        },
+      },
     },
-    emptyState: {
-      noRecentPages: "Nenhuma página recente",
-      goToFallback: "Ir para alternativa",
-      clearHistory: "Limpar histórico",
-      currentPage: "Página atual",
-    },
-  },
   app: {
     errors: {
       failedToLoadPageTitle: "Não foi possível carregar a página",
@@ -212,6 +243,128 @@ const pt = {
               title: "Conecte-se a agentes verificados",
               description: "Conte com agentes certificados que oferecem suporte personalizado em toda a jornada.",
             },
+          },
+        },
+        journeyRibbon: {
+          items: {
+            discover: {
+              stage: "Descobrir",
+              metricValue: "200+",
+              metricLabel: "Universidades parceiras",
+              description:
+                "Recomendações impulsionadas por IA mostram imediatamente as universidades ideais assim que você se cadastra.",
+              ctaLabel: "Iniciar inscrição",
+            },
+            plan: {
+              stage: "Planejar",
+              metricValue: "5000+",
+              metricLabel: "Planos personalizados criados",
+              description:
+                "Listas de tarefas e lembretes inteligentes mantêm milhares de estudantes organizados do histórico às cartas.",
+              ctaLabel: "",
+            },
+            collaborate: {
+              stage: "Colaborar",
+              metricValue: "24h",
+              metricLabel: "Tempo médio de resposta dos agentes",
+              description:
+                "Consultores verificados coeditam documentos, respondem dúvidas e alinham cronogramas em tempo real em todos os canais.",
+              ctaLabel: "Conheça seu agente",
+            },
+            submit: {
+              stage: "Enviar",
+              metricValue: "95%",
+              metricLabel: "Taxa de sucesso",
+              description:
+                "Envios centralizados e lembretes proativos mantêm as candidaturas avançando sem perder prazos.",
+              ctaLabel: "",
+            },
+            celebrate: {
+              stage: "Celebrar",
+              metricValue: "50+",
+              metricLabel: "Países representados",
+              description:
+                "Checklists prontas para visto e preparação pré-embarque levam estudantes com confiança a campi no mundo todo.",
+              ctaLabel: "",
+            },
+          },
+        },
+        storyboard: {
+          heading: "Como a GEG simplifica cada etapa",
+          subheading:
+            "Acompanhe o storyboard para enxergar como nossa plataforma e equipe orientam sua candidatura da ideia à chegada.",
+          stepLabel: "Etapa {{number}}",
+          steps: {
+            discover: {
+              title: "Descubra os programas ideais",
+              description:
+                "Compartilhe objetivos e histórico: a GEG seleciona instantaneamente universidades, cursos e bolsas que combinam com você.",
+              support:
+                "Filtros inteligentes e recomendações com IA eliminam a incerteza para montar uma short-list em minutos.",
+              imageAlt: "Estudante analisando programas universitários durante visita ao campus",
+            },
+            plan: {
+              title: "Monte um plano de candidatura personalizado",
+              description:
+                "Envie históricos, testes e redações com checklists guiadas que dividem tudo em tarefas manejáveis.",
+              support: "Alertas automáticos e dicas de documentos mantêm você adiantado em cada etapa.",
+              imageAlt: "Estudante planejando tarefas de candidatura em um notebook ao ar livre",
+            },
+            collaborate: {
+              title: "Colabore com seu agente especialista",
+              description:
+                "Trabalhe ao lado de um consultor GEG verificado para aprimorar documentos, alinhar prazos e estar pronto para entrevistas.",
+              support:
+                "Espaços compartilhados, feedback anotado e mensagens instantâneas garantem decisões transparentes e sem estresse.",
+              imageAlt: "Estudante conversando com agente educacional via smartphone",
+            },
+            track: {
+              title: "Envie e acompanhe sem estresse",
+              description:
+                "Candidate-se a várias universidades simultaneamente e acompanhe cada retorno, pedido e oferta em uma linha do tempo simples.",
+              support: "Indicadores ao vivo e lembretes proativos mostram a próxima ação para que nada seja esquecido.",
+              imageAlt: "Estudante verificando o andamento da candidatura enquanto caminha pelo campus",
+            },
+            celebrate: {
+              title: "Comemore e prepare a partida",
+              description:
+                "Aceite a oferta, finalize o visto e acesse recursos pré-embarque adaptados ao seu destino.",
+              support:
+                "Checklists de visto, orientações de moradia e confirmações de matrícula acompanham você até o embarque.",
+              imageAlt: "Estudante comemorando a aprovação do visto com documentos em mãos",
+            },
+          },
+        },
+        featuredUniversities: {
+          heading: "Universidades em destaque",
+          description:
+            "Instituições que oferecem constantemente aos estudantes internacionais da GEG uma experiência de acolhimento excepcional.",
+          network: {
+            label: "Rede selecionada",
+            summary: "{{count}} instituições escolhidas pela nossa equipe de parcerias",
+          },
+          badges: {
+            topPick: "Seleção premium",
+            priority: "Prioridade nº {{position}}",
+          },
+          actions: {
+            visitSite: "Visitar site",
+            scrollLeft: "Rolar universidades em destaque para a esquerda",
+            scrollRight: "Rolar universidades em destaque para a direita",
+          },
+          fallback: {
+            summary:
+              "Parceiros dedicados que acolhem estudantes da Global Education Gateway com suporte personalizado.",
+            highlight: "Parceiro dedicado ao sucesso estudantil",
+            notice: {
+              error: "Mostrando parceiros em destaque enquanto reconectamos a lista principal.",
+              updating: "Mostrando parceiros em destaque enquanto atualizamos a lista principal.",
+            },
+          },
+          partnerCta: {
+            heading: "Torne-se parceiro",
+            description: "Apresente sua instituição a milhares de estudantes motivados em todo o mundo.",
+            action: "Entrar na rede",
           },
         },
         visa: {

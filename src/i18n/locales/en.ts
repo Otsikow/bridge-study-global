@@ -127,6 +127,37 @@ const en = {
       clearHistory: "Clear history",
       currentPage: "Current page",
     },
+      contactForm: {
+        placeholders: {
+          name: "Your Name",
+          email: "Your Email",
+          whatsapp: "Your WhatsApp Number (optional)",
+          message: "Your Message",
+        },
+        submit: {
+          default: "Send Message",
+          loading: "Sending...",
+        },
+        notifications: {
+          signInRequiredTitle: "Sign in required",
+          signInRequiredDescription: "Please sign in to send us a message.",
+          successTitle: "Message sent!",
+          successDescription: "Thank you for contacting us. We'll get back to you soon.",
+          validationTitle: "Validation error",
+          errorTitle: "Error",
+          errorDescription: "Failed to send message. Please try again.",
+        },
+        errors: {
+          nameRequired: "Name is required",
+          nameMax: "Name must be less than 100 characters",
+          emailInvalid: "Invalid email address",
+          emailMax: "Email must be less than 255 characters",
+          messageRequired: "Message is required",
+          messageMax: "Message must be less than 1000 characters",
+          whatsappInvalid: "WhatsApp number can only contain numbers and phone symbols",
+          whatsappMax: "WhatsApp number must be less than 30 characters",
+        },
+      },
   },
   app: {
     errors: {
@@ -214,6 +245,128 @@ const en = {
             },
           },
         },
+      journeyRibbon: {
+        items: {
+          discover: {
+            stage: "Discover",
+            metricValue: "200+",
+            metricLabel: "Partner Universities",
+            description:
+              "AI-matched program recommendations surface the best-fit universities the moment you sign up.",
+            ctaLabel: "Start Application",
+          },
+          plan: {
+            stage: "Plan",
+            metricValue: "5000+",
+            metricLabel: "Personalized plans created",
+            description:
+              "Task checklists and smart reminders keep thousands of students organized from transcripts to statements.",
+            ctaLabel: "",
+          },
+          collaborate: {
+            stage: "Collaborate",
+            metricValue: "24h",
+            metricLabel: "Average agent response",
+            description:
+              "Verified advisors co-edit documents, answer questions, and align timelines in real time across every channel.",
+            ctaLabel: "Meet Your Agent",
+          },
+          submit: {
+            stage: "Submit",
+            metricValue: "95%",
+            metricLabel: "Success Rate",
+            description:
+              "Centralized submissions with proactive nudges help applications move forward without missing a single deadline.",
+            ctaLabel: "",
+          },
+          celebrate: {
+            stage: "Celebrate",
+            metricValue: "50+",
+            metricLabel: "Countries represented",
+            description:
+              "Visa-ready checklists and pre-departure prep launch students to campuses across the globe with confidence.",
+            ctaLabel: "",
+          },
+        },
+      },
+      storyboard: {
+        heading: "How GEG Simplifies Every Step",
+        subheading:
+          "Follow the storyboard to see exactly how our platform and people guide your application from idea to arrival.",
+        stepLabel: "Step {{number}}",
+        steps: {
+          discover: {
+            title: "Discover Your Best-Fit Programs",
+            description:
+              "Tell us your goals and academics, and GEG instantly curates universities, programs, and scholarships that match.",
+            support:
+              "Smart filters and AI-powered recommendations remove the guesswork so you can shortlist confident choices in minutes.",
+            imageAlt: "Student reviewing university programs on a campus tour",
+          },
+          plan: {
+            title: "Build a Personalized Application Plan",
+            description:
+              "Upload transcripts, test scores, and statements with guided checklists that break everything into manageable tasks.",
+            support: "Auto-reminders and document tips keep you organized and ahead of every deadline.",
+            imageAlt: "Student planning application tasks on a laptop outdoors",
+          },
+          collaborate: {
+            title: "Collaborate with Your Expert Agent",
+            description:
+              "Work side-by-side with a verified GEG advisor to polish documents, align on timelines, and stay interview ready.",
+            support:
+              "Shared workspaces, annotated feedback, and instant messaging keep every decision transparent and stress-free.",
+            imageAlt: "Student connecting with an education agent using a mobile phone",
+          },
+          track: {
+            title: "Submit & Track Without Stress",
+            description:
+              "Apply to multiple universities at once and follow every review, request, and offer from one simple timeline.",
+            support: "Live status indicators and proactive nudges flag the next action so nothing slips through the cracks.",
+            imageAlt: "Student checking application progress while walking on campus",
+          },
+          celebrate: {
+            title: "Celebrate & Prepare for Departure",
+            description:
+              "Accept your offer, finalize visa steps, and access pre-departure resources tailored to your destination.",
+            support:
+              "Visa checklists, housing guidance, and enrollment confirmations keep you on track right up to takeoff.",
+            imageAlt: "Student celebrating visa approval with documents in hand",
+          },
+        },
+      },
+      featuredUniversities: {
+        heading: "Featured Universities",
+        description:
+          "Institutions that consistently deliver an exceptional onboarding experience for Global Education Gateway students.",
+        network: {
+          label: "Featured network",
+          summary: "{{count}} institutions selected by our partnerships team",
+        },
+        badges: {
+          topPick: "Top pick",
+          priority: "Priority #{{position}}",
+        },
+        actions: {
+          visitSite: "Visit site",
+          scrollLeft: "Scroll featured universities left",
+          scrollRight: "Scroll featured universities right",
+        },
+        fallback: {
+          summary:
+            "Dedicated partners that consistently welcome Global Education Gateway students with tailored support.",
+          highlight: "Dedicated student success partner",
+          notice: {
+            error: "We're showing highlighted partners while we reconnect to the featured list.",
+            updating: "We're showing highlighted partners while our featured list updates.",
+          },
+        },
+        partnerCta: {
+          heading: "Become a partner",
+          description: "Showcase your institution to thousands of motivated students worldwide.",
+          action: "Join the network",
+        },
+      },
         visa: {
           badge: "Feature Spotlight",
           title: "Understand your visa eligibility before you apply",
