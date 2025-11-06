@@ -135,7 +135,7 @@ export default function UniversityDirectory() {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <BackButton variant="ghost" size="sm" className="mb-4" fallback="/" />
+        <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/" />
         
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-foreground">University Directory</h1>

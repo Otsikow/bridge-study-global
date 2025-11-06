@@ -268,7 +268,7 @@ export default function Documents() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+      <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
 
       <div className="space-y-1.5 animate-fade-in">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Documents</h1>

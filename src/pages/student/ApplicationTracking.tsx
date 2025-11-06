@@ -246,7 +246,7 @@ export default function ApplicationTracking() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+      <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
 
       {/* Header */}
       <div className="space-y-2">

@@ -206,7 +206,7 @@ export default function StaffMessages() {
   return (
     <DashboardLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col p-4 sm:p-6 lg:p-8">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" className="mb-4" />
+        <BackButton variant="ghost" size="sm" fallback="/dashboard" wrapperClassName="mb-4" />
 
         {/* Header */}
         <div className="space-y-2 mb-6 animate-fade-in">

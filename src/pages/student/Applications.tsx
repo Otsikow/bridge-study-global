@@ -178,7 +178,7 @@ export default function Applications() {
   if (errorHandler.hasError) {
     return (
       <div className="container mx-auto py-8 space-y-6">
-        <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+        <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
         <ErrorDisplay
           error={errorHandler.error}
           onRetry={() => errorHandler.retry(fetchApplications)}
@@ -190,7 +190,7 @@ export default function Applications() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+      <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
 
       {/* Header and Filters */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 flex-wrap animate-fade-in">

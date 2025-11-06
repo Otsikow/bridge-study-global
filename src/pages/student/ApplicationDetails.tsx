@@ -241,7 +241,7 @@ export default function ApplicationDetails() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <BackButton variant="ghost" size="sm" className="mb-2" fallback="/dashboard" />
+      <BackButton variant="ghost" size="sm" wrapperClassName="mb-2" fallback="/dashboard" />
 
       {/* Header */}
       <Card>
