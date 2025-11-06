@@ -2024,105 +2024,108 @@ export type Database = {
           },
         ]
       }
-      typing_indicators: {
-        Row: {
-          conversation_id: string
-          expires_at: string
-          id: string
-          started_at: string
-          user_id: string
+        typing_indicators: {
+          Row: {
+            conversation_id: string
+            expires_at: string
+            id: string
+            started_at: string
+            user_id: string
+          }
+          Insert: {
+            conversation_id: string
+            expires_at?: string
+            id?: string
+            started_at?: string
+            user_id: string
+          }
+          Update: {
+            conversation_id?: string
+            expires_at?: string
+            id?: string
+            started_at?: string
+            user_id?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "typing_indicators_conversation_id_fkey"
+              columns: ["conversation_id"]
+              isOneToOne: false
+              referencedRelation: "conversations"
+              referencedColumns: ["id"]
+            },
+          ]
         }
-        Insert: {
-          conversation_id: string
-          expires_at?: string
-          id?: string
-          started_at?: string
-          user_id: string
-        }
-        Update: {
-          conversation_id?: string
-          expires_at?: string
-          id?: string
-          started_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "typing_indicators_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      universities: {
-        Row: {
-          active: boolean | null
-          city: string | null
-          commission_terms_json: Json | null
-          country: string
-          created_at: string | null
-          description: string | null
-          featured: boolean | null
-          featured_highlight: string | null
-          featured_priority: number | null
-          featured_summary: string | null
-          id: string
-          logo_url: string | null
-          name: string
-          partnership_status: string | null
-          ranking: Json | null
-          submission_config_json: Json | null
-          submission_mode: string | null
-          tenant_id: string
-          updated_at: string | null
-          website: string | null
-        }
-        Insert: {
-          active?: boolean | null
-          city?: string | null
-          commission_terms_json?: Json | null
-          country: string
-          created_at?: string | null
-          description?: string | null
-          featured?: boolean | null
-          featured_highlight?: string | null
-          featured_priority?: number | null
-          featured_summary?: string | null
-          id?: string
-          logo_url?: string | null
-          name: string
-          partnership_status?: string | null
-          ranking?: Json | null
-          submission_config_json?: Json | null
-          submission_mode?: string | null
-          tenant_id: string
-          updated_at?: string | null
-          website?: string | null
-        }
-        Update: {
-          active?: boolean | null
-          city?: string | null
-          commission_terms_json?: Json | null
-          country?: string
-          created_at?: string | null
-          description?: string | null
-          featured?: boolean | null
-          featured_highlight?: string | null
-          featured_priority?: number | null
-          featured_summary?: string | null
-          id?: string
-          logo_url?: string | null
-          name?: string
-          partnership_status?: string | null
-          ranking?: Json | null
-          submission_config_json?: Json | null
-          submission_mode?: string | null
-          tenant_id?: string
-          updated_at?: string | null
-          website?: string | null
-        }
+        universities: {
+          Row: {
+            active: boolean | null
+            city: string | null
+            commission_terms_json: Json | null
+            country: string
+            created_at: string | null
+            description: string | null
+            featured: boolean | null
+            featured_highlight: string | null
+            featured_priority: number | null
+            featured_summary: string | null
+            featured_image_url: string | null
+            id: string
+            logo_url: string | null
+            name: string
+            partnership_status: string | null
+            ranking: Json | null
+            submission_config_json: Json | null
+            submission_mode: string | null
+            tenant_id: string
+            updated_at: string | null
+            website: string | null
+          }
+          Insert: {
+            active?: boolean | null
+            city?: string | null
+            commission_terms_json?: Json | null
+            country: string
+            created_at?: string | null
+            description?: string | null
+            featured?: boolean | null
+            featured_highlight?: string | null
+            featured_priority?: number | null
+            featured_summary?: string | null
+            featured_image_url?: string | null
+            id?: string
+            logo_url?: string | null
+            name: string
+            partnership_status?: string | null
+            ranking?: Json | null
+            submission_config_json?: Json | null
+            submission_mode?: string | null
+            tenant_id: string
+            updated_at?: string | null
+            website?: string | null
+          }
+          Update: {
+            active?: boolean | null
+            city?: string | null
+            commission_terms_json?: Json | null
+            country?: string
+            created_at?: string | null
+            description?: string | null
+            featured?: boolean | null
+            featured_highlight?: string | null
+            featured_priority?: number | null
+            featured_summary?: string | null
+            featured_image_url?: string | null
+            id?: string
+            logo_url?: string | null
+            name?: string
+            partnership_status?: string | null
+            ranking?: Json | null
+            submission_config_json?: Json | null
+            submission_mode?: string | null
+            tenant_id?: string
+            updated_at?: string | null
+            website?: string | null
+          }
         Relationships: [
           {
             foreignKeyName: "universities_tenant_id_fkey"
