@@ -228,40 +228,45 @@ const Index = () => {
             <Sparkles className="h-4 w-4 animate-pulse" />
             <span>Trusted by 5000+ students worldwide</span>
           </div>
-          <h1 className="text-5xl font-bold mb-4">
-            Your Gateway to{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              Global Education
-            </span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-            Connect with top universities, track applications in real-time, and
-            receive expert guidance from verified agents.
-          </p>
+            <h1 className="text-5xl font-bold mb-4">
+              Your Gateway to{" "}
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                Global Education
+              </span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Connect with top universities, track applications in real-time, and
+              receive expert guidance from verified agents.
+            </p>
 
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
-            {heroCtas.map((cta) => (
-              <Link key={cta.title} to={cta.href}>
-                <Card className="overflow-hidden group">
-                  <CardContent className="relative p-6 sm:p-7">
-                    <img
-                      src={cta.image}
-                      alt={cta.title}
-                      className="absolute inset-0 h-full w-full object-cover opacity-30 group-hover:opacity-40 transition"
-                    />
-                    <div className="relative z-10">
-                      <Badge>{cta.badge}</Badge>
-                      <h3 className="text-2xl font-bold mt-3 mb-2">
+            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+              {heroCtas.map((cta) => (
+                <Link key={cta.title} to={cta.href} className="block h-full">
+                  <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                    <div className="relative h-48 overflow-hidden sm:h-56">
+                      <img
+                        src={cta.image}
+                        alt={cta.title}
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
+                      <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                        {cta.badge}
+                      </Badge>
+                    </div>
+                    <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
+                      <h3 className="text-2xl font-bold leading-snug text-foreground">
                         {cta.title}
                       </h3>
-                      <p className="text-sm mb-4">{cta.description}</p>
-                      <Button>{cta.action}</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                      <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                        {cta.description}
+                      </p>
+                      <Button className="w-full sm:w-auto">{cta.action}</Button>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           <JourneyRibbon />
         </div>
       </section>
