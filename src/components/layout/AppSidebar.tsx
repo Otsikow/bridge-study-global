@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
   Sidebar,
@@ -99,9 +100,13 @@ const menuItems = {
   ],
 };
 
+const formatRoleLabel = (role?: string | null) =>
+  role ? role.replace(/_/g, " ") : "User";
+
 export function AppSidebar() {
   const { state } = useSidebar();
-  const { user, profile, signOut } = useAuth();
+  const { profile, signOut } = useAuth();
+  const { primaryRole, loading: rolesLoading } = useUserRoles();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -111,7 +116,9 @@ export function AppSidebar() {
   };
 
   const items =
-    profile?.role ? menuItems[profile.role] || menuItems.student : menuItems.student;
+    primaryRole && Object.prototype.hasOwnProperty.call(menuItems, primaryRole)
+      ? menuItems[primaryRole as keyof typeof menuItems]
+      : menuItems.student;
 
   return (
     <Sidebar className={state === "collapsed" ? "w-14 md:w-16" : "w-56 md:w-64"}>
@@ -127,7 +134,7 @@ export function AppSidebar() {
             <div className="min-w-0 flex-1">
               <h2 className="font-bold text-base md:text-lg truncate">GEG</h2>
               <p className="text-xs text-muted-foreground capitalize truncate">
-                {profile?.role || "User"}
+                {rolesLoading ? "Loading..." : formatRoleLabel(primaryRole)}
               </p>
             </div>
           )}
