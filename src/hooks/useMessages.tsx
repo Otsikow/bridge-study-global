@@ -15,6 +15,7 @@ export interface Conversation {
   last_message_at?: string | null;
   name?: string | null;
   avatar_url?: string | null;
+  metadata?: Record<string, unknown> | null;
   participants?: ConversationParticipant[];
   lastMessage?: Message;
   unreadCount?: number;
@@ -25,13 +26,25 @@ export interface ConversationParticipant {
   conversation_id: string;
   user_id: string;
   joined_at: string | null;
-  last_read_at: string | null;
+  last_read_at: string;
+  role?: string | null;
   is_admin?: boolean | null;
   profile?: {
     id: string;
     full_name: string;
     avatar_url: string | null;
     role: string;
+  };
+}
+
+export interface MessageReceipt {
+  message_id: string;
+  user_id: string;
+  read_at: string;
+  profile?: {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
   };
 }
 
@@ -42,10 +55,12 @@ export interface Message {
   content: string;
   message_type: string | null;
   attachments: MessageAttachment[];
+  metadata?: Record<string, unknown> | null;
   reply_to_id: string | null;
   edited_at: string | null;
   deleted_at: string | null;
   created_at: string;
+  receipts: MessageReceipt[];
   sender?: {
     id: string;
     full_name: string;
@@ -71,6 +86,8 @@ export interface MessageAttachment {
   size?: number | null;
   mime_type?: string | null;
   preview_url?: string | null;
+  storage_path?: string | null;
+  duration_ms?: number | null;
   meta?: Record<string, unknown> | null;
 }
 
@@ -78,6 +95,7 @@ export interface SendMessagePayload {
   content: string;
   attachments?: MessageAttachment[];
   messageType?: string;
+  metadata?: Record<string, unknown> | null;
 }
 
 type RawMessage = {
@@ -86,7 +104,8 @@ type RawMessage = {
   sender_id: string;
   content: string;
   message_type: string | null;
-  attachments: unknown[] | null;
+  attachments: unknown;
+  metadata: unknown;
   reply_to_id: string | null;
   edited_at: string | null;
   deleted_at: string | null;
@@ -96,6 +115,13 @@ type RawMessage = {
     full_name: string;
     avatar_url: string | null;
   } | null;
+  receipts?: RawReceipt[] | null;
+};
+
+type RawReceipt = {
+  message_id: string;
+  user_id: string;
+  read_at: string;
 };
 
 type RawParticipant = {
@@ -103,8 +129,9 @@ type RawParticipant = {
   conversation_id: string;
   user_id: string;
   joined_at: string | null;
-  last_read_at: string | null;
+  last_read_at: string;
   is_admin?: boolean | null;
+  role?: string | null;
 };
 
 type RawConversation = {
@@ -119,6 +146,7 @@ type RawConversation = {
   created_at: string | null;
   updated_at: string | null;
   last_message_at?: string | null;
+  metadata?: unknown;
   participants: RawParticipant[];
   lastMessage?: RawMessage[];
 };
@@ -217,6 +245,22 @@ const normalizeAttachment = (attachment: unknown): MessageAttachment | null => {
         : typeof record.previewUrl === 'string'
           ? record.previewUrl
           : url,
+    storage_path:
+      typeof record.storage_path === 'string'
+        ? record.storage_path
+        : typeof record.storagePath === 'string'
+          ? record.storagePath
+          : typeof record.meta === 'object' && record.meta && typeof record.meta.storagePath === 'string'
+            ? (record.meta.storagePath as string)
+            : null,
+    duration_ms:
+      typeof record.duration_ms === 'number'
+        ? record.duration_ms
+        : typeof record.durationMs === 'number'
+          ? record.durationMs
+          : typeof record.meta === 'object' && record.meta && typeof record.meta.durationMs === 'number'
+            ? (record.meta.durationMs as number)
+            : null,
     meta: (record.meta as Record<string, unknown> | null | undefined) ?? record.metadata ?? null,
   };
 };
@@ -242,6 +286,26 @@ const parseAttachments = (attachments: unknown): MessageAttachment[] => {
   return parsed
     .map(normalizeAttachment)
     .filter((attachment): attachment is MessageAttachment => Boolean(attachment && attachment.url));
+};
+
+const parseMetadata = (metadata: unknown): Record<string, unknown> | null => {
+  if (!metadata || typeof metadata !== 'object') {
+    if (typeof metadata === 'string') {
+      try {
+        const parsed = JSON.parse(metadata);
+        return typeof parsed === 'object' && parsed ? (parsed as Record<string, unknown>) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  if (metadata instanceof Date) {
+    return { timestamp: metadata.toISOString() };
+  }
+
+  return metadata as Record<string, unknown>;
 };
 
 const getErrorMessage = (error: SupabaseError) => {
@@ -307,12 +371,14 @@ export function useMessages() {
     const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
-    const messagesChannelRef = useRef<RealtimeChannel | null>(null);
-    const typingChannelRef = useRef<RealtimeChannel | null>(null);
-    const initialConversationIdRef = useRef<string | null>(
-      typeof window !== 'undefined' ? localStorage.getItem('messages:lastConversation') : null
-    );
+  const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
+  const messagesChannelRef = useRef<RealtimeChannel | null>(null);
+  const typingChannelRef = useRef<RealtimeChannel | null>(null);
+  const messageReceiptsChannelRef = useRef<RealtimeChannel | null>(null);
+  const initialConversationIdRef = useRef<string | null>(
+    typeof window !== 'undefined' ? localStorage.getItem('messages:lastConversation') : null
+  );
+  const conversationsRef = useRef<Conversation[]>([]);
 
     const conversationIdsKey = useMemo(() => {
       return conversations.map(conv => conv.id).sort().join(',');
@@ -332,17 +398,29 @@ export function useMessages() {
       }
     }, [user?.id]);
 
-  const transformMessage = useCallback((message: RawMessage): Message => ({
+const transformMessage = useCallback((message: RawMessage): Message => {
+  const receipts: MessageReceipt[] = (message.receipts || [])
+    .filter((receipt): receipt is RawReceipt => Boolean(receipt && receipt.user_id))
+    .map((receipt) => ({
+      message_id: receipt.message_id || message.id,
+      user_id: receipt.user_id,
+      read_at: receipt.read_at,
+    }))
+    .sort((a, b) => new Date(a.read_at).getTime() - new Date(b.read_at).getTime());
+
+  return {
     id: message.id,
     conversation_id: message.conversation_id,
     sender_id: message.sender_id,
     content: message.content,
     message_type: message.message_type,
-    attachments: parseAttachments(message.attachments ?? []),
+    attachments: parseAttachments(message.attachments),
+    metadata: parseMetadata(message.metadata),
     reply_to_id: message.reply_to_id,
     edited_at: message.edited_at,
     deleted_at: message.deleted_at,
     created_at: message.created_at,
+    receipts,
     sender: message.sender
       ? {
           id: message.sender.id,
@@ -350,34 +428,64 @@ export function useMessages() {
           avatar_url: message.sender.avatar_url,
         }
       : undefined,
-  }), []);
+  };
+}, []);
 
-  const markConversationAsRead = useCallback(async (conversationId: string) => {
-    if (!user?.id) return;
+const markConversationAsRead = useCallback(async (conversationId: string) => {
+  if (!user?.id) return;
 
-    try {
-      const { error } = await supabase
-        .from('conversation_participants')
-        .update({ last_read_at: new Date().toISOString() })
-        .eq('conversation_id', conversationId)
-        .eq('user_id', user.id);
+  const nowIso = new Date().toISOString();
 
-      if (error) throw error;
+  try {
+    const { error } = await supabase.rpc('mark_conversation_read', {
+      p_conversation_id: conversationId,
+    });
 
-      setConversations(prev =>
-        prev.map(conv =>
-          conv.id === conversationId
-            ? {
-                ...conv,
-                unreadCount: 0,
-              }
-            : conv
-        )
-      );
-    } catch (error) {
-      console.error('Error marking conversation as read:', error);
-    }
-  }, [user?.id]);
+    if (error) throw error;
+
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === conversationId
+          ? {
+              ...conv,
+              unreadCount: 0,
+              participants: (conv.participants || []).map(participant =>
+                participant.user_id === user.id
+                  ? { ...participant, last_read_at: nowIso }
+                  : participant
+              ),
+            }
+          : conv
+      )
+    );
+
+    const currentConversation = conversationsRef.current.find((conv) => conv.id === conversationId);
+    const currentProfile = currentConversation?.participants?.find((participant) => participant.user_id === user.id)?.profile;
+
+    setMessages((prev) =>
+      prev.map((message) => {
+        if (message.conversation_id !== conversationId) return message;
+        if (message.receipts.some((receipt) => receipt.user_id === user.id)) {
+          return message;
+        }
+        return {
+          ...message,
+          receipts: [
+            ...message.receipts,
+            {
+              message_id: message.id,
+              user_id: user.id,
+              read_at: nowIso,
+              profile: currentProfile,
+            },
+          ],
+        };
+      })
+    );
+  } catch (error) {
+    console.error('Error marking conversation as read:', error);
+  }
+}, [supabase, user?.id]);
 
   const fetchTypingIndicators = useCallback(async (conversationId: string) => {
     if (!user?.id) return;
@@ -448,6 +556,7 @@ export function useMessages() {
           content,
           message_type,
           attachments,
+          metadata,
           reply_to_id,
           edited_at,
           deleted_at,
@@ -458,20 +567,47 @@ export function useMessages() {
 
       if (error) throw error;
 
-      // Fetch sender profiles separately
-      const senderIds = [...new Set((data || []).map((msg: any) => msg.sender_id))]
-        .filter((id: string | null | undefined): id is string => Boolean(id));
+      const messageRows = (data || []) as RawMessage[];
+      const messageIds = messageRows.map((msg) => msg.id);
+      const senderIds = new Set<string>();
 
+      messageRows.forEach((msg) => {
+        if (msg.sender_id) senderIds.add(msg.sender_id);
+      });
+
+      // Fetch receipts for the messages in this conversation
+      let receiptsByMessage = new Map<string, RawReceipt[]>();
+      if (messageIds.length > 0) {
+        const { data: receiptsData, error: receiptsError } = await supabase
+          .from('message_receipts')
+          .select('message_id, user_id, read_at')
+          .in('message_id', messageIds);
+
+        if (receiptsError) {
+          console.error('Error fetching message receipts:', receiptsError);
+        } else {
+          receiptsByMessage = receiptsData?.reduce((map, receipt) => {
+            const arr = map.get(receipt.message_id) || [];
+            arr.push(receipt as RawReceipt);
+            map.set(receipt.message_id, arr);
+            senderIds.add(receipt.user_id);
+            return map;
+          }, new Map<string, RawReceipt[]>()) ?? new Map();
+        }
+      }
+
+      // Fetch profiles for senders and recipients (for receipts)
+      const uniqueUserIds = Array.from(senderIds).filter(Boolean);
       let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
 
-      if (senderIds.length > 0) {
+      if (uniqueUserIds.length > 0) {
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
-          .in('id', senderIds);
+          .in('id', uniqueUserIds);
 
         if (profilesError) {
-          console.error('Error fetching message sender profiles:', profilesError);
+          console.error('Error fetching message profiles:', profilesError);
         } else {
           profilesMap = new Map(
             (profilesData || []).map((p: any) => [p.id, p])
@@ -479,17 +615,30 @@ export function useMessages() {
         }
       }
 
-      const messagesWithProfiles = (data || []).map((msg: any) => ({
-        ...msg,
-        sender: profilesMap.get(msg.sender_id) || {
-          id: msg.sender_id,
-          full_name: 'Unknown User',
-          avatar_url: null,
-        },
+      const formatted = messageRows.map((rawMessage) => {
+        const messageWithRelations: RawMessage = {
+          ...rawMessage,
+          sender: profilesMap.get(rawMessage.sender_id) || {
+            id: rawMessage.sender_id,
+            full_name: 'Unknown User',
+            avatar_url: null,
+          },
+          receipts: receiptsByMessage.get(rawMessage.id) || [],
+        };
+
+        return transformMessage(messageWithRelations);
+      });
+
+      // Enhance receipts with profile data now that messages are transformed
+      const messagesWithReceiptProfiles = formatted.map((message) => ({
+        ...message,
+        receipts: message.receipts.map((receipt) => ({
+          ...receipt,
+          profile: profilesMap.get(receipt.user_id) || undefined,
+        })),
       }));
 
-      const formatted = messagesWithProfiles.map((message) => transformMessage(message as RawMessage));
-      setMessages(formatted);
+      setMessages(messagesWithReceiptProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -500,7 +649,7 @@ export function useMessages() {
     } finally {
       setLoading(false);
     }
-  }, [transformMessage, toast, user?.id]);
+  }, [supabase, transformMessage, toast, user?.id]);
 
     const fetchConversations = useCallback(async () => {
       if (!user?.id) {
@@ -527,7 +676,7 @@ export function useMessages() {
         // Get all conversations
         const { data: conversationsData, error: convError } = await supabase
           .from('conversations')
-          .select('id, tenant_id, title, type, is_group, created_at, updated_at, last_message_at')
+          .select('id, tenant_id, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at')
           .in('id', conversationIds)
           .order('last_message_at', { ascending: false })
           .order('updated_at', { ascending: false });
@@ -542,7 +691,7 @@ export function useMessages() {
         // Get all participants for these conversations
         const { data: allParticipants, error: allPartError } = await supabase
           .from('conversation_participants')
-          .select('id, conversation_id, user_id, joined_at, last_read_at, is_admin')
+          .select('id, conversation_id, user_id, joined_at, last_read_at, is_admin, role')
           .in('conversation_id', conversationIds);
 
         if (allPartError) throw allPartError;
@@ -550,7 +699,7 @@ export function useMessages() {
         // Get last message for each conversation
         const { data: lastMessages, error: lastMsgError } = await supabase
           .from('conversation_messages')
-          .select('id, conversation_id, sender_id, content, message_type, attachments, reply_to_id, edited_at, deleted_at, created_at')
+          .select('id, conversation_id, sender_id, content, message_type, attachments, metadata, reply_to_id, edited_at, deleted_at, created_at')
           .in('conversation_id', conversationIds)
           .order('created_at', { ascending: false });
 
@@ -566,10 +715,7 @@ export function useMessages() {
 
         const typedData = conversationsData.map(conv => ({
           ...conv,
-          participants: allParticipants ? allParticipants.filter((p: any) => p.conversation_id === conv.id).map((p: any) => ({
-            ...p,
-            is_admin: false,
-          })) : [],
+          participants: (allParticipants || []).filter((p: any) => p.conversation_id === conv.id),
           lastMessage: lastMessageMap.get(conv.id) ? [lastMessageMap.get(conv.id)] : [],
         })) as unknown as RawConversation[];
 
@@ -623,6 +769,7 @@ export function useMessages() {
                 joined_at: participant.joined_at,
                 last_read_at: participant.last_read_at,
                 is_admin: participant.is_admin,
+                role: participant.role ?? profileRecord?.role ?? 'member',
                 profile: profileRecord
                   ? {
                       id: profileRecord.id,
@@ -641,6 +788,7 @@ export function useMessages() {
             const senderProfile = profilesMap.get(rawLastMessage.sender_id);
             const messageWithProfile = {
               ...rawLastMessage,
+              metadata: rawLastMessage.metadata ?? null,
               sender: senderProfile
                 ? {
                     id: senderProfile.id,
@@ -665,8 +813,8 @@ export function useMessages() {
                     : otherParticipant?.profile?.full_name ?? 'Direct Conversation');
 
             const displayAvatar = isGroup
-              ? null
-              : otherParticipant?.profile?.avatar_url ?? null;
+              ? conversation.avatar_url ?? null
+              : otherParticipant?.profile?.avatar_url ?? conversation.avatar_url ?? null;
 
             return {
               id: conversation.id,
@@ -682,6 +830,7 @@ export function useMessages() {
               unreadCount: 0,
               name: displayName,
               avatar_url: displayAvatar,
+              metadata: parseMetadata(conversation.metadata),
             } as Conversation;
         });
 
@@ -729,7 +878,7 @@ export function useMessages() {
 
       const attachments = (payload.attachments ?? []).map((attachment) => ({
         ...attachment,
-        id: attachment.id ?? createAttachmentId(),
+      id: attachment.id ?? createAttachmentId(),
       }));
 
       const trimmedContent = payload.content?.trim() ?? '';
@@ -758,12 +907,26 @@ export function useMessages() {
         if (messageType === 'image') return '[Image]';
         if (messageType === 'video') return '[Video]';
         if (messageType === 'audio') return '[Audio]';
+      if (messageType === 'file') return '[File]';
         return '[Attachment]';
       };
 
       const contentToSend = hasContent ? trimmedContent : fallbackContent();
 
       try {
+      const serializedAttachments = attachments.map((attachment) => ({
+        id: attachment.id,
+        type: attachment.type,
+        url: attachment.url,
+        name: attachment.name ?? null,
+        size: attachment.size ?? null,
+        mime_type: attachment.mime_type ?? null,
+        preview_url: attachment.preview_url ?? null,
+        storage_path: attachment.storage_path ?? null,
+        duration_ms: attachment.duration_ms ?? null,
+        meta: attachment.meta ?? null,
+      }));
+
         const { data, error } = await supabase
           .from('conversation_messages')
           .insert([{
@@ -771,7 +934,8 @@ export function useMessages() {
             sender_id: user.id,
             content: contentToSend,
             message_type: messageType,
-            attachments: attachments as any,
+          attachments: serializedAttachments as any,
+          metadata: payload.metadata ?? null,
           }])
           .select(`
             id,
@@ -780,6 +944,7 @@ export function useMessages() {
             content,
             message_type,
             attachments,
+          metadata,
             reply_to_id,
             edited_at,
             deleted_at,
@@ -802,12 +967,26 @@ export function useMessages() {
             full_name: 'Unknown User',
             avatar_url: null,
           },
+          receipts: [{ message_id: data.id, user_id: user.id, read_at: data.created_at }],
         };
 
         const formatted = transformMessage(messageWithProfile as RawMessage);
+        const formattedWithProfile: Message = {
+          ...formatted,
+          receipts: formatted.receipts.map((receipt) => ({
+            ...receipt,
+            profile: receipt.user_id === user.id
+              ? {
+                  id: user.id,
+                  full_name: profileData?.full_name ?? user.email ?? 'You',
+                  avatar_url: profileData?.avatar_url ?? null,
+                }
+              : receipt.profile,
+          })),
+        };
 
         if (currentConversation === conversationId) {
-          setMessages((prev) => [...prev, formatted]);
+          setMessages((prev) => [...prev, formattedWithProfile]);
         }
 
         setConversations((prev) =>
@@ -816,10 +995,10 @@ export function useMessages() {
               conv.id === conversationId
                 ? {
                     ...conv,
-                    lastMessage: formatted,
+                    lastMessage: formattedWithProfile,
                     unreadCount: 0,
-                    updated_at: formatted.created_at,
-                    last_message_at: formatted.created_at,
+                    updated_at: formattedWithProfile.created_at,
+                    last_message_at: formattedWithProfile.created_at,
                   }
                 : conv
             )
@@ -837,7 +1016,7 @@ export function useMessages() {
           variant: 'destructive',
         });
       }
-    }, [currentConversation, transformMessage, toast, user?.id]);
+  }, [currentConversation, supabase, transformMessage, toast, user?.id]);
 
   const startTyping = useCallback(async (conversationId: string) => {
     if (!user?.id) return;
@@ -1024,6 +1203,11 @@ export function useMessages() {
       fetchConversations();
     }, [fetchConversations, user?.id]);
 
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+
     useEffect(() => {
       if (!user?.id || conversations.length === 0) {
         return;
@@ -1067,6 +1251,96 @@ export function useMessages() {
   }, [currentConversation, fetchMessages, fetchTypingIndicators, markConversationAsRead]);
 
   useEffect(() => {
+    if (!user?.id) {
+      if (messageReceiptsChannelRef.current) {
+        supabase.removeChannel(messageReceiptsChannelRef.current);
+        messageReceiptsChannelRef.current = null;
+      }
+      return;
+    }
+
+    if (messageReceiptsChannelRef.current) {
+      supabase.removeChannel(messageReceiptsChannelRef.current);
+      messageReceiptsChannelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel(`message-receipts-${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'message_receipts',
+      }, (payload) => {
+        const receipt = payload.new as RawReceipt;
+        if (!receipt?.message_id || !receipt?.user_id) {
+          return;
+        }
+
+        let conversationId: string | null = null;
+        let profileForReceipt: MessageReceipt['profile'] | undefined;
+
+        setMessages(prev => {
+          let updated = false;
+          const next = prev.map(message => {
+            if (message.id !== receipt.message_id) return message;
+            conversationId = message.conversation_id;
+            if (message.receipts.some(r => r.user_id === receipt.user_id)) {
+              return message;
+            }
+
+            const conversation = conversationsRef.current.find(conv => conv.id === message.conversation_id);
+            const participant = conversation?.participants?.find(p => p.user_id === receipt.user_id);
+            profileForReceipt = participant?.profile;
+
+            updated = true;
+            return {
+              ...message,
+              receipts: [
+                ...message.receipts,
+                {
+                  message_id: receipt.message_id,
+                  user_id: receipt.user_id,
+                  read_at: receipt.read_at,
+                  profile: participant?.profile,
+                },
+              ],
+            };
+          });
+          return updated ? next : prev;
+        });
+
+        setConversations(prev => prev.map(conv => {
+          if (!conv.participants?.some(p => p.user_id === receipt.user_id)) {
+            return conv;
+          }
+
+          const updatedParticipants = conv.participants.map(p =>
+            p.user_id === receipt.user_id ? { ...p, last_read_at: receipt.read_at } : p
+          );
+
+          const shouldClearUnread = receipt.user_id === user.id && conversationId && conv.id === conversationId;
+
+          return {
+            ...conv,
+            participants: updatedParticipants,
+            unreadCount: shouldClearUnread ? 0 : conv.unreadCount,
+          };
+        }));
+
+      })
+      .subscribe();
+
+    messageReceiptsChannelRef.current = channel;
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+        messageReceiptsChannelRef.current = null;
+      }
+    };
+  }, [supabase, user?.id]);
+
+  useEffect(() => {
     if (!user?.id) return;
 
     if (conversationsChannelRef.current) {
@@ -1094,6 +1368,12 @@ export function useMessages() {
         conversationsChannelRef.current = null;
       }
     };
+
+type RawReceipt = {
+  message_id: string;
+  user_id: string;
+  read_at: string;
+};
   }, [fetchConversations, user?.id]);
 
   useEffect(() => {
@@ -1128,9 +1408,47 @@ export function useMessages() {
         filter,
       }, (payload) => {
         if (payload.eventType === 'INSERT') {
-          const newMessage = transformMessage(payload.new as RawMessage);
-          const conversationId = newMessage.conversation_id;
-          const isOwnMessage = newMessage.sender_id === user.id;
+          const rawPayload = payload.new as RawMessage;
+          const conversation = conversationsRef.current.find(conv => conv.id === rawPayload.conversation_id);
+          const participantProfile = conversation?.participants?.find(p => p.user_id === rawPayload.sender_id)?.profile;
+
+          const rawMessage: RawMessage = {
+            ...rawPayload,
+            metadata: rawPayload.metadata ?? null,
+            sender: participantProfile
+              ? {
+                  id: participantProfile.id,
+                  full_name: participantProfile.full_name,
+                  avatar_url: participantProfile.avatar_url,
+                }
+              : rawPayload.sender ?? {
+                  id: rawPayload.sender_id,
+                  full_name: 'Unknown User',
+                  avatar_url: null,
+                },
+            receipts: rawPayload.receipts && rawPayload.receipts.length > 0
+              ? rawPayload.receipts
+              : [{
+                  message_id: rawPayload.id,
+                  user_id: rawPayload.sender_id,
+                  read_at: rawPayload.created_at,
+                }],
+          };
+
+          const transformed = transformMessage(rawMessage);
+          const conversationId = transformed.conversation_id;
+          const isOwnMessage = transformed.sender_id === user.id;
+
+          const messageWithProfile: Message = {
+            ...transformed,
+            receipts: transformed.receipts.map(receipt => {
+              const participant = conversation?.participants?.find(p => p.user_id === receipt.user_id);
+              return {
+                ...receipt,
+                profile: participant?.profile ?? receipt.profile,
+              };
+            }),
+          };
 
           setConversations(prev => {
             const exists = prev.some(conv => conv.id === conversationId);
@@ -1144,9 +1462,9 @@ export function useMessages() {
                 conv.id === conversationId
                   ? {
                       ...conv,
-                      lastMessage: newMessage,
+                      lastMessage: messageWithProfile,
                       unreadCount: isOwnMessage ? 0 : (conv.unreadCount || 0) + 1,
-                      updated_at: newMessage.created_at,
+                      updated_at: messageWithProfile.created_at,
                     }
                   : conv
               )
@@ -1161,10 +1479,10 @@ export function useMessages() {
 
           if (currentConversation === conversationId) {
             setMessages(prev => {
-              if (prev.find(message => message.id === newMessage.id)) {
+              if (prev.find(message => message.id === messageWithProfile.id)) {
                 return prev;
               }
-              return [...prev, newMessage];
+              return [...prev, messageWithProfile];
             });
 
             if (!isOwnMessage) {
@@ -1269,6 +1587,10 @@ export function useMessages() {
         supabase.removeChannel(typingChannelRef.current);
         typingChannelRef.current = null;
       }
+    if (messageReceiptsChannelRef.current) {
+      supabase.removeChannel(messageReceiptsChannelRef.current);
+      messageReceiptsChannelRef.current = null;
+    }
     };
   }, []);
 

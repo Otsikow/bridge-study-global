@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { MessageInput } from './MessageInput';
 import type { Message, TypingIndicator, Conversation, SendMessagePayload } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText, AudioLines } from 'lucide-react';
 import type { UserPresence } from '@/hooks/usePresence';
 
 interface ChatAreaProps {
@@ -115,6 +115,13 @@ export function ChatArea({
       .slice(0, 2);
   };
 
+  const formatFileSize = (bytes?: number | null) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const formatMessageDate = (date: string) => {
     const messageDate = new Date(date);
     if (isToday(messageDate)) return 'Today';
@@ -124,6 +131,30 @@ export function ChatArea({
 
   const formatMessageTime = (date: string) => {
     return format(new Date(date), 'HH:mm');
+  };
+
+  const getReadReceiptLabel = (message: Message) => {
+    if (!conversation || !user?.id) return null;
+    if (message.sender_id !== user.id) return null;
+
+    const recipients = (conversation.participants || []).filter((participant) => participant.user_id !== user.id);
+    if (recipients.length === 0) return null;
+
+    const readers = message.receipts.filter((receipt) => receipt.user_id !== user.id);
+    if (readers.length === 0) return null;
+
+    const hasAllRead = recipients.every((recipient) => readers.some((receipt) => receipt.user_id === recipient.user_id));
+    const readerNames = readers
+      .map((receipt) =>
+        conversation.participants?.find((participant) => participant.user_id === receipt.user_id)?.profile?.full_name
+      )
+      .filter((name): name is string => Boolean(name));
+
+    if (hasAllRead) {
+      return readerNames.length > 0 ? `Seen by ${readerNames.join(', ')}` : 'Seen';
+    }
+
+    return readerNames.length > 0 ? `Delivered to ${readerNames.join(', ')}` : 'Delivered';
   };
 
   const shouldShowDateDivider = (currentMsg: Message, previousMsg: Message | null) => {
@@ -201,6 +232,8 @@ export function ChatArea({
               const isOwnMessage = message.sender_id === user?.id;
               const showAvatar = !groupWithPrevious || isOwnMessage;
 
+              const readReceiptLabel = getReadReceiptLabel(message);
+
               return (
                 <div key={message.id}>
                   {showDate && (
@@ -249,38 +282,80 @@ export function ChatArea({
                         </p>
                         {message.attachments.length > 0 && (
                           <div className="mt-2 space-y-2">
-                            {message.attachments.map((attachment) =>
-                              attachment.type === 'image' ? (
-                                <img
-                                  key={attachment.id}
-                                  src={attachment.preview_url || attachment.url}
-                                  alt={attachment.name || 'Shared image'}
-                                  className="max-w-[240px] rounded-lg border"
-                                />
-                              ) : (
+                            {message.attachments.map((attachment) => {
+                              if (attachment.type === 'image') {
+                                return (
+                                  <img
+                                    key={attachment.id}
+                                    src={attachment.preview_url || attachment.url}
+                                    alt={attachment.name || 'Shared image'}
+                                    className="max-w-[240px] rounded-lg border"
+                                  />
+                                );
+                              }
+
+                              if (attachment.type === 'video') {
+                                return (
+                                  <video
+                                    key={attachment.id}
+                                    controls
+                                    className="w-full max-w-[320px] rounded-lg border"
+                                  >
+                                    <source src={attachment.url} type={attachment.mime_type || 'video/mp4'} />
+                                  </video>
+                                );
+                              }
+
+                              if (attachment.type === 'audio') {
+                                return (
+                                  <div key={attachment.id} className="flex flex-col gap-1 text-xs">
+                                    <div className="flex items-center gap-2 font-medium">
+                                      <AudioLines className="h-4 w-4" />
+                                      <span>{attachment.name || 'Audio message'}</span>
+                                      {attachment.size ? (
+                                        <span className="text-muted-foreground">{formatFileSize(attachment.size)}</span>
+                                      ) : null}
+                                    </div>
+                                    <audio controls className="w-full">
+                                      <source src={attachment.url} type={attachment.mime_type || 'audio/webm'} />
+                                    </audio>
+                                  </div>
+                                );
+                              }
+
+                              return (
                                 <a
                                   key={attachment.id}
                                   href={attachment.url}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-xs underline break-all"
+                                  className="inline-flex items-center gap-2 text-xs underline break-all"
                                 >
-                                  {attachment.name || 'View attachment'}
+                                  <FileText className="h-4 w-4" />
+                                  <span>{attachment.name || 'View attachment'}</span>
+                                  {attachment.size ? (
+                                    <span className="text-muted-foreground">{formatFileSize(attachment.size)}</span>
+                                  ) : null}
                                 </a>
-                              )
-                            )}
+                              );
+                            })}
                           </div>
                         )}
-                      <p
-                        className={cn(
-                          'text-xs mt-1',
-                          isOwnMessage
-                            ? 'text-primary-foreground/70'
-                            : 'text-muted-foreground'
+                        <p
+                          className={cn(
+                            'text-xs mt-1',
+                            isOwnMessage
+                              ? 'text-primary-foreground/70'
+                              : 'text-muted-foreground'
+                          )}
+                        >
+                          {formatMessageTime(message.created_at)}
+                        </p>
+                          {isOwnMessage && readReceiptLabel && (
+                          <p className="text-[10px] mt-0.5 text-primary-foreground/70">
+                              {readReceiptLabel}
+                          </p>
                         )}
-                      >
-                        {formatMessageTime(message.created_at)}
-                      </p>
                     </div>
                   </div>
                 </div>
