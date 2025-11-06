@@ -386,7 +386,7 @@ export default function NewApplication() {
 
   return (
     <div className="container mx-auto py-8 space-y-6 max-w-5xl">
-      <BackButton variant="ghost" size="sm" className="mb-4" fallback="/dashboard" />
+      <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
 
       {/* Header */}
       <div className="space-y-1.5 animate-fade-in">

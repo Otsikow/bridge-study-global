@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingState } from "@/components/LoadingState";
+import { NavigationHistoryProvider } from "@/hooks/useNavigationHistory";
 import { lazy, Suspense, ComponentType } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -207,9 +208,10 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Suspense
+          <BrowserRouter>
+            <AuthProvider>
+              <NavigationHistoryProvider>
+                <Suspense
               fallback={
                 <div className="min-h-screen flex items-center justify-center">
                   <LoadingState
@@ -218,11 +220,11 @@ const App = () => (
                     className="text-muted-foreground"
                   />
                 </div>
-              }
-            >
-              <div className="min-h-screen flex flex-col">
-                <div className="flex-1">
-                  <Routes>
+                }
+              >
+                <div className="min-h-screen flex flex-col">
+                  <div className="flex-1">
+                    <Routes>
                     {/* Public Routes */}
                     <Route
                       path="/"
@@ -626,10 +628,11 @@ const App = () => (
                         </PublicLayout>
                       }
                     />
-                  </Routes>
+                    </Routes>
+                  </div>
                 </div>
-              </div>
-            </Suspense>
+              </Suspense>
+            </NavigationHistoryProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
