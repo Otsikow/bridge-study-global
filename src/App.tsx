@@ -14,7 +14,74 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Messages from "./pages/student/Messages";
 
-// ✅ Lazy loading wrapper with error handling
+// ✅ Lazy loading wrapper with error handling & recovery from chunk errors
+const CHUNK_ERROR_PATTERNS = [
+  "Failed to fetch dynamically imported module",
+  "ChunkLoadError",
+  "Loading chunk",
+  "Importing a module script failed",
+] as const;
+
+const CHUNK_RELOAD_SESSION_KEY = "__app_chunk_reload_ts";
+
+const isChunkLoadError = (error: unknown): error is Error => {
+  if (!(error instanceof Error)) return false;
+  const message = error.message ?? "";
+  return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+};
+
+const triggerHardReload = async () => {
+  if (typeof window === "undefined") return;
+
+  const now = Date.now();
+  let lastReloadTs = 0;
+
+  try {
+    lastReloadTs = Number(window.sessionStorage.getItem(CHUNK_RELOAD_SESSION_KEY) ?? "0");
+  } catch (storageError) {
+    console.warn("Unable to read reload flag from sessionStorage", storageError);
+  }
+
+  // Prevent infinite reload loops within a short time span
+  if (now - lastReloadTs < 5_000) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(CHUNK_RELOAD_SESSION_KEY, String(now));
+  } catch (storageError) {
+    console.warn("Unable to persist reload flag in sessionStorage", storageError);
+  }
+
+  if ("caches" in window) {
+    try {
+      const cacheStorage = window.caches;
+      if (cacheStorage) {
+        const cacheNames = await cacheStorage.keys();
+        await Promise.all(cacheNames.map((cacheName) => cacheStorage.delete(cacheName)));
+      }
+    } catch (cacheError) {
+      console.warn("Unable to clear caches before reload", cacheError);
+    }
+  }
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("__cacheBust", now.toString());
+  window.location.replace(url.toString());
+};
+
+const getLazyErrorMessage = (error: unknown, chunkError: boolean): string => {
+  if (chunkError) {
+    return "We refreshed the app to fetch the latest files. If this keeps happening, please clear your browser cache and try again.";
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "The page could not be loaded. This might be due to a network issue or the page being temporarily unavailable.";
+};
+
 const lazyWithErrorHandling = <T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>
 ) => {
@@ -22,7 +89,15 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
     try {
       return await importFn();
     } catch (error) {
+      const chunkError = isChunkLoadError(error);
       console.error("Error loading component:", error);
+
+      if (chunkError) {
+        void triggerHardReload();
+      }
+
+      const friendlyMessage = getLazyErrorMessage(error, chunkError);
+
       return {
         default: ((() => (
           <div className="min-h-screen flex items-center justify-center p-4">
@@ -32,11 +107,7 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
                   <AlertCircle className="h-6 w-6" />
                   <h3 className="font-semibold text-lg">Failed to Load Page</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {error instanceof Error
-                    ? error.message
-                    : "The page could not be loaded. This might be due to a network issue or the page being temporarily unavailable."}
-                </p>
+                <p className="text-sm text-muted-foreground">{friendlyMessage}</p>
                 <div className="flex gap-2">
                   <Button onClick={() => window.location.reload()} className="gap-2">
                     <RefreshCw className="h-4 w-4" />
