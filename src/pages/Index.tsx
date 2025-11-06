@@ -48,7 +48,7 @@ const Index = () => {
       description:
         "Create a profile, upload documents once, and send polished applications to top universities in minutes.",
       action: "Start Application",
-      href: "/auth/signup",
+      href: "/auth/signup?role=student",
       image: studentLaptopOutdoors,
     },
     {
@@ -363,7 +363,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-3xl font-bold mb-4">{step.title}</h3>
                 <p className="text-muted-foreground mb-6">{step.description}</p>
-                <Link to="/auth/signup">
+                <Link to="/auth/signup?role=student">
                   <Button variant="outline">Get Started</Button>
                 </Link>
               </div>

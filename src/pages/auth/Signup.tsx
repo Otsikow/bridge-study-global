@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, UserCircle, Mail, L
 import gegLogo from '@/assets/geg-logo.png';
 import { cn } from '@/lib/utils';
 
-type UserRole = 'student' | 'agent' | 'partner' | 'admin';
+type UserRole = 'student' | 'agent' | 'partner';
+
+const ROLE_OPTIONS: UserRole[] = ['student', 'agent', 'partner'];
 
 const COUNTRIES = [
   'United States', 'United Kingdom', 'Canada', 'Australia', 'New Zealand',
@@ -50,8 +52,30 @@ const Signup = () => {
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const totalSteps = 3;
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const roleParam = params.get('role');
+    if (!roleParam) {
+      return;
+    }
+
+    const normalizedRole = roleParam.toLowerCase() as UserRole;
+    if (!ROLE_OPTIONS.includes(normalizedRole)) {
+      return;
+    }
+
+    setRole((currentRole) => {
+      if (currentRole === normalizedRole) {
+        return currentRole;
+      }
+      setStep(1);
+      return normalizedRole;
+    });
+  }, [location.search]);
 
   const handleGoogleSignUp = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -220,8 +244,6 @@ const Signup = () => {
         return '💼';
       case 'partner':
         return '🏛️';
-      case 'admin':
-        return '⚙️';
       default:
         return '👤';
     }
@@ -235,8 +257,6 @@ const Signup = () => {
         return 'Help students with their applications and earn commissions';
       case 'partner':
         return 'Manage university partnerships and applications';
-      case 'admin':
-        return 'Full system access and management capabilities';
       default:
         return '';
     }
@@ -293,18 +313,18 @@ const Signup = () => {
                   Select Account Type
                 </Label>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {(['student', 'agent', 'partner', 'admin'] as UserRole[]).map((roleType) => (
-                    <button
-                      key={roleType}
-                      type="button"
-                      onClick={() => setRole(roleType)}
-                      className={cn(
+                    {ROLE_OPTIONS.map((roleType) => (
+                      <button
+                        key={roleType}
+                        type="button"
+                        onClick={() => setRole(roleType)}
+                        className={cn(
                           'w-full rounded-2xl border-2 transition-all duration-300 text-left hover:shadow-lg hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 px-5 py-4 sm:px-6 sm:py-6',
-                        role === roleType
+                          role === roleType
                             ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/50'
-                      )}
-                    >
+                        )}
+                      >
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
                           <span className="text-3xl sm:text-4xl">{getRoleIcon(roleType)}</span>
                           <div className="flex-1 space-y-2">
@@ -318,9 +338,9 @@ const Signup = () => {
                               {getRoleDescription(roleType)}
                             </p>
                           </div>
-                      </div>
-                    </button>
-                  ))}
+                        </div>
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>

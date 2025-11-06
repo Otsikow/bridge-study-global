@@ -11,7 +11,7 @@ const journeyRibbon = [
         description: "AI-matched program recommendations surface the best-fit universities the moment you sign up.",
         cta: {
             label: "Start Application",
-            href: "/auth/signup",
+            href: "/auth/signup?role=student",
         },
     },
     {
