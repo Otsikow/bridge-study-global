@@ -262,11 +262,15 @@ const Signup = () => {
         referrerId: referrerInfo?.id,
         referrerUsername: referrerInfo?.username,
       });
-      if (error)
+
+      if (error) {
         toast({ variant: "destructive", title: "Signup failed", description: error.message });
-      else {
-        toast({ title: "Account created!", description: "Check your email to verify your account." });
-        setTimeout(() => navigate("/auth/login"), 2000);
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Check your email to verify your account before logging in.",
+        });
+        navigate("/verify-email", { state: { email } });
       }
     } catch {
       toast({ variant: "destructive", title: "Signup failed", description: "Unexpected error." });
