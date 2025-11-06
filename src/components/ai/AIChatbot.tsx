@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-    Sparkles,
+  Sparkles,
   Send,
   X,
   Bot,
@@ -52,21 +52,27 @@ interface Message {
 }
 
 const STORAGE_KEY = "zoe-chat-session-id";
-const { url: SUPABASE_URL } = getSupabaseBrowserConfig();
-const SUPABASE_FUNCTIONS_BASE = `${SUPABASE_URL}/functions/v1`;
+const { url: SUPABASE_URL, functionsUrl: SUPABASE_FUNCTIONS_URL } =
+  getSupabaseBrowserConfig();
+const SUPABASE_FUNCTIONS_BASE = (
+  SUPABASE_FUNCTIONS_URL ?? `${SUPABASE_URL}/functions/v1`
+).replace(/\/+$/, "");
 
 const SUGGESTED_PROMPTS: { label: string; prompt: string }[] = [
   {
     label: "Scholarship guidance",
-    prompt: "Can you outline scholarship options for international master’s students heading to Canada?",
+    prompt:
+      "Can you outline scholarship options for international master’s students heading to Canada?",
   },
   {
     label: "Visa timeline",
-    prompt: "What documents do I need for a student visa and when should I apply?",
+    prompt:
+      "What documents do I need for a student visa and when should I apply?",
   },
   {
     label: "Partner onboarding",
-    prompt: "What steps do new university partners follow to launch a program with GEG?",
+    prompt:
+      "What steps do new university partners follow to launch a program with GEG?",
   },
   {
     label: "Agent compliance",
@@ -89,7 +95,7 @@ function formatInline(text: string) {
       .replace(/\*(.+?)\*/g, "<em>$1</em>")
       .replace(/__(.+?)__/g, "<strong>$1</strong>")
       .replace(/_(.+?)_/g, "<em>$1</em>")
-      .replace(/`(.+?)`/g, "<code>$1</code>")
+      .replace(/`(.+?)`/g, "<code>$1</code>"),
   );
 }
 
@@ -101,7 +107,10 @@ function FormattedMessage({ content }: { content: string }) {
   const flushList = () => {
     if (listItems.length > 0) {
       elements.push(
-        <ul key={`list-${elements.length}`} className="list-disc list-inside space-y-1 my-2">
+        <ul
+          key={`list-${elements.length}`}
+          className="list-disc list-inside space-y-1 my-2"
+        >
           {listItems.map((item, index) => (
             <li
               key={index}
@@ -109,7 +118,7 @@ function FormattedMessage({ content }: { content: string }) {
               dangerouslySetInnerHTML={{ __html: formatInline(item) }}
             />
           ))}
-        </ul>
+        </ul>,
       );
       listItems = [];
     }
@@ -120,9 +129,12 @@ function FormattedMessage({ content }: { content: string }) {
       flushList();
       const heading = line.replace(/^#{1,6}\s+/, "").trim();
       elements.push(
-        <h3 key={`heading-${elements.length}`} className="font-semibold text-sm mt-3 mb-1">
+        <h3
+          key={`heading-${elements.length}`}
+          className="font-semibold text-sm mt-3 mb-1"
+        >
           {heading}
-        </h3>
+        </h3>,
       );
       return;
     }
@@ -144,7 +156,7 @@ function FormattedMessage({ content }: { content: string }) {
         key={`paragraph-${elements.length}`}
         className="text-sm leading-relaxed whitespace-pre-wrap"
         dangerouslySetInnerHTML={{ __html: formatInline(line) }}
-      />
+      />,
     );
   });
 
@@ -164,13 +176,17 @@ function MessageSources({ sources }: { sources: ZoeSource[] }) {
       <ul className="space-y-1.5">
         {sources.map((source, index) => (
           <li key={source.id ?? index} className="flex items-start gap-2">
-            <span className="mt-0.5 text-[10px] font-semibold text-primary/80">[{index + 1}]</span>
+            <span className="mt-0.5 text-[10px] font-semibold text-primary/80">
+              [{index + 1}]
+            </span>
             <div className="flex-1 space-y-0.5">
               <p className="font-medium text-foreground text-xs">
                 {source.title ?? "Institutional guidance"}
               </p>
               <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-                {source.category && <span className="uppercase">{source.category}</span>}
+                {source.category && (
+                  <span className="uppercase">{source.category}</span>
+                )}
                 {typeof source.similarity === "number" && (
                   <span className="text-emerald-600 dark:text-emerald-400">
                     Match {(source.similarity * 100).toFixed(0)}%
@@ -237,7 +253,7 @@ export default function ZoeChatbot() {
 
   useEffect(() => {
     const viewport = scrollRef.current?.querySelector(
-      "[data-radix-scroll-area-viewport]"
+      "[data-radix-scroll-area-viewport]",
     ) as HTMLDivElement | null;
 
     if (!viewport) return;
@@ -253,7 +269,10 @@ export default function ZoeChatbot() {
   const generateSuggestions = useCallback((history: Message[]) => {
     const lastUserMessage = [...history]
       .reverse()
-      .find((message) => message.role === "user" && message.content.trim().length > 0);
+      .find(
+        (message) =>
+          message.role === "user" && message.content.trim().length > 0,
+      );
 
     if (!lastUserMessage) {
       return SUGGESTED_PROMPTS;
@@ -269,40 +288,67 @@ export default function ZoeChatbot() {
     };
 
     if (/(visa|immigration|permit|embassy)/.test(text)) {
-      addSuggestion("Visa checklist", "Can you provide a visa preparation checklist specific to my intake?");
-      addSuggestion("Interview prep", "What common visa interview questions should I prepare for?");
+      addSuggestion(
+        "Visa checklist",
+        "Can you provide a visa preparation checklist specific to my intake?",
+      );
+      addSuggestion(
+        "Interview prep",
+        "What common visa interview questions should I prepare for?",
+      );
     }
 
     if (/(scholar|funding|financial aid|tuition)/.test(text)) {
-      addSuggestion("Funding comparison", "Could you compare scholarships and grants that fit my background?");
+      addSuggestion(
+        "Funding comparison",
+        "Could you compare scholarships and grants that fit my background?",
+      );
     }
 
     if (/(partner|university|institution|campus)/.test(text)) {
-      addSuggestion("Partner onboarding", "What milestones should a new university partner expect in the first 90 days?");
+      addSuggestion(
+        "Partner onboarding",
+        "What milestones should a new university partner expect in the first 90 days?",
+      );
     }
 
     if (/(agent|compliance|training|certification)/.test(text)) {
-      addSuggestion("Compliance overview", "What compliance documents should our agents review this quarter?");
+      addSuggestion(
+        "Compliance overview",
+        "What compliance documents should our agents review this quarter?",
+      );
     }
 
     if (/(application|apply|admission|document)/.test(text)) {
-      addSuggestion("Application tracker", "How can I track outstanding documents for my application?");
+      addSuggestion(
+        "Application tracker",
+        "How can I track outstanding documents for my application?",
+      );
     }
 
     if (/(timeline|deadline|schedule)/.test(text)) {
-      addSuggestion("Timeline planning", "Can you build a milestone timeline so I stay on track?");
+      addSuggestion(
+        "Timeline planning",
+        "Can you build a milestone timeline so I stay on track?",
+      );
     }
 
     if ((lastUserMessage.attachments?.length ?? 0) > 0) {
-      addSuggestion("Attachment summary", "Can you summarize the key points from the files I shared?");
+      addSuggestion(
+        "Attachment summary",
+        "Can you summarize the key points from the files I shared?",
+      );
     }
 
     if (!dynamic.length) {
       addSuggestion(
         "Explore services",
-        "What else can you help me with regarding my study abroad plans?"
+        "What else can you help me with regarding my study abroad plans?",
       );
-      addSuggestion("Talk to an advisor", "How do I schedule time with a human advisor if I need deeper support?");
+      addSuggestion(
+        "Talk to an advisor",
+        "How do I schedule time with a human advisor if I need deeper support?",
+      );
     }
 
     const filled = [...dynamic];
@@ -327,7 +373,8 @@ export default function ZoeChatbot() {
   const playNotification = useCallback(async () => {
     if (typeof window === "undefined") return;
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       let ctx = audioContextRef.current;
       if (!ctx) {
@@ -391,30 +438,30 @@ export default function ZoeChatbot() {
     }
   }, [isRecording]);
 
-    const transcribeBlob = useCallback(
-      async (blob: Blob) => {
-        if (!session?.access_token) return;
-        const url = `${SUPABASE_FUNCTIONS_BASE}/audio-transcribe`;
-        const formData = new FormData();
-        formData.append("audio", blob, "voice.webm");
+  const transcribeBlob = useCallback(
+    async (blob: Blob) => {
+      if (!session?.access_token) return;
+      const url = `${SUPABASE_FUNCTIONS_BASE}/audio-transcribe`;
+      const formData = new FormData();
+      formData.append("audio", blob, "voice.webm");
 
-        try {
-          const res = await fetch(url, {
-            method: "POST",
-            headers: { Authorization: `Bearer ${session.access_token}` },
-            body: formData,
-          });
-          const data = await res.json();
-          if (data?.text) {
-            setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
-          }
-        } catch (error) {
-          console.error("Transcription failed", error);
-          toast({ title: "Transcription failed", variant: "destructive" });
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: formData,
+        });
+        const data = await res.json();
+        if (data?.text) {
+          setInput((prev) => (prev ? `${prev} ${data.text}` : data.text));
         }
-      },
-      [session?.access_token, toast]
-    );
+      } catch (error) {
+        console.error("Transcription failed", error);
+        toast({ title: "Transcription failed", variant: "destructive" });
+      }
+    },
+    [session?.access_token, toast],
+  );
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -484,13 +531,17 @@ export default function ZoeChatbot() {
         };
 
         setAttachments((prev) => [...prev, attachment]);
-        toast({ title: "Uploaded", description: `${file.name} is attached to your message.` });
+        toast({
+          title: "Uploaded",
+          description: `${file.name} is attached to your message.`,
+        });
       } catch (error) {
-        const description = error instanceof Error ? error.message : "Upload failed";
+        const description =
+          error instanceof Error ? error.message : "Upload failed";
         toast({ title: "Upload error", description, variant: "destructive" });
       }
     },
-    [session?.access_token, toast]
+    [session?.access_token, toast],
   );
 
   const handleFileUpload = useCallback(
@@ -505,7 +556,7 @@ export default function ZoeChatbot() {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }
     },
-    [uploadFile]
+    [uploadFile],
   );
 
   const removeAttachment = useCallback((id: string) => {
@@ -525,7 +576,7 @@ export default function ZoeChatbot() {
         setIsUploading(false);
       }
     },
-    [uploadFile]
+    [uploadFile],
   );
 
   const formatFileSize = useCallback((bytes: number) => {
@@ -537,7 +588,11 @@ export default function ZoeChatbot() {
   }, []);
 
   const sendMessage = useCallback(async () => {
-    if ((!input.trim() && attachments.length === 0) || isLoading || !session?.access_token) {
+    if (
+      (!input.trim() && attachments.length === 0) ||
+      isLoading ||
+      !session?.access_token
+    ) {
       if (!session?.access_token) {
         toast({
           title: "Sign in required",
@@ -569,7 +624,8 @@ export default function ZoeChatbot() {
     try {
       const chatUrl = `${SUPABASE_FUNCTIONS_BASE}/ai-chatbot`;
       const audience = profile?.role ?? undefined;
-      const locale = typeof navigator !== "undefined" ? navigator.language : "en";
+      const locale =
+        typeof navigator !== "undefined" ? navigator.language : "en";
 
       const response = await fetch(chatUrl, {
         method: "POST",
@@ -652,19 +708,26 @@ export default function ZoeChatbot() {
               }
 
               if (parsed?.type === "sources" && Array.isArray(parsed.sources)) {
-                const normalized = (parsed.sources as ZoeSource[]).map((source) => ({
-                  id: source.id,
-                  title: source.title,
-                  category: source.category,
-                  source_type: source.source_type,
-                  source_url: source.source_url,
-                  similarity: typeof source.similarity === "number" ? source.similarity : null,
-                }));
+                const normalized = (parsed.sources as ZoeSource[]).map(
+                  (source) => ({
+                    id: source.id,
+                    title: source.title,
+                    category: source.category,
+                    source_type: source.source_type,
+                    source_url: source.source_url,
+                    similarity:
+                      typeof source.similarity === "number"
+                        ? source.similarity
+                        : null,
+                  }),
+                );
                 applySources(normalized);
                 continue;
               }
 
-              const text = parsed?.choices?.[0]?.delta?.content as string | undefined;
+              const text = parsed?.choices?.[0]?.delta?.content as
+                | string
+                | undefined;
               if (text) {
                 if (!notificationPlayedRef.current) {
                   notificationPlayedRef.current = true;
@@ -682,7 +745,10 @@ export default function ZoeChatbot() {
       console.error("Zoe chat error", error);
       toast({
         title: "Something went wrong",
-        description: error instanceof Error ? error.message : "Zoe could not finish that reply.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Zoe could not finish that reply.",
         variant: "destructive",
       });
     } finally {
@@ -707,90 +773,110 @@ export default function ZoeChatbot() {
       setInput(prompt);
       if (!isOpen) setIsOpen(true);
     },
-    [isOpen]
+    [isOpen],
   );
 
-    if (!isOpen) {
-      return (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold shadow-xl transition hover:translate-y-[-2px] hover:shadow-2xl md:bottom-6 md:right-6 md:h-14 md:px-6 md:text-base"
-          aria-label="Chat with Zoe"
-        >
-          <Sparkles className="h-5 w-5" />
-          Chat
-        </Button>
-      );
+  if (!isOpen) {
+    return (
+      <Button
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-4 right-4 flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold shadow-xl transition hover:translate-y-[-2px] hover:shadow-2xl md:bottom-6 md:right-6 md:h-14 md:px-6 md:text-base"
+        aria-label="Chat with Zoe"
+      >
+        <Sparkles className="h-5 w-5" />
+        Chat
+      </Button>
+    );
   }
 
   return (
-        <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
-        <CardHeader className="px-5 pb-2 pt-5">
+    <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
+      <CardHeader className="px-5 pb-2 pt-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-primary/40">
-              <img src={zoeAvatar} alt="Zoe avatar" className="h-full w-full object-cover" />
+              <img
+                src={zoeAvatar}
+                alt="Zoe avatar"
+                className="h-full w-full object-cover"
+              />
               <span className="absolute inset-0 rounded-full bg-primary/10" />
             </div>
-              <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold md:text-lg">
-                  Zoe
-                  <span className="hidden items-center gap-1 text-xs font-medium uppercase tracking-wide text-primary/80 sm:inline-flex">
-                    <Sparkles className="h-3 w-3" /> Always ready to help
-                  </span>
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold md:text-lg">
+                Zoe
+                <span className="hidden items-center gap-1 text-xs font-medium uppercase tracking-wide text-primary/80 sm:inline-flex">
+                  <Sparkles className="h-3 w-3" /> Always ready to help
+                </span>
               </CardTitle>
-                <p className="text-xs text-muted-foreground md:text-sm">
-                  AI-powered support for students, universities, and recruitment partners
+              <p className="text-xs text-muted-foreground md:text-sm">
+                AI-powered support for students, universities, and recruitment
+                partners
               </p>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="h-8 w-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+            className="h-8 w-8"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
-          {suggestions.length > 0 && input.trim().length === 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {suggestions.map(({ label, prompt }) => (
-                <Button
-                  key={label}
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="h-9 rounded-full bg-primary/10 text-xs font-medium text-primary shadow-inner transition hover:bg-primary/20"
-                  onClick={() => quickPromptHandler(prompt)}
-                >
-                  <MessageSquareQuote className="mr-1.5 h-3.5 w-3.5" />
-                  {label}
-                </Button>
-              ))}
-            </div>
-          ) : null}
+        {suggestions.length > 0 && input.trim().length === 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {suggestions.map(({ label, prompt }) => (
+              <Button
+                key={label}
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-9 rounded-full bg-primary/10 text-xs font-medium text-primary shadow-inner transition hover:bg-primary/20"
+                onClick={() => quickPromptHandler(prompt)}
+              >
+                <MessageSquareQuote className="mr-1.5 h-3.5 w-3.5" />
+                {label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
       </CardHeader>
 
-          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
-            <ScrollArea ref={scrollRef} className="min-h-0 flex-1 px-5">
-            <div className="space-y-4 py-5">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+        <ScrollArea ref={scrollRef} className="min-h-0 flex-1 px-5">
+          <div className="space-y-4 py-5">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
               return (
-                <div key={index} className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={index}
+                  className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}
+                >
                   {!isUser && (
                     <div className="h-8 w-8 overflow-hidden rounded-full bg-primary/10 ring-1 ring-primary/30">
-                      <img src={zoeAvatar} alt="Zoe" className="h-full w-full object-cover" />
+                      <img
+                        src={zoeAvatar}
+                        alt="Zoe"
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                   )}
-                    <div
-                      className={`max-w-[80%] rounded-3xl px-5 py-4 shadow-sm transition-all ${
+                  <div
+                    className={`max-w-[80%] rounded-3xl px-5 py-4 shadow-sm transition-all ${
                       isUser
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card/90 border border-primary/10 text-foreground backdrop-blur"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-card/90 border border-primary/10 text-foreground backdrop-blur"
                     }`}
                   >
                     <FormattedMessage content={message.content} />
                     {message.attachments?.length ? (
                       <div className="mt-3 space-y-1 text-xs">
                         {message.attachments.map((attachment) => (
-                          <div key={attachment.id} className="flex items-center gap-2 opacity-90">
+                          <div
+                            key={attachment.id}
+                            className="flex items-center gap-2 opacity-90"
+                          >
                             {attachment.type.startsWith("image/") ? (
                               <Image className="h-3.5 w-3.5" />
                             ) : (
@@ -808,7 +894,9 @@ export default function ZoeChatbot() {
                         ))}
                       </div>
                     ) : null}
-                    {message.sources && message.sources.length > 0 && !isUser ? (
+                    {message.sources &&
+                    message.sources.length > 0 &&
+                    !isUser ? (
                       <MessageSources sources={message.sources} />
                     ) : null}
                   </div>
@@ -820,20 +908,20 @@ export default function ZoeChatbot() {
                 </div>
               );
             })}
-              {isLoading && (
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30">
-                    <Bot className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="rounded-full bg-muted/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
-                    Zoe is preparing a response…
-                  </div>
+            {isLoading && (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30">
+                  <Bot className="h-4 w-4 text-primary" />
                 </div>
-              )}
+                <div className="rounded-full bg-muted/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  Zoe is preparing a response…
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
-          <div className="flex-shrink-0 border-t border-primary/10 bg-background/90 px-5 pb-5 pt-4">
+        <div className="flex-shrink-0 border-t border-primary/10 bg-background/90 px-5 pb-5 pt-4">
           {attachments.length > 0 && (
             <div className="mb-3 space-y-2">
               {attachments.map((attachment) => (
@@ -862,10 +950,12 @@ export default function ZoeChatbot() {
             </div>
           )}
 
-            <form
-              className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
-                isDragOver ? "border-primary bg-primary/5 shadow-inner" : "border-border bg-card/40"
-              }`}
+          <form
+            className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
+              isDragOver
+                ? "border-primary bg-primary/5 shadow-inner"
+                : "border-border bg-card/40"
+            }`}
             onSubmit={(event) => {
               event.preventDefault();
               void sendMessage();
@@ -889,58 +979,71 @@ export default function ZoeChatbot() {
               className="hidden"
             />
 
-              <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-xl"
-                  onClick={() => fileInputRef.current?.click()}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-xl"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading || isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-xl"
+                onClick={isRecording ? stopRecording : startRecording}
+                disabled={isLoading}
+              >
+                {isRecording ? (
+                  <MicOff className="h-4 w-4 text-destructive" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
+
+              <div className="flex-1">
+                <Textarea
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      void sendMessage();
+                    }
+                  }}
+                  placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
                   disabled={isLoading || isUploading}
-                >
-                  {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 rounded-xl"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={isLoading}
-                >
-                  {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
-                </Button>
-
-                <div className="flex-1">
-                  <Textarea
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" && !event.shiftKey) {
-                        event.preventDefault();
-                        void sendMessage();
-                      }
-                    }}
-                    placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
-                    disabled={isLoading || isUploading}
-                    className="min-h-[52px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={isLoading || isUploading || (!input.trim() && attachments.length === 0)}
-                  className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+                  className="min-h-[52px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
               </div>
+
+              <Button
+                type="submit"
+                size="icon"
+                disabled={
+                  isLoading ||
+                  isUploading ||
+                  (!input.trim() && attachments.length === 0)
+                }
+                className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </form>
 
-            <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-            “Meet Zoe — your AI-powered student and university assistant, always ready to help.”
+          <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+            “Meet Zoe — your AI-powered student and university assistant, always
+            ready to help.”
           </p>
         </div>
       </CardContent>

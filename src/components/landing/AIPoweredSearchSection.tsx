@@ -11,8 +11,8 @@ import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
 import {
   ArrowRight,
   Award,
@@ -104,7 +104,8 @@ const sampleResults: AISearchResults = {
           name: "Imperial Global STEM Leadership Scholarship",
           amount: "Up to £20,000",
           deadline: "February each year",
-          eligibility: "Outstanding academic profile with leadership achievements in STEM fields.",
+          eligibility:
+            "Outstanding academic profile with leadership achievements in STEM fields.",
           link: "https://www.imperial.ac.uk/study/pg/fees-and-funding/scholarships/",
         },
       ],
@@ -141,7 +142,8 @@ const sampleResults: AISearchResults = {
           name: "Vector Institute Scholarships in Artificial Intelligence",
           amount: "CAD 17,500 top-up",
           deadline: "Nominated by university (January–March)",
-          eligibility: "Full-time AI-related master’s student at an Ontario university with strong research potential.",
+          eligibility:
+            "Full-time AI-related master’s student at an Ontario university with strong research potential.",
           link: "https://vectorinstitute.ai/programs/scholarships/",
         },
       ],
@@ -153,7 +155,8 @@ const sampleResults: AISearchResults = {
       provider: "Google DeepMind",
       amount: "Full tuition + £15,000 stipend",
       deadline: "Varies by partner university",
-      eligibility: "Underrepresented students pursuing AI masters at partner institutions in UK, USA, Africa.",
+      eligibility:
+        "Underrepresented students pursuing AI masters at partner institutions in UK, USA, Africa.",
       link: "https://deepmind.google/scholarships/",
     },
     {
@@ -161,7 +164,8 @@ const sampleResults: AISearchResults = {
       provider: "Google",
       amount: "€7,000",
       deadline: "December",
-      eligibility: "Undergraduate or graduate students in computer science demonstrating leadership and diversity impact.",
+      eligibility:
+        "Undergraduate or graduate students in computer science demonstrating leadership and diversity impact.",
       link: "https://buildyourfuture.withgoogle.com/scholarships",
     },
   ],
@@ -245,14 +249,18 @@ export function AIPoweredSearchSection() {
 
     const accessToken = session?.access_token;
     if (!accessToken) {
-      setError("We couldn't verify your session. Please sign out and sign back in to continue.");
+      setError(
+        "We couldn't verify your session. Please sign out and sign back in to continue.",
+      );
       return;
     }
 
     const activeQuery = overrideQuery?.trim() ?? query.trim();
 
     if (!activeQuery) {
-      setError("Enter what you want to study, your target country, or funding needs.");
+      setError(
+        "Enter what you want to study, your target country, or funding needs.",
+      );
       return;
     }
 
@@ -260,14 +268,14 @@ export function AIPoweredSearchSection() {
     setError(null);
 
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("ai-university-search", {
+      const { data, error: invokeError } = await invokeEdgeFunction<{
+        results?: unknown;
+      }>("ai-university-search", {
+        accessToken,
         body: {
           query: activeQuery,
           focusAreas: selectedFocus,
           resultCount: 4,
-        },
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -308,12 +316,17 @@ export function AIPoweredSearchSection() {
   };
 
   const hasResults = Boolean(
-    (results?.summary && !loading) || universities.length > 0 || scholarships.length > 0,
+    (results?.summary && !loading) ||
+      universities.length > 0 ||
+      scholarships.length > 0,
   );
 
   return (
     <section className="relative border-y border-primary/10 bg-gradient-to-br from-primary/5 via-background to-background/60">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%)]" aria-hidden="true" />
+      <div
+        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.12),_transparent_55%)]"
+        aria-hidden="true"
+      />
       <div className="container mx-auto px-4 py-24">
         <div className="grid items-start gap-12 lg:grid-cols-[0.95fr_1.05fr] xl:gap-16">
           <div className="space-y-8">
@@ -327,8 +340,10 @@ export function AIPoweredSearchSection() {
                 Find the right program with real-time intelligence
               </h2>
               <p className="text-lg text-muted-foreground">
-                Ask anything about universities, courses, or funding worldwide. Our OpenAI-powered engine
-                analyses the latest admissions insights, scholarships, and visa pathways tailored to your goals.
+                Ask anything about universities, courses, or funding worldwide.
+                Our OpenAI-powered engine analyses the latest admissions
+                insights, scholarships, and visa pathways tailored to your
+                goals.
               </p>
             </div>
 
@@ -341,7 +356,9 @@ export function AIPoweredSearchSection() {
                     type="button"
                     onClick={() => toggleFocus(option.value)}
                     className={cn(
-                      badgeVariants({ variant: isActive ? "default" : "outline" }),
+                      badgeVariants({
+                        variant: isActive ? "default" : "outline",
+                      }),
                       "cursor-pointer border border-primary/20 bg-background/60 px-3 py-1 text-sm hover:shadow-sm",
                       isActive && "bg-primary text-primary-foreground",
                     )}
@@ -379,7 +396,11 @@ export function AIPoweredSearchSection() {
                         )}
                       </Button>
                     </div>
-                    {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+                    {error && (
+                      <p className="text-sm font-medium text-destructive">
+                        {error}
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-2">
                       {exampleQueries.map((example) => (
                         <button
@@ -400,14 +421,20 @@ export function AIPoweredSearchSection() {
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <Lock className="h-5 w-5" />
                       <span>
-                        <strong className="text-foreground">Sign up</strong> to run live searches with the full AI engine.
+                        <strong className="text-foreground">Sign up</strong> to
+                        run live searches with the full AI engine.
                       </span>
                     </div>
-                    {error && <p className="text-sm font-medium text-destructive">{error}</p>}
+                    {error && (
+                      <p className="text-sm font-medium text-destructive">
+                        {error}
+                      </p>
+                    )}
                     <div className="flex flex-wrap gap-3">
                       <Button asChild size="lg" className="rounded-xl px-6">
                         <Link to="/auth/signup?feature=ai-search">
-                          Get Started Free <ArrowRight className="ml-2 h-5 w-5" />
+                          Get Started Free{" "}
+                          <ArrowRight className="ml-2 h-5 w-5" />
                         </Link>
                       </Button>
                       <Button
@@ -437,12 +464,19 @@ export function AIPoweredSearchSection() {
                     <Bot className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <CardTitle className="text-2xl font-semibold">AI Insights</CardTitle>
-                    <CardDescription>Curated matches powered by OpenAI</CardDescription>
+                    <CardTitle className="text-2xl font-semibold">
+                      AI Insights
+                    </CardTitle>
+                    <CardDescription>
+                      Curated matches powered by OpenAI
+                    </CardDescription>
                   </div>
                 </div>
                 {isSample && (
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  <Badge
+                    variant="secondary"
+                    className="bg-primary/10 text-primary"
+                  >
                     Preview
                   </Badge>
                 )}
@@ -452,7 +486,8 @@ export function AIPoweredSearchSection() {
                   <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-muted-foreground/30 bg-muted/30 p-8 text-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">
-                      Analysing the latest admissions data, rankings, and scholarships...
+                      Analysing the latest admissions data, rankings, and
+                      scholarships...
                     </p>
                   </div>
                 )}
@@ -487,10 +522,15 @@ export function AIPoweredSearchSection() {
                                         {university.city}, {university.country}
                                       </span>
                                     ) : (
-                                      university.country && <span>{university.country}</span>
+                                      university.country && (
+                                        <span>{university.country}</span>
+                                      )
                                     )}
                                     {university.globalRanking && (
-                                      <Badge variant="outline" className="border-primary/30">
+                                      <Badge
+                                        variant="outline"
+                                        className="border-primary/30"
+                                      >
                                         {university.globalRanking}
                                       </Badge>
                                     )}
@@ -503,12 +543,14 @@ export function AIPoweredSearchSection() {
                                     rel="noreferrer"
                                     className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                                   >
-                                    Visit site <ExternalLink className="h-4 w-4" />
+                                    Visit site{" "}
+                                    <ExternalLink className="h-4 w-4" />
                                   </a>
                                 )}
                               </div>
 
-                              {(university.tuitionRange || university.acceptanceRate) && (
+                              {(university.tuitionRange ||
+                                university.acceptanceRate) && (
                                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-muted-foreground">
                                   {university.tuitionRange && (
                                     <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1">
@@ -525,92 +567,132 @@ export function AIPoweredSearchSection() {
                                 </div>
                               )}
 
-                              {Array.isArray(university.notes) && university.notes.length > 0 && (
-                                <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-                                  {university.notes.map((note) => (
-                                    <li key={note}>{note}</li>
-                                  ))}
-                                </ul>
-                              )}
-
-                              {Array.isArray(university.standoutPrograms) && university.standoutPrograms.length > 0 && (
-                                <div className="mt-5 space-y-3">
-                                  {university.standoutPrograms.map((program) => (
-                                    <div
-                                      key={`${university.name}-${program.name}`}
-                                      className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4"
-                                    >
-                                      <div className="flex flex-wrap items-center gap-2">
-                                        <h4 className="text-base font-semibold text-primary">
-                                          {program.name}
-                                        </h4>
-                                        {program.level && (
-                                          <Badge variant="outline" className="border-primary/30 text-xs">
-                                            {program.level}
-                                          </Badge>
-                                        )}
-                                        {program.duration && (
-                                          <span className="text-xs text-muted-foreground">
-                                            • {program.duration}
-                                          </span>
-                                        )}
-                                      </div>
-                                      {program.overview && (
-                                        <p className="mt-2 text-sm text-muted-foreground">
-                                          {program.overview}
-                                        </p>
-                                      )}
-                                      <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
-                                        {program.admissionsInsight && (
-                                          <li>
-                                            <span className="font-medium text-foreground">Admissions tip:</span> {program.admissionsInsight}
-                                          </li>
-                                        )}
-                                        {program.careerOutlook && (
-                                          <li>
-                                            <span className="font-medium text-foreground">Career outlook:</span> {program.careerOutlook}
-                                          </li>
-                                        )}
-                                        {program.scholarshipHighlight && (
-                                          <li>
-                                            <span className="font-medium text-foreground">Funding highlight:</span> {program.scholarshipHighlight}
-                                          </li>
-                                        )}
-                                      </ul>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-
-                              {Array.isArray(university.scholarships) && university.scholarships.length > 0 && (
-                                <div className="mt-5 space-y-2">
-                                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                    <Award className="h-4 w-4" /> Featured scholarships
-                                  </div>
-                                  <div className="space-y-3">
-                                    {university.scholarships.map((scholarship) => (
-                                      <div key={scholarship.name} className="rounded-xl border border-muted/40 bg-muted/30 p-3 text-sm">
-                                        <div className="font-medium text-foreground">{scholarship.name}</div>
-                                        <div className="mt-1 grid gap-1 text-muted-foreground">
-                                          {scholarship.amount && <span>Amount: {scholarship.amount}</span>}
-                                          {scholarship.deadline && <span>Deadline: {scholarship.deadline}</span>}
-                                          {scholarship.eligibility && <span>Eligibility: {scholarship.eligibility}</span>}
-                                          {scholarship.link && (
-                                            <a
-                                              href={scholarship.link}
-                                              target="_blank"
-                                              rel="noreferrer"
-                                              className="inline-flex items-center gap-1 text-primary hover:underline"
-                                            >
-                                              Learn more <ExternalLink className="h-3.5 w-3.5" />
-                                            </a>
-                                          )}
-                                        </div>
-                                      </div>
+                              {Array.isArray(university.notes) &&
+                                university.notes.length > 0 && (
+                                  <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                                    {university.notes.map((note) => (
+                                      <li key={note}>{note}</li>
                                     ))}
+                                  </ul>
+                                )}
+
+                              {Array.isArray(university.standoutPrograms) &&
+                                university.standoutPrograms.length > 0 && (
+                                  <div className="mt-5 space-y-3">
+                                    {university.standoutPrograms.map(
+                                      (program) => (
+                                        <div
+                                          key={`${university.name}-${program.name}`}
+                                          className="rounded-xl border border-dashed border-primary/30 bg-primary/5 p-4"
+                                        >
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <h4 className="text-base font-semibold text-primary">
+                                              {program.name}
+                                            </h4>
+                                            {program.level && (
+                                              <Badge
+                                                variant="outline"
+                                                className="border-primary/30 text-xs"
+                                              >
+                                                {program.level}
+                                              </Badge>
+                                            )}
+                                            {program.duration && (
+                                              <span className="text-xs text-muted-foreground">
+                                                • {program.duration}
+                                              </span>
+                                            )}
+                                          </div>
+                                          {program.overview && (
+                                            <p className="mt-2 text-sm text-muted-foreground">
+                                              {program.overview}
+                                            </p>
+                                          )}
+                                          <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
+                                            {program.admissionsInsight && (
+                                              <li>
+                                                <span className="font-medium text-foreground">
+                                                  Admissions tip:
+                                                </span>{" "}
+                                                {program.admissionsInsight}
+                                              </li>
+                                            )}
+                                            {program.careerOutlook && (
+                                              <li>
+                                                <span className="font-medium text-foreground">
+                                                  Career outlook:
+                                                </span>{" "}
+                                                {program.careerOutlook}
+                                              </li>
+                                            )}
+                                            {program.scholarshipHighlight && (
+                                              <li>
+                                                <span className="font-medium text-foreground">
+                                                  Funding highlight:
+                                                </span>{" "}
+                                                {program.scholarshipHighlight}
+                                              </li>
+                                            )}
+                                          </ul>
+                                        </div>
+                                      ),
+                                    )}
                                   </div>
-                                </div>
-                              )}
+                                )}
+
+                              {Array.isArray(university.scholarships) &&
+                                university.scholarships.length > 0 && (
+                                  <div className="mt-5 space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      <Award className="h-4 w-4" /> Featured
+                                      scholarships
+                                    </div>
+                                    <div className="space-y-3">
+                                      {university.scholarships.map(
+                                        (scholarship) => (
+                                          <div
+                                            key={scholarship.name}
+                                            className="rounded-xl border border-muted/40 bg-muted/30 p-3 text-sm"
+                                          >
+                                            <div className="font-medium text-foreground">
+                                              {scholarship.name}
+                                            </div>
+                                            <div className="mt-1 grid gap-1 text-muted-foreground">
+                                              {scholarship.amount && (
+                                                <span>
+                                                  Amount: {scholarship.amount}
+                                                </span>
+                                              )}
+                                              {scholarship.deadline && (
+                                                <span>
+                                                  Deadline:{" "}
+                                                  {scholarship.deadline}
+                                                </span>
+                                              )}
+                                              {scholarship.eligibility && (
+                                                <span>
+                                                  Eligibility:{" "}
+                                                  {scholarship.eligibility}
+                                                </span>
+                                              )}
+                                              {scholarship.link && (
+                                                <a
+                                                  href={scholarship.link}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                                                >
+                                                  Learn more{" "}
+                                                  <ExternalLink className="h-3.5 w-3.5" />
+                                                </a>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                             </div>
                           ))}
                         </div>
@@ -624,12 +706,19 @@ export function AIPoweredSearchSection() {
                         </div>
                         <div className="space-y-3">
                           {scholarships.map((scholarship) => (
-                            <div key={scholarship.name} className="rounded-2xl border border-border bg-card/70 p-5 shadow-sm">
+                            <div
+                              key={scholarship.name}
+                              className="rounded-2xl border border-border bg-card/70 p-5 shadow-sm"
+                            >
                               <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
-                                  <h4 className="text-lg font-semibold text-foreground">{scholarship.name}</h4>
+                                  <h4 className="text-lg font-semibold text-foreground">
+                                    {scholarship.name}
+                                  </h4>
                                   {scholarship.provider && (
-                                    <p className="text-sm text-muted-foreground">{scholarship.provider}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {scholarship.provider}
+                                    </p>
                                   )}
                                 </div>
                                 {scholarship.link && (
@@ -639,14 +728,23 @@ export function AIPoweredSearchSection() {
                                     rel="noreferrer"
                                     className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
                                   >
-                                    Apply now <ExternalLink className="h-4 w-4" />
+                                    Apply now{" "}
+                                    <ExternalLink className="h-4 w-4" />
                                   </a>
                                 )}
                               </div>
                               <div className="mt-3 grid gap-1 text-sm text-muted-foreground">
-                                {scholarship.amount && <span>Funding: {scholarship.amount}</span>}
-                                {scholarship.deadline && <span>Deadline: {scholarship.deadline}</span>}
-                                {scholarship.eligibility && <span>Eligibility: {scholarship.eligibility}</span>}
+                                {scholarship.amount && (
+                                  <span>Funding: {scholarship.amount}</span>
+                                )}
+                                {scholarship.deadline && (
+                                  <span>Deadline: {scholarship.deadline}</span>
+                                )}
+                                {scholarship.eligibility && (
+                                  <span>
+                                    Eligibility: {scholarship.eligibility}
+                                  </span>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -684,7 +782,8 @@ export function AIPoweredSearchSection() {
 
                 {!loading && !hasResults && (
                   <div className="rounded-2xl border border-dashed border-muted/40 bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-                    Describe your ideal course, country, or scholarship focus to see personalised AI matches once you sign in.
+                    Describe your ideal course, country, or scholarship focus to
+                    see personalised AI matches once you sign in.
                   </div>
                 )}
               </CardContent>

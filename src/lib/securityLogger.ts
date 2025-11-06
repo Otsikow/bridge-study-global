@@ -1,8 +1,9 @@
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
+import type { Database } from "@/integrations/supabase/types";
 
-type EventType = Database['public']['Enums']['security_event_type'];
-type Severity = Database['public']['Enums']['security_event_severity'];
+type EventType = Database["public"]["Enums"]["security_event_type"];
+type Severity = Database["public"]["Enums"]["security_event_severity"];
 
 interface BaseSecurityPayload {
   description?: string;
@@ -21,11 +22,11 @@ interface SecurityLogPayload extends BaseSecurityPayload {
 }
 
 const DEFAULT_SEVERITY: Record<EventType, Severity> = {
-  failed_authentication: 'medium',
-  privilege_escalation_attempt: 'high',
-  suspicious_activity: 'high',
-  policy_violation: 'medium',
-  custom: 'low',
+  failed_authentication: "medium",
+  privilege_escalation_attempt: "high",
+  suspicious_activity: "high",
+  policy_violation: "medium",
+  custom: "low",
 };
 
 async function resolveAuthContext(
@@ -65,18 +66,21 @@ export async function logSecurityEvent(payload: SecurityLogPayload) {
       metadata: payload.metadata ?? {},
       alert: payload.alert ?? false,
       ipAddress: payload.ipAddress ?? null,
-      userAgent: payload.userAgent ?? (typeof window !== 'undefined' ? window.navigator.userAgent : null),
+      userAgent:
+        payload.userAgent ??
+        (typeof window !== "undefined" ? window.navigator.userAgent : null),
     };
 
-    const { error } = await supabase.functions.invoke('security-logger', {
+    const { error } = await invokeEdgeFunction("security-logger", {
       body,
+      includeAnonKey: true,
     });
 
     if (error) {
-      console.error('Failed to invoke security logger function', error);
+      console.error("Failed to invoke security logger function", error);
     }
   } catch (error) {
-    console.error('Failed to log security event', error);
+    console.error("Failed to log security event", error);
   }
 }
 
@@ -86,7 +90,7 @@ export async function logFailedAuthentication(
   metadata: Record<string, unknown> = {},
 ) {
   await logSecurityEvent({
-    eventType: 'failed_authentication',
+    eventType: "failed_authentication",
     description: `Failed authentication attempt for ${email}`,
     actorEmail: email,
     metadata: { email, reason, ...metadata },
@@ -98,8 +102,8 @@ export async function logPrivilegeEscalationAttempt(details: {
   metadata?: Record<string, unknown>;
 }) {
   await logSecurityEvent({
-    eventType: 'privilege_escalation_attempt',
-    description: details.description ?? 'Privilege escalation attempt detected',
+    eventType: "privilege_escalation_attempt",
+    description: details.description ?? "Privilege escalation attempt detected",
     metadata: details.metadata,
     alert: true,
   });
@@ -111,11 +115,10 @@ export async function logSuspiciousActivity(details: {
   severity?: Severity;
 }) {
   await logSecurityEvent({
-    eventType: 'suspicious_activity',
+    eventType: "suspicious_activity",
     description: details.description,
     metadata: details.metadata,
     severity: details.severity,
     alert: true,
   });
 }
-

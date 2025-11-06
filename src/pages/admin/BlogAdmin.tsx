@@ -66,6 +66,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
 import {
   Table,
   TableBody,
@@ -84,7 +85,10 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Utility functions
 const generateSlug = (title: string): string =>
-  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
 const createUniqueId = () => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -173,7 +177,9 @@ export default function BlogAdmin() {
   const tenantId = profile?.tenant_id ?? "00000000-0000-0000-0000-000000000001";
 
   // UI states
-  const [activeTab, setActiveTab] = useState<"list" | "analytics" | "edit">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "analytics" | "edit">(
+    "list",
+  );
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [form, setForm] = useState<BlogFormState>(createInitialFormState);
@@ -183,10 +189,14 @@ export default function BlogAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | BlogStatus>("all");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState<PendingImagePreview | null>(null);
+  const [imagePreview, setImagePreview] = useState<PendingImagePreview | null>(
+    null,
+  );
   const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
   const [imageGenerationProgress, setImageGenerationProgress] = useState(0);
-  const [imageGenerationStatus, setImageGenerationStatus] = useState<string | null>(null);
+  const [imageGenerationStatus, setImageGenerationStatus] = useState<
+    string | null
+  >(null);
   const [statusTargetId, setStatusTargetId] = useState<string | null>(null);
   const progressResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -238,7 +248,13 @@ export default function BlogAdmin() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<BlogFormState> }) => {
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<BlogFormState>;
+    }) => {
       const { error } = await supabase
         .from("blog_posts")
         .update({
@@ -287,13 +303,21 @@ export default function BlogAdmin() {
 
   // Status toggle mutation
   const toggleStatusMutation = useMutation({
-    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: BlogStatus }) => {
-      const newStatus: BlogStatus = currentStatus === "published" ? "draft" : "published";
+    mutationFn: async ({
+      id,
+      currentStatus,
+    }: {
+      id: string;
+      currentStatus: BlogStatus;
+    }) => {
+      const newStatus: BlogStatus =
+        currentStatus === "published" ? "draft" : "published";
       const { error } = await supabase
         .from("blog_posts")
         .update({
           status: newStatus,
-          published_at: newStatus === "published" ? new Date().toISOString() : null,
+          published_at:
+            newStatus === "published" ? new Date().toISOString() : null,
         })
         .eq("id", id);
       if (error) throw error;
@@ -357,9 +381,12 @@ export default function BlogAdmin() {
     }, 500);
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-blog-image", {
-        body: { prompt: form.title, postId: editing?.id || createUniqueId() },
-      });
+      const { data, error } = await invokeEdgeFunction<{ imageUrl?: string }>(
+        "generate-blog-image",
+        {
+          body: { prompt: form.title, postId: editing?.id || createUniqueId() },
+        },
+      );
 
       clearInterval(progressInterval);
 
@@ -389,8 +416,11 @@ export default function BlogAdmin() {
   // Filtered posts
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || post.status === statusFilter;
+      const matchesSearch = post.title
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || post.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [posts, searchTerm, statusFilter]);
@@ -405,7 +435,13 @@ export default function BlogAdmin() {
           </div>
           <p className="text-muted-foreground">Create and manage blog posts</p>
         </div>
-        <Button onClick={() => { setEditing(null); setForm(createInitialFormState); setActiveTab("edit"); }}>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setForm(createInitialFormState);
+            setActiveTab("edit");
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Post
         </Button>
@@ -445,7 +481,10 @@ export default function BlogAdmin() {
                       className="pl-9 w-64"
                     />
                   </div>
-                  <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(v) => setStatusFilter(v as any)}
+                  >
                     <SelectTrigger className="w-32">
                       <SelectValue />
                     </SelectTrigger>
@@ -479,13 +518,23 @@ export default function BlogAdmin() {
                   <TableBody>
                     {filteredPosts.map((post) => (
                       <TableRow key={post.id}>
-                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell className="font-medium">
+                          {post.title}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant={post.status === "published" ? "default" : "secondary"}>
+                          <Badge
+                            variant={
+                              post.status === "published"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {post.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{post.author?.full_name || "Unknown"}</TableCell>
+                        <TableCell>
+                          {post.author?.full_name || "Unknown"}
+                        </TableCell>
                         <TableCell>
                           {post.published_at
                             ? format(new Date(post.published_at), "MMM d, yyyy")
@@ -550,7 +599,9 @@ export default function BlogAdmin() {
           <form onSubmit={handleSubmit}>
             <Card>
               <CardHeader>
-                <CardTitle>{editing ? "Edit Post" : "Create New Post"}</CardTitle>
+                <CardTitle>
+                  {editing ? "Edit Post" : "Create New Post"}
+                </CardTitle>
                 <CardDescription>
                   {editing ? "Update your blog post" : "Write a new blog post"}
                 </CardDescription>
@@ -561,7 +612,13 @@ export default function BlogAdmin() {
                   <Input
                     id="title"
                     value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value, slug: generateSlug(e.target.value) })}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        title: e.target.value,
+                        slug: generateSlug(e.target.value),
+                      })
+                    }
                     required
                   />
                 </div>
@@ -580,7 +637,9 @@ export default function BlogAdmin() {
                   <Textarea
                     id="excerpt"
                     value={form.excerpt}
-                    onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, excerpt: e.target.value })
+                    }
                     rows={3}
                   />
                 </div>
@@ -591,7 +650,9 @@ export default function BlogAdmin() {
                     <Input
                       id="cover_image"
                       value={form.cover_image_url}
-                      onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, cover_image_url: e.target.value })
+                      }
                       placeholder="Image URL"
                     />
                     <Button
@@ -611,12 +672,18 @@ export default function BlogAdmin() {
                     <div className="space-y-2">
                       <Progress value={imageGenerationProgress} />
                       {imageGenerationStatus && (
-                        <p className="text-sm text-muted-foreground">{imageGenerationStatus}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {imageGenerationStatus}
+                        </p>
                       )}
                     </div>
                   )}
                   {form.cover_image_url && (
-                    <img src={form.cover_image_url} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                    <img
+                      src={form.cover_image_url}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
                   )}
                 </div>
 
@@ -625,7 +692,9 @@ export default function BlogAdmin() {
                   <Textarea
                     id="content_md"
                     value={form.content_md}
-                    onChange={(e) => setForm({ ...form, content_md: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, content_md: e.target.value })
+                    }
                     rows={10}
                   />
                 </div>
@@ -635,7 +704,9 @@ export default function BlogAdmin() {
                   <Textarea
                     id="content_html"
                     value={form.content_html}
-                    onChange={(e) => setForm({ ...form, content_html: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, content_html: e.target.value })
+                    }
                     rows={10}
                   />
                 </div>
@@ -655,13 +726,20 @@ export default function BlogAdmin() {
                     <Switch
                       id="featured"
                       checked={form.featured}
-                      onCheckedChange={(checked) => setForm({ ...form, featured: checked })}
+                      onCheckedChange={(checked) =>
+                        setForm({ ...form, featured: checked })
+                      }
                     />
                     <Label htmlFor="featured">Featured</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Label htmlFor="status">Status:</Label>
-                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as BlogStatus })}>
+                    <Select
+                      value={form.status}
+                      onValueChange={(v) =>
+                        setForm({ ...form, status: v as BlogStatus })
+                      }
+                    >
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
@@ -680,7 +758,9 @@ export default function BlogAdmin() {
                   <Input
                     id="seo_title"
                     value={form.seo_title}
-                    onChange={(e) => setForm({ ...form, seo_title: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, seo_title: e.target.value })
+                    }
                   />
                 </div>
 
@@ -689,7 +769,9 @@ export default function BlogAdmin() {
                   <Textarea
                     id="seo_description"
                     value={form.seo_description}
-                    onChange={(e) => setForm({ ...form, seo_description: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, seo_description: e.target.value })
+                    }
                     rows={3}
                   />
                 </div>
@@ -706,7 +788,12 @@ export default function BlogAdmin() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
+                >
                   {createMutation.isPending || updateMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   ) : (
@@ -733,12 +820,15 @@ export default function BlogAdmin() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Post?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the blog post.
+              This action cannot be undone. This will permanently delete the
+              blog post.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

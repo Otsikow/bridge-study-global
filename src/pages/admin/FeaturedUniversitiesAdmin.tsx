@@ -13,6 +13,7 @@ import {
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import BackButton from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -61,14 +62,18 @@ export default function FeaturedUniversitiesAdmin() {
     Record<string, { isGenerating: boolean; message?: string; error?: string }>
   >({});
 
-  const { data: universities, isLoading, isFetching } = useQuery({
+  const {
+    data: universities,
+    isLoading,
+    isFetching,
+  } = useQuery({
     queryKey: ["admin", "featured-universities"],
     queryFn: async () => {
-        const { data, error } = await supabase
-          .from("universities")
-          .select(
-            "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, featured_image_url, updated_at"
-          )
+      const { data, error } = await supabase
+        .from("universities")
+        .select(
+          "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, featured_image_url, updated_at",
+        )
         .order("featured", { ascending: false })
         .order("featured_priority", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true });
@@ -91,7 +96,7 @@ export default function FeaturedUniversitiesAdmin() {
               : "",
           featured_summary: uni.featured_summary ?? "",
           featured_highlight: uni.featured_highlight ?? "",
-            featured_image_url: uni.featured_image_url ?? "",
+          featured_image_url: uni.featured_image_url ?? "",
         };
       });
       return next;
@@ -100,7 +105,7 @@ export default function FeaturedUniversitiesAdmin() {
 
   const featuredCount = useMemo(
     () => universities?.filter((uni) => Boolean(uni.featured)).length ?? 0,
-    [universities]
+    [universities],
   );
 
   const lastUpdated = useMemo(() => {
@@ -110,7 +115,7 @@ export default function FeaturedUniversitiesAdmin() {
       .sort((a, b) =>
         a.updated_at && b.updated_at
           ? new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-          : 0
+          : 0,
       );
     return sorted[0]?.updated_at ?? null;
   }, [universities]);
@@ -136,7 +141,9 @@ export default function FeaturedUniversitiesAdmin() {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "featured-universities"] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "featured-universities"],
+      });
       toast({
         title: "Showcase updated",
         description: "Featured university settings saved successfully.",
@@ -157,7 +164,7 @@ export default function FeaturedUniversitiesAdmin() {
   const handleDraftChange = <K extends keyof DraftState>(
     id: string,
     key: K,
-    value: DraftState[K]
+    value: DraftState[K],
   ) => {
     setDrafts((prev) => ({
       ...prev,
@@ -196,18 +203,18 @@ export default function FeaturedUniversitiesAdmin() {
         draft.featured && draft.featured_priority.trim() !== ""
           ? Number(draft.featured_priority)
           : null,
-        featured_summary:
-          draft.featured_summary.trim() === ""
-            ? null
-            : draft.featured_summary.trim(),
-        featured_highlight:
-          draft.featured_highlight.trim() === ""
-            ? null
-            : draft.featured_highlight.trim(),
-        featured_image_url:
-          draft.featured_image_url.trim() === ""
-            ? null
-            : draft.featured_image_url.trim(),
+      featured_summary:
+        draft.featured_summary.trim() === ""
+          ? null
+          : draft.featured_summary.trim(),
+      featured_highlight:
+        draft.featured_highlight.trim() === ""
+          ? null
+          : draft.featured_highlight.trim(),
+      featured_image_url:
+        draft.featured_image_url.trim() === ""
+          ? null
+          : draft.featured_image_url.trim(),
     };
 
     mutation.mutate({ id, updates: payload });
@@ -224,14 +231,17 @@ export default function FeaturedUniversitiesAdmin() {
     }));
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-university-image", {
-        body: {
-          universityId: university.id,
-          name: university.name,
-          city: university.city,
-          country: university.country,
+      const { data, error } = await invokeEdgeFunction<{ imageUrl?: string }>(
+        "generate-university-image",
+        {
+          body: {
+            universityId: university.id,
+            name: university.name,
+            city: university.city,
+            country: university.country,
+          },
         },
-      });
+      );
 
       if (error) {
         throw new Error(error.message ?? "Unable to generate image");
@@ -247,17 +257,20 @@ export default function FeaturedUniversitiesAdmin() {
         ...prev,
         [university.id]: {
           isGenerating: false,
-          message: "New Nana Banana spotlight image added. Don't forget to save.",
+          message:
+            "New Nana Banana spotlight image added. Don't forget to save.",
           error: undefined,
         },
       }));
 
       toast({
         title: "Spotlight image generated",
-        description: "A fresh Nana Banana image has been added to this university's draft.",
+        description:
+          "A fresh Nana Banana image has been added to this university's draft.",
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Unable to generate image";
+      const message =
+        error instanceof Error ? error.message : "Unable to generate image";
       setImageGenerationState((prev) => ({
         ...prev,
         [university.id]: {
@@ -284,19 +297,19 @@ export default function FeaturedUniversitiesAdmin() {
       typeof original.featured_priority === "number"
         ? String(original.featured_priority)
         : "";
-      const originalSummary = (original.featured_summary ?? "").trim();
-      const draftSummary = draft.featured_summary.trim();
-      const originalHighlight = (original.featured_highlight ?? "").trim();
-      const draftHighlight = draft.featured_highlight.trim();
-      const originalImage = (original.featured_image_url ?? "").trim();
-      const draftImage = draft.featured_image_url.trim();
-      const draftPriority = draft.featured ? draft.featured_priority.trim() : "";
+    const originalSummary = (original.featured_summary ?? "").trim();
+    const draftSummary = draft.featured_summary.trim();
+    const originalHighlight = (original.featured_highlight ?? "").trim();
+    const draftHighlight = draft.featured_highlight.trim();
+    const originalImage = (original.featured_image_url ?? "").trim();
+    const draftImage = draft.featured_image_url.trim();
+    const draftPriority = draft.featured ? draft.featured_priority.trim() : "";
     return (
       Boolean(original.featured) !== draft.featured ||
       originalSummary !== draftSummary ||
       originalHighlight !== draftHighlight ||
-        originalPriority !== draftPriority ||
-        originalImage !== draftImage
+      originalPriority !== draftPriority ||
+      originalImage !== draftImage
     );
   };
 
@@ -348,7 +361,8 @@ export default function FeaturedUniversitiesAdmin() {
                 Featured Universities
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
-                Curate the institutions that appear on the public landing page showcase.
+                Curate the institutions that appear on the public landing page
+                showcase.
               </p>
             </div>
           </div>
@@ -407,7 +421,8 @@ export default function FeaturedUniversitiesAdmin() {
               How prioritisation works
             </CardTitle>
             <CardDescription>
-              Lower numbers appear first on the landing page. Leave the priority blank for institutions that are not currently featured.
+              Lower numbers appear first on the landing page. Leave the priority
+              blank for institutions that are not currently featured.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
@@ -421,11 +436,16 @@ export default function FeaturedUniversitiesAdmin() {
               size="sm"
               className="gap-2"
               onClick={() =>
-                queryClient.invalidateQueries({ queryKey: ["admin", "featured-universities"] })
+                queryClient.invalidateQueries({
+                  queryKey: ["admin", "featured-universities"],
+                })
               }
               disabled={isLoading || isFetching}
             >
-              <RefreshCcw className={cn("h-4 w-4", isFetching && "animate-spin")} /> Refresh data
+              <RefreshCcw
+                className={cn("h-4 w-4", isFetching && "animate-spin")}
+              />{" "}
+              Refresh data
             </Button>
           </CardContent>
         </Card>
@@ -488,7 +508,8 @@ export default function FeaturedUniversitiesAdmin() {
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Showcase status</p>
                         <p className="text-xs text-muted-foreground">
-                          Toggle to publish or hide this university on the landing page highlight section.
+                          Toggle to publish or hide this university on the
+                          landing page highlight section.
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -496,131 +517,162 @@ export default function FeaturedUniversitiesAdmin() {
                           id={`featured-${university.id}`}
                           checked={draft.featured}
                           onCheckedChange={(checked) =>
-                            handleDraftChange(university.id, "featured", checked)
+                            handleDraftChange(
+                              university.id,
+                              "featured",
+                              checked,
+                            )
                           }
                         />
-                        <Label htmlFor={`featured-${university.id}`}>{priorityLabel}</Label>
+                        <Label htmlFor={`featured-${university.id}`}>
+                          {priorityLabel}
+                        </Label>
                       </div>
                     </div>
 
-                      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-                        <div className="space-y-6">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label htmlFor={`image-${university.id}`} className="text-sm font-medium">
-                                Spotlight image
-                              </Label>
-                              {draft.featured_image_url && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 px-2"
-                                  onClick={() => handleDraftChange(university.id, "featured_image_url", "")}
-                                  disabled={imageGenerationState[university.id]?.isGenerating}
-                                >
-                                  Remove
-                                </Button>
-                              )}
-                            </div>
-                            <div className="space-y-3">
-                              <div className="relative overflow-hidden rounded-lg border bg-muted/20">
-                                {draft.featured_image_url ? (
-                                  <img
-                                    src={draft.featured_image_url}
-                                    alt={`${university.name} spotlight visual`}
-                                    className="h-40 w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-40 items-center justify-center text-muted-foreground">
-                                    <Building2 className="h-10 w-10" />
-                                  </div>
-                                )}
-                              </div>
-                              <Input
-                                id={`image-${university.id}`}
-                                value={draft.featured_image_url}
-                                onChange={(event) =>
+                    <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label
+                              htmlFor={`image-${university.id}`}
+                              className="text-sm font-medium"
+                            >
+                              Spotlight image
+                            </Label>
+                            {draft.featured_image_url && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2"
+                                onClick={() =>
                                   handleDraftChange(
                                     university.id,
                                     "featured_image_url",
-                                    event.target.value
+                                    "",
                                   )
                                 }
-                                placeholder="https://cdn.example.com/university-spotlight.jpg"
-                              />
-                              <div className="flex flex-wrap gap-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="gap-2"
-                                  onClick={() => handleGenerateImage(university)}
-                                  disabled={imageGenerationState[university.id]?.isGenerating}
-                                >
-                                  {imageGenerationState[university.id]?.isGenerating ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                      Generating…
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Sparkles className="h-4 w-4" />
-                                      Generate with Nana Banana
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                              {imageGenerationState[university.id]?.message && (
-                                <p className="text-xs text-muted-foreground">
-                                  {imageGenerationState[university.id]?.message}
-                                </p>
-                              )}
-                              {imageGenerationState[university.id]?.error && (
-                                <p className="text-xs text-destructive">
-                                  {imageGenerationState[university.id]?.error}
-                                </p>
+                                disabled={
+                                  imageGenerationState[university.id]
+                                    ?.isGenerating
+                                }
+                              >
+                                Remove
+                              </Button>
+                            )}
+                          </div>
+                          <div className="space-y-3">
+                            <div className="relative overflow-hidden rounded-lg border bg-muted/20">
+                              {draft.featured_image_url ? (
+                                <img
+                                  src={draft.featured_image_url}
+                                  alt={`${university.name} spotlight visual`}
+                                  className="h-40 w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-40 items-center justify-center text-muted-foreground">
+                                  <Building2 className="h-10 w-10" />
+                                </div>
                               )}
                             </div>
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor={`summary-${university.id}`} className="text-sm font-medium">
-                              Spotlight summary
-                            </Label>
-                            <Textarea
-                              id={`summary-${university.id}`}
-                              value={draft.featured_summary}
-                              onChange={(event) =>
-                                handleDraftChange(
-                                  university.id,
-                                  "featured_summary",
-                                  event.target.value
-                                )
-                              }
-                              placeholder="Headline copy shown beneath the university card on the homepage"
-                              rows={3}
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor={`highlight-${university.id}`} className="text-sm font-medium">
-                              Homepage highlight
-                            </Label>
                             <Input
-                              id={`highlight-${university.id}`}
-                              value={draft.featured_highlight}
+                              id={`image-${university.id}`}
+                              value={draft.featured_image_url}
                               onChange={(event) =>
                                 handleDraftChange(
                                   university.id,
-                                  "featured_highlight",
-                                  event.target.value
+                                  "featured_image_url",
+                                  event.target.value,
                                 )
                               }
-                              placeholder="e.g. Scholarships up to 40% | Fast admissions turnaround"
+                              placeholder="https://cdn.example.com/university-spotlight.jpg"
                             />
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                                onClick={() => handleGenerateImage(university)}
+                                disabled={
+                                  imageGenerationState[university.id]
+                                    ?.isGenerating
+                                }
+                              >
+                                {imageGenerationState[university.id]
+                                  ?.isGenerating ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Generating…
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-4 w-4" />
+                                    Generate with Nana Banana
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            {imageGenerationState[university.id]?.message && (
+                              <p className="text-xs text-muted-foreground">
+                                {imageGenerationState[university.id]?.message}
+                              </p>
+                            )}
+                            {imageGenerationState[university.id]?.error && (
+                              <p className="text-xs text-destructive">
+                                {imageGenerationState[university.id]?.error}
+                              </p>
+                            )}
                           </div>
                         </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`summary-${university.id}`}
+                            className="text-sm font-medium"
+                          >
+                            Spotlight summary
+                          </Label>
+                          <Textarea
+                            id={`summary-${university.id}`}
+                            value={draft.featured_summary}
+                            onChange={(event) =>
+                              handleDraftChange(
+                                university.id,
+                                "featured_summary",
+                                event.target.value,
+                              )
+                            }
+                            placeholder="Headline copy shown beneath the university card on the homepage"
+                            rows={3}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`highlight-${university.id}`}
+                            className="text-sm font-medium"
+                          >
+                            Homepage highlight
+                          </Label>
+                          <Input
+                            id={`highlight-${university.id}`}
+                            value={draft.featured_highlight}
+                            onChange={(event) =>
+                              handleDraftChange(
+                                university.id,
+                                "featured_highlight",
+                                event.target.value,
+                              )
+                            }
+                            placeholder="e.g. Scholarships up to 40% | Fast admissions turnaround"
+                          />
+                        </div>
+                      </div>
                       <div className="space-y-2">
-                        <Label htmlFor={`priority-${university.id}`} className="text-sm font-medium">
+                        <Label
+                          htmlFor={`priority-${university.id}`}
+                          className="text-sm font-medium"
+                        >
                           Display priority
                         </Label>
                         <Input
@@ -634,14 +686,15 @@ export default function FeaturedUniversitiesAdmin() {
                             handleDraftChange(
                               university.id,
                               "featured_priority",
-                              event.target.value.replace(/[^0-9]/g, "")
+                              event.target.value.replace(/[^0-9]/g, ""),
                             )
                           }
                           placeholder="0 = first, 1 = second, etc."
                           disabled={!draft.featured}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Leave blank to let the system position this university after prioritised entries.
+                          Leave blank to let the system position this university
+                          after prioritised entries.
                         </p>
                       </div>
                     </div>
