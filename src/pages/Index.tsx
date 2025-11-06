@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/ContactForm";
+import { logVisaCalculatorCardClick } from "@/lib/analytics";
 import {
   Accordion,
   AccordionContent,
@@ -28,8 +29,6 @@ import {
   ShieldCheck,
   Globe2,
   TrendingUp,
-  BellRing,
-  CheckCircle,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -128,27 +127,6 @@ const Index = () => {
     },
   ];
 
-  const courseHighlights = [
-    {
-      icon: Search,
-      title: "Advanced Filters",
-      description:
-        "Filter by country, degree level, tuition, duration, and intake months without leaving the page.",
-    },
-    {
-      icon: GraduationCap,
-      title: "Program Insights",
-      description:
-        "Compare tuition, duration, and next intakes on every card to shortlist the right programs instantly.",
-    },
-    {
-      icon: Sparkles,
-      title: "Smart Suggestions",
-      description:
-        "See curated fallback results so you always have inspiring options, even when live data is still loading.",
-    },
-  ];
-
   const visaHighlights = [
     {
       icon: ShieldCheck,
@@ -232,56 +210,6 @@ const Index = () => {
           answer:
             "Academic transcripts, English test scores (IELTS/TOEFL), recommendations, personal statement, and passport copy are typically required.",
         },
-        {
-          question: "Can I apply to multiple universities?",
-          answer:
-            "Yes! You can apply to multiple universities at once and track all applications in one dashboard.",
-        },
-        {
-          question: "How do I stay informed about my application status?",
-          answer:
-            "Your personalized dashboard shows real-time updates, deadlines, and next steps so you always know what to do next.",
-        },
-      ],
-    },
-    {
-      audience: "Universities",
-      items: [
-        {
-          question: "How can our university partner with GEG?",
-          answer:
-            "Submit a partnership request through the University Portal or contact our partnerships team. We'll verify your institution and set up onboarding within a few business days.",
-        },
-        {
-          question: "What insights do universities receive?",
-          answer:
-            "Universities gain access to dashboards showing applicant pipelines, conversion metrics, and regional interest so you can plan recruitment campaigns with confidence.",
-        },
-        {
-          question: "Can we manage offers directly on the platform?",
-          answer:
-            "Yes. Admissions teams can issue conditional or unconditional offers, request missing documents, and communicate with students and agents from a single workspace.",
-        },
-      ],
-    },
-    {
-      audience: "Agents",
-      items: [
-        {
-          question: "What support do agents receive on GEG?",
-          answer:
-            "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programs quickly.",
-        },
-        {
-          question: "How are agent commissions handled?",
-          answer:
-            "Commission structures are transparent. Universities define the terms, and payouts are tracked within the agent dashboard for easy reconciliation.",
-        },
-        {
-          question: "Can agents collaborate with university admissions teams?",
-          answer:
-            "Absolutely. Shared workspaces and messaging threads keep all parties aligned on student progress, missing documents, and interview scheduling.",
-        },
       ],
     },
   ];
@@ -289,8 +217,190 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       {/* Hero Section */}
-      {/* ...all the sections from your original code go here exactly as in your latest working version... */}
-      {/* (They are already clean and merged correctly above.) */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+        <div className="container relative mx-auto px-4 py-24 text-center">
+          <img
+            src={gegLogo}
+            alt="Global Education Gateway logo"
+            className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+          />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span>Trusted by 5000+ students worldwide</span>
+          </div>
+          <h1 className="text-5xl font-bold mb-4">
+            Your Gateway to{" "}
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              Global Education
+            </span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            Connect with top universities, track applications in real-time, and
+            receive expert guidance from verified agents.
+          </p>
+
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            {heroCtas.map((cta) => (
+              <Link key={cta.title} to={cta.href}>
+                <Card className="overflow-hidden group">
+                  <CardContent className="relative p-6 sm:p-7">
+                    <img
+                      src={cta.image}
+                      alt={cta.title}
+                      className="absolute inset-0 h-full w-full object-cover opacity-30 group-hover:opacity-40 transition"
+                    />
+                    <div className="relative z-10">
+                      <Badge>{cta.badge}</Badge>
+                      <h3 className="text-2xl font-bold mt-3 mb-2">
+                        {cta.title}
+                      </h3>
+                      <p className="text-sm mb-4">{cta.description}</p>
+                      <Button>{cta.action}</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          <JourneyRibbon />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {features.map((f, i) => (
+            <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
+              <CardContent className="p-8">
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
+                  <f.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                <p className="text-muted-foreground">{f.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Visa Calculator Spotlight */}
+      <section className="relative py-24">
+        <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+              <Sparkles className="h-4 w-4" /> Feature Spotlight
+            </span>
+            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+              Understand your visa eligibility before you apply
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
+            </p>
+            <Button asChild size="lg" className="gap-2">
+              <Link
+                to="/visa-calculator"
+                onClick={() => logVisaCalculatorCardClick("cta_button")}
+              >
+                <Calculator className="h-5 w-5" /> Explore the Visa Calculator
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <FeaturedUniversitiesSection />
+      <StoryboardSection />
+
+      {/* Testimonials */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <h2 className="text-4xl font-bold mb-12">Success Stories</h2>
+        <Card className="max-w-3xl mx-auto border-2 shadow-xl">
+          <CardContent className="p-10">
+            <Quote className="h-10 w-10 text-primary/20 mb-6 mx-auto" />
+            <p className="italic text-xl mb-6">
+              "{testimonials[currentTestimonial].quote}"
+            </p>
+            <div className="flex justify-center gap-1 mb-6">
+              {[...Array(testimonials[currentTestimonial].rating)].map((_, i) => (
+                <Star key={i} className="h-5 w-5 fill-primary text-primary" />
+              ))}
+            </div>
+            <div className="text-lg font-bold">
+              {testimonials[currentTestimonial].name}
+            </div>
+            <div className="text-muted-foreground">
+              {testimonials[currentTestimonial].role} —{" "}
+              {testimonials[currentTestimonial].country}
+            </div>
+          </CardContent>
+        </Card>
+        <div className="flex justify-center gap-4 mt-8">
+          <Button variant="ghost" size="icon" onClick={prevTestimonial}>
+            <ChevronLeft className="h-6 w-6" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={nextTestimonial}>
+            <ChevronRight className="h-6 w-6" />
+          </Button>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+          <p className="text-muted-foreground">
+            Quick answers to common questions
+          </p>
+        </div>
+        <div className="max-w-4xl mx-auto space-y-12">
+          {faqs.map((section, sectionIndex) => (
+            <div key={section.audience} className="space-y-6">
+              <h3 className="text-2xl font-semibold text-left">
+                For {section.audience}
+              </h3>
+              <Accordion type="single" collapsible className="space-y-4">
+                {section.items.map((faq, faqIndex) => (
+                  <AccordionItem
+                    key={`${sectionIndex}-${faqIndex}`}
+                    value={`item-${sectionIndex}-${faqIndex}`}
+                    className="border rounded-lg bg-card"
+                  >
+                    <AccordionTrigger className="py-6 px-4 font-semibold text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-6 text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Contact */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
+          <p className="text-muted-foreground">
+            Have questions? We’d love to help.
+          </p>
+        </div>
+        <Card className="max-w-2xl mx-auto border-2">
+          <CardContent className="p-8">
+            <ContactForm />
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Global Education Gateway. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 };
