@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import DOMPurify from "dompurify";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -61,6 +62,7 @@ import {
   Globe,
   Heart,
   Sparkles,
+  RefreshCcw,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -133,6 +135,12 @@ interface BlogPost {
   author?: AuthorInfo | null;
 }
 
+interface PendingImagePreview {
+  dataUrl: string;
+  mimeType: string;
+  base64: string;
+}
+
 interface BlogFormState {
   title: string;
   slug: string;
@@ -177,6 +185,31 @@ export default function BlogAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | BlogStatus>("all");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<PendingImagePreview | null>(
+    null,
+  );
+  const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
+  const [imageGenerationProgress, setImageGenerationProgress] = useState(0);
+  const [imageGenerationStatus, setImageGenerationStatus] = useState<string | null>(
+    null,
+  );
+  const progressResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateImageGenerationProgress = (value: number) => {
+    setImageGenerationProgress((prev) => (value > prev ? value : prev));
+  };
+
+  const scheduleProgressReset = () => {
+    if (progressResetRef.current) {
+      clearTimeout(progressResetRef.current);
+    }
+
+    progressResetRef.current = setTimeout(() => {
+      setImageGenerationProgress(0);
+      setImageGenerationStatus(null);
+      progressResetRef.current = null;
+    }, 600);
+  };
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["admin-blog"],
@@ -208,6 +241,14 @@ export default function BlogAdmin() {
       prev.filter((id) => posts.some((post) => post.id === id)),
     );
   }, [posts]);
+
+  useEffect(() => {
+    return () => {
+      if (progressResetRef.current) {
+        clearTimeout(progressResetRef.current);
+      }
+    };
+  }, []);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -355,13 +396,32 @@ export default function BlogAdmin() {
     setStatusFilter("all");
   };
 
-  const handleGenerateCoverImage = async () => {
+  const handleGenerateCoverImage = async (
+    mode: "generate" | "regenerate" = "generate",
+  ) => {
     if (!form.title.trim()) {
       toast.error("Add a compelling title before generating an image.");
       return;
     }
 
+    if (progressResetRef.current) {
+      clearTimeout(progressResetRef.current);
+      progressResetRef.current = null;
+    }
+
+    const previousPreview = imagePreview;
+
+    if (mode === "regenerate" && isPreviewDialogOpen) {
+      setImagePreview(null);
+    }
+
     setIsGeneratingImage(true);
+    setImageGenerationStatus(
+      mode === "regenerate"
+        ? "Regenerating cover image with Nano Banana..."
+        : "Generating cover image with Nano Banana...",
+    );
+    updateImageGenerationProgress(10);
 
     try {
       const { data, error } = await supabase.functions.invoke(
@@ -374,6 +434,8 @@ export default function BlogAdmin() {
           },
         },
       );
+
+      updateImageGenerationProgress(55);
 
       if (error) {
         throw new Error(
@@ -396,10 +458,58 @@ export default function BlogAdmin() {
         );
       }
 
-      const blob = base64ToBlob(imageBase64, mimeType);
+      updateImageGenerationProgress(75);
+
+      const dataUrl = `data:${mimeType};base64,${imageBase64}`;
+
+      setImagePreview({
+        dataUrl,
+        mimeType,
+        base64: imageBase64,
+      });
+      setIsPreviewDialogOpen(true);
+      setImageGenerationStatus("Preview ready. Review before saving.");
+      updateImageGenerationProgress(100);
+      toast.success("Nano Banana image generated. Review before saving.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to generate image";
+      setImageGenerationStatus("Image generation failed. Try again.");
+
+      if (mode === "regenerate" && previousPreview) {
+        setImagePreview(previousPreview);
+        setIsPreviewDialogOpen(true);
+      } else {
+        setImagePreview(null);
+        setIsPreviewDialogOpen(false);
+      }
+
+      toast.error(message);
+    } finally {
+      setIsGeneratingImage(false);
+      scheduleProgressReset();
+    }
+  };
+
+  const handleApplyGeneratedImage = async () => {
+    if (!imagePreview) return;
+
+    if (progressResetRef.current) {
+      clearTimeout(progressResetRef.current);
+      progressResetRef.current = null;
+    }
+
+    setIsGeneratingImage(true);
+    setImageGenerationStatus("Uploading image to library...");
+    updateImageGenerationProgress(25);
+
+    try {
+      const blob = base64ToBlob(imagePreview.base64, imagePreview.mimeType);
       const safeSlug = generateSlug(form.title || "blog-post");
-      const extension = mimeType.split("/")[1] ?? "png";
+      const extension = imagePreview.mimeType.split("/")[1] ?? "png";
       const filePath = `blog/${safeSlug}-${createUniqueId()}.${extension}`;
+
+      updateImageGenerationProgress(50);
 
       const { error: uploadError } = await supabase.storage
         .from("public")
@@ -412,23 +522,37 @@ export default function BlogAdmin() {
         throw new Error(uploadError.message);
       }
 
+      updateImageGenerationProgress(80);
+
       const { data: urlData } = supabase.storage
         .from("public")
         .getPublicUrl(filePath);
 
       if (!urlData?.publicUrl) {
-        throw new Error("Unable to resolve public URL for the generated image.");
+        throw new Error(
+          "Unable to resolve public URL for the generated image.",
+        );
       }
 
       setForm((prev) => ({ ...prev, cover_image_url: urlData.publicUrl }));
-      toast.success("Nano Banana image generated and applied.");
+      setIsPreviewDialogOpen(false);
+      setImagePreview(null);
+      setImageGenerationStatus("Cover image saved to the post.");
+      updateImageGenerationProgress(100);
+      toast.success("Cover image applied to the post.");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to generate image";
+        error instanceof Error ? error.message : "Unable to save generated image";
+      setImageGenerationStatus("Image upload failed. Try again.");
       toast.error(message);
     } finally {
       setIsGeneratingImage(false);
+      scheduleProgressReset();
     }
+  };
+
+  const handleRegenerateImage = () => {
+    void handleGenerateCoverImage("regenerate");
   };
 
   const handleEditPost = (post: BlogPost) => {
@@ -1186,55 +1310,76 @@ export default function BlogAdmin() {
                         {form.excerpt.length} / 320 characters
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <Label htmlFor="cover-image">Cover image URL</Label>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="w-full gap-2 sm:w-fit"
-                          onClick={handleGenerateCoverImage}
-                          disabled={isGeneratingImage}
-                        >
-                          {isGeneratingImage ? (
-                            <>
-                              <Loader2 className="h-4 w-4 animate-spin" />{" "}
-                              Generating...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4" /> Generate with
-                              Nano Banana
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                      <Input
-                        id="cover-image"
-                        value={form.cover_image_url}
-                        onChange={(event) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            cover_image_url: event.target.value,
-                          }))
-                        }
-                        placeholder="https://images.unsplash.com/..."
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Paste a custom URL or let Nano Banana craft a relevant,
-                        on-brand cover image instantly.
-                      </p>
-                      {form.cover_image_url && (
-                        <div className="overflow-hidden rounded-md border">
-                          <img
-                            src={form.cover_image_url}
-                            alt="Cover preview"
-                            className="h-40 w-full object-cover"
-                          />
+                      <div className="space-y-2">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <Label htmlFor="cover-image">Cover image URL</Label>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            className="w-full gap-2 sm:w-fit"
+                            onClick={() => {
+                              void handleGenerateCoverImage();
+                            }}
+                            disabled={isGeneratingImage}
+                          >
+                            {isGeneratingImage ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4" /> Generate with
+                                Nano Banana
+                              </>
+                            )}
+                          </Button>
                         </div>
-                      )}
-                    </div>
+                        <Input
+                          id="cover-image"
+                          value={form.cover_image_url}
+                          onChange={(event) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              cover_image_url: event.target.value,
+                            }))
+                          }
+                          placeholder="https://images.unsplash.com/..."
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Paste a custom URL or let Nano Banana craft a relevant,
+                          on-brand cover image instantly.
+                        </p>
+                        {imageGenerationStatus && (
+                          <div className="space-y-2 rounded-md border border-dashed bg-muted/40 p-4">
+                            <div className="flex items-center gap-2 text-sm">
+                              <Loader2
+                                className={`h-4 w-4 ${
+                                  isGeneratingImage ? "animate-spin" : ""
+                                }`}
+                              />
+                              <span>{imageGenerationStatus}</span>
+                            </div>
+                            <Progress
+                              value={Math.min(
+                                imageGenerationProgress ||
+                                  (isGeneratingImage ? 5 : 100),
+                                100,
+                              )}
+                            />
+                          </div>
+                        )}
+                        {form.cover_image_url && (
+                          <div className="overflow-hidden rounded-md border">
+                            <img
+                              src={form.cover_image_url}
+                              alt="Cover preview"
+                              className="h-40 w-full object-cover"
+                            />
+                          </div>
+                        )}
+                      </div>
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
@@ -1445,6 +1590,79 @@ export default function BlogAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog
+        open={isPreviewDialogOpen}
+        onOpenChange={(open) => {
+          if (isGeneratingImage) return;
+          setIsPreviewDialogOpen(open);
+          if (!open) {
+            setImagePreview(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Review Generated Image</DialogTitle>
+            <DialogDescription>
+              Preview the AI-generated cover before saving it to your post.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {imagePreview ? (
+              <>
+                <div className="overflow-hidden rounded-lg border">
+                  <img
+                    src={imagePreview.dataUrl}
+                    alt="Generated cover preview"
+                    className="h-[360px] w-full object-cover"
+                  />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Not the vibe? Regenerate to try a different variation.
+                </p>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-sm text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span>Preparing preview...</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setIsPreviewDialogOpen(false);
+                setImagePreview(null);
+              }}
+              disabled={isGeneratingImage}
+            >
+              Cancel
+            </Button>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleRegenerateImage}
+                disabled={isGeneratingImage}
+                className="gap-2"
+              >
+                <RefreshCcw className="h-4 w-4" /> Regenerate
+              </Button>
+              <Button
+                type="button"
+                onClick={handleApplyGeneratedImage}
+                disabled={!imagePreview || isGeneratingImage}
+                className="gap-2"
+              >
+                <Save className="h-4 w-4" /> Use Image
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showBulkActions} onOpenChange={setShowBulkActions}>
         <DialogContent>
