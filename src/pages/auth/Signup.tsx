@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,13 +29,42 @@ type UserRole = 'student' | 'agent' | 'partner';
 
 const ROLE_OPTIONS: UserRole[] = ['student', 'agent', 'partner'];
 
-const COUNTRIES = [
+const BASE_COUNTRY_OPTIONS = [
   'United States', 'United Kingdom', 'Canada', 'Australia', 'New Zealand',
   'India', 'China', 'Japan', 'Germany', 'France', 'Spain', 'Italy',
   'Netherlands', 'Sweden', 'Norway', 'Denmark', 'Singapore', 'Malaysia',
   'UAE', 'Saudi Arabia', 'South Africa', 'Brazil', 'Mexico', 'Argentina',
   'South Korea', 'Pakistan', 'Bangladesh', 'Nigeria', 'Kenya', 'Other'
 ];
+
+const POPULAR_AFRICAN_COUNTRIES = [
+  'Ghana',
+  'Egypt',
+  'Morocco',
+  'Ethiopia',
+  'Uganda',
+  'Tanzania',
+  'Rwanda',
+  'Zimbabwe',
+  'Zambia',
+  'Cameroon',
+  "Cote d'Ivoire",
+  'Senegal',
+  'Algeria',
+  'Tunisia',
+  'Botswana'
+];
+
+const buildCountryOptions = (role: UserRole) => {
+  if (role !== 'agent') {
+    return BASE_COUNTRY_OPTIONS;
+  }
+
+  const baseWithoutOther = BASE_COUNTRY_OPTIONS.filter((country) => country !== 'Other');
+  const deduped = Array.from(new Set([...baseWithoutOther, ...POPULAR_AFRICAN_COUNTRIES]));
+
+  return [...deduped, 'Other'];
+};
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -55,6 +84,8 @@ const Signup = () => {
   const location = useLocation();
 
   const totalSteps = 3;
+
+  const countryOptions = useMemo(() => buildCountryOptions(role), [role]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -352,54 +383,54 @@ const Signup = () => {
                 step === 2 ? 'block opacity-100 translate-x-0' : 'hidden opacity-0 translate-x-full'
               )}
             >
-              <div className="space-y-2">
-                <Label htmlFor="fullName" className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4" />
-                  Full Name
-                </Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-11"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName" className="flex items-center gap-2">
+                    <UserCircle className="h-4 w-4" />
+                    Full Name
+                  </Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="h-4 w-4" />
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 234 567 8900"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="h-11"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 234 567 8900"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="h-11"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="country" className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  Country
-                </Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Select your country" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {COUNTRIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Country
+                  </Label>
+                  <Select value={country} onValueChange={setCountry}>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {countryOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
             </div>
 
             {/* Step 3: Account Credentials */}
