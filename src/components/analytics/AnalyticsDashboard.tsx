@@ -33,6 +33,7 @@ import {
   Activity,
   Target,
   Award,
+  MousePointerClick,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,6 +50,15 @@ interface AnalyticsData {
   applicationsByStatus: Array<{ status: string; count: number }>;
   applicationsByMonth: Array<{ month: string; count: number }>;
   conversionFunnel: Array<{ stage: string; count: number; percentage: number }>;
+  visaCalculatorClicks: number;
+  visaCalculatorClicksByDay: Array<{ date: string; label: string; count: number }>;
+  visaCalculatorClickTrend: {
+    changePercentage: number;
+    direction: 'up' | 'down' | 'flat';
+    currentCount: number;
+    previousCount: number;
+  };
+  visaCalculatorVariantBreakdown: Array<{ variant: string; count: number }>;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d'];
@@ -132,6 +142,69 @@ export default function AnalyticsDashboard() {
       const { data: applications, error } = await query;
 
       if (error) throw error;
+
+      const { count: visaClicksCount, error: visaClicksError } = await supabase
+        .from('analytics_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_name', 'visa_calculator_card_click')
+        .gte('created_at', startDate.toISOString());
+
+      if (visaClicksError) throw visaClicksError;
+
+      const { data: visaEvents, error: visaEventsError } = await supabase
+        .from('analytics_events')
+        .select('created_at, event_properties')
+        .eq('event_name', 'visa_calculator_card_click')
+        .gte('created_at', startDate.toISOString())
+        .order('created_at', { ascending: true });
+
+      if (visaEventsError) throw visaEventsError;
+
+      const dailyClicksMap: Record<string, number> = {};
+      const variantCounts: Record<string, number> = {};
+
+      (visaEvents ?? []).forEach((event) => {
+        const eventDate = new Date(event.created_at);
+        const dateKey = eventDate.toISOString().slice(0, 10);
+        dailyClicksMap[dateKey] = (dailyClicksMap[dateKey] || 0) + 1;
+
+        const variant =
+          ((event.event_properties as { variant?: string } | null)?.variant ?? 'card').toString();
+        variantCounts[variant] = (variantCounts[variant] || 0) + 1;
+      });
+
+      const dailySeries: Array<{ date: string; label: string; count: number }> = [];
+      const iterator = new Date(startDate);
+      const endDate = new Date(now);
+
+      while (iterator <= endDate) {
+        const key = iterator.toISOString().slice(0, 10);
+        dailySeries.push({
+          date: key,
+          label: iterator.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          count: dailyClicksMap[key] || 0,
+        });
+        iterator.setDate(iterator.getDate() + 1);
+      }
+
+      const previousCount = dailySeries.length > 1 ? dailySeries[dailySeries.length - 2].count : 0;
+      const currentCount = dailySeries.length > 0 ? dailySeries[dailySeries.length - 1].count : 0;
+
+      const changePercentage =
+        previousCount === 0
+          ? currentCount > 0
+            ? 100
+            : 0
+          : Math.round(((currentCount - previousCount) / previousCount) * 100);
+
+      const trendDirection: 'up' | 'down' | 'flat' =
+        currentCount === previousCount ? 'flat' : currentCount > previousCount ? 'up' : 'down';
+
+      const variantBreakdown = Object.entries(variantCounts)
+        .map(([variant, count]) => ({ variant, count }))
+        .sort((a, b) => b.count - a.count);
+
+      const totalVisaClicks = visaClicksCount ?? 0;
 
       // Process analytics data
       const totalApplications = applications?.length || 0;
@@ -218,6 +291,15 @@ export default function AnalyticsDashboard() {
         applicationsByStatus,
         applicationsByMonth,
         conversionFunnel,
+        visaCalculatorClicks: totalVisaClicks,
+        visaCalculatorClicksByDay: dailySeries,
+        visaCalculatorClickTrend: {
+          changePercentage,
+          direction: trendDirection,
+          currentCount,
+          previousCount,
+        },
+        visaCalculatorVariantBreakdown: variantBreakdown,
       });
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -251,6 +333,13 @@ export default function AnalyticsDashboard() {
     );
   }
 
+  const visaClickTrend = analytics.visaCalculatorClickTrend;
+  const visaClickIsFlat = visaClickTrend.direction === 'flat';
+  const visaClickChangeLabel = visaClickIsFlat
+    ? '0%'
+    : `${visaClickTrend.changePercentage > 0 ? '+' : ''}${visaClickTrend.changePercentage}%`;
+  const visaClickTrendDirection = visaClickTrend.direction === 'down' ? 'down' : 'up';
+
   const stats = [
     {
       title: 'Total Applications',
@@ -259,6 +348,7 @@ export default function AnalyticsDashboard() {
       change: '+12%',
       trend: 'up' as const,
       color: 'text-blue-500',
+      isTrendFlat: false,
     },
     {
       title: 'Active Applications',
@@ -267,6 +357,7 @@ export default function AnalyticsDashboard() {
       change: '+5%',
       trend: 'up' as const,
       color: 'text-orange-500',
+      isTrendFlat: false,
     },
     {
       title: 'Success Rate',
@@ -275,6 +366,7 @@ export default function AnalyticsDashboard() {
       change: '+3%',
       trend: 'up' as const,
       color: 'text-green-500',
+      isTrendFlat: false,
     },
     {
       title: 'Avg. Processing Time',
@@ -283,8 +375,32 @@ export default function AnalyticsDashboard() {
       change: '-2 days',
       trend: 'up' as const,
       color: 'text-purple-500',
+      isTrendFlat: false,
+    },
+    {
+      title: 'Visa Calculator Clicks',
+      value: analytics.visaCalculatorClicks.toLocaleString(),
+      icon: MousePointerClick,
+      change: visaClickChangeLabel,
+      trend: visaClickTrendDirection,
+      color: 'text-cyan-500',
+      isTrendFlat: visaClickIsFlat,
     },
   ];
+
+  const formatVariantLabel = (variant: string) => {
+    switch (variant) {
+      case 'card':
+        return 'Spotlight Card';
+      case 'cta_button':
+        return 'Explore CTA Button';
+      default:
+        return variant
+          .split('_')
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -317,12 +433,22 @@ export default function AnalyticsDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  {stat.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span className={stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}>
+                    {stat.isTrendFlat ? (
+                      <Activity className="h-3 w-3 text-muted-foreground" />
+                    ) : stat.trend === 'up' ? (
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 text-red-500" />
+                    )}
+                    <span
+                      className={
+                        stat.isTrendFlat
+                          ? 'text-muted-foreground'
+                          : stat.trend === 'up'
+                            ? 'text-green-500'
+                            : 'text-red-500'
+                      }
+                    >
                     {stat.change}
                   </span>
                   <span>from last period</span>
@@ -426,6 +552,73 @@ export default function AnalyticsDashboard() {
                 <Progress value={stage.percentage} className="h-2" />
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        {/* Visa Calculator Engagement */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MousePointerClick className="h-5 w-5" />
+              Visa Calculator Engagement
+            </CardTitle>
+            <CardDescription>Daily spotlight interactions for the selected range</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analytics.visaCalculatorClicks > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={analytics.visaCalculatorClicksByDay}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#06b6d4"
+                    fill="#06b6d4"
+                    fillOpacity={0.4}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">
+                No Visa Calculator clicks recorded for this period.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* CTA Performance Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Visa Calculator CTA Performance</CardTitle>
+            <CardDescription>How visitors enter the calculator experience</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analytics.visaCalculatorClicks === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No engagement activity captured yet for the selected range.
+              </p>
+            ) : (
+              analytics.visaCalculatorVariantBreakdown.map((entry) => {
+                const percentage = Math.round(
+                  (entry.count / analytics.visaCalculatorClicks) * 1000
+                ) / 10;
+
+                return (
+                  <div key={entry.variant} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{formatVariantLabel(entry.variant)}</p>
+                      <p className="text-xs text-muted-foreground">{percentage}% of clicks</p>
+                    </div>
+                    <Badge variant="secondary" className="px-3">
+                      {entry.count}
+                    </Badge>
+                  </div>
+                );
+              })
+            )}
           </CardContent>
         </Card>
       </div>

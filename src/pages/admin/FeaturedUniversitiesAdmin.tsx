@@ -5,6 +5,7 @@ import {
   Building2,
   Globe,
   ListOrdered,
+  Loader2,
   RefreshCcw,
   Sparkles,
 } from "lucide-react";
@@ -40,6 +41,7 @@ interface UniversityRecord {
   featured_priority: number | null;
   featured_summary: string | null;
   featured_highlight: string | null;
+  featured_image_url: string | null;
   updated_at: string | null;
 }
 
@@ -48,21 +50,25 @@ interface DraftState {
   featured_priority: string;
   featured_summary: string;
   featured_highlight: string;
+  featured_image_url: string;
 }
 
 export default function FeaturedUniversitiesAdmin() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [drafts, setDrafts] = useState<Record<string, DraftState>>({});
+  const [imageGenerationState, setImageGenerationState] = useState<
+    Record<string, { isGenerating: boolean; message?: string; error?: string }>
+  >({});
 
   const { data: universities, isLoading, isFetching } = useQuery({
     queryKey: ["admin", "featured-universities"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("universities")
-        .select(
-          "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, updated_at"
-        )
+        const { data, error } = await supabase
+          .from("universities")
+          .select(
+            "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, featured_image_url, updated_at"
+          )
         .order("featured", { ascending: false })
         .order("featured_priority", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true });
@@ -85,6 +91,7 @@ export default function FeaturedUniversitiesAdmin() {
               : "",
           featured_summary: uni.featured_summary ?? "",
           featured_highlight: uni.featured_highlight ?? "",
+            featured_image_url: uni.featured_image_url ?? "",
         };
       });
       return next;
@@ -174,6 +181,7 @@ export default function FeaturedUniversitiesAdmin() {
             : "",
         featured_summary: original.featured_summary ?? "",
         featured_highlight: original.featured_highlight ?? "",
+        featured_image_url: original.featured_image_url ?? "",
       },
     }));
   };
@@ -188,17 +196,83 @@ export default function FeaturedUniversitiesAdmin() {
         draft.featured && draft.featured_priority.trim() !== ""
           ? Number(draft.featured_priority)
           : null,
-      featured_summary:
-        draft.featured_summary.trim() === ""
-          ? null
-          : draft.featured_summary.trim(),
-      featured_highlight:
-        draft.featured_highlight.trim() === ""
-          ? null
-          : draft.featured_highlight.trim(),
+        featured_summary:
+          draft.featured_summary.trim() === ""
+            ? null
+            : draft.featured_summary.trim(),
+        featured_highlight:
+          draft.featured_highlight.trim() === ""
+            ? null
+            : draft.featured_highlight.trim(),
+        featured_image_url:
+          draft.featured_image_url.trim() === ""
+            ? null
+            : draft.featured_image_url.trim(),
     };
 
     mutation.mutate({ id, updates: payload });
+  };
+
+  const handleGenerateImage = async (university: UniversityRecord) => {
+    setImageGenerationState((prev) => ({
+      ...prev,
+      [university.id]: {
+        isGenerating: true,
+        message: "Generating spotlight image with Nana Banana...",
+        error: undefined,
+      },
+    }));
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-university-image", {
+        body: {
+          universityId: university.id,
+          name: university.name,
+          city: university.city,
+          country: university.country,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message ?? "Unable to generate image");
+      }
+
+      if (!data?.imageUrl) {
+        throw new Error("Nana Banana did not return an image URL");
+      }
+
+      handleDraftChange(university.id, "featured_image_url", data.imageUrl);
+
+      setImageGenerationState((prev) => ({
+        ...prev,
+        [university.id]: {
+          isGenerating: false,
+          message: "New Nana Banana spotlight image added. Don't forget to save.",
+          error: undefined,
+        },
+      }));
+
+      toast({
+        title: "Spotlight image generated",
+        description: "A fresh Nana Banana image has been added to this university's draft.",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to generate image";
+      setImageGenerationState((prev) => ({
+        ...prev,
+        [university.id]: {
+          isGenerating: false,
+          error: message,
+          message: undefined,
+        },
+      }));
+
+      toast({
+        title: "Image generation failed",
+        description: message,
+        variant: "destructive",
+      });
+    }
   };
 
   const hasChanges = (id: string) => {
@@ -210,16 +284,19 @@ export default function FeaturedUniversitiesAdmin() {
       typeof original.featured_priority === "number"
         ? String(original.featured_priority)
         : "";
-    const originalSummary = (original.featured_summary ?? "").trim();
-    const draftSummary = draft.featured_summary.trim();
-    const originalHighlight = (original.featured_highlight ?? "").trim();
-    const draftHighlight = draft.featured_highlight.trim();
-    const draftPriority = draft.featured ? draft.featured_priority.trim() : "";
+      const originalSummary = (original.featured_summary ?? "").trim();
+      const draftSummary = draft.featured_summary.trim();
+      const originalHighlight = (original.featured_highlight ?? "").trim();
+      const draftHighlight = draft.featured_highlight.trim();
+      const originalImage = (original.featured_image_url ?? "").trim();
+      const draftImage = draft.featured_image_url.trim();
+      const draftPriority = draft.featured ? draft.featured_priority.trim() : "";
     return (
       Boolean(original.featured) !== draft.featured ||
       originalSummary !== draftSummary ||
       originalHighlight !== draftHighlight ||
-      originalPriority !== draftPriority
+        originalPriority !== draftPriority ||
+        originalImage !== draftImage
     );
   };
 
@@ -426,44 +503,122 @@ export default function FeaturedUniversitiesAdmin() {
                       </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`summary-${university.id}`} className="text-sm font-medium">
-                            Spotlight summary
-                          </Label>
-                          <Textarea
-                            id={`summary-${university.id}`}
-                            value={draft.featured_summary}
-                            onChange={(event) =>
-                              handleDraftChange(
-                                university.id,
-                                "featured_summary",
-                                event.target.value
-                              )
-                            }
-                            placeholder="Headline copy shown beneath the university card on the homepage"
-                            rows={3}
-                          />
+                      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                        <div className="space-y-6">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor={`image-${university.id}`} className="text-sm font-medium">
+                                Spotlight image
+                              </Label>
+                              {draft.featured_image_url && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-2"
+                                  onClick={() => handleDraftChange(university.id, "featured_image_url", "")}
+                                  disabled={imageGenerationState[university.id]?.isGenerating}
+                                >
+                                  Remove
+                                </Button>
+                              )}
+                            </div>
+                            <div className="space-y-3">
+                              <div className="relative overflow-hidden rounded-lg border bg-muted/20">
+                                {draft.featured_image_url ? (
+                                  <img
+                                    src={draft.featured_image_url}
+                                    alt={`${university.name} spotlight visual`}
+                                    className="h-40 w-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="flex h-40 items-center justify-center text-muted-foreground">
+                                    <Building2 className="h-10 w-10" />
+                                  </div>
+                                )}
+                              </div>
+                              <Input
+                                id={`image-${university.id}`}
+                                value={draft.featured_image_url}
+                                onChange={(event) =>
+                                  handleDraftChange(
+                                    university.id,
+                                    "featured_image_url",
+                                    event.target.value
+                                  )
+                                }
+                                placeholder="https://cdn.example.com/university-spotlight.jpg"
+                              />
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() => handleGenerateImage(university)}
+                                  disabled={imageGenerationState[university.id]?.isGenerating}
+                                >
+                                  {imageGenerationState[university.id]?.isGenerating ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Generating…
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-4 w-4" />
+                                      Generate with Nana Banana
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                              {imageGenerationState[university.id]?.message && (
+                                <p className="text-xs text-muted-foreground">
+                                  {imageGenerationState[university.id]?.message}
+                                </p>
+                              )}
+                              {imageGenerationState[university.id]?.error && (
+                                <p className="text-xs text-destructive">
+                                  {imageGenerationState[university.id]?.error}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`summary-${university.id}`} className="text-sm font-medium">
+                              Spotlight summary
+                            </Label>
+                            <Textarea
+                              id={`summary-${university.id}`}
+                              value={draft.featured_summary}
+                              onChange={(event) =>
+                                handleDraftChange(
+                                  university.id,
+                                  "featured_summary",
+                                  event.target.value
+                                )
+                              }
+                              placeholder="Headline copy shown beneath the university card on the homepage"
+                              rows={3}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`highlight-${university.id}`} className="text-sm font-medium">
+                              Homepage highlight
+                            </Label>
+                            <Input
+                              id={`highlight-${university.id}`}
+                              value={draft.featured_highlight}
+                              onChange={(event) =>
+                                handleDraftChange(
+                                  university.id,
+                                  "featured_highlight",
+                                  event.target.value
+                                )
+                              }
+                              placeholder="e.g. Scholarships up to 40% | Fast admissions turnaround"
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`highlight-${university.id}`} className="text-sm font-medium">
-                            Homepage highlight
-                          </Label>
-                          <Input
-                            id={`highlight-${university.id}`}
-                            value={draft.featured_highlight}
-                            onChange={(event) =>
-                              handleDraftChange(
-                                university.id,
-                                "featured_highlight",
-                                event.target.value
-                              )
-                            }
-                            placeholder="e.g. Scholarships up to 40% | Fast admissions turnaround"
-                          />
-                        </div>
-                      </div>
                       <div className="space-y-2">
                         <Label htmlFor={`priority-${university.id}`} className="text-sm font-medium">
                           Display priority
