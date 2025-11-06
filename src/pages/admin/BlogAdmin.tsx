@@ -190,14 +190,560 @@ export default function BlogAdmin() {
   const [statusTargetId, setStatusTargetId] = useState<string | null>(null);
   const progressResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // (The rest of your code remains identical to what you provided — with all tabs, dialogs, mutations, and handlers.)
+  // Fetch posts
+  const { data: posts = [], isLoading } = useQuery({
+    queryKey: ["blog-posts", tenantId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*, author:profiles(id, full_name, avatar_url)")
+        .eq("tenant_id", tenantId)
+        .order("created_at", { ascending: false });
 
-  // ✅ Just ensure the merge conflict markers are removed.
-  // ✅ Keep both image generation and status mutation logic.
-  // ✅ Keep all imports and JSX exactly as shown in your message.
+      if (error) throw error;
+      return data as BlogPost[];
+    },
+  });
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: BlogFormState) => {
+      const { error } = await supabase.from("blog_posts").insert({
+        tenant_id: tenantId,
+        author_id: user?.id,
+        title: data.title,
+        slug: data.slug || generateSlug(data.title),
+        excerpt: data.excerpt || null,
+        content_md: data.content_md || null,
+        content_html: data.content_html || null,
+        cover_image_url: data.cover_image_url || null,
+        tags: data.tags ? data.tags.split(",").map((t) => t.trim()) : null,
+        status: data.status,
+        featured: data.featured,
+        seo_title: data.seo_title || null,
+        seo_description: data.seo_description || null,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      toast.success("Blog post created!");
+      setForm(createInitialFormState);
+      setActiveTab("list");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create post: ${error.message}`);
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<BlogFormState> }) => {
+      const { error } = await supabase
+        .from("blog_posts")
+        .update({
+          title: data.title,
+          slug: data.slug,
+          excerpt: data.excerpt || null,
+          content_md: data.content_md || null,
+          content_html: data.content_html || null,
+          cover_image_url: data.cover_image_url || null,
+          tags: data.tags ? data.tags.split(",").map((t) => t.trim()) : null,
+          status: data.status,
+          featured: data.featured,
+          seo_title: data.seo_title || null,
+          seo_description: data.seo_description || null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      toast.success("Blog post updated!");
+      setEditing(null);
+      setForm(createInitialFormState);
+      setActiveTab("list");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update post: ${error.message}`);
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      toast.success("Blog post deleted!");
+      setDeleteId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete post: ${error.message}`);
+    },
+  });
+
+  // Status toggle mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: BlogStatus }) => {
+      const newStatus: BlogStatus = currentStatus === "published" ? "draft" : "published";
+      const { error } = await supabase
+        .from("blog_posts")
+        .update({
+          status: newStatus,
+          published_at: newStatus === "published" ? new Date().toISOString() : null,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["blog-posts"] });
+      toast.success("Status updated!");
+      setStatusTargetId(null);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update status: ${error.message}`);
+      setStatusTargetId(null);
+    },
+  });
+
+  // Handlers
+  const handleEdit = (post: BlogPost) => {
+    setEditing(post);
+    setForm({
+      title: post.title,
+      slug: post.slug,
+      excerpt: post.excerpt || "",
+      cover_image_url: post.cover_image_url || "",
+      content_md: post.content_md || "",
+      content_html: post.content_html || "",
+      status: post.status,
+      featured: post.featured || false,
+      tags: post.tags?.join(", ") || "",
+      seo_title: post.seo_title || "",
+      seo_description: post.seo_description || "",
+    });
+    setActiveTab("edit");
+  };
+
+  const handlePreview = (post: BlogPost) => {
+    setPreview(post);
+    setIsPreviewDialogOpen(true);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (editing) {
+      updateMutation.mutate({ id: editing.id, data: form });
+    } else {
+      createMutation.mutate(form);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!form.title) {
+      toast.error("Please enter a title first");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    setImageGenerationProgress(0);
+    setImageGenerationStatus("Preparing...");
+
+    const progressInterval = setInterval(() => {
+      setImageGenerationProgress((prev) => Math.min(prev + 10, 90));
+    }, 500);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-blog-image", {
+        body: { prompt: form.title, postId: editing?.id || createUniqueId() },
+      });
+
+      clearInterval(progressInterval);
+
+      if (error) throw error;
+      if (!data?.imageUrl) throw new Error("No image URL received");
+
+      setImageGenerationProgress(100);
+      setImageGenerationStatus("Complete!");
+      setForm({ ...form, cover_image_url: data.imageUrl });
+      toast.success("Image generated successfully!");
+
+      if (progressResetRef.current) clearTimeout(progressResetRef.current);
+      progressResetRef.current = setTimeout(() => {
+        setImageGenerationProgress(0);
+        setImageGenerationStatus(null);
+      }, 2000);
+    } catch (error: any) {
+      clearInterval(progressInterval);
+      setImageGenerationProgress(0);
+      setImageGenerationStatus(null);
+      toast.error(`Failed to generate image: ${error.message}`);
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
+  // Filtered posts
+  const filteredPosts = useMemo(() => {
+    return posts.filter((post) => {
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "all" || post.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [posts, searchTerm, statusFilter]);
 
   return (
-    // (full JSX as in your original — unchanged)
-    // ...
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <BackButton />
+            <h1 className="text-3xl font-bold">Blog Management</h1>
+          </div>
+          <p className="text-muted-foreground">Create and manage blog posts</p>
+        </div>
+        <Button onClick={() => { setEditing(null); setForm(createInitialFormState); setActiveTab("edit"); }}>
+          <Plus className="h-4 w-4 mr-2" />
+          New Post
+        </Button>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+        <TabsList>
+          <TabsTrigger value="list">
+            <FileText className="h-4 w-4 mr-2" />
+            Posts
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <Globe className="h-4 w-4 mr-2" />
+            Analytics
+          </TabsTrigger>
+          <TabsTrigger value="edit">
+            <Edit3 className="h-4 w-4 mr-2" />
+            {editing ? "Edit Post" : "New Post"}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>All Posts</CardTitle>
+                  <CardDescription>Manage your blog content</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search posts..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 w-64"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Author</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredPosts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell>
+                          <Badge variant={post.status === "published" ? "default" : "secondary"}>
+                            {post.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{post.author?.full_name || "Unknown"}</TableCell>
+                        <TableCell>
+                          {post.published_at
+                            ? format(new Date(post.published_at), "MMM d, yyyy")
+                            : format(new Date(post.created_at!), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handlePreview(post)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEdit(post)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                toggleStatusMutation.mutate({
+                                  id: post.id,
+                                  currentStatus: post.status,
+                                })
+                              }
+                              disabled={statusTargetId === post.id}
+                            >
+                              {statusTargetId === post.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteId(post.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <BlogAnalytics />
+        </TabsContent>
+
+        <TabsContent value="edit">
+          <form onSubmit={handleSubmit}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{editing ? "Edit Post" : "Create New Post"}</CardTitle>
+                <CardDescription>
+                  {editing ? "Update your blog post" : "Write a new blog post"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value, slug: generateSlug(e.target.value) })}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    value={form.slug}
+                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="excerpt">Excerpt</Label>
+                  <Textarea
+                    id="excerpt"
+                    value={form.excerpt}
+                    onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cover_image">Cover Image</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cover_image"
+                      value={form.cover_image_url}
+                      onChange={(e) => setForm({ ...form, cover_image_url: e.target.value })}
+                      placeholder="Image URL"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleGenerateImage}
+                      disabled={isGeneratingImage}
+                      variant="outline"
+                    >
+                      {isGeneratingImage ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  {(isGeneratingImage || imageGenerationProgress > 0) && (
+                    <div className="space-y-2">
+                      <Progress value={imageGenerationProgress} />
+                      {imageGenerationStatus && (
+                        <p className="text-sm text-muted-foreground">{imageGenerationStatus}</p>
+                      )}
+                    </div>
+                  )}
+                  {form.cover_image_url && (
+                    <img src={form.cover_image_url} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content_md">Content (Markdown)</Label>
+                  <Textarea
+                    id="content_md"
+                    value={form.content_md}
+                    onChange={(e) => setForm({ ...form, content_md: e.target.value })}
+                    rows={10}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content_html">Content (HTML)</Label>
+                  <Textarea
+                    id="content_html"
+                    value={form.content_html}
+                    onChange={(e) => setForm({ ...form, content_html: e.target.value })}
+                    rows={10}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={form.tags}
+                    onChange={(e) => setForm({ ...form, tags: e.target.value })}
+                    placeholder="study abroad, visa, scholarships"
+                  />
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="featured"
+                      checked={form.featured}
+                      onCheckedChange={(checked) => setForm({ ...form, featured: checked })}
+                    />
+                    <Label htmlFor="featured">Featured</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Label htmlFor="status">Status:</Label>
+                    <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as BlogStatus })}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="published">Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <Label htmlFor="seo_title">SEO Title</Label>
+                  <Input
+                    id="seo_title"
+                    value={form.seo_title}
+                    onChange={(e) => setForm({ ...form, seo_title: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="seo_description">SEO Description</Label>
+                  <Textarea
+                    id="seo_description"
+                    value={form.seo_description}
+                    onChange={(e) => setForm({ ...form, seo_description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-between">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditing(null);
+                    setForm(createInitialFormState);
+                    setActiveTab("list");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                  {createMutation.isPending || updateMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
+                  {editing ? "Update" : "Create"}
+                </Button>
+              </CardFooter>
+            </Card>
+          </form>
+        </TabsContent>
+      </Tabs>
+
+      {preview && (
+        <BlogPreview
+          post={preview}
+          open={isPreviewDialogOpen}
+          onOpenChange={setIsPreviewDialogOpen}
+        />
+      )}
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the blog post.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
