@@ -206,7 +206,7 @@ function normalizeResults(data: unknown): AISearchResults | null {
 }
 
 export function AIPoweredSearchSection() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, session, loading: authLoading } = useAuth();
   const [query, setQuery] = useState("");
   const [selectedFocus, setSelectedFocus] = useState<string[]>([]);
   const [results, setResults] = useState<AISearchResults | null>(sampleResults);
@@ -243,6 +243,12 @@ export function AIPoweredSearchSection() {
       return;
     }
 
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      setError("We couldn't verify your session. Please sign out and sign back in to continue.");
+      return;
+    }
+
     const activeQuery = overrideQuery?.trim() ?? query.trim();
 
     if (!activeQuery) {
@@ -254,13 +260,16 @@ export function AIPoweredSearchSection() {
     setError(null);
 
     try {
-        const { data, error: invokeError } = await supabase.functions.invoke("ai-university-search", {
-          body: {
-            query: activeQuery,
-            focusAreas: selectedFocus,
-            resultCount: 4,
-          },
-        });
+      const { data, error: invokeError } = await supabase.functions.invoke("ai-university-search", {
+        body: {
+          query: activeQuery,
+          focusAreas: selectedFocus,
+          resultCount: 4,
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       if (invokeError) {
         throw invokeError;
