@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import type { ChangeEvent } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Award, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Award, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 interface TestScoresTabProps {
@@ -15,12 +16,19 @@ interface TestScoresTabProps {
   onUpdate?: () => void;
 }
 
+const CERTIFICATE_BUCKET = 'student-documents';
+const CERTIFICATE_PREFIX = 'test-score-certificates';
+const MAX_CERTIFICATE_SIZE = 5 * 1024 * 1024; // 5MB
+
 export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [testScores, setTestScores] = useState<Tables<'test_scores'>[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<Tables<'test_scores'> | null>(null);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [existingCertificatePath, setExistingCertificatePath] = useState<string | null>(null);
+  const [viewingCertificatePath, setViewingCertificatePath] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     test_type: '',
     total_score: '',
@@ -56,6 +64,9 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
     e.preventDefault();
     setLoading(true);
 
+    let uploadedCertificatePath: string | null = null;
+    const previousCertificatePath = editingRecord?.report_url ?? null;
+
     try {
       const subscores: Record<string, number> = {};
       if (formData.listening) subscores.listening = parseFloat(formData.listening);
@@ -63,11 +74,33 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       if (formData.writing) subscores.writing = parseFloat(formData.writing);
       if (formData.speaking) subscores.speaking = parseFloat(formData.speaking);
 
+      let certificatePath = existingCertificatePath ?? null;
+
+      if (certificateFile) {
+        const extension = certificateFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const safeTestType = formData.test_type ? formData.test_type.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'test';
+        const fileName = `${studentId}/${safeTestType}-${Date.now()}.${extension}`;
+        const filePath = `${CERTIFICATE_PREFIX}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from(CERTIFICATE_BUCKET)
+          .upload(filePath, certificateFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        uploadedCertificatePath = filePath;
+        certificatePath = filePath;
+      }
+
       const payload = {
         test_type: formData.test_type,
         total_score: parseFloat(formData.total_score),
         test_date: formData.test_date,
-        subscores_json: Object.keys(subscores).length > 0 ? subscores : null
+        subscores_json: Object.keys(subscores).length > 0 ? subscores : null,
+        report_url: certificatePath
       };
 
       if (editingRecord) {
@@ -77,6 +110,16 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
           .eq('id', editingRecord.id);
 
         if (error) throw error;
+
+        if (uploadedCertificatePath && previousCertificatePath && previousCertificatePath !== uploadedCertificatePath) {
+          const { error: removeError } = await supabase.storage
+            .from(CERTIFICATE_BUCKET)
+            .remove([previousCertificatePath]);
+          if (removeError) {
+            console.error('Error removing previous certificate:', removeError);
+          }
+        }
+
         toast({ title: 'Success', description: 'Test score updated' });
       } else {
         const { error } = await supabase
@@ -92,10 +135,21 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
       setIsDialogOpen(false);
       setEditingRecord(null);
+      setCertificateFile(null);
+      setExistingCertificatePath(null);
       resetForm();
       fetchTestScores();
       onUpdate?.();
     } catch (error: unknown) {
+      if (uploadedCertificatePath) {
+        const { error: cleanupError } = await supabase.storage
+          .from(CERTIFICATE_BUCKET)
+          .remove([uploadedCertificatePath]);
+        if (cleanupError) {
+          console.error('Failed to clean up uploaded certificate after error:', cleanupError);
+        }
+      }
+
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast({
         title: 'Error',
@@ -107,16 +161,24 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (score: Tables<'test_scores'>) => {
     if (!confirm('Are you sure you want to delete this test score?')) return;
 
     try {
       const { error } = await supabase
         .from('test_scores')
         .delete()
-        .eq('id', id);
+        .eq('id', score.id);
 
       if (error) throw error;
+      if (score.report_url) {
+        const { error: removeError } = await supabase.storage
+          .from(CERTIFICATE_BUCKET)
+          .remove([score.report_url]);
+        if (removeError) {
+          console.error('Error removing certificate from storage:', removeError);
+        }
+      }
       toast({ title: 'Success', description: 'Test score deleted' });
       fetchTestScores();
       onUpdate?.();
@@ -140,6 +202,8 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       writing: '',
       speaking: ''
     });
+    setCertificateFile(null);
+    setExistingCertificatePath(null);
   };
 
   const openEditDialog = (record: Tables<'test_scores'>) => {
@@ -154,10 +218,82 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       writing: subscores?.writing?.toString() || '',
       speaking: subscores?.speaking?.toString() || ''
     });
+    setCertificateFile(null);
+    setExistingCertificatePath(record.report_url || null);
     setIsDialogOpen(true);
   };
 
   const showSubscores = ['IELTS', 'TOEFL'].includes(formData.test_type);
+
+  const handleCertificateChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setCertificateFile(null);
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload an image file (PNG, JPG, JPEG).',
+        variant: 'destructive'
+      });
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_CERTIFICATE_SIZE) {
+      toast({
+        title: 'File too large',
+        description: 'Certificate image must be smaller than 5MB.',
+        variant: 'destructive'
+      });
+      event.target.value = '';
+      return;
+    }
+
+    setCertificateFile(file);
+  };
+
+  const viewCertificate = async (path: string) => {
+    if (viewingCertificatePath) return;
+
+    setViewingCertificatePath(path);
+    try {
+      const { data, error } = await supabase.storage
+        .from(CERTIFICATE_BUCKET)
+        .download(path);
+
+      if (error || !data) {
+        throw new Error(error?.message || 'Unable to retrieve certificate');
+      }
+
+      const url = URL.createObjectURL(data);
+      const newWindow = window.open(url, '_blank');
+
+      if (!newWindow) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = path.split('/').pop() || 'certificate';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 60_000);
+    } catch (error) {
+      console.error('Error viewing certificate:', error);
+      toast({
+        title: 'Unable to view certificate',
+        description: error instanceof Error ? error.message : 'Please try again later.',
+        variant: 'destructive'
+      });
+    } finally {
+      setViewingCertificatePath(null);
+    }
+  };
 
   if (loading && testScores.length === 0) {
     return <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -225,6 +361,38 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="certificate">Certificate Image (Optional)</Label>
+                  <Input
+                    id="certificate"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={handleCertificateChange}
+                  />
+                  {certificateFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {certificateFile.name} ({(certificateFile.size / 1024).toFixed(1)} KB)
+                    </p>
+                  )}
+                  {!certificateFile && existingCertificatePath && (
+                    <div className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">Existing certificate uploaded</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => viewCertificate(existingCertificatePath)}
+                        disabled={viewingCertificatePath !== null}
+                      >
+                        {viewingCertificatePath === existingCertificatePath && (
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        )}
+                        View
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {showSubscores && (
@@ -316,45 +484,67 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                     <Button size="sm" variant="outline" onClick={() => openEditDialog(score)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(score.id)}>
+                      <Button size="sm" variant="outline" onClick={() => handleDelete(score)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              {score.subscores_json && (() => {
-                const subscores = score.subscores_json as { listening?: number; reading?: number; writing?: number; speaking?: number };
-                return (
-                  <CardContent>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
-                      {subscores.listening && (
+                {(score.report_url || score.subscores_json) && (
+                  <CardContent className="space-y-4">
+                    {score.report_url && (
+                      <div className="flex items-center justify-between rounded-lg border px-4 py-3">
                         <div>
-                          <span className="text-muted-foreground">Listening:</span>
-                          <p className="font-medium">{subscores.listening}</p>
+                          <p className="text-sm font-medium">Certificate</p>
+                          <p className="text-xs text-muted-foreground">View uploaded test certificate image</p>
                         </div>
-                      )}
-                      {subscores.reading && (
-                        <div>
-                          <span className="text-muted-foreground">Reading:</span>
-                          <p className="font-medium">{subscores.reading}</p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => viewCertificate(score.report_url!)}
+                          disabled={viewingCertificatePath !== null}
+                        >
+                          {viewingCertificatePath === score.report_url && (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          )}
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </Button>
+                      </div>
+                    )}
+                    {score.subscores_json && (() => {
+                      const subscores = score.subscores_json as { listening?: number; reading?: number; writing?: number; speaking?: number };
+                      return (
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          {subscores.listening && (
+                            <div>
+                              <span className="text-muted-foreground">Listening:</span>
+                              <p className="font-medium">{subscores.listening}</p>
+                            </div>
+                          )}
+                          {subscores.reading && (
+                            <div>
+                              <span className="text-muted-foreground">Reading:</span>
+                              <p className="font-medium">{subscores.reading}</p>
+                            </div>
+                          )}
+                          {subscores.writing && (
+                            <div>
+                              <span className="text-muted-foreground">Writing:</span>
+                              <p className="font-medium">{subscores.writing}</p>
+                            </div>
+                          )}
+                          {subscores.speaking && (
+                            <div>
+                              <span className="text-muted-foreground">Speaking:</span>
+                              <p className="font-medium">{subscores.speaking}</p>
+                            </div>
+                          )}
                         </div>
-                      )}
-                      {subscores.writing && (
-                        <div>
-                          <span className="text-muted-foreground">Writing:</span>
-                          <p className="font-medium">{subscores.writing}</p>
-                        </div>
-                      )}
-                      {subscores.speaking && (
-                        <div>
-                          <span className="text-muted-foreground">Speaking:</span>
-                          <p className="font-medium">{subscores.speaking}</p>
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })()}
                   </CardContent>
-                );
-              })()}
+                )}
             </Card>
           ))}
         </div>
