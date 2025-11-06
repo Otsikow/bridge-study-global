@@ -18,6 +18,7 @@ interface UseUserRolesResult {
 export const useUserRoles = (): UseUserRolesResult => {
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const isVerified = Boolean(user?.email_confirmed_at);
 
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,7 +33,7 @@ export const useUserRoles = (): UseUserRolesResult => {
     let isActive = true;
 
     const fetchRoles = async () => {
-      if (!userId) {
+      if (!userId || !isVerified) {
         if (isActive) {
           setRoles([]);
           setError(null);
@@ -70,10 +71,10 @@ export const useUserRoles = (): UseUserRolesResult => {
     return () => {
       isActive = false;
     };
-  }, [mapRoles, userId]);
+  }, [mapRoles, userId, isVerified]);
 
   const refresh = useCallback(async () => {
-    if (!userId) {
+    if (!userId || !isVerified) {
       setRoles([]);
       setError(null);
       setLoading(false);
@@ -98,7 +99,7 @@ export const useUserRoles = (): UseUserRolesResult => {
     }
 
     setLoading(false);
-  }, [mapRoles, userId]);
+  }, [mapRoles, userId, isVerified]);
 
   const hasRole = useCallback(
     (requiredRoles: AppRole | AppRole[]) => {
