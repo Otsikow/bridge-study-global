@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Messages from "./pages/student/Messages";
 import ZoeChatbot from "@/components/ai/AIChatbot";
+import { useTranslation } from "react-i18next";
 
 // ✅ Lazy loading wrapper with error handling & recovery from chunk errors
 const CHUNK_ERROR_PATTERNS = [
@@ -72,16 +73,36 @@ const triggerHardReload = async () => {
   window.location.replace(url.toString());
 };
 
-const getLazyErrorMessage = (error: unknown, chunkError: boolean): string => {
-  if (chunkError) {
-    return "We refreshed the app to fetch the latest files. If this keeps happening, please clear your browser cache and try again.";
-  }
+const LazyLoadErrorFallback = ({ error, chunkError }: { error: unknown; chunkError: boolean }) => {
+  const { t } = useTranslation();
+  const message = chunkError
+    ? t("app.errors.chunkReloadMessage")
+    : error instanceof Error && error.message
+      ? error.message
+      : t("app.errors.failedToLoadPageDescription");
 
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "The page could not be loaded. This might be due to a network issue or the page being temporarily unavailable.";
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="max-w-md w-full">
+        <CardContent className="pt-6 space-y-4">
+          <div className="flex items-center gap-3 text-destructive">
+            <AlertCircle className="h-6 w-6" />
+            <h3 className="font-semibold text-lg">{t("app.errors.failedToLoadPageTitle")}</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">{message}</p>
+          <div className="flex gap-2">
+            <Button onClick={() => window.location.reload()} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              {t("common.actions.reloadPage")}
+            </Button>
+            <Button variant="outline" onClick={() => window.history.back()}>
+              {t("common.actions.goBack")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 const lazyWithErrorHandling = <T extends ComponentType<any>>(
@@ -98,31 +119,8 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
         void triggerHardReload();
       }
 
-      const friendlyMessage = getLazyErrorMessage(error, chunkError);
-
       return {
-        default: ((() => (
-          <div className="min-h-screen flex items-center justify-center p-4">
-            <Card className="max-w-md w-full">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-center gap-3 text-destructive">
-                  <AlertCircle className="h-6 w-6" />
-                  <h3 className="font-semibold text-lg">Failed to Load Page</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">{friendlyMessage}</p>
-                <div className="flex gap-2">
-                  <Button onClick={() => window.location.reload()} className="gap-2">
-                    <RefreshCw className="h-4 w-4" />
-                    Reload Page
-                  </Button>
-                  <Button variant="outline" onClick={() => window.history.back()}>
-                    Go Back
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )) as unknown) as T,
+          default: ((() => <LazyLoadErrorFallback error={error} chunkError={chunkError} />) as unknown) as T,
       };
     }
   });
@@ -203,26 +201,29 @@ const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/Staf
 const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
 
 // ✅ Main App component
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+const App = () => {
+  const { t } = useTranslation();
+
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
             <AuthProvider>
               <NavigationHistoryProvider>
                 <Suspense
-              fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <LoadingState
-                    message="Loading application..."
-                    size="lg"
-                    className="text-muted-foreground"
-                  />
-                </div>
-                }
-              >
+                  fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <LoadingState
+                        message={t("app.loading")}
+                        size="lg"
+                        className="text-muted-foreground"
+                      />
+                    </div>
+                  }
+                >
                   <div className="min-h-screen flex flex-col">
                     <div className="flex-1">
                       <Routes>
@@ -632,14 +633,15 @@ const App = () => (
                       </Routes>
                     </div>
                     <ZoeChatbot />
-                </div>
-              </Suspense>
-            </NavigationHistoryProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+                  </div>
+                </Suspense>
+              </NavigationHistoryProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;

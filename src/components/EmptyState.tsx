@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -10,6 +11,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
+  const { t } = useTranslation();
   return (
     <Card className="text-center">
       <CardContent className="pt-10 pb-10">
@@ -18,7 +20,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
         {description && <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">{description}</p>}
         {action && (
           <Button onClick={action.onClick} className="mx-auto">
-            {action.label}
+            {action.label ?? t("common.actions.submit")}
           </Button>
         )}
       </CardContent>
