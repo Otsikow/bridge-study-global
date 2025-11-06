@@ -13,11 +13,8 @@ import {
   Calendar,
   GraduationCap,
   MapPin,
-  Filter,
   Timer,
   XCircle,
-  AlertTriangle,
-  RefreshCw,
 } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
@@ -43,27 +40,31 @@ interface Application {
 }
 
 export default function Applications() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const errorHandler = useErrorHandler({ context: 'Applications' });
+  const {
+    clearError,
+    handleError,
+    hasError,
+    error: currentError,
+    retry,
+  } = useErrorHandler({ context: 'Applications' });
 
   const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [allCountries, setAllCountries] = useState<string[]>([]);
 
   const fetchApplications = useCallback(async () => {
-    try {
-      setLoading(true);
-      errorHandler.clearError();
+    if (!user?.id) {
+      return;
+    }
 
-      if (!user?.id) {
-        setApplications([]);
-        setAllCountries([]);
-        return;
-      }
+    try {
+      setDataLoading(true);
+      clearError();
 
       const { data: appsData, error: appsError } = await supabase
         .from('applications')
@@ -96,21 +97,34 @@ export default function Applications() {
 
       const list = (appsData ?? []) as Application[];
       setApplications(list);
-      setAllCountries(
-        Array.from(new Set(list.map((a) => a.program.university.country))).sort()
-      );
+
+      const countries = Array.from(
+        new Set(
+          list
+            .map((a) => a.program?.university?.country)
+            .filter((country): country is string => Boolean(country))
+        )
+      ).sort();
+      setAllCountries(countries);
     } catch (error) {
       logError(error, 'Applications.fetchApplications');
-      errorHandler.handleError(error, 'Failed to load applications');
+      handleError(error, 'Failed to load applications');
       toast(formatErrorForToast(error, 'Failed to load applications'));
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
-  }, [user?.id, errorHandler]);
+  }, [user?.id, clearError, handleError, toast]);
 
   useEffect(() => {
-    if (user) fetchApplications();
-  }, [user, fetchApplications]);
+    if (user?.id) {
+      void fetchApplications();
+    } else if (!authLoading) {
+      setApplications([]);
+      setAllCountries([]);
+    }
+  }, [user?.id, authLoading, fetchApplications]);
+
+  const isLoading = authLoading || dataLoading;
 
   const getIntakeLabel = (month: number, year: number) => {
     const monthNames = [
@@ -121,15 +135,20 @@ export default function Applications() {
   };
 
   const filtered = applications.filter((a) => {
+    const program = a.program;
+    const university = program?.university;
+
     const matchesStatus = statusFilter === 'all' || a.status === statusFilter;
     const matchesCountry =
-      countryFilter === 'all' || a.program.university.country === countryFilter;
+      countryFilter === 'all' || university?.country === countryFilter;
     const term = searchTerm.toLowerCase();
+    const programName = program?.name?.toLowerCase() ?? '';
+    const universityName = university?.name?.toLowerCase() ?? '';
     const matchesSearch =
       !term ||
       (a.app_number && a.app_number.toLowerCase().includes(term)) ||
-      a.program.name.toLowerCase().includes(term) ||
-      a.program.university.name.toLowerCase().includes(term);
+      programName.includes(term) ||
+      universityName.includes(term);
     return matchesStatus && matchesCountry && matchesSearch;
   });
 
@@ -159,15 +178,15 @@ export default function Applications() {
         title: 'Cancelled',
         description: 'Application moved to Withdrawn',
       });
-      fetchApplications();
+      await fetchApplications();
     } catch (err) {
       logError(err, 'Applications.cancelDraft');
-      errorHandler.handleError(err, 'Could not cancel application');
+      handleError(err, 'Could not cancel application');
       toast(formatErrorForToast(err, 'Could not cancel application'));
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto py-8">
         <div className="text-center">Loading applications...</div>
@@ -175,14 +194,14 @@ export default function Applications() {
     );
   }
 
-  if (errorHandler.hasError) {
+  if (hasError) {
     return (
       <div className="container mx-auto py-8 space-y-6">
         <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
         <ErrorDisplay
-          error={errorHandler.error}
-          onRetry={() => errorHandler.retry(fetchApplications)}
-          onClear={errorHandler.clearError}
+          error={currentError}
+          onRetry={() => retry(fetchApplications)}
+          onClear={clearError}
         />
       </div>
     );
