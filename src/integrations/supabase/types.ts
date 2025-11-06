@@ -415,6 +415,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_staff: { Args: { user_id: string }; Returns: boolean }
+      is_username_available: { Args: { candidate: string }; Returns: boolean }
       is_agent_for_application: {
         Args: { _application_id: string; _user_id: string }
         Returns: boolean
