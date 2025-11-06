@@ -41,6 +41,7 @@ import universityBuildings from "@/assets/university-buildings.png";
 import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
+import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 
@@ -290,40 +291,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Visa Calculator Spotlight */}
-      <section className="relative py-24">
-        <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-8">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
-              <Sparkles className="h-4 w-4" /> Feature Spotlight
-            </span>
-            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-              Understand your visa eligibility before you apply
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
-            </p>
-            <Button asChild size="lg" className="gap-2">
-              <Link
-                to="/visa-calculator"
-                onClick={() => logVisaCalculatorCardClick("cta_button")}
-              >
-                <Calculator className="h-5 w-5" /> Explore the Visa Calculator
-              </Link>
-            </Button>
+        {/* Visa Calculator Spotlight */}
+        <section className="relative py-24">
+          <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-8">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+                <Sparkles className="h-4 w-4" /> Feature Spotlight
+              </span>
+              <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+                Understand your visa eligibility before you apply
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
+              </p>
+              <Button asChild size="lg" className="gap-2">
+                <Link
+                  to="/visa-calculator"
+                  onClick={() => logVisaCalculatorCardClick("cta_button")}
+                >
+                  <Calculator className="h-5 w-5" /> Explore the Visa Calculator
+                </Link>
+              </Button>
+            </div>
+            <div className="relative">
+              <img
+                src={visaEligibilityImage}
+                alt="Student using laptop to check visa eligibility checklist"
+                className="w-full h-auto rounded-2xl shadow-2xl"
+              />
+            </div>
           </div>
-          <div className="relative">
-            <img
-              src={visaEligibilityImage}
-              alt="Student using laptop to check visa eligibility checklist"
-              className="w-full h-auto rounded-2xl shadow-2xl"
-            />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <FeaturedUniversitiesSection />
-      <StoryboardSection />
+        <AIPoweredSearchSection />
+        <FeaturedUniversitiesSection />
+        <StoryboardSection />
 
       {/* Testimonials */}
       <section className="container mx-auto px-4 py-20 text-center">
