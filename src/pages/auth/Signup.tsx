@@ -184,17 +184,20 @@ const Signup = () => {
     setCheckingUsername(true);
     let cancel = false;
     const handler = setTimeout(async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", username)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("is_username_available", {
+        candidate: username,
+      });
 
       if (cancel) return;
 
-      if (error) setUsernameError("Unable to verify username availability. Please try again.");
-      else if (data) setUsernameError("This username is already taken. Try another one.");
-      else setUsernameError(null);
+      if (error) {
+        console.error("Failed to check username availability", error);
+        setUsernameError("Unable to verify username availability. Please try again.");
+      } else if (data === false) {
+        setUsernameError("This username is already taken. Try another one.");
+      } else {
+        setUsernameError(null);
+      }
 
       setCheckingUsername(false);
     }, 500);
