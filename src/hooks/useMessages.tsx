@@ -364,6 +364,8 @@ const getErrorDescription = (error: SupabaseError, fallback: string) => {
 
 export function useMessages() {
   const { user, profile } = useAuth();
+    const isAgent = profile?.role === 'agent';
+    const isStudent = profile?.role === 'student';
     const { toast } = useToast();
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [currentConversation, setCurrentConversation] = useState<string | null>(null);
@@ -655,7 +657,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
       if (!user?.id) {
         setConversations([]);
         return;
-      }
+        }
 
         try {
         // First, get conversation IDs where user participates
@@ -1056,13 +1058,61 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         return null;
       }
 
-      try {
-        const { data: candidates, error: candidatesError } = await supabase
-          .from('conversation_participants')
-          .select('conversation_id, conversation:conversations ( is_group )')
-          .eq('user_id', user.id);
+        try {
+          if (isAgent) {
+            const { data: targetStudent, error: targetStudentError } = await supabase
+              .from('students')
+              .select('id')
+              .eq('profile_id', otherUserId)
+              .maybeSingle();
 
-        if (candidatesError) throw candidatesError;
+            if (targetStudentError) throw targetStudentError;
+
+            if (targetStudent) {
+              const { data: link, error: linkError } = await supabase
+                .from('agent_student_links')
+                .select('student_id')
+                .eq('agent_profile_id', user.id)
+                .eq('student_id', targetStudent.id)
+                .maybeSingle();
+
+              if (linkError) throw linkError;
+
+              if (!link) {
+                throw new Error('You can only message students assigned to you.');
+              }
+            }
+          } else if (isStudent) {
+            const { data: currentStudent, error: currentStudentError } = await supabase
+              .from('students')
+              .select('id')
+              .eq('profile_id', user.id)
+              .maybeSingle();
+
+            if (currentStudentError) throw currentStudentError;
+
+            if (currentStudent) {
+              const { data: link, error: linkError } = await supabase
+                .from('agent_student_links')
+                .select('student_id')
+                .eq('agent_profile_id', otherUserId)
+                .eq('student_id', currentStudent.id)
+                .maybeSingle();
+
+              if (linkError) throw linkError;
+
+              if (!link) {
+                throw new Error('You can only message your assigned agent.');
+              }
+            }
+          }
+
+          const { data: candidates, error: candidatesError } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id, conversation:conversations ( is_group )')
+            .eq('user_id', user.id);
+
+          if (candidatesError) throw candidatesError;
 
         const directConversationIds = ((candidates || []) as DirectConversationCandidate[])
           .filter(candidate => candidate.conversation?.is_group === false)
@@ -1125,7 +1175,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         throw fallbackError;
       }
     },
-    [profile?.tenant_id, user?.id]
+      [isAgent, isStudent, profile?.tenant_id, user?.id]
   );
 
   const getOrCreateConversation = useCallback(
