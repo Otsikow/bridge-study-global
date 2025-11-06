@@ -6,6 +6,18 @@ import { useAuth } from "./useAuth";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
+const ROLE_PRIORITY: AppRole[] = [
+  "admin",
+  "staff",
+  "partner",
+  "agent",
+  "counselor",
+  "verifier",
+  "finance",
+  "school_rep",
+  "student",
+];
+
 interface UseUserRolesResult {
   roles: AppRole[];
   primaryRole: AppRole | null;
@@ -16,12 +28,24 @@ interface UseUserRolesResult {
 }
 
 export const useUserRoles = (): UseUserRolesResult => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const userId = user?.id ?? null;
 
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<PostgrestError | Error | null>(null);
+
+  const normalizeRole = useCallback(
+    (value: unknown): AppRole | null => {
+      if (typeof value !== "string") {
+        return null;
+      }
+
+      const normalized = value.trim().toLowerCase();
+      return ROLE_PRIORITY.includes(normalized as AppRole) ? (normalized as AppRole) : null;
+    },
+    []
+  );
 
   const mapRoles = useCallback((data: { role: AppRole }[] | null) => {
     if (!data) return [] as AppRole[];
@@ -100,18 +124,48 @@ export const useUserRoles = (): UseUserRolesResult => {
     setLoading(false);
   }, [mapRoles, userId]);
 
+  const metadataRole = normalizeRole(user?.user_metadata?.role);
+  const profileRole = normalizeRole(profile?.role);
+
+  const effectiveRoles = useMemo(() => {
+    const uniqueRoles = new Set<AppRole>(roles);
+
+    if (profileRole) {
+      uniqueRoles.add(profileRole);
+    }
+
+    if (metadataRole) {
+      uniqueRoles.add(metadataRole);
+    }
+
+    const prioritized = Array.from(uniqueRoles).sort((a, b) => {
+      const indexA = ROLE_PRIORITY.indexOf(a);
+      const indexB = ROLE_PRIORITY.indexOf(b);
+      return (indexA === -1 ? ROLE_PRIORITY.length : indexA) - (indexB === -1 ? ROLE_PRIORITY.length : indexB);
+    });
+
+    return prioritized;
+  }, [metadataRole, profileRole, roles]);
+
   const hasRole = useCallback(
     (requiredRoles: AppRole | AppRole[]) => {
       const roleList = Array.isArray(requiredRoles) ? requiredRoles : [requiredRoles];
-      return roleList.some((role) => roles.includes(role));
+      return roleList.some((role) => effectiveRoles.includes(role));
     },
-    [roles]
+    [effectiveRoles]
   );
 
-  const primaryRole = useMemo(() => (roles.length > 0 ? roles[0] : null), [roles]);
+  const primaryRole = useMemo(() => {
+    for (const candidate of ROLE_PRIORITY) {
+      if (effectiveRoles.includes(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }, [effectiveRoles]);
 
   return {
-    roles,
+    roles: effectiveRoles,
     primaryRole,
     loading,
     error,

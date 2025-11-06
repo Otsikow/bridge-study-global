@@ -2,6 +2,7 @@
 
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,22 +14,34 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Users, FileCheck, Clock, Star, Quote, ChevronLeft, ChevronRight, Sparkles, Calculator } from "lucide-react";
+import {
+  Users,
+  FileCheck,
+  Clock,
+  Star,
+  Quote,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Calculator,
+} from "lucide-react";
 
 import gegLogo from "@/assets/geg-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
+import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
+import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
-import { useTranslation } from "react-i18next";
 
 const Index = () => {
   const { t } = useTranslation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
+  // Hero CTAs (translated)
   const heroCtas = useMemo(
     () =>
       [
@@ -54,16 +67,21 @@ const Index = () => {
         description: t(`pages.index.hero.ctas.${cta.key}.description`),
         action: t(`pages.index.hero.ctas.${cta.key}.action`),
       })),
-    [t],
+    [t]
   );
 
   const heroTitleParts = useMemo(
-    () => t("pages.index.hero.title", { returnObjects: true }) as { prefix: string; highlight: string; suffix?: string },
-    [t],
+    () =>
+      t("pages.index.hero.title", {
+        returnObjects: true,
+      }) as { prefix: string; highlight: string; suffix?: string },
+    [t]
   );
+
   const heroBadgeText = t("pages.index.hero.trustBadge", { count: 5000 });
   const heroDescription = t("pages.index.hero.description");
 
+  // Features
   const features = useMemo(
     () =>
       [
@@ -87,9 +105,10 @@ const Index = () => {
         title: t(`pages.index.features.cards.${feature.key}.title`),
         description: t(`pages.index.features.cards.${feature.key}.description`),
       })),
-    [t],
+    [t]
   );
 
+  // Testimonials
   const testimonials = useMemo(
     () =>
       (t("pages.index.testimonials.items", { returnObjects: true }) as Array<{
@@ -99,7 +118,7 @@ const Index = () => {
         quote: string;
         rating: number;
       }>),
-    [t],
+    [t]
   );
 
   const featuresHeading = t("pages.index.features.heading");
@@ -112,7 +131,9 @@ const Index = () => {
   const faqSubtitle = t("pages.index.faq.subtitle");
   const contactHeading = t("pages.index.contact.heading");
   const contactSubtitle = t("pages.index.contact.subtitle");
-  const footerText = t("layout.footer.copyright", { year: new Date().getFullYear() });
+  const footerText = t("layout.footer.copyright", {
+    year: new Date().getFullYear(),
+  });
 
   const testimonialCount = testimonials.length;
 
@@ -132,11 +153,13 @@ const Index = () => {
 
   const faqs = useMemo(
     () =>
-      (t("pages.index.faq.sections", { returnObjects: true }) as Array<{
+      (t("pages.index.faq.sections", {
+        returnObjects: true,
+      }) as Array<{
         audience: string;
         items: Array<{ question: string; answer: string }>;
       }>),
-    [t],
+    [t]
   );
 
   return (
@@ -149,62 +172,63 @@ const Index = () => {
             alt="Global Education Gateway logo"
             className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
           />
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
-              <Sparkles className="h-4 w-4 animate-pulse" />
-              <span>{heroBadgeText}</span>
-            </div>
-            <h1 className="text-5xl font-bold mb-4">
-              {heroTitleParts.prefix}
-              {" "}
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                {heroTitleParts.highlight}
-              </span>
-              {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              {heroDescription}
-            </p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span>{heroBadgeText}</span>
+          </div>
+          <h1 className="text-5xl font-bold mb-4">
+            {heroTitleParts.prefix}{" "}
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              {heroTitleParts.highlight}
+            </span>
+            {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            {heroDescription}
+          </p>
 
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
-              {heroCtas.map((cta) => (
-                  <Link key={cta.key} to={cta.href} className="block h-full">
-                  <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-                    <div className="relative h-48 overflow-hidden sm:h-56">
-                      <img
-                        src={cta.image}
-                        alt={cta.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                      <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
-                        {cta.badge}
-                      </Badge>
-                    </div>
-                    <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
-                      <h3 className="text-2xl font-bold leading-snug text-foreground">
-                        {cta.title}
-                      </h3>
-                      <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
-                        {cta.description}
-                      </p>
-                      <Button className="w-full sm:w-auto">{cta.action}</Button>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            {heroCtas.map((cta) => (
+              <Link key={cta.key} to={cta.href} className="block h-full">
+                <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="relative h-48 overflow-hidden sm:h-56">
+                    <img
+                      src={cta.image}
+                      alt={cta.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                      {cta.badge}
+                    </Badge>
+                  </div>
+                  <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
+                    <h3 className="text-2xl font-bold leading-snug text-foreground">
+                      {cta.title}
+                    </h3>
+                    <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                      {cta.description}
+                    </p>
+                    <Button className="w-full sm:w-auto">{cta.action}</Button>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
           <JourneyRibbon />
         </div>
       </section>
 
       {/* Features */}
-        <section className="container mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-12">{featuresHeading}</h2>
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-12">{featuresHeading}</h2>
         <div className="grid md:grid-cols-3 gap-8">
-            {features.map((f) => (
-              <Card key={f.key} className="relative overflow-hidden group hover:shadow-2xl">
+          {features.map((f) => (
+            <Card key={f.key} className="relative overflow-hidden group hover:shadow-2xl">
               <CardContent className="p-8">
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
+                <div
+                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}
+                >
                   <f.icon className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
@@ -218,34 +242,40 @@ const Index = () => {
       {/* Visa Calculator Spotlight */}
       <section className="relative py-24">
         <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-8">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
-                <Sparkles className="h-4 w-4" /> {visaBadgeLabel}
-              </span>
-              <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-                {visaTitle}
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                {visaDescription}
-              </p>
+          <div className="space-y-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+              <Sparkles className="h-4 w-4" /> {visaBadgeLabel}
+            </span>
+            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+              {visaTitle}
+            </h2>
+            <p className="text-lg text-muted-foreground">{visaDescription}</p>
             <Button asChild size="lg" className="gap-2">
               <Link
                 to="/visa-calculator"
                 onClick={() => logVisaCalculatorCardClick("cta_button")}
               >
-                  <Calculator className="h-5 w-5" /> {visaButtonLabel}
+                <Calculator className="h-5 w-5" /> {visaButtonLabel}
               </Link>
             </Button>
+          </div>
+          <div className="relative">
+            <img
+              src={visaEligibilityImage}
+              alt="Student using laptop to check visa eligibility checklist"
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
           </div>
         </div>
       </section>
 
+      <AIPoweredSearchSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
       {/* Testimonials */}
-        <section className="container mx-auto px-4 py-20 text-center">
-          <h2 className="text-4xl font-bold mb-12">{testimonialsHeading}</h2>
+      <section className="container mx-auto px-4 py-20 text-center">
+        <h2 className="text-4xl font-bold mb-12">{testimonialsHeading}</h2>
         <Card className="max-w-3xl mx-auto border-2 shadow-xl">
           <CardContent className="p-10">
             <Quote className="h-10 w-10 text-primary/20 mb-6 mx-auto" />
@@ -277,44 +307,46 @@ const Index = () => {
       </section>
 
       {/* FAQ */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">{faqHeading}</h2>
-            <p className="text-muted-foreground">{faqSubtitle}</p>
-          </div>
-          <div className="max-w-4xl mx-auto space-y-12">
-            {faqs.map((section, sectionIndex) => (
-              <div key={`${sectionIndex}-${section.audience}`} className="space-y-6">
-                <h3 className="text-2xl font-semibold text-left">
-                  {t("pages.index.faq.audienceHeading", { audience: section.audience })}
-                </h3>
-                <Accordion type="single" collapsible className="space-y-4">
-                  {section.items.map((faq, faqIndex) => (
-                    <AccordionItem
-                      key={`${sectionIndex}-${faqIndex}`}
-                      value={`item-${sectionIndex}-${faqIndex}`}
-                      className="border rounded-lg bg-card"
-                    >
-                      <AccordionTrigger className="py-6 px-4 font-semibold text-left">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-6 text-muted-foreground">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
-            ))}
-          </div>
-        </section>
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">{faqHeading}</h2>
+          <p className="text-muted-foreground">{faqSubtitle}</p>
+        </div>
+        <div className="max-w-4xl mx-auto space-y-12">
+          {faqs.map((section, sectionIndex) => (
+            <div key={`${sectionIndex}-${section.audience}`} className="space-y-6">
+              <h3 className="text-2xl font-semibold text-left">
+                {t("pages.index.faq.audienceHeading", {
+                  audience: section.audience,
+                })}
+              </h3>
+              <Accordion type="single" collapsible className="space-y-4">
+                {section.items.map((faq, faqIndex) => (
+                  <AccordionItem
+                    key={`${sectionIndex}-${faqIndex}`}
+                    value={`item-${sectionIndex}-${faqIndex}`}
+                    className="border rounded-lg bg-card"
+                  >
+                    <AccordionTrigger className="py-6 px-4 font-semibold text-left">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-6 text-muted-foreground">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Contact */}
-        <section className="container mx-auto px-4 py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">{contactHeading}</h2>
-            <p className="text-muted-foreground">{contactSubtitle}</p>
-          </div>
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">{contactHeading}</h2>
+          <p className="text-muted-foreground">{contactSubtitle}</p>
+        </div>
         <Card className="max-w-2xl mx-auto border-2">
           <CardContent className="p-8">
             <ContactForm />
@@ -323,11 +355,11 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-        <footer className="bg-muted/50 border-t">
-          <div className="container mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-            {footerText}
-          </div>
-        </footer>
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
+          {footerText}
+        </div>
+      </footer>
     </div>
   );
 };

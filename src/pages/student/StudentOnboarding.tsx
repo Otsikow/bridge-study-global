@@ -20,13 +20,60 @@ interface ChecklistItem {
   link: string;
 }
 
+const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'geg';
+const DEFAULT_TENANT_ID = import.meta.env.VITE_DEFAULT_TENANT_ID ?? '00000000-0000-0000-0000-000000000001';
+
 export default function StudentOnboarding() {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [completeness, setCompleteness] = useState(0);
+
+  const resolveTenantId = useCallback(async (): Promise<string | null> => {
+    try {
+      if (profile?.tenant_id) {
+        return profile.tenant_id;
+      }
+
+      if (user?.id) {
+        const { data: profileRecord, error: profileError } = await supabase
+          .from('profiles')
+          .select('tenant_id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!profileError && profileRecord?.tenant_id) {
+          return profileRecord.tenant_id;
+        }
+      }
+
+      const { data: tenantBySlug, error: slugError } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('slug', DEFAULT_TENANT_SLUG)
+        .maybeSingle();
+
+      if (!slugError && tenantBySlug?.id) {
+        return tenantBySlug.id;
+      }
+
+      const { data: fallbackTenant, error: fallbackError } = await supabase
+        .from('tenants')
+        .select('id')
+        .limit(1)
+        .maybeSingle();
+
+      if (!fallbackError && fallbackTenant?.id) {
+        return fallbackTenant.id;
+      }
+    } catch (error) {
+      console.error('Error resolving tenant ID:', error);
+    }
+
+    return DEFAULT_TENANT_ID || null;
+  }, [profile?.tenant_id, user?.id]);
 
   const fetchStudentData = useCallback(async () => {
     if (!user?.id) {
@@ -49,23 +96,11 @@ export default function StudentOnboarding() {
       let currentStudent = studentData;
 
       if (!currentStudent) {
-        const resolveTenantId = async () => {
-          if (profile?.tenant_id) return profile.tenant_id;
-
-          const { data: profileRecord, error: profileError } = await supabase
-            .from('profiles')
-            .select('tenant_id')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (profileError) throw profileError;
-          return profileRecord?.tenant_id ?? null;
-        };
-
         const tenantId = await resolveTenantId();
 
         if (!tenantId) {
-          throw new Error('Unable to determine tenant for current student profile');
+          console.warn('Unable to determine tenant for current student profile. Skipping student creation.');
+          return;
         }
 
         const { data: createdStudent, error: createStudentError } = await supabase
@@ -193,13 +228,19 @@ export default function StudentOnboarding() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, profile?.tenant_id, toast]);
+  }, [user?.id, toast, resolveTenantId]);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
     if (user) {
       fetchStudentData();
+    } else {
+      setLoading(false);
     }
-  }, [user, fetchStudentData]);
+  }, [authLoading, user, fetchStudentData]);
 
   if (loading) {
     return (
