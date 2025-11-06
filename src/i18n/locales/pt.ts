@@ -161,7 +161,197 @@ const pt = {
       maxRetriesReached: "Número máximo de tentativas atingido. Atualize a página ou contate o suporte.",
     },
   },
-  pages: {
+    pages: {
+      index: {
+        hero: {
+          trustBadge: "Confiado por mais de {{count}} estudantes no mundo todo",
+          title: {
+            prefix: "Seu Portal para",
+            highlight: "Educação Global",
+            suffix: "",
+          },
+          description:
+            "Conecte-se a universidades de ponta, acompanhe candidaturas em tempo real e receba orientação especializada de agentes verificados.",
+          ctas: {
+            students: {
+              badge: "Estudantes",
+              title: "Inicie sua candidatura internacional",
+              description:
+                "Crie um perfil, envie documentos uma única vez e encaminhe candidaturas completas às melhores universidades em minutos.",
+              action: "Começar inscrição",
+            },
+            agents: {
+              badge: "Agentes",
+              title: "Atenda estudantes com ferramentas inteligentes",
+              description:
+                "Acesse painéis, colabore em tempo real e acompanhe cada etapa enquanto expande a sua agência.",
+              action: "Participar como agente",
+            },
+            universities: {
+              badge: "Universidades",
+              title: "Amplie parcerias que geram resultados",
+              description:
+                "Conecte-se a candidatos qualificados, obtenha insights de mercado e colabore com consultores certificados no mundo inteiro.",
+              action: "Seja nosso parceiro",
+            },
+          },
+        },
+        features: {
+          heading: "Por que escolher a GEG?",
+          cards: {
+            applyEasily: {
+              title: "Candidate-se com facilidade",
+              description:
+                "Processo simplificado com orientação passo a passo. Envie candidaturas para várias universidades sem complicações.",
+            },
+            trackRealtime: {
+              title: "Acompanhe em tempo real",
+              description: "Monitore o status da candidatura 24/7 com atualizações e notificações instantâneas.",
+            },
+            connectAgents: {
+              title: "Conecte-se a agentes verificados",
+              description: "Conte com agentes certificados que oferecem suporte personalizado em toda a jornada.",
+            },
+          },
+        },
+        visa: {
+          badge: "Destaque",
+          title: "Entenda sua elegibilidade de visto antes de se candidatar",
+          description:
+            "Nossa Calculadora de Elegibilidade de Visto analisa seu perfil em instantes para que você foque nos países e programas com maior afinidade.",
+          cta: "Explorar a calculadora de visto",
+        },
+        testimonials: {
+          heading: "Histórias de sucesso",
+          items: [
+            {
+              name: "Sarah Johnson",
+              role: "Mestranda no MIT",
+              country: "EUA",
+              quote:
+                "A GEG tornou meu sonho de estudar no MIT realidade. A plataforma é intuitiva e meu agente foi extremamente dedicado.",
+              rating: 5,
+            },
+            {
+              name: "Raj Patel",
+              role: "Aluno de MBA em Oxford",
+              country: "Reino Unido",
+              quote:
+                "O acompanhamento em tempo real me deu tranquilidade. Eu sempre soube em que etapa minha candidatura estava. Recomendo muito!",
+              rating: 5,
+            },
+            {
+              name: "Maria Garcia",
+              role: "Estudante de Engenharia em Stanford",
+              country: "EUA",
+              quote:
+                "Da escolha do curso ao visto aprovado, a GEG me apoiou em cada etapa. Serviço excepcional!",
+              rating: 5,
+            },
+          ],
+        },
+        faq: {
+          heading: "Perguntas frequentes",
+          subtitle: "Respostas rápidas para as dúvidas mais comuns",
+          audienceHeading: "Para {{audience}}",
+          sections: [
+            {
+              audience: "Estudantes",
+              items: [
+                {
+                  question: "Como o GEG me ajuda a me candidatar às universidades?",
+                  answer:
+                    "O GEG conecta você a agentes verificados que orientam cada etapa — da escolha das universidades ao envio dos documentos.",
+                },
+                {
+                  question: "Usar a plataforma tem custo?",
+                  answer:
+                    "Criar uma conta e explorar universidades é gratuito. Agentes podem cobrar taxas de consultoria, exibidas claramente antes de qualquer compromisso.",
+                },
+                {
+                  question: "Quais documentos preciso para me candidatar?",
+                  answer:
+                    "Normalmente são exigidos históricos acadêmicos, exames de inglês (IELTS/TOEFL), cartas de recomendação, carta de motivação e cópia do passaporte.",
+                },
+              ],
+            },
+          ],
+        },
+        contact: {
+          heading: "Fale conosco",
+          subtitle: "Tem dúvidas? Teremos prazer em ajudar.",
+        },
+      },
+      universitySearch: {
+        hero: {
+          title: "Encontre a universidade ideal",
+          subtitle: "Pesquise universidades, cursos e bolsas no mundo todo.",
+        },
+        tabs: {
+          search: "Busca",
+          recommendations: "Recomendações de IA",
+          sop: "Gerador de SOP",
+          interview: "Simulação de entrevista",
+        },
+        filters: {
+          title: "Filtros de busca",
+          subtitle: "Refine sua busca abaixo",
+          fields: {
+            universityName: {
+              label: "Nome da universidade",
+              placeholder: "Pesquisar universidades...",
+            },
+            country: {
+              label: "País",
+              placeholder: "Selecionar país",
+              all: "Todos os países",
+            },
+            programLevel: {
+              label: "Nível do programa",
+              placeholder: "Selecionar nível",
+              all: "Todos os níveis",
+            },
+            discipline: {
+              label: "Área",
+              placeholder: "Selecionar área",
+              all: "Todas as áreas",
+            },
+            maxFee: {
+              label: "Mensalidade máxima (USD)",
+              placeholder: "Informe o valor máximo",
+            },
+            scholarshipsOnly: {
+              label: "Mostrar apenas universidades com bolsas",
+            },
+          },
+        },
+        actions: {
+          search: "Buscar",
+        },
+        results: {
+          loading: "Buscando...",
+          found_one: "Encontramos {{count}} resultado",
+          found_other: "Encontramos {{count}} resultados",
+          empty: "Nenhuma universidade encontrada. Ajuste os filtros e tente novamente.",
+          scholarshipBadge_one: "{{count}} bolsa",
+          scholarshipBadge_other: "{{count}} bolsas",
+          programs: {
+            heading_one: "Programas ({{count}})",
+            heading_other: "Programas ({{count}})",
+            apply: "Inscreva-se",
+            more_one: "+{{count}} programa adicional",
+            more_other: "+{{count}} programas adicionais",
+          },
+          scholarships: {
+            heading: "Bolsas",
+            amountVaries: "Valor variável",
+            more_one: "+{{count}} bolsa adicional",
+            more_other: "+{{count}} bolsas adicionais",
+          },
+          viewDetails: "Ver detalhes",
+          visitWebsite: "Visitar site",
+        },
+      },
     contact: {
       heroTitle: "Fale conosco",
       heroSubtitle: "Normalmente respondemos em até um dia útil.",

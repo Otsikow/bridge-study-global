@@ -161,7 +161,197 @@ const en = {
       maxRetriesReached: "Maximum retry attempts reached. Please refresh the page or contact support.",
     },
   },
-  pages: {
+    pages: {
+      index: {
+        hero: {
+          trustBadge: "Trusted by {{count}}+ students worldwide",
+          title: {
+            prefix: "Your Gateway to",
+            highlight: "Global Education",
+            suffix: "",
+          },
+          description:
+            "Connect with top universities, track applications in real-time, and receive expert guidance from verified agents.",
+          ctas: {
+            students: {
+              badge: "Students",
+              title: "Launch your global application",
+              description:
+                "Create a profile, upload documents once, and send polished applications to top universities in minutes.",
+              action: "Start Application",
+            },
+            agents: {
+              badge: "Agents",
+              title: "Serve students with smart tools",
+              description:
+                "Access dashboards, collaborate in real time, and track every milestone while growing your agency brand.",
+              action: "Join as Agent",
+            },
+            universities: {
+              badge: "Universities",
+              title: "Scale partnerships that convert",
+              description:
+                "Connect with qualified applicants, get market insights, and collaborate with vetted advisors worldwide.",
+              action: "Partner with Us",
+            },
+          },
+        },
+        features: {
+          heading: "Why Choose GEG?",
+          cards: {
+            applyEasily: {
+              title: "Apply Easily",
+              description:
+                "Streamlined application process with step-by-step guidance. Submit applications to multiple universities effortlessly.",
+            },
+            trackRealtime: {
+              title: "Track in Real-Time",
+              description: "Monitor your application status 24/7 with live updates and instant notifications.",
+            },
+            connectAgents: {
+              title: "Connect with Verified Agents",
+              description: "Access certified education agents who provide personalized support throughout your journey.",
+            },
+          },
+        },
+        visa: {
+          badge: "Feature Spotlight",
+          title: "Understand your visa eligibility before you apply",
+          description:
+            "Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.",
+          cta: "Explore the Visa Calculator",
+        },
+        testimonials: {
+          heading: "Success Stories",
+          items: [
+            {
+              name: "Sarah Johnson",
+              role: "Master's Student at MIT",
+              country: "USA",
+              quote:
+                "GEG made my dream of studying at MIT a reality. The platform was intuitive, and my agent was incredibly supportive.",
+              rating: 5,
+            },
+            {
+              name: "Raj Patel",
+              role: "MBA Student at Oxford",
+              country: "UK",
+              quote:
+                "The real-time tracking feature gave me peace of mind. I always knew where my application stood. Highly recommend GEG!",
+              rating: 5,
+            },
+            {
+              name: "Maria Garcia",
+              role: "Engineering Student at Stanford",
+              country: "USA",
+              quote:
+                "From finding the right program to visa approval, GEG supported me every step of the way. Outstanding service!",
+              rating: 5,
+            },
+          ],
+        },
+        faq: {
+          heading: "Frequently Asked Questions",
+          subtitle: "Quick answers to common questions",
+          audienceHeading: "For {{audience}}",
+          sections: [
+            {
+              audience: "Students",
+              items: [
+                {
+                  question: "How does GEG help me apply to universities?",
+                  answer:
+                    "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
+                },
+                {
+                  question: "Is there a fee to use the platform?",
+                  answer:
+                    "Creating an account and exploring universities is free. Agents may charge consulting fees, clearly shown before commitment.",
+                },
+                {
+                  question: "What documents do I need to apply?",
+                  answer:
+                    "Academic transcripts, English test scores (IELTS/TOEFL), recommendations, personal statement, and passport copy are typically required.",
+                },
+              ],
+            },
+          ],
+        },
+        contact: {
+          heading: "Get in Touch",
+          subtitle: "Have questions? We’d love to help.",
+        },
+      },
+      universitySearch: {
+        hero: {
+          title: "Find Your Perfect University",
+          subtitle: "Search through universities, programs, and scholarships worldwide.",
+        },
+        tabs: {
+          search: "Search",
+          recommendations: "AI Recommendations",
+          sop: "SOP Generator",
+          interview: "Interview Practice",
+        },
+        filters: {
+          title: "Search Filters",
+          subtitle: "Refine your search below",
+          fields: {
+            universityName: {
+              label: "University Name",
+              placeholder: "Search universities...",
+            },
+            country: {
+              label: "Country",
+              placeholder: "Select country",
+              all: "All Countries",
+            },
+            programLevel: {
+              label: "Program Level",
+              placeholder: "Select level",
+              all: "All Levels",
+            },
+            discipline: {
+              label: "Discipline",
+              placeholder: "Select discipline",
+              all: "All Disciplines",
+            },
+            maxFee: {
+              label: "Maximum Fee (USD)",
+              placeholder: "Enter max fee",
+            },
+            scholarshipsOnly: {
+              label: "Only show universities with scholarships",
+            },
+          },
+        },
+        actions: {
+          search: "Search",
+        },
+        results: {
+          loading: "Searching...",
+          found_one: "Found {{count}} result",
+          found_other: "Found {{count}} results",
+          empty: "No universities found. Try adjusting your filters.",
+          scholarshipBadge_one: "{{count}} Scholarship",
+          scholarshipBadge_other: "{{count}} Scholarships",
+          programs: {
+            heading_one: "Programs ({{count}})",
+            heading_other: "Programs ({{count}})",
+            apply: "Apply Now",
+            more_one: "+{{count}} more program",
+            more_other: "+{{count}} more programs",
+          },
+          scholarships: {
+            heading: "Scholarships",
+            amountVaries: "Amount varies",
+            more_one: "+{{count}} more scholarship",
+            more_other: "+{{count}} more scholarships",
+          },
+          viewDetails: "View Details",
+          visitWebsite: "Visit Website",
+        },
+      },
     contact: {
       heroTitle: "Contact Us",
       heroSubtitle: "We typically respond within one business day.",
