@@ -177,6 +177,7 @@ export default function BlogAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | BlogStatus>("all");
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [statusTargetId, setStatusTargetId] = useState<string | null>(null);
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["admin-blog"],
@@ -273,7 +274,10 @@ export default function BlogAdmin() {
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
-      toast.success(`${variables.ids.length} posts updated`);
+      const count = variables.ids.length;
+      const action =
+        variables.status === "published" ? "published" : "moved to draft";
+      toast.success(`${count} post${count === 1 ? "" : "s"} ${action}`);
       setSelectedPosts([]);
       setShowBulkActions(false);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
@@ -284,10 +288,49 @@ export default function BlogAdmin() {
       ),
   });
 
+  const statusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: BlogStatus;
+    }) => {
+      const { error } = await supabase
+        .from("blog_posts")
+        .update({
+          status,
+          published_at: status === "published" ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.status === "published"
+          ? "Post published"
+          : "Post moved to draft",
+      );
+      qc.invalidateQueries({ queryKey: ["admin-blog"] });
+    },
+    onError: (error: unknown) =>
+      toast.error(
+        error instanceof Error ? error.message : "Status update failed",
+      ),
+    onSettled: () => setStatusTargetId(null),
+  });
+
   const handleBulkStatusChange = (status: BlogStatus) => {
     if (selectedPosts.length > 0) {
       bulkStatusMutation.mutate({ ids: selectedPosts, status });
     }
+  };
+
+  const handleStatusChange = (id: string, status: BlogStatus) => {
+    setStatusTargetId(id);
+    statusMutation.mutate({ id, status });
   };
 
   const clearSelection = () => setSelectedPosts([]);
@@ -843,42 +886,90 @@ export default function BlogAdmin() {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" />{" "}
-                              {post.views_count ?? 0} views
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Heart className="h-3 w-3" />{" "}
-                              {post.likes_count ?? 0} likes
-                            </span>
-                          </div>
-                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => setPreview(post)}
-                              className="w-full gap-1 sm:w-auto"
-                            >
-                              <Eye className="h-4 w-4" /> Preview
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditPost(post)}
-                              className="w-full gap-1 sm:w-auto"
-                            >
-                              <Pencil className="h-4 w-4" /> Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full gap-1 text-destructive sm:w-auto"
-                              onClick={() => setDeleteId(post.id)}
-                            >
-                              <Trash2 className="h-4 w-4" /> Delete
-                            </Button>
-                          </div>
+                            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />{" "}
+                                {post.views_count ?? 0} views
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />{" "}
+                                {post.likes_count ?? 0} likes
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                              {post.status === "draft" ? (
+                                <Button
+                                  size="sm"
+                                  className="w-full gap-1 sm:w-auto"
+                                  onClick={() =>
+                                    handleStatusChange(post.id, "published")
+                                  }
+                                  disabled={
+                                    statusMutation.isPending &&
+                                    statusTargetId === post.id
+                                  }
+                                >
+                                  {statusMutation.isPending &&
+                                  statusTargetId === post.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Publishing...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle className="h-4 w-4" /> Publish
+                                    </>
+                                  )}
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full gap-1 sm:w-auto"
+                                  onClick={() => handleStatusChange(post.id, "draft")}
+                                  disabled={
+                                    statusMutation.isPending &&
+                                    statusTargetId === post.id
+                                  }
+                                >
+                                  {statusMutation.isPending &&
+                                  statusTargetId === post.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      Updating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Edit3 className="h-4 w-4" /> Unpublish
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => setPreview(post)}
+                                className="w-full gap-1 sm:w-auto"
+                              >
+                                <Eye className="h-4 w-4" /> Preview
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditPost(post)}
+                                className="w-full gap-1 sm:w-auto"
+                              >
+                                <Pencil className="h-4 w-4" /> Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full gap-1 text-destructive sm:w-auto"
+                                onClick={() => setDeleteId(post.id)}
+                              >
+                                <Trash2 className="h-4 w-4" /> Delete
+                              </Button>
+                            </div>
                         </div>
                       );
                     })}
@@ -1053,34 +1144,82 @@ export default function BlogAdmin() {
                                     {updatedAt ? format(updatedAt, "PP") : "—"}
                                   </div>
                                 </TableCell>
-                                <TableCell className="text-right">
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setPreview(post)}
-                                      className="gap-1"
-                                    >
-                                      <Eye className="h-4 w-4" /> Preview
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleEditPost(post)}
-                                      className="gap-1"
-                                    >
-                                      <Pencil className="h-4 w-4" /> Edit
-                                    </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="gap-1 text-destructive"
-                                      onClick={() => setDeleteId(post.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" /> Delete
-                                    </Button>
-                                  </div>
-                                </TableCell>
+                                  <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                      {post.status === "draft" ? (
+                                        <Button
+                                          size="sm"
+                                          className="gap-1"
+                                          onClick={() =>
+                                            handleStatusChange(post.id, "published")
+                                          }
+                                          disabled={
+                                            statusMutation.isPending &&
+                                            statusTargetId === post.id
+                                          }
+                                        >
+                                          {statusMutation.isPending &&
+                                          statusTargetId === post.id ? (
+                                            <>
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                              Publishing...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CheckCircle className="h-4 w-4" /> Publish
+                                            </>
+                                          )}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="gap-1"
+                                          onClick={() => handleStatusChange(post.id, "draft")}
+                                          disabled={
+                                            statusMutation.isPending &&
+                                            statusTargetId === post.id
+                                          }
+                                        >
+                                          {statusMutation.isPending &&
+                                          statusTargetId === post.id ? (
+                                            <>
+                                              <Loader2 className="h-4 w-4 animate-spin" />
+                                              Updating...
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Edit3 className="h-4 w-4" /> Unpublish
+                                            </>
+                                          )}
+                                        </Button>
+                                      )}
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setPreview(post)}
+                                        className="gap-1"
+                                      >
+                                        <Eye className="h-4 w-4" /> Preview
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEditPost(post)}
+                                        className="gap-1"
+                                      >
+                                        <Pencil className="h-4 w-4" /> Edit
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-1 text-destructive"
+                                        onClick={() => setDeleteId(post.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4" /> Delete
+                                      </Button>
+                                    </div>
+                                  </TableCell>
                               </TableRow>
                             );
                           })}
