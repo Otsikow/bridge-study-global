@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Form,
   FormControl,
@@ -18,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -145,7 +147,7 @@ type PartnershipFormValues = z.infer<typeof partnershipSchema>;
 
 export const UniversityPartnershipForm = () => {
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user, loading } = useAuth();
 
   const form = useForm<PartnershipFormValues>({
     resolver: zodResolver(partnershipSchema),
@@ -241,6 +243,78 @@ export const UniversityPartnershipForm = () => {
   });
 
   const selectedPrograms = form.watch("programs") ?? [];
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <AlertTitle>Create a partner account</AlertTitle>
+          <AlertDescription>
+            Sign up as a partner university to submit your onboarding request and access collaboration tools.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild>
+            <Link to="/auth/signup?role=partner">Create partner account</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/auth/login">Log in</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <AlertTitle>Finish setting up your profile</AlertTitle>
+          <AlertDescription>
+            We couldn't load your account details. Refresh the page or contact our partnerships team for support.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            Try again
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/contact">Contact support</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile.role !== "partner") {
+    return (
+      <div className="space-y-6">
+        <Alert>
+          <AlertTitle>Partner access required</AlertTitle>
+          <AlertDescription>
+            You're signed in as a {profile.role}. Please create or switch to a partner university account before completing this
+            form.
+          </AlertDescription>
+        </Alert>
+        <div className="flex flex-wrap gap-3">
+          <Button asChild>
+            <Link to="/auth/signup?role=partner">Create partner account</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/contact">Talk to partnerships</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
