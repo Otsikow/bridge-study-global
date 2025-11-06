@@ -39,6 +39,98 @@ interface StudentRecord {
   notes?: string;
 }
 
+const REQUIRED_HEADERS = [
+  'name',
+  'email',
+  'nationality',
+  'academic_history',
+  'desired_country',
+  'program_interests',
+] as const;
+
+type HeaderMap = Record<string, number>;
+
+const normalizeHeader = (header: string) =>
+  header
+    .replace(/\uFEFF/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_');
+
+const detectDelimiter = (line: string) => {
+  const commaCount = (line.match(/,/g) ?? []).length;
+  const semicolonCount = (line.match(/;/g) ?? []).length;
+  return semicolonCount > commaCount ? ';' : ',';
+};
+
+const parseCSVLine = (line: string, delimiter: string): string[] => {
+  const values: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) {
+      values.push(current);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  values.push(current);
+  return values;
+};
+
+const cleanCSVValue = (value: string) =>
+  value
+    .replace(/\uFEFF/g, '')
+    .trim()
+    .replace(/^"|"$/g, '')
+    .replace(/""/g, '"');
+
+const getValueFromRow = (values: string[], headerMap: HeaderMap, key: string) => {
+  const index = headerMap[key];
+  if (index === undefined) {
+    return '';
+  }
+  return cleanCSVValue(values[index] ?? '');
+};
+
+const getOptionalValueFromRow = (values: string[], headerMap: HeaderMap, key: string) => {
+  const value = getValueFromRow(values, headerMap, key);
+  return value.length > 0 ? value : undefined;
+};
+
+const getNumericValueFromRow = (
+  values: string[],
+  headerMap: HeaderMap,
+  key: string,
+  parser: (value: string) => number
+) => {
+  const value = getValueFromRow(values, headerMap, key);
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.replace(/,/g, '');
+  const parsed = parser(normalized);
+
+  return Number.isNaN(parsed) ? Number.NaN : parsed;
+};
+
 export default function BulkImport() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,8 +143,13 @@ export default function BulkImport() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.type === 'text/csv' || selectedFile.name.endsWith('.csv')) {
+      if (
+        selectedFile.type === 'text/csv' ||
+        selectedFile.type === 'application/vnd.ms-excel' ||
+        selectedFile.name.toLowerCase().endsWith('.csv')
+      ) {
         setFile(selectedFile);
+        setImportResult(null);
         parseCSV(selectedFile);
       } else {
         toast({
@@ -60,6 +157,13 @@ export default function BulkImport() {
           description: 'Please select a CSV file',
           variant: 'destructive'
         });
+        setFile(null);
+        setPreviewData([]);
+        setShowPreview(false);
+        setImportResult(null);
+        if (event.target) {
+          event.target.value = '';
+        }
       }
     }
   };
@@ -67,88 +171,198 @@ export default function BulkImport() {
   const parseCSV = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string;
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
-      const requiredHeaders = ['name', 'email', 'nationality', 'academic_history', 'desired_country', 'program_interests'];
-      const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-      
-      if (missingHeaders.length > 0) {
-        toast({
-          title: 'Invalid CSV format',
-          description: `Missing required columns: ${missingHeaders.join(', ')}`,
-          variant: 'destructive'
-        });
-        return;
-      }
+      try {
+        const text = e.target?.result;
 
-      const records: StudentRecord[] = [];
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim());
-          const record: StudentRecord = {
-            name: values[headers.indexOf('name')] || '',
-            email: values[headers.indexOf('email')] || '',
-            phone: values[headers.indexOf('phone')] || undefined,
-            nationality: values[headers.indexOf('nationality')] || '',
-            academic_history: values[headers.indexOf('academic_history')] || '',
-            desired_country: values[headers.indexOf('desired_country')] || '',
-            program_interests: values[headers.indexOf('program_interests')] || '',
-            gpa: values[headers.indexOf('gpa')] ? parseFloat(values[headers.indexOf('gpa')]) : undefined,
-            ielts_score: values[headers.indexOf('ielts_score')] ? parseFloat(values[headers.indexOf('ielts_score')]) : undefined,
-            toefl_score: values[headers.indexOf('toefl_score')] ? parseInt(values[headers.indexOf('toefl_score')]) : undefined,
-            budget: values[headers.indexOf('budget')] ? parseFloat(values[headers.indexOf('budget')]) : undefined,
-            notes: values[headers.indexOf('notes')] || undefined
-          };
-          records.push(record);
+        if (typeof text !== 'string') {
+          throw new Error('Unable to read file contents.');
         }
+
+        const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const rawLines = normalizedText.split('\n');
+        const lines = rawLines.filter((line) => line.trim().length > 0);
+
+        if (lines.length === 0) {
+          toast({
+            title: 'Empty CSV file',
+            description: 'The selected file does not contain any data.',
+            variant: 'destructive',
+          });
+          setPreviewData([]);
+          setShowPreview(false);
+          return;
+        }
+
+        const delimiter = detectDelimiter(lines[0]);
+        const rawHeaders = parseCSVLine(lines[0], delimiter);
+        const headerMap = rawHeaders.reduce<HeaderMap>((acc, header, index) => {
+          const normalized = normalizeHeader(header);
+          if (normalized && acc[normalized] === undefined) {
+            acc[normalized] = index;
+          }
+          return acc;
+        }, {});
+
+        const missingHeaders = REQUIRED_HEADERS.filter((header) => headerMap[header] === undefined);
+
+        if (missingHeaders.length > 0) {
+          toast({
+            title: 'Invalid CSV format',
+            description: `Missing required columns: ${missingHeaders.join(', ')}`,
+            variant: 'destructive',
+          });
+          setPreviewData([]);
+          setShowPreview(false);
+          return;
+        }
+
+        const records: StudentRecord[] = [];
+
+        lines.slice(1).forEach((line) => {
+          if (!line.trim()) {
+            return;
+          }
+
+          const values = parseCSVLine(line, delimiter);
+
+          const record: StudentRecord = {
+            name: getValueFromRow(values, headerMap, 'name'),
+            email: getValueFromRow(values, headerMap, 'email'),
+            phone: getOptionalValueFromRow(values, headerMap, 'phone'),
+            nationality: getValueFromRow(values, headerMap, 'nationality'),
+            academic_history: getValueFromRow(values, headerMap, 'academic_history'),
+            desired_country: getValueFromRow(values, headerMap, 'desired_country'),
+            program_interests: getValueFromRow(values, headerMap, 'program_interests'),
+            gpa: getNumericValueFromRow(values, headerMap, 'gpa', parseFloat),
+            ielts_score: getNumericValueFromRow(values, headerMap, 'ielts_score', parseFloat),
+            toefl_score: getNumericValueFromRow(values, headerMap, 'toefl_score', (value) => parseInt(value, 10)),
+            budget: getNumericValueFromRow(values, headerMap, 'budget', parseFloat),
+            notes: getOptionalValueFromRow(values, headerMap, 'notes'),
+          };
+
+          records.push(record);
+        });
+
+        if (records.length === 0) {
+          toast({
+            title: 'No student rows found',
+            description: 'Add at least one student row beneath the header row and try again.',
+            variant: 'destructive',
+          });
+          setPreviewData([]);
+          setShowPreview(false);
+          return;
+        }
+
+        setPreviewData(records);
+        setShowPreview(true);
+      } catch (error) {
+        console.error('CSV parse error:', error);
+        toast({
+          title: 'Unable to process CSV file',
+          description:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred while parsing the CSV file.',
+          variant: 'destructive',
+        });
+        setPreviewData([]);
+        setShowPreview(false);
       }
-      
-      setPreviewData(records);
-      setShowPreview(true);
     };
+
+    reader.onerror = () => {
+      toast({
+        title: 'Unable to read file',
+        description: 'Please make sure the file is accessible and try again.',
+        variant: 'destructive',
+      });
+      setPreviewData([]);
+      setShowPreview(false);
+    };
+
     reader.readAsText(file);
   };
 
-  const validateRecords = (records: StudentRecord[]): { valid: StudentRecord[], errors: string[] } => {
+  const validateRecords = (records: StudentRecord[]): { valid: StudentRecord[]; errors: string[] } => {
     const validRecords: StudentRecord[] = [];
     const errors: string[] = [];
-    
+
     records.forEach((record, index) => {
       const rowNumber = index + 2; // +2 because CSV starts from row 1 and we skip header
       const recordErrors: string[] = [];
-      
-      if (!record.name.trim()) recordErrors.push('Name is required');
-      if (!record.email.trim()) recordErrors.push('Email is required');
-      if (!record.nationality.trim()) recordErrors.push('Nationality is required');
-      if (!record.academic_history.trim()) recordErrors.push('Academic history is required');
-      if (!record.desired_country.trim()) recordErrors.push('Desired country is required');
-      if (!record.program_interests.trim()) recordErrors.push('Program interests are required');
-      
-      if (record.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(record.email)) {
+
+      const name = record.name.trim();
+      const email = record.email.trim();
+      const nationality = record.nationality.trim();
+      const academicHistory = record.academic_history.trim();
+      const desiredCountry = record.desired_country.trim();
+      const programInterests = record.program_interests.trim();
+      const phone = record.phone?.trim();
+      const notes = record.notes?.trim();
+
+      if (!name) recordErrors.push('Name is required');
+      if (!email) recordErrors.push('Email is required');
+      if (!nationality) recordErrors.push('Nationality is required');
+      if (!academicHistory) recordErrors.push('Academic history is required');
+      if (!desiredCountry) recordErrors.push('Desired country is required');
+      if (!programInterests) recordErrors.push('Program interests are required');
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         recordErrors.push('Invalid email format');
       }
-      
-      if (record.gpa && (record.gpa < 0 || record.gpa > 4)) {
-        recordErrors.push('GPA must be between 0 and 4');
+
+      if (record.gpa !== undefined) {
+        if (Number.isNaN(record.gpa)) {
+          recordErrors.push('GPA must be a valid number');
+        } else if (record.gpa < 0 || record.gpa > 4) {
+          recordErrors.push('GPA must be between 0 and 4');
+        }
       }
-      
-      if (record.ielts_score && (record.ielts_score < 0 || record.ielts_score > 9)) {
-        recordErrors.push('IELTS score must be between 0 and 9');
+
+      if (record.ielts_score !== undefined) {
+        if (Number.isNaN(record.ielts_score)) {
+          recordErrors.push('IELTS score must be a valid number');
+        } else if (record.ielts_score < 0 || record.ielts_score > 9) {
+          recordErrors.push('IELTS score must be between 0 and 9');
+        }
       }
-      
-      if (record.toefl_score && (record.toefl_score < 0 || record.toefl_score > 120)) {
-        recordErrors.push('TOEFL score must be between 0 and 120');
+
+      if (record.toefl_score !== undefined) {
+        if (Number.isNaN(record.toefl_score)) {
+          recordErrors.push('TOEFL score must be a valid number');
+        } else if (record.toefl_score < 0 || record.toefl_score > 120) {
+          recordErrors.push('TOEFL score must be between 0 and 120');
+        } else if (!Number.isInteger(record.toefl_score)) {
+          recordErrors.push('TOEFL score must be an integer');
+        }
       }
-      
+
+      if (record.budget !== undefined) {
+        if (Number.isNaN(record.budget)) {
+          recordErrors.push('Budget must be a valid number');
+        } else if (record.budget < 0) {
+          recordErrors.push('Budget must be a positive number');
+        }
+      }
+
       if (recordErrors.length > 0) {
         errors.push(`Row ${rowNumber}: ${recordErrors.join(', ')}`);
       } else {
-        validRecords.push(record);
+        validRecords.push({
+          ...record,
+          name,
+          email,
+          nationality,
+          academic_history: academicHistory,
+          desired_country: desiredCountry,
+          program_interests: programInterests,
+          phone: phone || undefined,
+          notes: notes || undefined,
+        });
       }
     });
-    
+
     return { valid: validRecords, errors };
   };
 
@@ -202,8 +416,8 @@ export default function BulkImport() {
   const downloadTemplate = () => {
     const template = [
       'name,email,phone,nationality,academic_history,desired_country,program_interests,gpa,ielts_score,toefl_score,budget,notes',
-      'John Doe,john@example.com,+1234567890,USA,Bachelor in Computer Science,Canada,Computer Science,3.5,7.5,100,50000,Interested in AI programs',
-      'Jane Smith,jane@example.com,+1234567891,UK,Master in Business,USA,Business Administration,3.8,8.0,110,60000,Looking for MBA programs'
+      '"John Doe",john@example.com,+1234567890,USA,"Bachelor in Computer Science, University of Toronto",Canada,"Computer Science, Data Science",3.5,7.5,100,50000,"Interested in AI, data, and research opportunities"',
+      '"Jane Smith",jane@example.com,+1234567891,UK,"Master in Business Administration",USA,"Business Administration",3.8,8,110,60000,"Looking for MBA programs with co-op options"'
     ].join('\n');
     
     const blob = new Blob([template], { type: 'text/csv' });
@@ -324,11 +538,13 @@ export default function BulkImport() {
                   </ul>
                 </div>
               </div>
-              
+
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Make sure your CSV file uses commas as separators and has a header row.
+                  Make sure your CSV file uses commas as separators and has a header row. Column
+                  names are matched case-insensitively, and spaces or hyphens in headers are
+                  handled automatically.
                 </AlertDescription>
               </Alert>
             </div>
