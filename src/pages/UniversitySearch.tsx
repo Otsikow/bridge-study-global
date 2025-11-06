@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,8 @@ import {
   Sparkles,
   FileText,
   MessageSquare,
-} from "lucide-react";
+  } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
@@ -126,6 +127,17 @@ export default function UniversitySearch() {
   const [levels, setLevels] = useState<string[]>(PROGRAM_LEVELS);
   const [disciplines, setDisciplines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("search");
+  const { t } = useTranslation();
+
+  const translatedTabs = useMemo(
+    () => [
+      { value: "search", icon: Search, label: t("pages.universitySearch.tabs.search") },
+      { value: "recommendations", icon: Sparkles, label: t("pages.universitySearch.tabs.recommendations") },
+      { value: "sop", icon: FileText, label: t("pages.universitySearch.tabs.sop") },
+      { value: "interview", icon: MessageSquare, label: t("pages.universitySearch.tabs.interview") },
+    ],
+    [t],
+  );
 
   // Load filter options
   useEffect(() => {
@@ -210,32 +222,20 @@ export default function UniversitySearch() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <BackButton variant="ghost" size="sm" fallback="/" wrapperClassName="mb-4" />
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">Find Your Perfect University</h1>
-          <p className="text-muted-foreground">
-            Search through universities, programs, and scholarships worldwide.
-          </p>
-        </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-foreground">{t("pages.universitySearch.hero.title")}</h1>
+            <p className="text-muted-foreground">{t("pages.universitySearch.hero.subtitle")}</p>
+          </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="relative">
-            <TabsList className="w-full h-auto flex-nowrap justify-start gap-3 md:gap-4 md:justify-center px-4 sm:px-6 py-2 rounded-2xl bg-card/90 border border-border shadow-lg scroll-smooth snap-x snap-mandatory">
-              <TabsTrigger value="search" className={TAB_TRIGGER_STYLES}>
-                <Search className="h-4 w-4" />
-                <span>Search</span>
-              </TabsTrigger>
-              <TabsTrigger value="recommendations" className={TAB_TRIGGER_STYLES}>
-                <Sparkles className="h-4 w-4" />
-                <span>AI Recommendations</span>
-              </TabsTrigger>
-              <TabsTrigger value="sop" className={TAB_TRIGGER_STYLES}>
-                <FileText className="h-4 w-4" />
-                <span>SOP Generator</span>
-              </TabsTrigger>
-              <TabsTrigger value="interview" className={TAB_TRIGGER_STYLES}>
-                <MessageSquare className="h-4 w-4" />
-                <span>Interview Practice</span>
-              </TabsTrigger>
+              <TabsList className="w-full h-auto flex-nowrap justify-start gap-3 md:gap-4 md:justify-center px-4 sm:px-6 py-2 rounded-2xl bg-card/90 border border-border shadow-lg scroll-smooth snap-x snap-mandatory">
+                {translatedTabs.map((tab) => (
+                  <TabsTrigger key={tab.value} value={tab.value} className={TAB_TRIGGER_STYLES}>
+                    <tab.icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </TabsTrigger>
+                ))}
             </TabsList>
             <div
               aria-hidden="true"
@@ -251,17 +251,17 @@ export default function UniversitySearch() {
           <TabsContent value="search" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Search Filters</CardTitle>
-                <CardDescription>Refine your search below</CardDescription>
+                  <CardTitle>{t("pages.universitySearch.filters.title")}</CardTitle>
+                  <CardDescription>{t("pages.universitySearch.filters.subtitle")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
-                    <Label>University Name</Label>
+                      <Label>{t("pages.universitySearch.filters.fields.universityName.label")}</Label>
                     <div className="relative">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Search universities..."
+                          placeholder={t("pages.universitySearch.filters.fields.universityName.placeholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-9"
@@ -270,11 +270,11 @@ export default function UniversitySearch() {
                   </div>
 
                   <div>
-                    <Label>Country</Label>
+                      <Label>{t("pages.universitySearch.filters.fields.country.label")}</Label>
                     <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                      <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder={t("pages.universitySearch.filters.fields.country.placeholder")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Countries</SelectItem>
+                          <SelectItem value="all">{t("pages.universitySearch.filters.fields.country.all")}</SelectItem>
                         {countries.map((c) => (
                           <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
@@ -283,11 +283,11 @@ export default function UniversitySearch() {
                   </div>
 
                   <div>
-                    <Label>Program Level</Label>
+                      <Label>{t("pages.universitySearch.filters.fields.programLevel.label")}</Label>
                     <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                      <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder={t("pages.universitySearch.filters.fields.programLevel.placeholder")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Levels</SelectItem>
+                          <SelectItem value="all">{t("pages.universitySearch.filters.fields.programLevel.all")}</SelectItem>
                         {levels.map((l) => (
                           <SelectItem key={l} value={l}>{l}</SelectItem>
                         ))}
@@ -296,11 +296,11 @@ export default function UniversitySearch() {
                   </div>
 
                   <div>
-                    <Label>Discipline</Label>
+                      <Label>{t("pages.universitySearch.filters.fields.discipline.label")}</Label>
                     <Select value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
-                      <SelectTrigger><SelectValue placeholder="Select discipline" /></SelectTrigger>
+                        <SelectTrigger><SelectValue placeholder={t("pages.universitySearch.filters.fields.discipline.placeholder")} /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Disciplines</SelectItem>
+                          <SelectItem value="all">{t("pages.universitySearch.filters.fields.discipline.all")}</SelectItem>
                         {disciplines.map((d) => (
                           <SelectItem key={d} value={d}>{d}</SelectItem>
                         ))}
@@ -309,10 +309,10 @@ export default function UniversitySearch() {
                   </div>
 
                   <div>
-                    <Label>Maximum Fee (USD)</Label>
+                      <Label>{t("pages.universitySearch.filters.fields.maxFee.label")}</Label>
                     <Input
                       type="number"
-                      placeholder="Enter max fee"
+                        placeholder={t("pages.universitySearch.filters.fields.maxFee.placeholder")}
                       value={maxFee}
                       onChange={(e) => setMaxFee(e.target.value)}
                     />
@@ -324,13 +324,13 @@ export default function UniversitySearch() {
                       checked={onlyWithScholarships}
                       onCheckedChange={(checked) => setOnlyWithScholarships(!!checked)}
                     />
-                    <Label htmlFor="scholarships" className="ml-2">
-                      Only show universities with scholarships
-                    </Label>
+                      <Label htmlFor="scholarships" className="ml-2">
+                        {t("pages.universitySearch.filters.fields.scholarshipsOnly.label")}
+                      </Label>
                   </div>
                 </div>
                 <Button onClick={handleSearch} className="w-full md:w-auto">
-                  <Search className="mr-2 h-4 w-4" />Search
+                    <Search className="mr-2 h-4 w-4" />{t("pages.universitySearch.actions.search")}
                 </Button>
               </CardContent>
             </Card>
@@ -338,7 +338,9 @@ export default function UniversitySearch() {
             {/* Results */}
             <div className="space-y-4">
               <h2 className="text-2xl font-semibold">
-                {loading ? "Searching..." : `Found ${results.length} result${results.length !== 1 ? "s" : ""}`}
+                  {loading
+                    ? t("pages.universitySearch.results.loading")
+                    : t("pages.universitySearch.results.found", { count: results.length })}
               </h2>
 
               {loading ? (
@@ -358,7 +360,7 @@ export default function UniversitySearch() {
               ) : results.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center text-muted-foreground">
-                    No universities found. Try adjusting your filters.
+                      {t("pages.universitySearch.results.empty")}
                   </CardContent>
                 </Card>
               ) : (
@@ -387,12 +389,14 @@ export default function UniversitySearch() {
                                 {r.university.country}
                               </CardDescription>
                             </div>
-                            {r.scholarships.length > 0 && (
-                              <Badge variant="secondary" className="flex items-center gap-1">
-                                <Award className="h-3 w-3" /> {r.scholarships.length} Scholarship
-                                {r.scholarships.length > 1 ? "s" : ""}
-                              </Badge>
-                            )}
+                              {r.scholarships.length > 0 && (
+                                <Badge variant="secondary" className="flex items-center gap-1">
+                                  <Award className="h-3 w-3" />
+                                  {t("pages.universitySearch.results.scholarshipBadge", {
+                                    count: r.scholarships.length,
+                                  })}
+                                </Badge>
+                              )}
                           </div>
                         </CardHeader>
 
@@ -402,10 +406,13 @@ export default function UniversitySearch() {
                           )}
 
                           {/* Programs */}
-                          <div className="space-y-2">
-                            <h4 className="font-semibold flex items-center gap-2">
-                              <GraduationCap className="h-4 w-4" /> Programs ({r.programs.length})
-                            </h4>
+                            <div className="space-y-2">
+                              <h4 className="font-semibold flex items-center gap-2">
+                                <GraduationCap className="h-4 w-4" />
+                                {t("pages.universitySearch.results.programs.heading", {
+                                  count: r.programs.length,
+                                })}
+                              </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               {r.programs.slice(0, 4).map((p) => (
                                 <div key={p.id} className="p-3 rounded-md bg-muted/50 space-y-2">
@@ -418,59 +425,67 @@ export default function UniversitySearch() {
                                     </span>
                                   </div>
                                   <Button size="sm" variant="outline" className="w-full text-xs" asChild>
-                                    <a href={`/student/applications/new?program=${p.id}`}>Apply Now</a>
+                                      <a href={`/student/applications/new?program=${p.id}`}>
+                                        {t("pages.universitySearch.results.programs.apply")}
+                                      </a>
                                   </Button>
                                 </div>
                               ))}
                             </div>
                             {r.programs.length > 4 && (
                               <p className="text-xs text-muted-foreground">
-                                +{r.programs.length - 4} more programs
+                                  {t("pages.universitySearch.results.programs.more", {
+                                    count: r.programs.length - 4,
+                                  })}
                               </p>
                             )}
                           </div>
 
                           {/* Scholarships */}
-                          {r.scholarships.length > 0 && (
-                            <div className="space-y-2">
-                              <h4 className="font-semibold flex items-center gap-2">
-                                <Award className="h-4 w-4" /> Scholarships
-                              </h4>
-                              <div className="space-y-1">
-                                {r.scholarships.slice(0, 3).map((s) => (
-                                  <div
-                                    key={s.id}
-                                    className="text-sm flex items-center justify-between p-2 rounded-md bg-muted/30"
-                                  >
-                                    <span>{s.name}</span>
-                                    {s.amount_cents ? (
-                                      <Badge variant="secondary" className="text-xs">
-                                        {(s.amount_cents / 100).toLocaleString()} {s.currency}
-                                      </Badge>
-                                    ) : (
-                                      <span className="text-xs text-muted-foreground">
-                                        {s.coverage_type || "Amount varies"}
-                                      </span>
-                                    )}
-                                  </div>
-                                ))}
-                                {r.scholarships.length > 3 && (
-                                  <p className="text-xs text-muted-foreground">
-                                    +{r.scholarships.length - 3} more scholarships
-                                  </p>
-                                )}
+                            {r.scholarships.length > 0 && (
+                              <div className="space-y-2">
+                                <h4 className="font-semibold flex items-center gap-2">
+                                  <Award className="h-4 w-4" /> {t("pages.universitySearch.results.scholarships.heading")}
+                                </h4>
+                                <div className="space-y-1">
+                                  {r.scholarships.slice(0, 3).map((s) => (
+                                    <div
+                                      key={s.id}
+                                      className="text-sm flex items-center justify-between p-2 rounded-md bg-muted/30"
+                                    >
+                                      <span>{s.name}</span>
+                                      {s.amount_cents ? (
+                                        <Badge variant="secondary" className="text-xs">
+                                          {(s.amount_cents / 100).toLocaleString()} {s.currency}
+                                        </Badge>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">
+                                          {s.coverage_type || t("pages.universitySearch.results.scholarships.amountVaries")}
+                                        </span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {r.scholarships.length > 3 && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {t("pages.universitySearch.results.scholarships.more", {
+                                        count: r.scholarships.length - 3,
+                                      })}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
                           <div className="flex gap-2 pt-4">
-                            <Button asChild className="flex-1">
-                              <Link to={`/search/${r.university.id}`}>View Details</Link>
-                            </Button>
+                              <Button asChild className="flex-1">
+                                <Link to={`/search/${r.university.id}`}>
+                                  {t("pages.universitySearch.results.viewDetails")}
+                                </Link>
+                              </Button>
                             {r.university.website && (
                               <Button variant="outline" asChild>
                                 <a href={r.university.website} target="_blank" rel="noopener noreferrer">
-                                  Visit Website
+                                    {t("pages.universitySearch.results.visitWebsite")}
                                 </a>
                               </Button>
                             )}
