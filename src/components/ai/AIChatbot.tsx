@@ -721,7 +721,7 @@ export default function ZoeChatbot() {
   }
 
   return (
-      <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
+        <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
         <CardHeader className="px-5 pb-2 pt-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -764,8 +764,8 @@ export default function ZoeChatbot() {
           ) : null}
       </CardHeader>
 
-        <CardContent className="min-h-0 flex-1 p-0">
-          <ScrollArea ref={scrollRef} className="flex-1 px-5">
+          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+            <ScrollArea ref={scrollRef} className="min-h-0 flex-1 px-5">
             <div className="space-y-4 py-5">
             {messages.map((message, index) => {
               const isUser = message.role === "user";
