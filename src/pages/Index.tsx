@@ -127,7 +127,7 @@ const Index = () => {
       {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="container relative mx-auto px-4 py-24 text-center">
-          <img src={gegLogo} alt="Global Education Gateway logo" className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert" />
+          <img src={gegLogo} alt="Global Education Gateway logo" className="mx-auto mb-8 h-24 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert" />
           
 
           <h1 className="text-5xl font-bold mb-4">
