@@ -57,7 +57,7 @@ const buildPrompt = (title: string, excerpt?: string, tags?: string) => {
     .slice(0, 5);
 
   const promptLines = [
-    "Create a high-quality, cinematic hero image for a university admissions blog post.",
+    "Create a photorealistic, high-resolution hero image for a university admissions blog post.",
     `Title: "${title.trim()}"`,
     excerpt?.trim()
       ? `Summary: ${excerpt.trim()}`
@@ -66,6 +66,7 @@ const buildPrompt = (title: string, excerpt?: string, tags?: string) => {
       ? `Incorporate visual motifs for: ${trimmedTags.join(", ")}.`
       : undefined,
     "Style: modern, aspirational, inclusive, natural lighting, vibrant yet professional color palette.",
+    "Ensure believable lighting, lifelike people, realistic environments, and professional composition.",
     "Do not include text overlays, words, or logos.",
   ].filter(Boolean);
 
@@ -100,35 +101,46 @@ serve(async (req) => {
       });
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const apiKey = Deno.env.get("NANO_BANANA_API_KEY");
+    if (!apiKey) {
+      throw new Error("NANO_BANANA_API_KEY is not configured");
     }
+
+    const apiUrl =
+      Deno.env.get("NANO_BANANA_API_URL")?.trim() ||
+      "https://api.nanobanana.ai/v1/images:generate";
+    const modelId =
+      Deno.env.get("NANO_BANANA_MODEL")?.trim() ||
+      "models/nano-banana-photorealistic-cover";
 
     const prompt = buildPrompt(title, excerpt, tags);
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0:generateImage?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: { text: prompt },
-          aspectRatio: "16:9",
-          negativePrompt: {
-            text:
-              "text, words, caption, watermark, logo, low resolution, distorted hands, distorted faces, artifacts",
-          },
-        }),
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
-    );
+      body: JSON.stringify({
+        model: modelId,
+        prompt,
+        negative_prompt:
+          "text, words, captions, watermark, logo, low resolution, blurry, distorted anatomy, extra limbs, cropped faces, artifacts",
+        aspect_ratio: "16:9",
+        output_format: "base64",
+        quality: "high",
+        style: "photorealistic",
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error", response.status, errorText);
+      console.error("Nano Banana API error", response.status, errorText);
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Gemini rate limit reached. Please try again soon." }),
+          JSON.stringify({
+            error: "Nano Banana rate limit reached. Please try again soon.",
+          }),
           {
             status: 429,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -136,23 +148,37 @@ serve(async (req) => {
         );
       }
 
-      throw new Error(`Gemini API error: ${response.status}`);
+      throw new Error(`Nano Banana API error: ${response.status}`);
     }
 
     const result = await response.json();
-    const image = result?.images?.[0] ?? null;
-    const imageBase64 =
-      image?.base64Data ||
-      image?.imageBase64 ||
-      image?.image?.base64Data ||
-      image?.image?.base64Image ||
+    const imagePayload =
+      result?.image ??
+      result?.data?.[0] ??
+      result?.output?.[0] ??
+      result?.images?.[0] ??
       null;
-    const mimeType = image?.mimeType || "image/png";
+    const imageBase64 =
+      (typeof imagePayload === "string" ? imagePayload : null) ??
+      imagePayload?.base64 ??
+      imagePayload?.b64_json ??
+      imagePayload?.base64Data ??
+      imagePayload?.imageBase64 ??
+      imagePayload?.image?.base64Data ??
+      null;
+    const mimeType =
+      imagePayload?.mimeType ||
+      imagePayload?.mime_type ||
+      result?.mimeType ||
+      result?.mime_type ||
+      "image/png";
 
     if (!imageBase64) {
-      console.error("Gemini response missing image payload", result);
+      console.error("Nano Banana response missing image payload", result);
       return new Response(
-        JSON.stringify({ error: "Gemini response did not include an image" }),
+        JSON.stringify({
+          error: "Nano Banana response did not include an image",
+        }),
         {
           status: 502,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
