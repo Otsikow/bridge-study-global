@@ -1,20 +1,23 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles, AppRole } from '@/hooks/useUserRoles';
 import { LoadingState } from '@/components/LoadingState';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: string[];
+  allowedRoles?: AppRole[];
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, profile, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { roles, loading: rolesLoading } = useUserRoles();
+  const loading = authLoading || rolesLoading;
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <LoadingState 
-          message="Authenticating..." 
+        <LoadingState
+          message="Authenticating..."
           size="md"
         />
       </div>
@@ -25,8 +28,11 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     return <Navigate to="/auth/login" replace />;
   }
 
-  if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
-    return <Navigate to="/" replace />;
+  if (allowedRoles && allowedRoles.length > 0) {
+    const hasRequiredRole = roles.some((role) => allowedRoles.includes(role));
+    if (!hasRequiredRole) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <>{children}</>;
