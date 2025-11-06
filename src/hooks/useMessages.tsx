@@ -393,15 +393,26 @@ export function useMessages() {
       if (error) throw error;
 
       // Fetch profiles separately
-      const userIds = (data || []).map((indicator: any) => indicator.user_id);
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .in('id', userIds);
+      const userIds = (data || [])
+        .map((indicator: any) => indicator.user_id)
+        .filter((id: string | null | undefined): id is string => Boolean(id));
 
-      const profilesMap = new Map(
-        (profilesData || []).map((p: any) => [p.id, p])
-      );
+      let profilesMap = new Map<string, { id: string; full_name: string }>();
+
+      if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
+
+        if (profilesError) {
+          console.error('Error fetching typing indicator profiles:', profilesError);
+        } else {
+          profilesMap = new Map(
+            (profilesData || []).map((p: any) => [p.id, p])
+          );
+        }
+      }
 
       const formatted: TypingIndicator[] = (data || [])
         .filter((indicator: any) => indicator.user_id !== user.id)
@@ -449,15 +460,25 @@ export function useMessages() {
       if (error) throw error;
 
       // Fetch sender profiles separately
-      const senderIds = [...new Set((data || []).map((msg: any) => msg.sender_id))];
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', senderIds);
+      const senderIds = [...new Set((data || []).map((msg: any) => msg.sender_id))]
+        .filter((id: string | null | undefined): id is string => Boolean(id));
 
-      const profilesMap = new Map(
-        (profilesData || []).map((p: any) => [p.id, p])
-      );
+      let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
+
+      if (senderIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', senderIds);
+
+        if (profilesError) {
+          console.error('Error fetching message sender profiles:', profilesError);
+        } else {
+          profilesMap = new Map(
+            (profilesData || []).map((p: any) => [p.id, p])
+          );
+        }
+      }
 
       const messagesWithProfiles = (data || []).map((msg: any) => ({
         ...msg,
