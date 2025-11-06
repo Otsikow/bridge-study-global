@@ -10,21 +10,21 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  Users,
-  FileCheck,
-  GraduationCap,
-  Search,
-  Clock,
-  Star,
-  Quote,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  ArrowRight,
-  Calculator,
-  ShieldCheck,
-  Globe2,
-  TrendingUp,
+    Users,
+    FileCheck,
+    GraduationCap,
+    Search,
+    Clock,
+    Star,
+    Quote,
+    ChevronLeft,
+    ChevronRight,
+    Sparkles,
+    ArrowRight,
+    Calculator,
+    ShieldCheck,
+    Globe2,
+    TrendingUp,
 } from "lucide-react";
 
 import gegLogo from "@/assets/geg-logo.png";
@@ -123,26 +123,47 @@ const Index = () => {
     },
   ];
 
-    const visaHighlights = [
-      {
-        icon: ShieldCheck,
-        title: "Personalized Assessment",
-        description:
-          "Enter your academic profile, test scores, and finances to receive a tailored visa-readiness score in seconds.",
-      },
-      {
-        icon: Globe2,
-        title: "Country Comparisons",
-        description:
-          "Compare eligibility requirements for top study destinations side by side to plan with confidence.",
-      },
-      {
-        icon: TrendingUp,
-        title: "Actionable Guidance",
-        description:
-          "Unlock a checklist of next steps, documentation tips, and expert advice to boost your approval chances.",
-      },
-    ];
+      const courseHighlights = [
+        {
+          icon: Search,
+          title: "Advanced Filters",
+          description:
+            "Filter by country, degree level, tuition, duration, and intake months without leaving the page.",
+        },
+        {
+          icon: GraduationCap,
+          title: "Program Insights",
+          description:
+            "Compare tuition, duration, and next intakes on every card to shortlist the right programs instantly.",
+        },
+        {
+          icon: Sparkles,
+          title: "Smart Suggestions",
+          description:
+            "See curated fallback results so you always have inspiring options, even when live data is still loading.",
+        },
+      ];
+
+      const visaHighlights = [
+        {
+          icon: ShieldCheck,
+          title: "Personalized Assessment",
+          description:
+            "Enter your academic profile, test scores, and finances to receive a tailored visa-readiness score in seconds.",
+        },
+        {
+          icon: Globe2,
+          title: "Country Comparisons",
+          description:
+            "Compare eligibility requirements for top study destinations side by side to plan with confidence.",
+        },
+        {
+          icon: TrendingUp,
+          title: "Actionable Guidance",
+          description:
+            "Unlock a checklist of next steps, documentation tips, and expert advice to boost your approval chances.",
+        },
+      ];
 
   const testimonials = [
     {
@@ -326,28 +347,128 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((f, i) => (
-            <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
-              <CardContent className="p-8">
-                <div
-                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}
-                >
-                  <f.icon className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
-                <p className="text-muted-foreground">{f.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+        {/* Features */}
+        <section className="container mx-auto px-4 py-20">
+          <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((f, i) => (
+              <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
+                <CardContent className="p-8">
+                  <div
+                    className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}
+                  >
+                    <f.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                  <p className="text-muted-foreground">{f.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
 
-        {/* Visa Calculator Spotlight */}
+        {/* Course Discovery Spotlight */}
         <section className="relative py-24">
+          <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/12 via-primary/5 to-transparent" />
+          <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-8">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+                <Sparkles className="h-4 w-4" /> Course Discovery
+              </span>
+              <div className="space-y-4">
+                <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+                  Explore programs around the world in minutes
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  Browse an always-on catalogue of universities and programs, powered by tenant-specific data and curated fallbacks so you never hit a dead end.
+                </p>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {courseHighlights.map((item) => (
+                  <div
+                    key={item.title}
+                    className="group rounded-3xl border border-white/40 bg-white/80 p-6 shadow-lg transition hover:-translate-y-1 hover:shadow-xl dark:border-white/10 dark:bg-slate-900/70"
+                  >
+                    <item.icon className="mb-4 h-8 w-8 text-primary" />
+                    <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <Button asChild size="lg" className="gap-2">
+                  <Link to="/courses">
+                    <Search className="h-5 w-5" /> Browse the Catalogue
+                  </Link>
+                </Button>
+                <Button asChild variant="link" className="text-base">
+                  <Link to="/courses#filters">See filters in action</Link>
+                </Button>
+              </div>
+            </div>
+            <Link to="/courses" className="block" aria-label="Open the course discovery workspace">
+              <Card className="relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl cursor-pointer dark:bg-slate-950/70">
+                <CardContent className="space-y-8 p-6 sm:p-8">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <GraduationCap className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Course discovery</p>
+                        <p className="text-lg font-semibold text-foreground">Course Discovery Workspace</p>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
+                      <Sparkles className="h-4 w-4" /> Fresh matches daily
+                    </span>
+                  </div>
+                  <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div className="space-y-4 rounded-3xl bg-slate-50/60 p-5 shadow-inner dark:bg-slate-900/50">
+                      <div className="grid grid-cols-2 gap-4 text-left text-sm text-muted-foreground">
+                        {["Country", "Degree Level", "Discipline", "Tuition", "Duration", "Intake Month"].map((label) => (
+                          <div key={label} className="space-y-2">
+                            <div className="font-semibold text-foreground/80">{label}</div>
+                            <div className="h-10 rounded-2xl bg-white/80 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/40 dark:ring-slate-800" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-center text-sm font-semibold shadow-lg">
+                        Launch Discovery
+                      </div>
+                    </div>
+                    <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-200 bg-white/80 p-6 text-left shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
+                      <div className="space-y-2">
+                        <p className="text-sm font-semibold text-primary uppercase tracking-wide">Live results</p>
+                        <h4 className="text-2xl font-bold text-foreground">See the best-fit programs instantly</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Shortlist stand-out programs, review tuition at a glance, and jump straight into an application when you are ready.
+                        </p>
+                      </div>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center justify-between rounded-2xl bg-slate-100/90 px-4 py-3 font-medium text-foreground dark:bg-slate-800/80">
+                          <span>Oxford · MSc Computer Science</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
+                          <span>Toronto · BSc Data Science</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                        <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
+                          <span>Melbourne · Master of Engineering</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
+          {/* Visa Calculator Spotlight */}
+          <section className="relative py-24">
           <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent" />
           <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-8">
