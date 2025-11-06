@@ -205,12 +205,12 @@ const App = () => {
   const { t } = useTranslation();
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ErrorBoundary>
             <AuthProvider>
               <NavigationHistoryProvider>
                 <Suspense
@@ -630,17 +630,17 @@ const App = () => {
                         </PublicLayout>
                       }
                     />
-                      </Routes>
+                  </Routes>
                     </div>
                     <ZoeChatbot />
                   </div>
                 </Suspense>
               </NavigationHistoryProvider>
             </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+          </ErrorBoundary>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
