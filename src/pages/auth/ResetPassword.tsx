@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
+import BackButton from '@/components/BackButton';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
@@ -61,22 +62,27 @@ const ResetPassword = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1 text-center">
-          <Link to="/auth/login" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
-            <ArrowLeft className="h-4 w-4" />
-            Back to login
-          </Link>
-          <div className="flex justify-center mb-4">
-            <img src={gegLogo} alt="GEG Logo" className="h-20 w-20 object-contain dark:brightness-0 dark:invert" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
-          <CardDescription>
-            Enter your new password below
-          </CardDescription>
-        </CardHeader>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <BackButton
+                variant="ghost"
+                size="sm"
+                fallback="/auth/login"
+                label="Back to login"
+                className="px-0 text-muted-foreground hover:text-foreground"
+              />
+            </div>
+            <div className="flex justify-center mb-4">
+              <img src={gegLogo} alt="GEG Logo" className="h-20 w-20 object-contain dark:brightness-0 dark:invert" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+            <CardDescription>
+              Enter your new password below
+            </CardDescription>
+          </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">

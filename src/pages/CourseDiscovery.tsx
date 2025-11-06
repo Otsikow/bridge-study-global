@@ -27,6 +27,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/useDebounce";
+import BackButton from "@/components/BackButton";
 
 const ITEMS_PER_PAGE = 12;
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
@@ -730,20 +731,27 @@ export default function CourseDiscovery() {
     });
   }, [filterOptions]);
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Discover Your Perfect Course
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Explore programs from top universities worldwide
-              </p>
-            </div>
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b bg-card/50 backdrop-blur-sm">
+          <div className="container mx-auto px-4 py-6">
+            <BackButton
+              variant="ghost"
+              size="sm"
+              fallback="/"
+              wrapperClassName="mb-4"
+              className="px-0 text-muted-foreground hover:text-foreground"
+            />
+            <div className="space-y-4">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Discover Your Perfect Course
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Explore programs from top universities worldwide
+                </p>
+              </div>
 
             {/* Search and Sort Bar */}
             <div className="flex flex-col sm:flex-row gap-3">

@@ -11,9 +11,9 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { ShieldCheck, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ShieldCheck } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import BackButton from "@/components/BackButton";
 
 function scoreBand(p: number) {
   if (p >= 0.7) return { label: "High", color: "text-success" };
@@ -28,7 +28,6 @@ export default function VisaEligibility() {
   const [financial, setFinancial] = useState("adequate");
   const [hasOffer, setHasOffer] = useState("yes");
   const [calc, setCalc] = useState<number | null>(null);
-  const navigate = useNavigate();
 
   const compute = () => {
     const gpaNum = Math.max(0, Math.min(4, parseFloat(gpa || "0")));
@@ -54,15 +53,12 @@ export default function VisaEligibility() {
       {/* Top bar with back button and theme toggle */}
       <div className="border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <Button
+          <BackButton
             variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="rounded-full"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+            size="sm"
+            fallback="/dashboard"
+            className="rounded-full px-3 text-muted-foreground hover:text-foreground"
+          />
           <ThemeToggle />
         </div>
       </div>
