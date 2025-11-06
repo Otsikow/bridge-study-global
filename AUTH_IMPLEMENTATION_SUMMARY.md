@@ -142,6 +142,13 @@ Registration → Email Verification → Login → Role Detection → Dashboard R
 - Protected route pattern
 - Context API for auth state
 
+## ⚙️ Configuration Notes
+
+- Keep `VITE_SUPABASE_URL` pointed at the Supabase API origin (`https://<project>.supabase.co`) unless you have configured a verified custom domain.
+- If you proxy Supabase through your own domain, set `VITE_SUPABASE_CUSTOM_DOMAIN` (frontend) and `SUPABASE_SERVICE_URL` (backend scripts/functions) to that origin.
+- Set `VITE_PUBLIC_SITE_URL` to your public app domain (for example `https://GlobalEducationGateway.com`) so email redirects target the correct host.
+- `src/lib/supabaseClientConfig.ts` normalizes these values at runtime and exposes `getSiteUrl()` for consistent redirect handling.
+
 ## 🎓 Role Descriptions
 
 | Role | Icon | Description | Dashboard Features |

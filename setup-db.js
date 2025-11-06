@@ -3,8 +3,102 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = 'https://GlobalEducationGateway.com';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'your-service-role-key-here';
+const SUPABASE_MANAGED_SUFFIXES = ['.supabase.co', '.supabase.in', '.supabase.net', '.supabase.red'];
+const DEFAULT_PROJECT_ID = 'gbustuntgvmwkcttjojo';
+
+const safeEnv = (key) => {
+  const value = process.env[key];
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 && trimmed.toLowerCase() !== 'undefined' ? trimmed : undefined;
+};
+
+const toOrigin = (input) => {
+  const candidate = input.trim();
+  if (!candidate) {
+    throw new Error('Supabase URL cannot be empty.');
+  }
+
+  const hasProtocol = /^https?:\/\//i.test(candidate);
+  const parsed = new URL(hasProtocol ? candidate : `https://${candidate}`);
+  return parsed.origin;
+};
+
+const isSupabaseManagedHost = (host) => {
+  const lowerHost = host.toLowerCase();
+  if (lowerHost === 'localhost' || lowerHost === '127.0.0.1') {
+    return true;
+  }
+  return SUPABASE_MANAGED_SUFFIXES.some((suffix) => lowerHost.endsWith(suffix));
+};
+
+const resolveSupabaseServiceUrl = () => {
+  const explicitServiceUrl = safeEnv('SUPABASE_SERVICE_URL') || safeEnv('SUPABASE_CUSTOM_DOMAIN');
+  if (explicitServiceUrl) {
+    return toOrigin(explicitServiceUrl);
+  }
+
+  const configuredUrl = safeEnv('SUPABASE_URL') || safeEnv('VITE_SUPABASE_URL');
+  const projectId =
+    safeEnv('SUPABASE_PROJECT_ID') ||
+    safeEnv('VITE_SUPABASE_PROJECT_ID') ||
+    DEFAULT_PROJECT_ID;
+
+  if (configuredUrl) {
+    try {
+      const origin = toOrigin(configuredUrl);
+      const hostname = new URL(origin).hostname;
+
+      if (isSupabaseManagedHost(hostname)) {
+        return origin;
+      }
+
+      if (!projectId) {
+        console.warn(
+          `setup-db: SUPABASE_URL "${configuredUrl}" does not look like a Supabase-managed host and no project id fallback is available. Using it as-is.`,
+        );
+        return origin;
+      }
+
+      const fallback = toOrigin(`https://${projectId}.supabase.co`);
+      console.warn(
+        `setup-db: SUPABASE_URL "${configuredUrl}" does not look like the Supabase API host. Falling back to "${fallback}". Set SUPABASE_SERVICE_URL if you are proxying Supabase through a custom domain.`,
+      );
+      return fallback;
+    } catch (error) {
+      if (!projectId) {
+        throw new Error(
+          `setup-db: Invalid SUPABASE_URL "${configuredUrl}". Provide a valid URL or set SUPABASE_PROJECT_ID.`,
+        );
+      }
+
+      const fallback = toOrigin(`https://${projectId}.supabase.co`);
+      console.warn(
+        `setup-db: Invalid SUPABASE_URL "${configuredUrl}". Falling back to "${fallback}". Set SUPABASE_SERVICE_URL if you are proxying Supabase through a custom domain.`,
+      );
+      return fallback;
+    }
+  }
+
+  if (projectId) {
+    return toOrigin(`https://${projectId}.supabase.co`);
+  }
+
+  throw new Error(
+    'setup-db: Unable to determine Supabase project URL. Define SUPABASE_SERVICE_URL, SUPABASE_URL, or SUPABASE_PROJECT_ID.',
+  );
+};
+
+const SUPABASE_URL = resolveSupabaseServiceUrl();
+const SUPABASE_SERVICE_KEY = safeEnv('SUPABASE_SERVICE_ROLE_KEY');
+
+if (!SUPABASE_SERVICE_KEY) {
+  throw new Error(
+    'setup-db: SUPABASE_SERVICE_ROLE_KEY is not set. Provide a valid service role key before running this script.',
+  );
+}
+
+console.log(`setup-db: Using Supabase service URL ${SUPABASE_URL}`);
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 

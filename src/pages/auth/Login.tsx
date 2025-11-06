@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import BackButton from '@/components/BackButton';
+import { getSiteUrl } from '@/lib/supabaseClientConfig';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ const Login = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/dashboard`,
+        redirectTo: `${getSiteUrl()}/dashboard`,
       },
     });
 
