@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, FormEvent } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Table,
@@ -75,6 +77,11 @@ export default function AgentDashboardOverview() {
   const [referralCode, setReferralCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [inviteFullName, setInviteFullName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitePhone, setInvitePhone] = useState('');
+  const [isInviteSubmitting, setIsInviteSubmitting] = useState(false);
 
   const pipelineStages = useMemo(() => {
     const stageDefinitions = [
@@ -344,6 +351,80 @@ export default function AgentDashboardOverview() {
     setFilteredStudents(filtered);
   }, [searchTerm, statusFilter, students]);
 
+  const resetInviteForm = () => {
+    setInviteFullName('');
+    setInviteEmail('');
+    setInvitePhone('');
+  };
+
+  const handleInviteSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!profile?.id || !profile?.tenant_id) {
+      toast({
+        title: 'Error',
+        description: 'Missing agent profile information',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!inviteFullName.trim() || !inviteEmail.trim()) {
+      toast({
+        title: 'Missing details',
+        description: 'Student name and email are required',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsInviteSubmitting(true);
+
+    try {
+      const payload = {
+        fullName: inviteFullName.trim(),
+        email: inviteEmail.trim(),
+        phone: invitePhone.trim() || undefined,
+        agentProfileId: profile.id,
+        tenantId: profile.tenant_id,
+      };
+
+      const { data, error } = await supabase.functions.invoke('invite-student', {
+        body: payload,
+      });
+
+      if (error) {
+        throw new Error(error.message ?? 'Failed to invite student');
+      }
+
+      if (data && typeof data === 'object' && 'error' in data && (data as { error?: unknown }).error) {
+        const message = typeof (data as { error?: unknown }).error === 'string'
+          ? (data as { error: string }).error
+          : 'Failed to invite student';
+        throw new Error(message);
+      }
+
+      toast({
+        title: 'Invitation sent',
+        description: `Invitation sent to ${payload.email}`,
+      });
+
+      resetInviteForm();
+      setIsInviteDialogOpen(false);
+
+      void fetchDashboardData();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to invite student';
+      toast({
+        title: 'Error',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsInviteSubmitting(false);
+    }
+  };
+
   const copyReferralLink = () => {
     const link = `${window.location.origin}/signup?ref=${referralCode}`;
     navigator.clipboard.writeText(link);
@@ -443,11 +524,84 @@ export default function AgentDashboardOverview() {
           <CardDescription>Perform common tasks quickly</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Invite Student
-            </Button>
+            <div className="flex flex-wrap gap-3">
+              <Dialog
+                open={isInviteDialogOpen}
+                onOpenChange={(open) => {
+                  setIsInviteDialogOpen(open);
+                  if (!open) {
+                    resetInviteForm();
+                    setIsInviteSubmitting(false);
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Invite Student
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Invite a Student</DialogTitle>
+                    <DialogDescription>
+                      Collect basic details and send an invitation email.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleInviteSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-full-name">Student Name</Label>
+                      <Input
+                        id="invite-full-name"
+                        value={inviteFullName}
+                        onChange={(event) => setInviteFullName(event.target.value)}
+                        placeholder="Jane Doe"
+                        required
+                        disabled={isInviteSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-email">Email</Label>
+                      <Input
+                        id="invite-email"
+                        type="email"
+                        value={inviteEmail}
+                        onChange={(event) => setInviteEmail(event.target.value)}
+                        placeholder="jane@example.com"
+                        required
+                        disabled={isInviteSubmitting}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="invite-phone">Phone (optional)</Label>
+                      <Input
+                        id="invite-phone"
+                        type="tel"
+                        value={invitePhone}
+                        onChange={(event) => setInvitePhone(event.target.value)}
+                        placeholder="+1 555 123 4567"
+                        disabled={isInviteSubmitting}
+                      />
+                    </div>
+                    <DialogFooter className="sm:justify-between">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          resetInviteForm();
+                          setIsInviteDialogOpen(false);
+                        }}
+                        disabled={isInviteSubmitting}
+                      >
+                        Cancel
+                      </Button>
+                      <Button type="submit" disabled={isInviteSubmitting}>
+                        {isInviteSubmitting ? 'Sending...' : 'Send Invitation'}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             <Button variant="outline" className="flex items-center gap-2">
               <FilePlus className="h-4 w-4" />
               Add Application
