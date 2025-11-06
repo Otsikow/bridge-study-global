@@ -377,7 +377,7 @@ export default function BlogAdmin() {
 
       if (error) {
         throw new Error(
-          error.message || "Unable to generate image with Gemini.",
+          error.message || "Unable to generate image with Nano Banana.",
         );
       }
 
@@ -392,7 +392,7 @@ export default function BlogAdmin() {
 
       if (!imageBase64) {
         throw new Error(
-          "Gemini did not return an image. Try again with a more descriptive title.",
+          "Nano Banana did not return an image. Try again with a more descriptive title.",
         );
       }
 
@@ -424,7 +424,7 @@ export default function BlogAdmin() {
       }
 
       setForm((prev) => ({ ...prev, cover_image_url: urlData.publicUrl }));
-      toast.success("Gemini image generated and applied.");
+      toast.success("Nano Banana image generated and applied.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Failed to generate image";
@@ -1208,7 +1208,7 @@ export default function BlogAdmin() {
                           ) : (
                             <>
                               <Sparkles className="h-4 w-4" /> Generate with
-                              Gemini
+                              Nano Banana
                             </>
                           )}
                         </Button>
@@ -1225,7 +1225,7 @@ export default function BlogAdmin() {
                         placeholder="https://images.unsplash.com/..."
                       />
                       <p className="text-xs text-muted-foreground">
-                        Paste a custom URL or let Gemini craft a relevant,
+                        Paste a custom URL or let Nano Banana craft a relevant,
                         on-brand cover image instantly.
                       </p>
                       {form.cover_image_url && (
