@@ -27,86 +27,43 @@ import { cn } from '@/lib/utils';
 
 type UserRole = 'student' | 'agent' | 'partner';
 
-type CountryOption = {
-  name: string;
-  code: string;
-};
-
 const ROLE_OPTIONS: UserRole[] = ['student', 'agent', 'partner'];
 
-const BASE_COUNTRY_OPTIONS: CountryOption[] = [
-  { name: 'United States', code: 'US' },
-  { name: 'United Kingdom', code: 'GB' },
-  { name: 'Canada', code: 'CA' },
-  { name: 'Australia', code: 'AU' },
-  { name: 'New Zealand', code: 'NZ' },
-  { name: 'India', code: 'IN' },
-  { name: 'China', code: 'CN' },
-  { name: 'Japan', code: 'JP' },
-  { name: 'Germany', code: 'DE' },
-  { name: 'France', code: 'FR' },
-  { name: 'Spain', code: 'ES' },
-  { name: 'Italy', code: 'IT' },
-  { name: 'Netherlands', code: 'NL' },
-  { name: 'Sweden', code: 'SE' },
-  { name: 'Norway', code: 'NO' },
-  { name: 'Denmark', code: 'DK' },
-  { name: 'Singapore', code: 'SG' },
-  { name: 'Malaysia', code: 'MY' },
-  { name: 'UAE', code: 'AE' },
-  { name: 'Saudi Arabia', code: 'SA' },
-  { name: 'South Africa', code: 'ZA' },
-  { name: 'Brazil', code: 'BR' },
-  { name: 'Mexico', code: 'MX' },
-  { name: 'Argentina', code: 'AR' },
-  { name: 'South Korea', code: 'KR' },
-  { name: 'Pakistan', code: 'PK' },
-  { name: 'Bangladesh', code: 'BD' },
-  { name: 'Nigeria', code: 'NG' },
-  { name: 'Kenya', code: 'KE' },
-  { name: 'Other', code: 'OTHER' },
+const BASE_COUNTRY_OPTIONS = [
+  'United States', 'United Kingdom', 'Canada', 'Australia', 'New Zealand',
+  'India', 'China', 'Japan', 'Germany', 'France', 'Spain', 'Italy',
+  'Netherlands', 'Sweden', 'Norway', 'Denmark', 'Singapore', 'Malaysia',
+  'UAE', 'Saudi Arabia', 'South Africa', 'Brazil', 'Mexico', 'Argentina',
+  'South Korea', 'Pakistan', 'Bangladesh', 'Nigeria', 'Kenya', 'Other'
 ];
 
-const POPULAR_AFRICAN_COUNTRIES: CountryOption[] = [
-  { name: 'Ghana', code: 'GH' },
-  { name: 'Egypt', code: 'EG' },
-  { name: 'Morocco', code: 'MA' },
-  { name: 'Ethiopia', code: 'ET' },
-  { name: 'Uganda', code: 'UG' },
-  { name: 'Tanzania', code: 'TZ' },
-  { name: 'Rwanda', code: 'RW' },
-  { name: 'Zimbabwe', code: 'ZW' },
-  { name: 'Zambia', code: 'ZM' },
-  { name: 'Cameroon', code: 'CM' },
-  { name: "Cote d'Ivoire", code: 'CI' },
-  { name: 'Senegal', code: 'SN' },
-  { name: 'Algeria', code: 'DZ' },
-  { name: 'Tunisia', code: 'TN' },
-  { name: 'Botswana', code: 'BW' },
+const POPULAR_AFRICAN_COUNTRIES = [
+  'Ghana',
+  'Egypt',
+  'Morocco',
+  'Ethiopia',
+  'Uganda',
+  'Tanzania',
+  'Rwanda',
+  'Zimbabwe',
+  'Zambia',
+  'Cameroon',
+  "Cote d'Ivoire",
+  'Senegal',
+  'Algeria',
+  'Tunisia',
+  'Botswana'
 ];
 
-const sortByName = (a: CountryOption, b: CountryOption) => a.name.localeCompare(b.name);
-
-const buildCountryOptions = (role: UserRole): CountryOption[] => {
-  const otherOption = BASE_COUNTRY_OPTIONS.find((option) => option.code === 'OTHER');
-  const baseWithoutOther = BASE_COUNTRY_OPTIONS.filter((option) => option.code !== 'OTHER');
-
+const buildCountryOptions = (role: UserRole) => {
   if (role !== 'agent') {
-    const sortedBase = [...baseWithoutOther].sort(sortByName);
-    return otherOption ? [...sortedBase, otherOption] : sortedBase;
+    return BASE_COUNTRY_OPTIONS;
   }
 
-  const combined = [...baseWithoutOther, ...POPULAR_AFRICAN_COUNTRIES];
-  const uniqueByCode = new Map<string, CountryOption>();
+  const baseWithoutOther = BASE_COUNTRY_OPTIONS.filter((country) => country !== 'Other');
+  const deduped = Array.from(new Set([...baseWithoutOther, ...POPULAR_AFRICAN_COUNTRIES]));
 
-  for (const option of combined) {
-    if (!uniqueByCode.has(option.code)) {
-      uniqueByCode.set(option.code, option);
-    }
-  }
-
-  const sorted = Array.from(uniqueByCode.values()).sort(sortByName);
-  return otherOption ? [...sorted, otherOption] : sorted;
+  return [...deduped, 'Other'];
 };
 
 const Signup = () => {
@@ -128,7 +85,7 @@ const Signup = () => {
 
   const totalSteps = 3;
 
-  const countryOptions = useMemo<CountryOption[]>(() => buildCountryOptions(role), [role]);
+  const countryOptions = useMemo(() => buildCountryOptions(role), [role]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -293,12 +250,12 @@ const Signup = () => {
       } else {
         toast({
           title: 'Account created!',
-          description: 'Check your email to verify your account before logging in.',
+          description:
+            'Please check your email to verify your account. You will be redirected to login.',
         });
-        setLoading(false);
-        navigate('/verify-email', {
-          state: { email },
-        });
+        setTimeout(() => {
+          navigate('/auth/login');
+        }, 2000);
       }
     } catch (err) {
       toast({
@@ -466,9 +423,9 @@ const Signup = () => {
                       <SelectValue placeholder="Select your country" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[300px]">
-                      {countryOptions.map((option) => (
-                        <SelectItem key={option.code} value={option.name}>
-                          {option.name}
+                      {countryOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
                         </SelectItem>
                       ))}
                     </SelectContent>

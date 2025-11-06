@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,223 +27,149 @@ import {
   Search,
   Filter,
   CheckSquare,
+  Clock,
+  AlertCircle,
   Plus,
   Calendar,
   User,
-  Loader2,
+  FileText,
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { getErrorMessage, logError } from '@/lib/errorUtils';
-
-type TaskStatus = 'open' | 'in_progress' | 'done' | 'blocked';
-type TaskPriority = 'high' | 'medium' | 'low' | 'urgent';
 
 interface Task {
   id: string;
   title: string;
-  description: string | null;
-  priority: TaskPriority | null;
-  status: TaskStatus;
-  due_at: string | null;
-  created_at: string;
-  profile_id: string | null;
-  tenant_id: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  status: 'todo' | 'in_progress' | 'completed';
+  dueDate: string;
+  assignedTo: string;
+  relatedTo?: string;
+  relatedType?: 'application' | 'student';
+  createdDate: string;
 }
 
-const INITIAL_FORM = {
-  title: '',
-  description: '',
-  priority: 'medium' as TaskPriority,
-  dueDate: '',
-};
-
 export default function StaffTasks() {
-  const { user, profile } = useAuth();
-  const { toast } = useToast();
-  const activeTenantId = profile?.tenant_id ?? null;
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | TaskStatus>('all');
-  const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [taskCreated, setTaskCreated] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState(() => ({ ...INITIAL_FORM }));
 
-  const fetchTasks = useCallback(async () => {
-    if (!activeTenantId) return;
+  // Mock data - replace with actual data from your backend
+  const tasks: Task[] = [
+    {
+      id: 'TASK-001',
+      title: 'Verify transcripts for John Smith',
+      description: 'Review and verify academic transcripts submitted by the student',
+      priority: 'high',
+      status: 'in_progress',
+      dueDate: '2024-01-25',
+      assignedTo: 'You',
+      relatedTo: 'John Smith (APP-001)',
+      relatedType: 'application',
+      createdDate: '2024-01-20',
+    },
+    {
+      id: 'TASK-002',
+      title: 'Review application - Sarah Johnson',
+      description: 'Complete initial application screening and document verification',
+      priority: 'medium',
+      status: 'todo',
+      dueDate: '2024-01-26',
+      assignedTo: 'You',
+      relatedTo: 'Sarah Johnson (APP-002)',
+      relatedType: 'application',
+      createdDate: '2024-01-20',
+    },
+    {
+      id: 'TASK-003',
+      title: 'Contact university partner about delays',
+      description: 'Follow up with Oxford regarding delayed offer letters',
+      priority: 'high',
+      status: 'todo',
+      dueDate: '2024-01-25',
+      assignedTo: 'You',
+      relatedTo: 'University of Oxford',
+      createdDate: '2024-01-21',
+    },
+    {
+      id: 'TASK-004',
+      title: 'Process payment confirmation',
+      description: 'Verify payment receipt and update application status',
+      priority: 'low',
+      status: 'todo',
+      dueDate: '2024-01-30',
+      assignedTo: 'You',
+      relatedTo: 'Emily Davis (APP-004)',
+      relatedType: 'application',
+      createdDate: '2024-01-22',
+    },
+    {
+      id: 'TASK-005',
+      title: 'Update visa guidance document',
+      description: 'Revise visa application checklist with new requirements',
+      priority: 'medium',
+      status: 'in_progress',
+      dueDate: '2024-01-28',
+      assignedTo: 'Jane Doe',
+      createdDate: '2024-01-18',
+    },
+    {
+      id: 'TASK-006',
+      title: 'Send reminder to Michael Chen',
+      description: 'Remind student about pending document submission',
+      priority: 'medium',
+      status: 'completed',
+      dueDate: '2024-01-23',
+      assignedTo: 'You',
+      relatedTo: 'Michael Chen (STU-2024-003)',
+      relatedType: 'student',
+      createdDate: '2024-01-19',
+    },
+  ];
 
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('tenant_id', activeTenantId)
-        .order('created_at', { ascending: false });
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearch =
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
 
-      if (error) {
-        throw error;
-      }
-
-      setTasks((data ?? []) as Task[]);
-    } catch (error) {
-      logError(error, 'StaffTasks.fetchTasks');
-      toast({
-        title: 'Unable to load tasks',
-        description: getErrorMessage(error),
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTenantId, toast]);
-
-  useEffect(() => {
-    if (!activeTenantId) return;
-    void fetchTasks();
-  }, [activeTenantId, taskCreated, fetchTasks]);
-
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      const search = searchQuery.trim().toLowerCase();
-      const matchesSearch =
-        search.length === 0 ||
-        task.title.toLowerCase().includes(search) ||
-        (task.description ?? '').toLowerCase().includes(search) ||
-        task.id.toLowerCase().includes(search);
-
-      const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-      const matchesPriority = priorityFilter === 'all' || (task.priority ?? 'medium') === priorityFilter;
-
-      return matchesSearch && matchesStatus && matchesPriority;
-    });
-  }, [tasks, searchQuery, statusFilter, priorityFilter]);
-
-  const stats = useMemo(
-    () => ({
-      total: tasks.length,
-      todo: tasks.filter((task) => task.status === 'open').length,
-      inProgress: tasks.filter((task) => task.status === 'in_progress').length,
-      completed: tasks.filter((task) => task.status === 'done').length,
-    }),
-    [tasks]
-  );
-
-  const getPriorityBadge = (priority: TaskPriority | null | undefined) => {
-    const colors: Record<TaskPriority, string> = {
+  const getPriorityBadge = (priority: string) => {
+    const colors = {
       high: 'bg-destructive/10 text-destructive border-destructive/20',
       medium: 'bg-warning/10 text-warning border-warning/20',
       low: 'bg-muted text-muted-foreground border-muted',
-      urgent: 'bg-red-500/10 text-red-600 border-red-500/20',
     };
-    const key = (priority ?? 'medium') as TaskPriority;
-    return colors[key];
+    return colors[priority as keyof typeof colors] || colors.low;
   };
 
-  const getStatusBadge = (status: TaskStatus) => {
-    const colors: Record<TaskStatus, string> = {
-      open: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+  const getStatusBadge = (status: string) => {
+    const colors = {
+      todo: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
       in_progress: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      done: 'bg-success/10 text-success border-success/20',
-      blocked: 'bg-destructive/10 text-destructive border-destructive/20',
+      completed: 'bg-success/10 text-success border-success/20',
     };
-    return colors[status];
+    return colors[status as keyof typeof colors] || colors.todo;
   };
 
-  const getStatusLabel = (status: TaskStatus) => {
-    const labels: Record<TaskStatus, string> = {
-      open: 'To Do',
+  const getStatusLabel = (status: string) => {
+    const labels = {
+      todo: 'To Do',
       in_progress: 'In Progress',
-      done: 'Completed',
-      blocked: 'Blocked',
+      completed: 'Completed',
     };
-    return labels[status];
+    return labels[status as keyof typeof labels] || status;
   };
 
-  const isOverdue = (dueAt: string | null) => {
-    if (!dueAt) return false;
-    const dueDate = new Date(dueAt);
-    const today = new Date();
-    return dueDate < today && dueDate.toDateString() !== today.toDateString();
+  const isOverdue = (dueDate: string) => {
+    return new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString();
   };
 
-  const isDueToday = (dueAt: string | null) => {
-    if (!dueAt) return false;
-    const dueDate = new Date(dueAt);
-    return dueDate.toDateString() === new Date().toDateString();
-  };
-
-  const assignedLabel = (task: Task) => {
-    if (!user) return '—';
-    if (task.profile_id === user.id) return 'You';
-    return 'Team member';
-  };
-
-  const handleCreateTask = async () => {
-    if (!user) {
-      toast({
-        title: 'Not signed in',
-        description: 'You must be signed in to create tasks.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!activeTenantId) {
-      toast({
-        title: 'Missing tenant',
-        description: 'Could not determine your tenant. Please refresh and try again.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!formData.title.trim()) {
-      toast({
-        title: 'Task title required',
-        description: 'Please provide a title for the task before creating it.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const payload: Record<string, unknown> = {
-        title: formData.title.trim(),
-        description: formData.description.trim() || null,
-        priority: formData.priority,
-        status: 'open',
-        due_at: formData.dueDate ? new Date(`${formData.dueDate}T00:00:00Z`).toISOString() : null,
-        tenant_id: activeTenantId,
-        profile_id: user.id,
-      };
-
-      const { error } = await supabase.from('tasks').insert(payload);
-
-      if (error) {
-        throw error;
-      }
-
-      toast({ title: 'Task created', description: 'Your task has been added successfully.' });
-      setFormData({ ...INITIAL_FORM });
-      setIsCreateDialogOpen(false);
-      setTaskCreated((prev) => prev + 1);
-    } catch (error) {
-      logError(error, 'StaffTasks.createTask');
-      toast({
-        title: 'Unable to create task',
-        description: getErrorMessage(error),
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const isDueToday = (dueDate: string) => {
+    return new Date(dueDate).toDateString() === new Date().toDateString();
   };
 
   return (
@@ -278,12 +204,7 @@ export default function StaffTasks() {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="task-title">Title</Label>
-                  <Input
-                    id="task-title"
-                    placeholder="Enter task title"
-                    value={formData.title}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                  />
+                  <Input id="task-title" placeholder="Enter task title" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="task-description">Description</Label>
@@ -291,19 +212,12 @@ export default function StaffTasks() {
                     id="task-description"
                     placeholder="Enter task description"
                     rows={3}
-                    value={formData.description}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="task-priority">Priority</Label>
-                    <Select
-                      value={formData.priority}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({ ...prev, priority: value as TaskPriority }))
-                      }
-                    >
+                    <Select defaultValue="medium">
                       <SelectTrigger id="task-priority">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
@@ -311,35 +225,33 @@ export default function StaffTasks() {
                         <SelectItem value="high">High</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
                         <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="task-due">Due Date</Label>
-                    <Input
-                      id="task-due"
-                      type="date"
-                      value={formData.dueDate}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, dueDate: e.target.value }))}
-                    />
+                    <Input id="task-due" type="date" />
                   </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="task-assigned">Assign To</Label>
+                  <Select defaultValue="me">
+                    <SelectTrigger id="task-assigned">
+                      <SelectValue placeholder="Select assignee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="me">Me</SelectItem>
+                      <SelectItem value="jane">Jane Doe</SelectItem>
+                      <SelectItem value="john">John Smith</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateTask} disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    'Create Task'
-                  )}
-                </Button>
+                <Button onClick={() => setIsCreateDialogOpen(false)}>Create Task</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -354,7 +266,7 @@ export default function StaffTasks() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{stats.total}</div>
+              <div className="text-2xl font-bold">{tasks.length}</div>
             </CardContent>
           </Card>
           <Card>
@@ -364,7 +276,9 @@ export default function StaffTasks() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{stats.todo}</div>
+              <div className="text-2xl font-bold">
+                {tasks.filter((t) => t.status === 'todo').length}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -375,7 +289,7 @@ export default function StaffTasks() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                  {stats.inProgress}
+                {tasks.filter((t) => t.status === 'in_progress').length}
               </div>
             </CardContent>
           </Card>
@@ -386,7 +300,9 @@ export default function StaffTasks() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-success">{stats.completed}</div>
+              <div className="text-2xl font-bold text-success">
+                {tasks.filter((t) => t.status === 'completed').length}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -407,26 +323,19 @@ export default function StaffTasks() {
                   className="pl-9"
                 />
               </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as 'all' | TaskStatus)}
-              >
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="open">To Do</SelectItem>
+                  <SelectItem value="todo">To Do</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="done">Completed</SelectItem>
-                  <SelectItem value="blocked">Blocked</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                 </SelectContent>
               </Select>
-              <Select
-                value={priorityFilter}
-                onValueChange={(value) => setPriorityFilter(value as 'all' | TaskPriority)}
-              >
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Priority" />
@@ -436,7 +345,6 @@ export default function StaffTasks() {
                   <SelectItem value="high">High</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -448,7 +356,7 @@ export default function StaffTasks() {
           <CardHeader>
             <CardTitle>Tasks List</CardTitle>
             <CardDescription>
-              {loading ? 'Loading tasks…' : `${filteredTasks.length} task(s) found`}
+              {filteredTasks.length} task(s) found
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -460,7 +368,9 @@ export default function StaffTasks() {
                       <div className="flex-shrink-0 mt-1">
                         <CheckSquare
                           className={`h-5 w-5 ${
-                            task.status === 'done' ? 'text-success' : 'text-muted-foreground'
+                            task.status === 'completed'
+                              ? 'text-success'
+                              : 'text-muted-foreground'
                           }`}
                         />
                       </div>
@@ -469,15 +379,27 @@ export default function StaffTasks() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-base">{task.title}</h3>
-                              <Badge variant="outline" className={getPriorityBadge(task.priority)}>
-                                {(task.priority ?? 'medium').toLowerCase()}
+                              <Badge
+                                variant="outline"
+                                className={getPriorityBadge(task.priority)}
+                              >
+                                {task.priority}
                               </Badge>
-                              <Badge variant="outline" className={getStatusBadge(task.status)}>
+                              <Badge
+                                variant="outline"
+                                className={getStatusBadge(task.status)}
+                              >
                                 {getStatusLabel(task.status)}
                               </Badge>
                             </div>
-                            {task.description && (
-                              <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {task.description}
+                            </p>
+                            {task.relatedTo && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <FileText className="h-3 w-3" />
+                                Related to: {task.relatedTo}
+                              </div>
                             )}
                           </div>
                           <div className="text-right space-y-2">
@@ -485,23 +407,19 @@ export default function StaffTasks() {
                               <Calendar className="h-3 w-3" />
                               <span
                                 className={
-                                  task.due_at && task.status !== 'done'
-                                    ? isOverdue(task.due_at)
-                                      ? 'text-destructive font-medium'
-                                      : isDueToday(task.due_at)
-                                        ? 'text-warning font-medium'
-                                        : ''
+                                  isOverdue(task.dueDate) && task.status !== 'completed'
+                                    ? 'text-destructive font-medium'
+                                    : isDueToday(task.dueDate) && task.status !== 'completed'
+                                    ? 'text-warning font-medium'
                                     : ''
                                 }
                               >
-                                {task.due_at
-                                  ? new Date(task.due_at).toLocaleDateString()
-                                  : 'No due date'}
+                                {new Date(task.dueDate).toLocaleDateString()}
                               </span>
                             </div>
                             <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
                               <User className="h-3 w-3" />
-                              {assignedLabel(task)}
+                              {task.assignedTo}
                             </div>
                           </div>
                         </div>
@@ -509,17 +427,13 @@ export default function StaffTasks() {
                           <Button variant="outline" size="sm">
                             View Details
                           </Button>
-                          {task.status !== 'done' && task.status !== 'blocked' && (
+                          {task.status !== 'completed' && (
                             <>
-                              {task.status === 'open' && (
-                                <Button size="sm" variant="secondary">
-                                  Start Task
-                                </Button>
+                              {task.status === 'todo' && (
+                                <Button size="sm">Start Task</Button>
                               )}
                               {task.status === 'in_progress' && (
-                                <Button size="sm" variant="secondary">
-                                  Mark Complete
-                                </Button>
+                                <Button size="sm">Mark Complete</Button>
                               )}
                             </>
                           )}
@@ -530,14 +444,9 @@ export default function StaffTasks() {
                 </Card>
               ))}
             </div>
-            {filteredTasks.length === 0 && !loading && (
+            {filteredTasks.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">
                 No tasks found matching your criteria
-              </div>
-            )}
-            {loading && tasks.length === 0 && (
-              <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground text-sm">
-                <Loader2 className="h-4 w-4 animate-spin" /> Loading tasks...
               </div>
             )}
           </CardContent>

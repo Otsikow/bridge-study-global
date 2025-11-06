@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRoles, AppRole } from '@/hooks/useUserRoles';
 import { LoadingState } from '@/components/LoadingState';
@@ -11,7 +11,6 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, loading: authLoading } = useAuth();
   const { roles, loading: rolesLoading } = useUserRoles();
-  const location = useLocation();
   const loading = authLoading || rolesLoading;
 
   if (loading) {
@@ -27,10 +26,6 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (!user) {
     return <Navigate to="/auth/login" replace />;
-  }
-
-  if (!user.email_confirmed_at) {
-    return <Navigate to="/verify-email" replace state={{ from: location.pathname }} />;
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
