@@ -197,8 +197,8 @@ const en = {
         hero: {
           trustBadge: "Trusted by {{count}}+ students worldwide",
           title: {
-            prefix: "Your Gateway to",
-            highlight: "Global Education",
+            prefix: "Welcome to",
+            highlight: "Global Education Gateway (GEG)",
             suffix: "",
           },
           description:
