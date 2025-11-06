@@ -48,6 +48,7 @@ import {
 import {
   Eye,
   FileText,
+  Loader2,
   Pencil,
   Trash2,
   CheckCircle,
@@ -59,6 +60,7 @@ import {
   Edit3,
   Globe,
   Heart,
+  Sparkles,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +80,28 @@ import { BlogPreview } from "@/components/blog/BlogPreview";
 import { useAuth } from "@/hooks/useAuth";
 
 const generateSlug = (title: string): string =>
-  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const createUniqueId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return Math.random().toString(36).slice(2, 10);
+};
+
+const base64ToBlob = (base64: string, mimeType: string) => {
+  const byteCharacters = atob(base64);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i += 1) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  return new Blob([new Uint8Array(byteNumbers)], { type: mimeType });
+};
 
 type BlogStatus = "draft" | "published";
 
@@ -142,7 +165,9 @@ export default function BlogAdmin() {
   const qc = useQueryClient();
   const { user, profile } = useAuth();
   const tenantId = profile?.tenant_id ?? "00000000-0000-0000-0000-000000000001";
-  const [activeTab, setActiveTab] = useState<"list" | "analytics" | "edit">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "analytics" | "edit">(
+    "list",
+  );
   const [selectedPosts, setSelectedPosts] = useState<string[]>([]);
   const [editing, setEditing] = useState<BlogPost | null>(null);
   const [form, setForm] = useState<BlogFormState>(createInitialFormState);
@@ -151,6 +176,7 @@ export default function BlogAdmin() {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | BlogStatus>("all");
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["admin-blog"],
@@ -158,7 +184,7 @@ export default function BlogAdmin() {
       const { data, error } = await supabase
         .from("blog_posts")
         .select(
-          `id, title, slug, excerpt, content_md, content_html, cover_image_url, tags, status, featured, seo_title, seo_description, published_at, created_at, updated_at, views_count, likes_count, tenant_id, author:profiles(id, full_name, avatar_url)`
+          `id, title, slug, excerpt, content_md, content_html, cover_image_url, tags, status, featured, seo_title, seo_description, published_at, created_at, updated_at, views_count, likes_count, tenant_id, author:profiles(id, full_name, avatar_url)`,
         )
         .order("created_at", { ascending: false });
 
@@ -178,7 +204,9 @@ export default function BlogAdmin() {
       return;
     }
 
-    setSelectedPosts((prev) => prev.filter((id) => posts.some((post) => post.id === id)));
+    setSelectedPosts((prev) =>
+      prev.filter((id) => posts.some((post) => post.id === id)),
+    );
   }, [posts]);
 
   const deleteMutation = useMutation({
@@ -191,7 +219,10 @@ export default function BlogAdmin() {
       setDeleteId(null);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
     },
-    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Unable to delete post"),
+    onError: (error: unknown) =>
+      toast.error(
+        error instanceof Error ? error.message : "Unable to delete post",
+      ),
   });
 
   const executeDelete = () => {
@@ -200,7 +231,10 @@ export default function BlogAdmin() {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: string[]) => {
-      const { error } = await supabase.from("blog_posts").delete().in("id", ids);
+      const { error } = await supabase
+        .from("blog_posts")
+        .delete()
+        .in("id", ids);
       if (error) throw error;
     },
     onSuccess: (_data, ids) => {
@@ -209,7 +243,10 @@ export default function BlogAdmin() {
       setShowBulkActions(false);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
     },
-    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Bulk delete failed"),
+    onError: (error: unknown) =>
+      toast.error(
+        error instanceof Error ? error.message : "Bulk delete failed",
+      ),
   });
 
   const handleBulkDelete = () => {
@@ -217,12 +254,19 @@ export default function BlogAdmin() {
   };
 
   const bulkStatusMutation = useMutation({
-    mutationFn: async ({ ids, status }: { ids: string[]; status: BlogStatus }) => {
+    mutationFn: async ({
+      ids,
+      status,
+    }: {
+      ids: string[];
+      status: BlogStatus;
+    }) => {
       const { error } = await supabase
         .from("blog_posts")
         .update({
           status,
-          published_at: status === "published" ? new Date().toISOString() : null,
+          published_at:
+            status === "published" ? new Date().toISOString() : null,
           updated_at: new Date().toISOString(),
         })
         .in("id", ids);
@@ -234,7 +278,10 @@ export default function BlogAdmin() {
       setShowBulkActions(false);
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
     },
-    onError: (error: unknown) => toast.error(error instanceof Error ? error.message : "Bulk update failed"),
+    onError: (error: unknown) =>
+      toast.error(
+        error instanceof Error ? error.message : "Bulk update failed",
+      ),
   });
 
   const handleBulkStatusChange = (status: BlogStatus) => {
@@ -250,7 +297,9 @@ export default function BlogAdmin() {
 
     const term = searchTerm.trim().toLowerCase();
     const filteredByStatus =
-      statusFilter === "all" ? posts : posts.filter((post) => post.status === statusFilter);
+      statusFilter === "all"
+        ? posts
+        : posts.filter((post) => post.status === statusFilter);
 
     if (!term) return filteredByStatus;
 
@@ -266,21 +315,27 @@ export default function BlogAdmin() {
   const stats = useMemo(() => {
     if (!posts.length) return { total: 0, published: 0, drafts: 0 };
 
-    const published = posts.filter((post) => post.status === "published").length;
+    const published = posts.filter(
+      (post) => post.status === "published",
+    ).length;
     const drafts = posts.filter((post) => post.status === "draft").length;
 
     return { total: posts.length, published, drafts };
   }, [posts]);
 
   const isAllFilteredSelected =
-    filteredPosts.length > 0 && filteredPosts.every((post) => selectedPosts.includes(post.id));
+    filteredPosts.length > 0 &&
+    filteredPosts.every((post) => selectedPosts.includes(post.id));
   const someFilteredSelected =
-    filteredPosts.some((post) => selectedPosts.includes(post.id)) && !isAllFilteredSelected;
+    filteredPosts.some((post) => selectedPosts.includes(post.id)) &&
+    !isAllFilteredSelected;
 
   const handleToggleSelectAll = (checked: boolean | "indeterminate") => {
     if (checked === true) {
       const filteredIds = filteredPosts.map((post) => post.id);
-      setSelectedPosts((prev) => Array.from(new Set([...prev, ...filteredIds])));
+      setSelectedPosts((prev) =>
+        Array.from(new Set([...prev, ...filteredIds])),
+      );
     } else if (checked === false) {
       const filteredIds = new Set(filteredPosts.map((post) => post.id));
       setSelectedPosts((prev) => prev.filter((id) => !filteredIds.has(id)));
@@ -298,6 +353,85 @@ export default function BlogAdmin() {
   const handleClearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
+  };
+
+  const handleGenerateCoverImage = async () => {
+    if (!form.title.trim()) {
+      toast.error("Add a compelling title before generating an image.");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        "generate-blog-image",
+        {
+          body: {
+            title: form.title,
+            excerpt: form.excerpt,
+            tags: form.tags,
+          },
+        },
+      );
+
+      if (error) {
+        throw new Error(
+          error.message || "Unable to generate image with Gemini.",
+        );
+      }
+
+      const imagePayload = data ?? {};
+      const imageBase64 =
+        imagePayload.imageBase64 ||
+        imagePayload.imageData ||
+        imagePayload.base64 ||
+        imagePayload.image;
+      const mimeType =
+        imagePayload.mimeType || imagePayload.contentType || "image/png";
+
+      if (!imageBase64) {
+        throw new Error(
+          "Gemini did not return an image. Try again with a more descriptive title.",
+        );
+      }
+
+      const blob = base64ToBlob(imageBase64, mimeType);
+      const safeSlug = generateSlug(form.title || "blog-post");
+      const extension = mimeType.split("/")[1] ?? "png";
+      const filePath = `blog/${safeSlug}-${createUniqueId()}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("public")
+        .upload(filePath, blob, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      const { data: urlData, error: urlError } = supabase.storage
+        .from("public")
+        .getPublicUrl(filePath);
+
+      if (urlError || !urlData?.publicUrl) {
+        throw new Error(
+          urlError?.message ??
+            "Unable to resolve public URL for the generated image.",
+        );
+      }
+
+      setForm((prev) => ({ ...prev, cover_image_url: urlData.publicUrl }));
+      toast.success("Gemini image generated and applied.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to generate image";
+      toast.error(message);
+    } finally {
+      setIsGeneratingImage(false);
+    }
   };
 
   const handleEditPost = (post: BlogPost) => {
@@ -369,7 +503,9 @@ export default function BlogAdmin() {
         throw new Error("Slug is required");
       }
 
-      const sanitizedHtml = values.content_html ? DOMPurify.sanitize(values.content_html) : null;
+      const sanitizedHtml = values.content_html
+        ? DOMPurify.sanitize(values.content_html)
+        : null;
 
       const tags = values.tags
         .split(",")
@@ -394,7 +530,7 @@ export default function BlogAdmin() {
       if (editing) {
         const nextPublishedAt =
           values.status === "published"
-            ? editing.published_at ?? new Date().toISOString()
+            ? (editing.published_at ?? new Date().toISOString())
             : null;
 
         const { error } = await supabase
@@ -415,7 +551,8 @@ export default function BlogAdmin() {
         author_id: user.id,
         tenant_id: tenantId,
         created_at: new Date().toISOString(),
-        published_at: values.status === "published" ? new Date().toISOString() : null,
+        published_at:
+          values.status === "published" ? new Date().toISOString() : null,
       });
 
       if (error) throw error;
@@ -429,7 +566,9 @@ export default function BlogAdmin() {
       qc.invalidateQueries({ queryKey: ["admin-blog"] });
     },
     onError: (error: unknown) => {
-      toast.error(error instanceof Error ? error.message : "Unable to save post");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to save post",
+      );
     },
   });
 
@@ -444,16 +583,16 @@ export default function BlogAdmin() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 px-4 py-6 sm:px-6 lg:mx-auto lg:max-w-6xl">
       <Card>
         <CardHeader>
           <CardTitle>Manage Blog Posts</CardTitle>
           <CardDescription>View, edit, and manage all posts</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
-              <div className="relative flex-1 sm:max-w-sm">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:gap-4">
+              <div className="relative w-full sm:max-w-sm">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   id="search-input"
@@ -465,9 +604,11 @@ export default function BlogAdmin() {
               </div>
               <Select
                 value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as "all" | BlogStatus)}
+                onValueChange={(value) =>
+                  setStatusFilter(value as "all" | BlogStatus)
+                }
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -476,7 +617,12 @@ export default function BlogAdmin() {
                   <SelectItem value="draft">Draft</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" onClick={handleClearFilters}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={handleClearFilters}
+              >
                 Clear Filters
               </Button>
               <Button
@@ -484,15 +630,23 @@ export default function BlogAdmin() {
                 size="sm"
                 onClick={() => setShowBulkActions(true)}
                 disabled={selectedPosts.length === 0}
+                className="w-full sm:w-auto"
               >
                 <Filter className="mr-2 h-4 w-4" /> Bulk Actions
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-2">
               {selectedPosts.length > 0 && (
                 <>
-                  <span className="text-sm text-muted-foreground">{selectedPosts.length} selected</span>
-                  <Button variant="outline" size="sm" onClick={clearSelection}>
+                  <span className="text-sm text-muted-foreground">
+                    {selectedPosts.length} selected
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
+                    onClick={clearSelection}
+                  >
                     Clear
                   </Button>
                 </>
@@ -506,10 +660,32 @@ export default function BlogAdmin() {
                   <Edit3 className="h-3 w-3" /> {stats.drafts}
                 </span>
               </div>
-              <Button onClick={handleNewPost} size="sm" className="gap-2">
+              <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground sm:hidden">
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="h-3 w-3 text-emerald-500" />{" "}
+                  {stats.published} published
+                </div>
+                <div className="flex items-center gap-1">
+                  <Edit3 className="h-3 w-3 text-amber-500" /> {stats.drafts}{" "}
+                  drafts
+                </div>
+                <div className="col-span-2 text-muted-foreground">
+                  Total posts: {stats.total}
+                </div>
+              </div>
+              <Button
+                onClick={handleNewPost}
+                size="sm"
+                className="w-full gap-2 sm:w-auto"
+              >
                 <Plus className="h-4 w-4" /> New Post
               </Button>
-              <Button variant="outline" size="sm" onClick={() => toast.info("Export coming soon!")}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={() => toast.info("Export coming soon!")}
+              >
                 <Download className="mr-2 h-4 w-4" /> Export
               </Button>
             </div>
@@ -517,7 +693,12 @@ export default function BlogAdmin() {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "list" | "analytics" | "edit")}>
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) =>
+          setActiveTab(value as "list" | "analytics" | "edit")
+        }
+      >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="list">All Posts</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -548,7 +729,8 @@ export default function BlogAdmin() {
                   <div className="space-y-2">
                     <h3 className="text-lg font-semibold">No posts found</h3>
                     <p className="text-sm text-muted-foreground">
-                      Try adjusting your filters or create a new post to get started.
+                      Try adjusting your filters or create a new post to get
+                      started.
                     </p>
                   </div>
                   <Button onClick={handleNewPost} className="gap-2">
@@ -556,66 +738,71 @@ export default function BlogAdmin() {
                   </Button>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox
-                          checked={isAllFilteredSelected ? true : someFilteredSelected ? "indeterminate" : false}
-                          onCheckedChange={handleToggleSelectAll}
-                          aria-label="Select all posts"
-                        />
-                      </TableHead>
-                      <TableHead>Post</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead>Metrics</TableHead>
-                      <TableHead>Updated</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                <>
+                  <div className="grid gap-3 p-4 md:hidden">
                     {filteredPosts.map((post) => {
-                      const createdAt = post.created_at ? new Date(post.created_at) : null;
-                      const updatedAt = post.updated_at ? new Date(post.updated_at) : createdAt;
+                      const createdAt = post.created_at
+                        ? new Date(post.created_at)
+                        : null;
+                      const updatedAt = post.updated_at
+                        ? new Date(post.updated_at)
+                        : createdAt;
 
                       return (
-                        <TableRow key={post.id} className="hover:bg-muted/40">
-                          <TableCell>
+                        <div
+                          key={post.id}
+                          className="space-y-4 rounded-xl border bg-card p-4 shadow-sm transition hover:border-primary/50"
+                        >
+                          <div className="flex items-start gap-3">
                             <Checkbox
+                              className="mt-1"
                               checked={selectedPosts.includes(post.id)}
-                              onCheckedChange={(checked) => toggleSelection(post.id, checked)}
+                              onCheckedChange={(checked) =>
+                                toggleSelection(post.id, checked)
+                              }
                               aria-label={`Select ${post.title}`}
                             />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-start gap-3">
-                              <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border">
+                            <div className="flex w-full gap-3">
+                              <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
                                 {post.cover_image_url ? (
-                                  <img src={post.cover_image_url} alt={post.title} className="h-full w-full object-cover" />
+                                  <img
+                                    src={post.cover_image_url}
+                                    alt={post.title}
+                                    className="h-full w-full object-cover"
+                                  />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                                  <div className="flex h-full w-full items-center justify-center">
                                     <FileText className="h-5 w-5 text-muted-foreground" />
                                   </div>
                                 )}
                               </div>
-                              <div className="space-y-1">
+                              <div className="flex-1 space-y-2">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <p className="font-semibold leading-tight">{post.title}</p>
-                                  {post.featured && <Badge variant="outline">Featured</Badge>}
+                                  <p className="text-base font-semibold leading-tight">
+                                    {post.title}
+                                  </p>
+                                  {post.featured && (
+                                    <Badge variant="outline">Featured</Badge>
+                                  )}
                                 </div>
-                                <p className="line-clamp-2 text-sm text-muted-foreground">{post.excerpt}</p>
+                                <p className="line-clamp-2 text-sm text-muted-foreground">
+                                  {post.excerpt}
+                                </p>
                                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                                   <span>/blog/{post.slug}</span>
                                   {post.author && (
                                     <span className="flex items-center gap-1">
                                       <Avatar className="h-5 w-5">
                                         <AvatarImage
-                                          src={post.author.avatar_url ?? undefined}
+                                          src={
+                                            post.author.avatar_url ?? undefined
+                                          }
                                           alt={post.author.full_name ?? ""}
                                         />
                                         <AvatarFallback>
-                                          {post.author.full_name?.slice(0, 2).toUpperCase() ?? "AU"}
+                                          {post.author.full_name
+                                            ?.slice(0, 2)
+                                            .toUpperCase() ?? "AU"}
                                         </AvatarFallback>
                                       </Avatar>
                                       {post.author.full_name ?? "Unknown"}
@@ -624,85 +811,291 @@ export default function BlogAdmin() {
                                 </div>
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-2">
-                              <Badge
-                                variant={post.status === "published" ? "default" : "secondary"}
-                                className="w-fit capitalize"
-                              >
-                                {post.status}
-                              </Badge>
-                              {post.published_at && (
-                                <span className="text-xs text-muted-foreground">
-                                  Published {format(new Date(post.published_at), "PP")}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {(post.tags ?? []).slice(0, 4).map((tag) => (
-                                <Badge key={tag} variant="outline" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {(post.tags?.length ?? 0) > 4 && (
-                                <Badge variant="outline" className="text-xs">
-                                  +{(post.tags?.length ?? 0) - 4}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Eye className="h-3 w-3" /> {post.views_count ?? 0} views
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" /> {post.likes_count ?? 0} likes
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-xs text-muted-foreground">
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <Badge
+                              variant={
+                                post.status === "published"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="capitalize"
+                            >
+                              {post.status}
+                            </Badge>
+                            <span>
                               {updatedAt ? format(updatedAt, "PP") : "—"}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => setPreview(post)} className="gap-1">
-                                <Eye className="h-4 w-4" /> Preview
-                              </Button>
-                              <Button
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {(post.tags ?? []).slice(0, 4).map((tag) => (
+                              <Badge
+                                key={tag}
                                 variant="outline"
-                                size="sm"
-                                onClick={() => handleEditPost(post)}
-                                className="gap-1"
+                                className="text-xs"
                               >
-                                <Pencil className="h-4 w-4" /> Edit
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="gap-1 text-destructive"
-                                onClick={() => setDeleteId(post.id)}
-                              >
-                                <Trash2 className="h-4 w-4" /> Delete
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                                {tag}
+                              </Badge>
+                            ))}
+                            {(post.tags?.length ?? 0) > 4 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{(post.tags?.length ?? 0) - 4}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />{" "}
+                              {post.views_count ?? 0} views
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Heart className="h-3 w-3" />{" "}
+                              {post.likes_count ?? 0} likes
+                            </span>
+                          </div>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => setPreview(post)}
+                              className="w-full gap-1 sm:w-auto"
+                            >
+                              <Eye className="h-4 w-4" /> Preview
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditPost(post)}
+                              className="w-full gap-1 sm:w-auto"
+                            >
+                              <Pencil className="h-4 w-4" /> Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full gap-1 text-destructive sm:w-auto"
+                              onClick={() => setDeleteId(post.id)}
+                            >
+                              <Trash2 className="h-4 w-4" /> Delete
+                            </Button>
+                          </div>
+                        </div>
                       );
                     })}
-                  </TableBody>
-                </Table>
+                  </div>
+                  <div className="hidden md:block">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[860px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[40px]">
+                              <Checkbox
+                                checked={
+                                  isAllFilteredSelected
+                                    ? true
+                                    : someFilteredSelected
+                                      ? "indeterminate"
+                                      : false
+                                }
+                                onCheckedChange={handleToggleSelectAll}
+                                aria-label="Select all posts"
+                              />
+                            </TableHead>
+                            <TableHead>Post</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Tags</TableHead>
+                            <TableHead>Metrics</TableHead>
+                            <TableHead>Updated</TableHead>
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredPosts.map((post) => {
+                            const createdAt = post.created_at
+                              ? new Date(post.created_at)
+                              : null;
+                            const updatedAt = post.updated_at
+                              ? new Date(post.updated_at)
+                              : createdAt;
+
+                            return (
+                              <TableRow
+                                key={post.id}
+                                className="hover:bg-muted/40"
+                              >
+                                <TableCell>
+                                  <Checkbox
+                                    checked={selectedPosts.includes(post.id)}
+                                    onCheckedChange={(checked) =>
+                                      toggleSelection(post.id, checked)
+                                    }
+                                    aria-label={`Select ${post.title}`}
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-start gap-3">
+                                    <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-md border">
+                                      {post.cover_image_url ? (
+                                        <img
+                                          src={post.cover_image_url}
+                                          alt={post.title}
+                                          className="h-full w-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="flex h-full w-full items-center justify-center bg-muted">
+                                          <FileText className="h-5 w-5 text-muted-foreground" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="space-y-1">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <p className="font-semibold leading-tight">
+                                          {post.title}
+                                        </p>
+                                        {post.featured && (
+                                          <Badge variant="outline">
+                                            Featured
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <p className="line-clamp-2 text-sm text-muted-foreground">
+                                        {post.excerpt}
+                                      </p>
+                                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                        <span>/blog/{post.slug}</span>
+                                        {post.author && (
+                                          <span className="flex items-center gap-1">
+                                            <Avatar className="h-5 w-5">
+                                              <AvatarImage
+                                                src={
+                                                  post.author.avatar_url ??
+                                                  undefined
+                                                }
+                                                alt={
+                                                  post.author.full_name ?? ""
+                                                }
+                                              />
+                                              <AvatarFallback>
+                                                {post.author.full_name
+                                                  ?.slice(0, 2)
+                                                  .toUpperCase() ?? "AU"}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            {post.author.full_name ?? "Unknown"}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col gap-2">
+                                    <Badge
+                                      variant={
+                                        post.status === "published"
+                                          ? "default"
+                                          : "secondary"
+                                      }
+                                      className="w-fit capitalize"
+                                    >
+                                      {post.status}
+                                    </Badge>
+                                    {post.published_at && (
+                                      <span className="text-xs text-muted-foreground">
+                                        Published{" "}
+                                        {format(
+                                          new Date(post.published_at),
+                                          "PP",
+                                        )}
+                                      </span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-wrap gap-1">
+                                    {(post.tags ?? [])
+                                      .slice(0, 4)
+                                      .map((tag) => (
+                                        <Badge
+                                          key={tag}
+                                          variant="outline"
+                                          className="text-xs"
+                                        >
+                                          {tag}
+                                        </Badge>
+                                      ))}
+                                    {(post.tags?.length ?? 0) > 4 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        +{(post.tags?.length ?? 0) - 4}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                      <Eye className="h-3 w-3" />{" "}
+                                      {post.views_count ?? 0} views
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <Heart className="h-3 w-3" />{" "}
+                                      {post.likes_count ?? 0} likes
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <div className="text-xs text-muted-foreground">
+                                    {updatedAt ? format(updatedAt, "PP") : "—"}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setPreview(post)}
+                                      className="gap-1"
+                                    >
+                                      <Eye className="h-4 w-4" /> Preview
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleEditPost(post)}
+                                      className="gap-1"
+                                    >
+                                      <Pencil className="h-4 w-4" /> Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="gap-1 text-destructive"
+                                      onClick={() => setDeleteId(post.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" /> Delete
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
             {filteredPosts.length > 0 && !isLoading && (
               <CardFooter className="flex items-center justify-between border-t bg-muted/30 py-3 text-sm text-muted-foreground">
                 <span>
-                  Showing {filteredPosts.length} {filteredPosts.length === 1 ? "post" : "posts"}
+                  Showing {filteredPosts.length}{" "}
+                  {filteredPosts.length === 1 ? "post" : "posts"}
                 </span>
                 <span>{selectedPosts.length} selected</span>
               </CardFooter>
@@ -718,7 +1111,9 @@ export default function BlogAdmin() {
           <Card>
             <form onSubmit={handleSubmit} className="space-y-6">
               <CardHeader>
-                <CardTitle>{editing ? "Edit Post" : "Create New Post"}</CardTitle>
+                <CardTitle>
+                  {editing ? "Edit Post" : "Create New Post"}
+                </CardTitle>
                 <CardDescription>
                   {editing
                     ? "Update post content, settings, and SEO metadata."
@@ -733,7 +1128,12 @@ export default function BlogAdmin() {
                       <Input
                         id="title"
                         value={form.title}
-                        onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            title: event.target.value,
+                          }))
+                        }
                         placeholder="Enter post title"
                         required
                       />
@@ -744,7 +1144,12 @@ export default function BlogAdmin() {
                         <Input
                           id="slug"
                           value={form.slug}
-                          onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
+                          onChange={(event) =>
+                            setForm((prev) => ({
+                              ...prev,
+                              slug: event.target.value,
+                            }))
+                          }
                           placeholder="optimized-post-title"
                         />
                         <Button
@@ -761,7 +1166,8 @@ export default function BlogAdmin() {
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        https://globaltalentgateway.net/blog/{form.slug || "your-slug"}
+                        https://globaltalentgateway.net/blog/
+                        {form.slug || "your-slug"}
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -771,24 +1177,64 @@ export default function BlogAdmin() {
                         rows={4}
                         maxLength={320}
                         value={form.excerpt}
-                        onChange={(event) => setForm((prev) => ({ ...prev, excerpt: event.target.value }))}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            excerpt: event.target.value,
+                          }))
+                        }
                         placeholder="Short summary used on listings and previews"
                       />
-                      <div className="text-xs text-muted-foreground">{form.excerpt.length} / 320 characters</div>
+                      <div className="text-xs text-muted-foreground">
+                        {form.excerpt.length} / 320 characters
+                      </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="cover-image">Cover image URL</Label>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <Label htmlFor="cover-image">Cover image URL</Label>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="w-full gap-2 sm:w-fit"
+                          onClick={handleGenerateCoverImage}
+                          disabled={isGeneratingImage}
+                        >
+                          {isGeneratingImage ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4" /> Generate with
+                              Gemini
+                            </>
+                          )}
+                        </Button>
+                      </div>
                       <Input
                         id="cover-image"
                         value={form.cover_image_url}
                         onChange={(event) =>
-                          setForm((prev) => ({ ...prev, cover_image_url: event.target.value }))
+                          setForm((prev) => ({
+                            ...prev,
+                            cover_image_url: event.target.value,
+                          }))
                         }
                         placeholder="https://images.unsplash.com/..."
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Paste a custom URL or let Gemini craft a relevant,
+                        on-brand cover image instantly.
+                      </p>
                       {form.cover_image_url && (
                         <div className="overflow-hidden rounded-md border">
-                          <img src={form.cover_image_url} alt="Cover preview" className="h-40 w-full object-cover" />
+                          <img
+                            src={form.cover_image_url}
+                            alt="Cover preview"
+                            className="h-40 w-full object-cover"
+                          />
                         </div>
                       )}
                     </div>
@@ -798,7 +1244,9 @@ export default function BlogAdmin() {
                       <Label htmlFor="status">Status</Label>
                       <Select
                         value={form.status}
-                        onValueChange={(value: BlogStatus) => setForm((prev) => ({ ...prev, status: value }))}
+                        onValueChange={(value: BlogStatus) =>
+                          setForm((prev) => ({ ...prev, status: value }))
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -811,15 +1259,21 @@ export default function BlogAdmin() {
                     </div>
                     <div className="flex items-center justify-between rounded-md border p-3">
                       <div>
-                        <Label className="text-sm font-medium">Featured Post</Label>
+                        <Label className="text-sm font-medium">
+                          Featured Post
+                        </Label>
                         <p className="text-xs text-muted-foreground">
-                          Highlight this article across the blog and dashboard surfaces.
+                          Highlight this article across the blog and dashboard
+                          surfaces.
                         </p>
                       </div>
                       <Switch
                         checked={form.featured}
                         onCheckedChange={(checked) =>
-                          setForm((prev) => ({ ...prev, featured: Boolean(checked) }))
+                          setForm((prev) => ({
+                            ...prev,
+                            featured: Boolean(checked),
+                          }))
                         }
                       />
                     </div>
@@ -828,7 +1282,12 @@ export default function BlogAdmin() {
                       <Input
                         id="tags"
                         value={form.tags}
-                        onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            tags: event.target.value,
+                          }))
+                        }
                         placeholder="admissions, visas, scholarships"
                       />
                       <p className="text-xs text-muted-foreground">
@@ -841,10 +1300,17 @@ export default function BlogAdmin() {
                         id="seo-title"
                         value={form.seo_title}
                         maxLength={70}
-                        onChange={(event) => setForm((prev) => ({ ...prev, seo_title: event.target.value }))}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            seo_title: event.target.value,
+                          }))
+                        }
                         placeholder="Optimized title for search results"
                       />
-                      <div className="text-xs text-muted-foreground">{form.seo_title.length} / 70 characters</div>
+                      <div className="text-xs text-muted-foreground">
+                        {form.seo_title.length} / 70 characters
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="seo-description">SEO Description</Label>
@@ -853,10 +1319,17 @@ export default function BlogAdmin() {
                         rows={4}
                         maxLength={170}
                         value={form.seo_description}
-                        onChange={(event) => setForm((prev) => ({ ...prev, seo_description: event.target.value }))}
+                        onChange={(event) =>
+                          setForm((prev) => ({
+                            ...prev,
+                            seo_description: event.target.value,
+                          }))
+                        }
                         placeholder="Meta description shown in search results"
                       />
-                      <div className="text-xs text-muted-foreground">{form.seo_description.length} / 170 characters</div>
+                      <div className="text-xs text-muted-foreground">
+                        {form.seo_description.length} / 170 characters
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -870,30 +1343,45 @@ export default function BlogAdmin() {
                       id="content-md"
                       rows={12}
                       value={form.content_md}
-                      onChange={(event) => setForm((prev) => ({ ...prev, content_md: event.target.value }))}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          content_md: event.target.value,
+                        }))
+                      }
                       className="font-mono"
                       placeholder="# Heading\n\nStart writing your post in markdown..."
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="content-html">HTML Override (optional)</Label>
+                    <Label htmlFor="content-html">
+                      HTML Override (optional)
+                    </Label>
                     <Textarea
                       id="content-html"
                       rows={10}
                       value={form.content_html}
-                      onChange={(event) => setForm((prev) => ({ ...prev, content_html: event.target.value }))}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          content_html: event.target.value,
+                        }))
+                      }
                       className="font-mono"
                       placeholder="<section>Custom layout or embeds...</section>"
                     />
                     <p className="text-xs text-muted-foreground">
-                      When provided, HTML will override the markdown output. We sanitize content automatically.
+                      When provided, HTML will override the markdown output. We
+                      sanitize content automatically.
                     </p>
                   </div>
                   <div className="rounded-md border p-4 text-sm text-muted-foreground">
                     <p className="font-medium">Markdown formatting tips</p>
                     <p>
-                      Use standard markdown for headings, emphasis, lists, and quotes. Embed images with
-                      <code className="mx-1">![]()</code> syntax or switch to HTML for advanced layouts.
+                      Use standard markdown for headings, emphasis, lists, and
+                      quotes. Embed images with
+                      <code className="mx-1">![]()</code> syntax or switch to
+                      HTML for advanced layouts.
                     </p>
                   </div>
                 </div>
@@ -902,12 +1390,16 @@ export default function BlogAdmin() {
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Globe className="h-3 w-3" />
                   <span>
-                    Last step: preview your article before publishing to ensure formatting looks perfect across the
-                    site.
+                    Last step: preview your article before publishing to ensure
+                    formatting looks perfect across the site.
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant="outline" onClick={handlePreviewDraft}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePreviewDraft}
+                  >
                     Preview Draft
                   </Button>
                   <Button
@@ -920,7 +1412,11 @@ export default function BlogAdmin() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={saveMutation.isPending} className="gap-2">
+                  <Button
+                    type="submit"
+                    disabled={saveMutation.isPending}
+                    className="gap-2"
+                  >
                     <Save className="h-4 w-4" /> {editing ? "Update" : "Create"}
                   </Button>
                 </div>
@@ -930,15 +1426,23 @@ export default function BlogAdmin() {
         </TabsContent>
       </Tabs>
 
-      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently delete the blog post.</AlertDialogDescription>
+            <AlertDialogDescription>
+              This will permanently delete the blog post.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-white">
+            <AlertDialogAction
+              onClick={executeDelete}
+              className="bg-destructive text-white"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -949,17 +1453,29 @@ export default function BlogAdmin() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Bulk Actions</DialogTitle>
-            <DialogDescription>Perform actions on {selectedPosts.length} selected posts.</DialogDescription>
+            <DialogDescription>
+              Perform actions on {selectedPosts.length} selected posts.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <Button onClick={() => handleBulkStatusChange("published")} className="w-full">
+            <Button
+              onClick={() => handleBulkStatusChange("published")}
+              className="w-full"
+            >
               <CheckCircle className="mr-2 h-4 w-4" /> Publish Selected
             </Button>
-            <Button onClick={() => handleBulkStatusChange("draft")} className="w-full">
+            <Button
+              onClick={() => handleBulkStatusChange("draft")}
+              className="w-full"
+            >
               <Edit3 className="mr-2 h-4 w-4" /> Move to Draft
             </Button>
             <Separator />
-            <Button variant="destructive" onClick={handleBulkDelete} className="w-full">
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              className="w-full"
+            >
               <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
             </Button>
           </div>
@@ -971,7 +1487,13 @@ export default function BlogAdmin() {
         </DialogContent>
       </Dialog>
 
-      {preview && <BlogPreview post={preview} open={!!preview} onOpenChange={() => setPreview(null)} />}
+      {preview && (
+        <BlogPreview
+          post={preview}
+          open={!!preview}
+          onOpenChange={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }
