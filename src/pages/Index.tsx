@@ -23,12 +23,16 @@ import {
   ChevronRight,
   Building2,
   Sparkles,
+  ArrowRight,
 } from "lucide-react";
 
 import gegLogo from "@/assets/geg-logo.png";
 import campusWalk from "@/assets/campus-walk.png";
 import studentJourney from "@/assets/student-journey.png";
 import acceptanceLetter from "@/assets/acceptance-letter.png";
+import studentLaptopOutdoors from "@/assets/student-laptop-outdoors.png";
+import campusGathering from "@/assets/campus-gathering.png";
+import campusLife from "@/assets/campus-life.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
@@ -36,6 +40,36 @@ import { JourneyRibbon } from "@/components/JourneyRibbon";
 
 const Index = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  const heroCtas = [
+    {
+      badge: "Students",
+      title: "Launch your global application",
+      description:
+        "Create a profile, upload documents once, and send polished applications to top universities in minutes.",
+      action: "Start Application",
+      href: "/auth/signup",
+      image: studentLaptopOutdoors,
+    },
+    {
+      badge: "Agents",
+      title: "Serve students with smart tools",
+      description:
+        "Access dashboards, collaborate in real time, and track every milestone while growing your agency brand.",
+      action: "Join as Agent",
+      href: "/auth/signup?role=agent",
+      image: campusGathering,
+    },
+    {
+      badge: "Universities",
+      title: "Scale partnerships that convert",
+      description:
+        "Connect with qualified applicants, get market insights, and collaborate with vetted advisors worldwide.",
+      action: "Partner with Us",
+      href: "/partnership",
+      image: campusLife,
+    },
+  ];
 
   const stats = [
     { value: "200+", label: "Partner Universities", icon: Building2 },
@@ -236,29 +270,42 @@ const Index = () => {
             Connect with top universities, track applications in real-time, and
             receive expert guidance from verified agents.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/auth/signup">
-              <Button size="lg">
-                <FileCheck className="mr-2 h-5 w-5" />
-                Start Application
-              </Button>
-            </Link>
-            <Link to="/auth/signup?role=agent">
-              <Button variant="outline" size="lg">
-                <Users className="mr-2 h-5 w-5" />
-                Join as Agent
-              </Button>
-            </Link>
-            <Link to="/partnership">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="bg-primary/10 text-primary hover:bg-primary/15"
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            {heroCtas.map((cta) => (
+              <Link
+                key={cta.title}
+                to={cta.href}
+                className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-slate-950/60 text-left shadow-xl transition duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:border-white/5"
+                aria-label={cta.action}
               >
-                <Building2 className="mr-2 h-5 w-5" />
-                Partner with Us
-              </Button>
-            </Link>
+                <img
+                  src={cta.image}
+                  alt={cta.title}
+                  className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-black/55 to-primary/20" />
+                <div className="relative flex h-full flex-col justify-between p-6 sm:p-7">
+                  <div>
+                    <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/90">
+                      {cta.badge}
+                    </span>
+                    <h3 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+                      {cta.title}
+                    </h3>
+                    <p className="mt-3 text-sm text-white/80 sm:text-base">
+                      {cta.description}
+                    </p>
+                  </div>
+                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white">
+                    <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs uppercase tracking-wide text-primary-foreground">
+                      {cta.action}
+                    </span>
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                </div>
+                <div className="pointer-events-none absolute inset-x-6 bottom-5 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              </Link>
+            ))}
           </div>
           <JourneyRibbon />
         </div>
