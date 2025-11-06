@@ -70,7 +70,7 @@ export default function StudentOnboarding() {
 
         const { data: createdStudent, error: createStudentError } = await supabase
           .from('students')
-          .insert({ profile_id: user.id, tenant_id })
+          .insert({ profile_id: user.id, tenant_id: tenantId })
           .select()
           .single();
 

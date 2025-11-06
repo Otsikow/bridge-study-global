@@ -315,7 +315,7 @@ export default function StudentDashboard() {
       studentProfile.test_scores,
     ];
 
-    const computed = fields.reduce((acc, field) => (field ? acc + 20 : acc), 0);
+    const computed = fields.reduce((acc, field) => (field ? (acc as number) + 20 : acc), 0) as number;
     const stored = typeof studentProfile.profile_completeness === 'number' ? studentProfile.profile_completeness : null;
 
     return Math.min(100, stored ?? computed);

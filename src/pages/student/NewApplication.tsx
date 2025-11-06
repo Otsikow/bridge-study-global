@@ -265,7 +265,7 @@ export default function NewApplication() {
       return;
     }
 
-    const draftData = draftQuery.data.form_data as ApplicationFormData | null;
+    const draftData = draftQuery.data.form_data as unknown as ApplicationFormData | null;
     if (draftData) {
       setFormData((prev) => ({
         ...prev,

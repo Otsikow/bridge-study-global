@@ -509,46 +509,69 @@ export function useMessages() {
       }
 
         try {
-        const { data, error } = await supabase
+        // First, get conversation IDs where user participates
+        const { data: userParticipations, error: partError } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', user.id);
+
+        if (partError) throw partError;
+
+        if (!userParticipations || userParticipations.length === 0) {
+          setConversations([]);
+          return;
+        }
+
+        const conversationIds = userParticipations.map(p => p.conversation_id);
+
+        // Get all conversations
+        const { data: conversationsData, error: convError } = await supabase
           .from('conversations')
-          .select(`
-                id,
-                tenant_id,
-                title,
-                type,
-                is_group,
-                created_at,
-                updated_at,
-                last_message_at,
-                participants:conversation_participants!inner (
-                  id,
-                  conversation_id,
-                  user_id,
-                  joined_at,
-                  last_read_at
-                ),
-                lastMessage:conversation_messages (
-                  id,
-                  conversation_id,
-                  sender_id,
-                  content,
-                  message_type,
-                  attachments,
-                  reply_to_id,
-                  edited_at,
-                  deleted_at,
-                  created_at
-                )
-              `)
-            .eq('participants.user_id', user.id)
-            .order('last_message_at', { ascending: false, nullsLast: true })
-            .order('updated_at', { ascending: false })
-            .order('created_at', { ascending: false, foreignTable: 'lastMessage' })
-            .limit(1, { foreignTable: 'lastMessage' });
+          .select('id, tenant_id, title, type, is_group, created_at, updated_at, last_message_at')
+          .in('id', conversationIds)
+          .order('last_message_at', { ascending: false })
+          .order('updated_at', { ascending: false });
 
-        if (error) throw error;
+        if (convError) throw convError;
 
-        const typedData = (data || []) as unknown as RawConversation[];
+        if (!conversationsData || conversationsData.length === 0) {
+          setConversations([]);
+          return;
+        }
+
+        // Get all participants for these conversations
+        const { data: allParticipants, error: allPartError } = await supabase
+          .from('conversation_participants')
+          .select('id, conversation_id, user_id, joined_at, last_read_at, is_admin')
+          .in('conversation_id', conversationIds);
+
+        if (allPartError) throw allPartError;
+
+        // Get last message for each conversation
+        const { data: lastMessages, error: lastMsgError } = await supabase
+          .from('conversation_messages')
+          .select('id, conversation_id, sender_id, content, message_type, attachments, reply_to_id, edited_at, deleted_at, created_at')
+          .in('conversation_id', conversationIds)
+          .order('created_at', { ascending: false });
+
+        if (lastMsgError) throw lastMsgError;
+
+        // Group last messages by conversation
+        const lastMessageMap = new Map();
+        lastMessages?.forEach(msg => {
+          if (!lastMessageMap.has(msg.conversation_id)) {
+            lastMessageMap.set(msg.conversation_id, msg);
+          }
+        });
+
+        const typedData = conversationsData.map(conv => ({
+          ...conv,
+          participants: allParticipants ? allParticipants.filter((p: any) => p.conversation_id === conv.id).map((p: any) => ({
+            ...p,
+            is_admin: false,
+          })) : [],
+          lastMessage: lastMessageMap.get(conv.id) ? [lastMessageMap.get(conv.id)] : [],
+        })) as unknown as RawConversation[];
 
         const participantIds = new Set<string>();
         typedData.forEach((conversation) => {
@@ -743,13 +766,13 @@ export function useMessages() {
       try {
         const { data, error } = await supabase
           .from('conversation_messages')
-          .insert({
+          .insert([{
             conversation_id: conversationId,
             sender_id: user.id,
             content: contentToSend,
             message_type: messageType,
-            attachments,
-          })
+            attachments: attachments as any,
+          }])
           .select(`
             id,
             conversation_id,

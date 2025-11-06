@@ -67,6 +67,13 @@ class DatabaseLogger {
           error: entry.error,
         });
       }
+
+      // Optional: Persist to database (only in production with errors)
+      if (this.enablePersistence && entry.level === 'error') {
+        this.persistLog(entry).catch(err => {
+          console.error('Failed to persist log:', err);
+        });
+      }
     }
 
     private evaluateSecuritySignals(entry: DatabaseLogEntry) {
@@ -109,14 +116,6 @@ class DatabaseLogger {
         },
       });
     }
-
-    // Optional: Persist to database (only in production with errors)
-    if (this.enablePersistence && entry.level === 'error') {
-      this.persistLog(entry).catch(err => {
-        console.error('Failed to persist log:', err);
-      });
-    }
-  }
 
   private async persistLog(entry: DatabaseLogEntry) {
     try {
