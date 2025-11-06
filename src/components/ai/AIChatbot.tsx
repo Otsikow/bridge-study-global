@@ -20,12 +20,15 @@ import {
   Bookmark,
   ExternalLink,
   MessageSquareQuote,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
 import zoeAvatar from "@/assets/professional-consultant.png";
+import { cn } from "@/lib/utils";
 
 interface Attachment {
   id: string;
@@ -214,6 +217,7 @@ function MessageSources({ sources }: { sources: ZoeSource[] }) {
 
 export default function ZoeChatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -766,12 +770,15 @@ export default function ZoeChatbot() {
     session?.access_token,
     sessionId,
     toast,
-  ]);
+    ]);
 
   const quickPromptHandler = useCallback(
     (prompt: string) => {
       setInput(prompt);
-      if (!isOpen) setIsOpen(true);
+      if (!isOpen) {
+        setIsExpanded(false);
+        setIsOpen(true);
+      }
     },
     [isOpen],
   );
@@ -779,7 +786,10 @@ export default function ZoeChatbot() {
   if (!isOpen) {
     return (
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsExpanded(false);
+          setIsOpen(true);
+        }}
         className="fixed bottom-4 right-4 flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold shadow-xl transition hover:translate-y-[-2px] hover:shadow-2xl md:bottom-6 md:right-6 md:h-14 md:px-6 md:text-base"
         aria-label="Chat with Zoe"
       >
@@ -790,7 +800,14 @@ export default function ZoeChatbot() {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 left-4 flex h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]">
+    <Card
+      className={cn(
+        "fixed z-50 flex flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur transition-all duration-300",
+        isExpanded
+          ? "top-4 bottom-4 left-1/2 w-full max-w-5xl -translate-x-1/2 sm:top-8 sm:bottom-8"
+          : "bottom-4 left-4 right-4 h-[calc(100vh-2rem)] xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]",
+      )}
+    >
       <CardHeader className="px-5 pb-2 pt-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -815,14 +832,33 @@ export default function ZoeChatbot() {
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-            className="h-8 w-8"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsExpanded((prev) => !prev)}
+              className="h-8 w-8"
+              aria-label={isExpanded ? "Minimize Zoe chat" : "Expand Zoe chat"}
+              aria-pressed={isExpanded}
+            >
+              {isExpanded ? (
+                <Minimize2 className="h-4 w-4" />
+              ) : (
+                <Maximize2 className="h-4 w-4" />
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                setIsExpanded(false);
+                setIsOpen(false);
+              }}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         {suggestions.length > 0 && input.trim().length === 0 ? (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -1029,7 +1065,7 @@ export default function ZoeChatbot() {
               <Button
                 type="submit"
                 size="icon"
-                disabled={
+                    disabled={
                   isLoading ||
                   isUploading ||
                   (!input.trim() && attachments.length === 0)
