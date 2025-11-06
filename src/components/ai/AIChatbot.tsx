@@ -218,6 +218,7 @@ function MessageSources({ sources }: { sources: ZoeSource[] }) {
 export default function ZoeChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -803,7 +804,9 @@ export default function ZoeChatbot() {
     <Card
       className={cn(
         "fixed z-50 flex flex-col overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-background via-background to-primary/5 shadow-[0_28px_80px_rgba(15,23,42,0.45)] backdrop-blur transition-all duration-300",
-        isExpanded
+        isFullScreen
+          ? "inset-0 rounded-none"
+          : isExpanded
           ? "top-4 bottom-4 left-1/2 w-full max-w-5xl -translate-x-1/2 sm:top-8 sm:bottom-8"
           : "bottom-4 left-4 right-4 h-[calc(100vh-2rem)] xs:left-auto xs:h-[88vh] xs:w-[420px] xs:max-h-[680px] md:bottom-6 md:right-6 md:w-[460px]",
       )}
@@ -836,12 +839,20 @@ export default function ZoeChatbot() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setIsExpanded((prev) => !prev)}
+              onClick={() => {
+                if (isFullScreen) {
+                  setIsFullScreen(false);
+                  setIsExpanded(false);
+                } else if (isExpanded) {
+                  setIsFullScreen(true);
+                } else {
+                  setIsExpanded(true);
+                }
+              }}
               className="h-8 w-8"
-              aria-label={isExpanded ? "Minimize Zoe chat" : "Expand Zoe chat"}
-              aria-pressed={isExpanded}
+              aria-label={isFullScreen ? "Exit full screen" : isExpanded ? "Enter full screen" : "Expand Zoe chat"}
             >
-              {isExpanded ? (
+              {isFullScreen ? (
                 <Minimize2 className="h-4 w-4" />
               ) : (
                 <Maximize2 className="h-4 w-4" />
@@ -851,6 +862,7 @@ export default function ZoeChatbot() {
               variant="ghost"
               size="icon"
               onClick={() => {
+                setIsFullScreen(false);
                 setIsExpanded(false);
                 setIsOpen(false);
               }}
@@ -986,8 +998,51 @@ export default function ZoeChatbot() {
             </div>
           )}
 
+          <div className="mb-3 flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx,.txt"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-xl"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || isUploading}
+              title="Upload files"
+            >
+              {isUploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 rounded-xl"
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isLoading}
+              title={isRecording ? "Stop recording" : "Voice to text"}
+            >
+              {isRecording ? (
+                <MicOff className="h-4 w-4 text-destructive" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
           <form
-            className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
+            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
               isDragOver
                 ? "border-primary bg-primary/5 shadow-inner"
                 : "border-border bg-card/40"
@@ -1006,75 +1061,34 @@ export default function ZoeChatbot() {
             }}
             onDrop={handleDrop}
           >
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.txt"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-xl"
-                onClick={() => fileInputRef.current?.click()}
+            <div className="flex-1">
+              <Textarea
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    void sendMessage();
+                  }
+                }}
+                placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
                 disabled={isLoading || isUploading}
-              >
-                {isUploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-              </Button>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 rounded-xl"
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={isLoading}
-              >
-                {isRecording ? (
-                  <MicOff className="h-4 w-4 text-destructive" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
-              </Button>
-
-              <div className="flex-1">
-                <Textarea
-                  value={input}
-                  onChange={(event) => setInput(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && !event.shiftKey) {
-                      event.preventDefault();
-                      void sendMessage();
-                    }
-                  }}
-                  placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
-                  disabled={isLoading || isUploading}
-                  className="min-h-[52px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                size="icon"
-                    disabled={
-                  isLoading ||
-                  isUploading ||
-                  (!input.trim() && attachments.length === 0)
-                }
-                className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
+                className="min-h-[52px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-6 text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
             </div>
+
+            <Button
+              type="submit"
+              size="icon"
+              disabled={
+                isLoading ||
+                isUploading ||
+                (!input.trim() && attachments.length === 0)
+              }
+              className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </form>
 
           <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
