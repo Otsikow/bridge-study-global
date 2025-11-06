@@ -39,6 +39,7 @@ interface TimelineItem {
 
 interface Application {
   id: string;
+  app_number?: string | null;
   status: string;
   intake_year: number;
   intake_month: number;
@@ -112,14 +113,23 @@ export default function ApplicationDetails() {
     void loadAll();
   }, [id, user]);
 
+  const isValidUuid = (value: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+
   const loadAll = async () => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      // Application with program + university
-      const { data: appData, error: appErr } = await supabase
+
+      const baseQuery = supabase
         .from('applications')
         .select(`
           id,
+          app_number,
           status,
           intake_year,
           intake_month,
@@ -138,22 +148,27 @@ export default function ApplicationDetails() {
               country
             )
           )
-        `)
-        .eq('id', id)
-        .maybeSingle();
+        `);
+
+      const query = isValidUuid(id)
+        ? baseQuery.eq('id', id)
+        : baseQuery.eq('app_number', id);
+
+      const { data: appData, error: appErr } = await query.maybeSingle();
       if (appErr) throw appErr;
       if (!appData) {
         toast({ title: 'Not found', description: 'Application not found', variant: 'destructive' });
         navigate(-1);
         return;
       }
+      const applicationId = (appData as { id: string }).id;
       setApp(appData as unknown as Application);
 
       // Tasks assigned to the current user for this application
       const { data: taskData, error: taskErr } = await supabase
         .from('tasks')
         .select('id,title,description,status,priority,due_at')
-        .eq('application_id', id)
+        .eq('application_id', applicationId)
         .order('due_at', { ascending: true });
       if (taskErr) throw taskErr;
       setTasks(taskData as unknown as TaskItem[]);
@@ -162,7 +177,7 @@ export default function ApplicationDetails() {
       const { data: offerData, error: offerErr } = await supabase
         .from('offers')
         .select('id,offer_type,letter_url,expiry_date,accepted')
-        .eq('application_id', id)
+        .eq('application_id', applicationId)
         .order('created_at', { ascending: false });
       if (offerErr) throw offerErr;
       setOffers(offerData as unknown as Offer[]);
@@ -171,7 +186,7 @@ export default function ApplicationDetails() {
       const { data: docData, error: docErr } = await supabase
         .from('application_documents')
         .select('id,document_type,storage_path,mime_type,verified,verification_notes,uploaded_at')
-        .eq('application_id', id)
+        .eq('application_id', applicationId)
         .order('uploaded_at', { ascending: false });
       if (docErr) throw docErr;
       setDocs(docData as unknown as AppDocument[]);
@@ -244,6 +259,11 @@ export default function ApplicationDetails() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {app.app_number && (
+                <Badge variant="outline" className="font-mono text-xs">
+                  {app.app_number}
+                </Badge>
+              )}
               <StatusBadge status={app.status} />
             </div>
           </CardTitle>

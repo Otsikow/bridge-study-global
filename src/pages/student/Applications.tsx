@@ -24,6 +24,7 @@ import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
 
 interface Application {
   id: string;
+  app_number?: string | null;
   status: string;
   intake_year: number;
   intake_month: number;
@@ -68,6 +69,7 @@ export default function Applications() {
         .from('applications')
         .select(`
           id,
+          app_number,
           status,
           intake_year,
           intake_month,
@@ -125,6 +127,7 @@ export default function Applications() {
     const term = searchTerm.toLowerCase();
     const matchesSearch =
       !term ||
+      (a.app_number && a.app_number.toLowerCase().includes(term)) ||
       a.program.name.toLowerCase().includes(term) ||
       a.program.university.name.toLowerCase().includes(term);
     return matchesStatus && matchesCountry && matchesSearch;
