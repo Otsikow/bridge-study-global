@@ -21,15 +21,6 @@ export default function ProfileSettings() {
   const [activeTab, setActiveTab] = useState('profile');
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const referralLink = profile ? generateReferralLink(profile.username) : '';
-  const referralSummary = referralStats ?? { direct: 0, levelTwo: 0, totalEarnings: 0 };
-  const formattedReferralEarnings = useMemo(
-    () =>
-      new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      }).format(referralSummary.totalEarnings),
-    [referralSummary.totalEarnings]
-  );
 
   // Fetch additional profile data based on role
   const { data: roleData, isLoading: roleDataLoading } = useQuery({
@@ -103,6 +94,16 @@ export default function ProfileSettings() {
     },
     enabled: profile?.role === 'agent' && !!profile?.id,
   });
+
+  const referralSummary = referralStats ?? { direct: 0, levelTwo: 0, totalEarnings: 0 };
+  const formattedReferralEarnings = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(referralSummary.totalEarnings),
+    [referralSummary.totalEarnings]
+  );
 
   // Calculate profile completion percentage
   useEffect(() => {
