@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
+import { logFailedAuthentication } from '@/lib/securityLogger';
 
 type SignupRole = 'student' | 'agent' | 'partner' | 'admin' | 'staff';
 
@@ -249,6 +250,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) {
         console.error('Sign-in error:', error);
+        void logFailedAuthentication(email, error.message ?? 'Unknown sign-in error', {
+          code: (error as any)?.code,
+          status: (error as any)?.status,
+          name: error.name,
+        });
         return { error };
       }
 
@@ -256,6 +262,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { error: null };
     } catch (err) {
       console.error('Sign-in exception:', err);
+      const reason = err instanceof Error ? err.message : 'Unexpected sign-in error';
+      void logFailedAuthentication(email, reason, {
+        isException: true,
+      });
       return { error: err };
     }
   };

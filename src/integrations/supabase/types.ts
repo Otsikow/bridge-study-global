@@ -364,6 +364,123 @@ export type Database = {
           },
         ]
       }
+        security_alerts: {
+          Row: {
+            acknowledged_at: string | null
+            created_at: string
+            details: string | null
+            event_type: Database["public"]["Enums"]["security_event_type"]
+            id: string
+            metadata: Json | null
+            resolved_at: string | null
+            severity: Database["public"]["Enums"]["security_event_severity"]
+            source_event_id: string | null
+            status: Database["public"]["Enums"]["security_alert_status"]
+            summary: string
+            tenant_id: string | null
+          }
+          Insert: {
+            acknowledged_at?: string | null
+            created_at?: string
+            details?: string | null
+            event_type: Database["public"]["Enums"]["security_event_type"]
+            id?: string
+            metadata?: Json | null
+            resolved_at?: string | null
+            severity: Database["public"]["Enums"]["security_event_severity"]
+            source_event_id?: string | null
+            status?: Database["public"]["Enums"]["security_alert_status"]
+            summary: string
+            tenant_id?: string | null
+          }
+          Update: {
+            acknowledged_at?: string | null
+            created_at?: string
+            details?: string | null
+            event_type?: Database["public"]["Enums"]["security_event_type"]
+            id?: string
+            metadata?: Json | null
+            resolved_at?: string | null
+            severity?: Database["public"]["Enums"]["security_event_severity"]
+            source_event_id?: string | null
+            status?: Database["public"]["Enums"]["security_alert_status"]
+            summary?: string
+            tenant_id?: string | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "security_alerts_source_event_id_fkey"
+              columns: ["source_event_id"]
+              isOneToOne: false
+              referencedRelation: "security_audit_logs"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "security_alerts_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            },
+          ]
+        }
+        security_audit_logs: {
+          Row: {
+            actor_email: string | null
+            created_at: string
+            description: string | null
+            event_type: Database["public"]["Enums"]["security_event_type"]
+            id: string
+            ip_address: unknown
+            metadata: Json | null
+            severity: Database["public"]["Enums"]["security_event_severity"]
+            tenant_id: string | null
+            user_agent: string | null
+            user_id: string | null
+          }
+          Insert: {
+            actor_email?: string | null
+            created_at?: string
+            description?: string | null
+            event_type: Database["public"]["Enums"]["security_event_type"]
+            id?: string
+            ip_address?: unknown
+            metadata?: Json | null
+            severity?: Database["public"]["Enums"]["security_event_severity"]
+            tenant_id?: string | null
+            user_agent?: string | null
+            user_id?: string | null
+          }
+          Update: {
+            actor_email?: string | null
+            created_at?: string
+            description?: string | null
+            event_type?: Database["public"]["Enums"]["security_event_type"]
+            id?: string
+            ip_address?: unknown
+            metadata?: Json | null
+            severity?: Database["public"]["Enums"]["security_event_severity"]
+            tenant_id?: string | null
+            user_agent?: string | null
+            user_id?: string | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "security_audit_logs_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "security_audit_logs_user_id_fkey"
+              columns: ["user_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+          ]
+        }
       blog_posts: {
         Row: {
           author_id: string
@@ -2125,28 +2242,42 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
-      get_public_featured_universities: {
-        Args: never
-        Returns: {
-          city: string
-          country: string
-          featured_highlight: string
-          featured_priority: number
-          featured_summary: string
-          id: string
-          logo_url: string
-          name: string
-        }[]
-      }
-      get_unread_count: {
-        Args: { p_conversation_id: string; p_user_id: string }
-        Returns: number
-      }
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
-      get_user_tenant: { Args: { user_id: string }; Returns: string }
+        get_public_featured_universities: {
+          Args: never
+          Returns: {
+            city: string
+            country: string
+            featured_highlight: string
+            featured_priority: number
+            featured_summary: string
+            id: string
+            logo_url: string
+            name: string
+          }[]
+        }
+        get_unread_count: {
+          Args: { p_conversation_id: string; p_user_id: string }
+          Returns: number
+        }
+        get_user_role: {
+          Args: { user_id: string }
+          Returns: Database["public"]["Enums"]["app_role"]
+        }
+        get_user_tenant: { Args: { user_id: string }; Returns: string }
+        log_security_event: {
+          Args: {
+            p_tenant_id: string | null
+            p_user_id: string | null
+            p_actor_email: string | null
+            p_event_type: Database["public"]["Enums"]["security_event_type"]
+            p_severity?: Database["public"]["Enums"]["security_event_severity"]
+            p_description?: string | null
+            p_metadata?: Json | null
+            p_ip_address?: unknown
+            p_user_agent?: string | null
+          }
+          Returns: string
+        }
       has_role: {
         Args: {
           p_role: Database["public"]["Enums"]["app_role"]
@@ -2223,7 +2354,15 @@ export type Database = {
         | "deposit"
         | "tuition"
         | "other"
-      payment_status: "pending" | "succeeded" | "failed" | "refunded"
+        payment_status: "pending" | "succeeded" | "failed" | "refunded"
+        security_alert_status: "open" | "acknowledged" | "resolved" | "dismissed"
+        security_event_severity: "low" | "medium" | "high" | "critical"
+        security_event_type:
+          | "failed_authentication"
+          | "privilege_escalation_attempt"
+          | "suspicious_activity"
+          | "policy_violation"
+          | "custom"
       task_status: "open" | "in_progress" | "done" | "blocked"
     }
     CompositeTypes: {
