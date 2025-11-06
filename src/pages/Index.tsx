@@ -10,18 +10,15 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
-  Globe,
   Users,
   FileCheck,
   GraduationCap,
   Search,
   Clock,
-  TrendingUp,
   Star,
   Quote,
   ChevronLeft,
   ChevronRight,
-  Building2,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
@@ -69,13 +66,6 @@ const Index = () => {
       href: "/partnership",
       image: campusLife,
     },
-  ];
-
-  const stats = [
-    { value: "200+", label: "Partner Universities", icon: Building2 },
-    { value: "5000+", label: "Students Placed", icon: Users },
-    { value: "50+", label: "Countries", icon: Globe },
-    { value: "95%", label: "Success Rate", icon: TrendingUp },
   ];
 
   const features = [
@@ -309,19 +299,6 @@ const Index = () => {
           </div>
           <JourneyRibbon />
         </div>
-      </section>
-
-      {/* Stats */}
-      <section className="container mx-auto px-4 py-16 grid grid-cols-2 md:grid-cols-4 gap-6">
-        {stats.map((s, i) => (
-          <Card key={i} className="text-center hover:shadow-lg transition-all">
-            <CardContent className="p-6">
-              <s.icon className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <div className="text-3xl font-bold text-primary">{s.value}</div>
-              <div className="text-muted-foreground">{s.label}</div>
-            </CardContent>
-          </Card>
-        ))}
       </section>
 
       {/* Features */}
