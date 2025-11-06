@@ -488,41 +488,46 @@ export function useMessages() {
         return;
       }
 
-      try {
-        const { data, error } = await supabase
-          .from('conversations')
-          .select(`
-            id,
-            tenant_id,
-            title,
-            type,
-            is_group,
-            created_at,
-            updated_at,
-            last_message_at,
-            participants:conversation_participants!inner (
+        try {
+          const { data, error } = await supabase
+            .from('conversations')
+            .select(`
               id,
-              conversation_id,
-              user_id,
-              joined_at,
-              last_read_at
-            ),
-            lastMessage:conversation_messages(order_by: { created_at: desc }, limit: 1) (
-              id,
-              conversation_id,
-              sender_id,
-              content,
-              message_type,
-              attachments,
-              reply_to_id,
-              edited_at,
-              deleted_at,
-              created_at
-            )
-          `)
-          .eq('participants.user_id', user.id)
-          .order('last_message_at', { ascending: false, nullsLast: true })
-          .order('updated_at', { ascending: false });
+              tenant_id,
+              title,
+              name,
+              type,
+              is_group,
+              avatar_url,
+              created_by,
+              created_at,
+              updated_at,
+              last_message_at,
+              participants:conversation_participants!inner (
+                id,
+                conversation_id,
+                user_id,
+                joined_at,
+                last_read_at
+              ),
+              lastMessage:conversation_messages (
+                id,
+                conversation_id,
+                sender_id,
+                content,
+                message_type,
+                attachments,
+                reply_to_id,
+                edited_at,
+                deleted_at,
+                created_at
+              )
+            `)
+            .eq('participants.user_id', user.id)
+            .order('last_message_at', { ascending: false, nullsLast: true })
+            .order('updated_at', { ascending: false })
+            .order('created_at', { ascending: false, foreignTable: 'lastMessage' })
+            .limit(1, { foreignTable: 'lastMessage' });
 
         if (error) throw error;
 
