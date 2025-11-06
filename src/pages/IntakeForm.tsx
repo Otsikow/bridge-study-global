@@ -1,6 +1,6 @@
 import StudentIntakeForm from '@/components/forms/StudentIntakeForm';
 import BackButton from '@/components/BackButton';
-import studentWelcome from '@/assets/student-welcome.png';
+import professionalConsultant from '@/assets/professional-consultant.png';
 
 export default function IntakeForm() {
   return (
@@ -17,9 +17,9 @@ export default function IntakeForm() {
           </div>
           <div className="hidden md:block flex-shrink-0">
             <img 
-              src={studentWelcome} 
-              alt="Welcome to your education journey" 
-              className="w-64 h-64 object-contain animate-fade-in"
+              src={professionalConsultant} 
+              alt="Professional education consultant" 
+              className="w-64 h-64 object-cover rounded-2xl shadow-lg animate-fade-in"
             />
           </div>
         </div>

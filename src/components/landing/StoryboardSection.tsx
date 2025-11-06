@@ -6,11 +6,11 @@ import {
     PlaneTakeoff,
   } from "lucide-react";
   import { Card, CardContent } from "@/components/ui/card";
-  import storyboardDiscover from "@/assets/campus-tour.png";
-  import storyboardPlan from "@/assets/student-laptop-outdoors.png";
-  import storyboardCollaborate from "@/assets/using-mobile.png";
-  import storyboardTrack from "@/assets/student-campus.png";
-  import storyboardCelebrate from "@/assets/visa-success.png";
+  import storyboardDiscover from "@/assets/university-buildings.png";
+  import storyboardPlan from "@/assets/university-application.png";
+  import storyboardCollaborate from "@/assets/agent-student-consulting.png";
+  import storyboardTrack from "@/assets/student-journey-steps.png";
+  import storyboardCelebrate from "@/assets/student-airport-travel.png";
 
   const storyboardSteps = [
       {

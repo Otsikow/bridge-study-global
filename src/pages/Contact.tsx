@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactForm } from '@/components/ContactForm';
 import BackButton from '@/components/BackButton';
-import usingMobile from '@/assets/using-mobile.png';
+import professionalConsultant from '@/assets/professional-consultant.png';
 
 const Contact = () => {
   return (
@@ -20,9 +20,9 @@ const Contact = () => {
             </div>
             <div className="hidden md:block">
               <img 
-                src={usingMobile} 
-                alt="Contact us for support" 
-                className="w-full h-auto rounded-lg shadow-lg"
+                src={professionalConsultant} 
+                alt="Professional education consultant ready to help" 
+                className="w-full h-auto rounded-2xl shadow-2xl object-cover"
               />
             </div>
           </div>

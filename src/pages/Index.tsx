@@ -28,12 +28,12 @@ import {
 } from "lucide-react";
 
 import gegLogo from "@/assets/geg-logo.png";
-import campusWalk from "@/assets/campus-walk.png";
-import studentJourney from "@/assets/student-journey.png";
-import acceptanceLetter from "@/assets/acceptance-letter.png";
-import studentLaptopOutdoors from "@/assets/student-laptop-outdoors.png";
-import campusGathering from "@/assets/campus-gathering.png";
-import campusLife from "@/assets/campus-life.png";
+import studentsStudyingGroup from "@/assets/students-studying-group.png";
+import studentAirportTravel from "@/assets/student-airport-travel.png";
+import universityApplication from "@/assets/university-application.png";
+import studentWorkStudy from "@/assets/student-work-study.png";
+import agentStudentConsulting from "@/assets/agent-student-consulting.png";
+import universityBuildings from "@/assets/university-buildings.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
@@ -50,7 +50,7 @@ const Index = () => {
         "Create a profile, upload documents once, and send polished applications to top universities in minutes.",
       action: "Start Application",
       href: "/auth/signup?role=student",
-      image: studentLaptopOutdoors,
+      image: studentsStudyingGroup,
     },
     {
       badge: "Agents",
@@ -59,7 +59,7 @@ const Index = () => {
         "Access dashboards, collaborate in real time, and track every milestone while growing your agency brand.",
       action: "Join as Agent",
       href: "/auth/signup?role=agent",
-      image: campusGathering,
+      image: agentStudentConsulting,
     },
     {
       badge: "Universities",
@@ -68,7 +68,7 @@ const Index = () => {
         "Connect with qualified applicants, get market insights, and collaborate with vetted advisors worldwide.",
       action: "Partner with Us",
       href: "/partnership",
-      image: campusLife,
+      image: universityBuildings,
     },
   ];
 
@@ -103,7 +103,7 @@ const Index = () => {
       title: "Find Your Perfect Program",
       description:
         "Browse hundreds of universities and use our AI-powered recommendation engine to find the ideal match for your goals.",
-      image: campusWalk,
+      image: universityBuildings,
     },
     {
       step: "02",
@@ -111,7 +111,7 @@ const Index = () => {
       title: "Apply with Confidence",
       description:
         "Submit your application with verified agent support. Upload documents, track progress, and communicate in one place.",
-      image: studentJourney,
+      image: universityApplication,
     },
     {
       step: "03",
@@ -119,7 +119,7 @@ const Index = () => {
       title: "Get Admitted & Enroll",
       description:
         "Receive your offer letter, complete visa processing with our guidance, and start your global education journey.",
-      image: acceptanceLetter,
+      image: studentAirportTravel,
     },
   ];
 
