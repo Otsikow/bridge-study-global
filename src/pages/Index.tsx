@@ -217,18 +217,18 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
-        <div className="container relative mx-auto px-4 py-24 text-center">
-          <img
-            src={gegLogo}
-            alt="Global Education Gateway logo"
-            className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
-          />
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
-            <Sparkles className="h-4 w-4 animate-pulse" />
-            <span>Trusted by 5000+ students worldwide</span>
-          </div>
+        {/* Hero Section */}
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+          <div className="container relative mx-auto px-4 py-24 text-center">
+            <img
+              src={gegLogo}
+              alt="Global Education Gateway logo"
+              className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+            />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
+              <Sparkles className="h-4 w-4 animate-pulse" />
+              <span>Trusted by 5000+ students worldwide</span>
+            </div>
             <h1 className="text-5xl font-bold mb-4">
               Your Gateway to{" "}
               <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
@@ -268,59 +268,59 @@ const Index = () => {
                 </Link>
               ))}
             </div>
-          <JourneyRibbon />
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((f, i) => (
-            <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
-              <CardContent className="p-8">
-                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
-                  <f.icon className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
-                <p className="text-muted-foreground">{f.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* Visa Calculator Spotlight */}
-      <section className="relative py-24">
-        <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-8">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
-              <Sparkles className="h-4 w-4" /> Feature Spotlight
-            </span>
-            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-              Understand your visa eligibility before you apply
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
-            </p>
-            <Button asChild size="lg" className="gap-2">
-              <Link
-                to="/visa-calculator"
-                onClick={() => logVisaCalculatorCardClick("cta_button")}
-              >
-                <Calculator className="h-5 w-5" /> Explore the Visa Calculator
-              </Link>
-            </Button>
+            <JourneyRibbon />
           </div>
-          <div className="relative">
-            <img
-              src={visaEligibilityImage}
-              alt="Student using laptop to check visa eligibility checklist"
-              className="w-full h-auto rounded-2xl shadow-2xl"
-            />
+        </section>
+
+        {/* Visa Calculator Spotlight */}
+        <section className="relative py-24">
+          <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-8">
+              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+                <Sparkles className="h-4 w-4" /> Feature Spotlight
+              </span>
+              <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+                Understand your visa eligibility before you apply
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
+              </p>
+              <Button asChild size="lg" className="gap-2">
+                <Link
+                  to="/visa-calculator"
+                  onClick={() => logVisaCalculatorCardClick("cta_button")}
+                >
+                  <Calculator className="h-5 w-5" /> Explore the Visa Calculator
+                </Link>
+              </Button>
+            </div>
+            <div className="relative">
+              <img
+                src={visaEligibilityImage}
+                alt="Student using laptop to check visa eligibility checklist"
+                className="w-full h-auto rounded-2xl shadow-2xl"
+              />
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Features */}
+        <section className="container mx-auto px-4 py-20">
+          <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((f, i) => (
+              <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
+                <CardContent className="p-8">
+                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
+                    <f.icon className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                  <p className="text-muted-foreground">{f.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
 
       <FeaturedUniversitiesSection />
       <StoryboardSection />
