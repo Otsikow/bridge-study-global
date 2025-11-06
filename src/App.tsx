@@ -179,6 +179,7 @@ const IntakeForm = lazyWithErrorHandling(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazyWithErrorHandling(() => import("./pages/VisaCalculator"));
 const Blog = lazyWithErrorHandling(() => import("./pages/Blog"));
 const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
+const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
 const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
 const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
 const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
@@ -569,10 +570,7 @@ const App = () => {
                       path="/feedback"
                       element={
                         <PublicLayout>
-                          <div className="container mx-auto px-4 py-8">
-                            <h1 className="text-2xl font-bold">Feedback</h1>
-                            <p className="text-muted-foreground">Feature temporarily unavailable.</p>
-                          </div>
+                          <UserFeedback />
                         </PublicLayout>
                       }
                     />
