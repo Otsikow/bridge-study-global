@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,6 +16,9 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog';
 import { CheckCircle, Loader2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useDebounce } from '@/hooks/useDebounce';
+import type { Database, Json } from '@/integrations/supabase/types';
 
 // Import step components
 import PersonalInfoStep from '@/components/application/PersonalInfoStep';
@@ -73,7 +76,28 @@ export interface ApplicationFormData {
   notes: string;
 }
 
-const DRAFT_STORAGE_KEY = 'application_draft';
+type ApplicationDraftRow = Database['public']['Tables']['application_drafts']['Row'];
+
+const AUTO_SAVE_DEBOUNCE_MS = 1500;
+const DEFAULT_TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+const sanitizeFormDataForDraft = (data: ApplicationFormData): ApplicationFormData => ({
+  ...data,
+  documents: {
+    transcript: null,
+    passport: null,
+    ielts: null,
+    sop: null,
+  },
+});
+
+type DraftMutationPayload = {
+  studentId: string;
+  tenantId: string;
+  programId: string | null;
+  lastStep: number;
+  formData: ApplicationFormData;
+};
 
 export default function NewApplication() {
   const navigate = useNavigate();
@@ -81,6 +105,7 @@ export default function NewApplication() {
   const programIdFromUrl = searchParams.get('program');
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -88,6 +113,12 @@ export default function NewApplication() {
   const [studentId, setStudentId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
+
+  const hasHydratedFromDraft = useRef(false);
+  const skipNextAutoSave = useRef(true);
+  const tenantId = profile?.tenant_id || DEFAULT_TENANT_ID;
 
   // Form data state
   const [formData, setFormData] = useState<ApplicationFormData>({
@@ -115,23 +146,6 @@ export default function NewApplication() {
     },
     notes: '',
   });
-
-  // Load draft from localStorage
-  useEffect(() => {
-    const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
-    if (savedDraft) {
-      try {
-        const parsed = JSON.parse(savedDraft);
-        setFormData(parsed);
-        toast({
-          title: 'Draft Loaded',
-          description: 'Your previous progress has been restored.',
-        });
-      } catch (error) {
-        console.error('Failed to parse saved draft:', error);
-      }
-    }
-  }, [toast]);
 
   // Fetch student data and pre-fill personal info
   const fetchStudentData = useCallback(async () => {
@@ -215,33 +229,177 @@ export default function NewApplication() {
     }
   }, [user, fetchStudentData]);
 
-  // Save draft to localStorage
-  const saveDraft = useCallback(() => {
-    try {
-      // Create a serializable version without File objects
-      const serializableData = {
-        ...formData,
-        documents: {
-          transcript: null,
-          passport: null,
-          ielts: null,
-          sop: null,
+  const draftQueryKey = ['application-draft', studentId] as const;
+
+  const draftQuery = useQuery({
+    queryKey: draftQueryKey,
+    enabled: Boolean(studentId),
+    queryFn: async (): Promise<ApplicationDraftRow | null> => {
+      if (!studentId) return null;
+
+      const { data, error } = await supabase
+        .from('application_drafts')
+        .select('id, form_data, last_step, updated_at, program_id')
+        .eq('student_id', studentId)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      return data as ApplicationDraftRow | null;
+    },
+  });
+
+  useEffect(() => {
+    if (draftQuery.error) {
+      logError(draftQuery.error, 'NewApplication.loadDraft');
+      toast(formatErrorForToast(draftQuery.error, 'Failed to load saved draft'));
+    }
+  }, [draftQuery.error, toast]);
+
+  useEffect(() => {
+    if (hasHydratedFromDraft.current) return;
+    if (!draftQuery.data) {
+      hasHydratedFromDraft.current = true;
+      return;
+    }
+
+    const draftData = draftQuery.data.form_data as ApplicationFormData | null;
+    if (draftData) {
+      setFormData((prev) => ({
+        ...prev,
+        ...draftData,
+        programSelection: {
+          ...prev.programSelection,
+          ...draftData.programSelection,
         },
-      };
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(serializableData));
+        documents: prev.documents,
+      }));
+
+      if (draftQuery.data.last_step) {
+        setCurrentStep(draftQuery.data.last_step);
+      }
+
+      if (draftQuery.data.updated_at) {
+        setLastSavedAt(new Date(draftQuery.data.updated_at));
+      }
+    }
+
+    hasHydratedFromDraft.current = true;
+  }, [draftQuery.data]);
+
+  const upsertDraftMutationFn = async (
+    payload: DraftMutationPayload,
+  ): Promise<ApplicationDraftRow> => {
+    const draftRecord = {
+      student_id: payload.studentId,
+      tenant_id: payload.tenantId,
+      program_id: payload.programId,
+      last_step: payload.lastStep,
+      form_data: sanitizeFormDataForDraft(payload.formData) as unknown as Json,
+    };
+
+    const { data, error } = await supabase
+      .from('application_drafts')
+      .upsert(draftRecord, { onConflict: 'student_id' })
+      .select('id, student_id, tenant_id, program_id, form_data, last_step, updated_at, created_at')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as ApplicationDraftRow;
+  };
+
+  const handleDraftSuccess = (data: ApplicationDraftRow) => {
+    queryClient.setQueryData(draftQueryKey, data);
+    if (data.updated_at) {
+      setLastSavedAt(new Date(data.updated_at));
+    } else {
+      setLastSavedAt(new Date());
+    }
+    setAutoSaveError(null);
+  };
+
+  const autoSaveMutation = useMutation<ApplicationDraftRow, unknown, DraftMutationPayload>({
+    mutationFn: upsertDraftMutationFn,
+    onSuccess: handleDraftSuccess,
+    onError: (error) => {
+      logError(error, 'NewApplication.autoSaveDraft');
+      setAutoSaveError(getErrorMessage(error));
+    },
+  });
+
+  const manualSaveMutation = useMutation<ApplicationDraftRow, unknown, DraftMutationPayload>({
+    mutationFn: upsertDraftMutationFn,
+    onSuccess: (data) => {
+      handleDraftSuccess(data);
       toast({
         title: 'Draft Saved',
         description: 'Your progress has been saved.',
       });
-    } catch (error) {
-      console.error('Failed to save draft:', error);
+    },
+    onError: (error) => {
+      logError(error, 'NewApplication.manualSaveDraft');
+      toast(formatErrorForToast(error, 'Failed to save draft'));
+      setAutoSaveError(getErrorMessage(error));
+    },
+  });
+
+  const debouncedFormData = useDebounce(formData, AUTO_SAVE_DEBOUNCE_MS);
+  const debouncedStep = useDebounce(currentStep, AUTO_SAVE_DEBOUNCE_MS);
+
+  useEffect(() => {
+    if (!studentId || !tenantId) return;
+    if (loading || draftQuery.isLoading || submitting) return;
+
+    if (skipNextAutoSave.current) {
+      skipNextAutoSave.current = false;
+      return;
+    }
+
+    autoSaveMutation.mutate({
+      studentId,
+      tenantId,
+      programId: debouncedFormData.programSelection.programId || null,
+      lastStep: debouncedStep,
+      formData: debouncedFormData,
+    });
+  }, [
+    autoSaveMutation,
+    debouncedFormData,
+    debouncedStep,
+    draftQuery.isLoading,
+    loading,
+    studentId,
+    submitting,
+    tenantId,
+  ]);
+
+  const isSavingDraft = autoSaveMutation.isPending || manualSaveMutation.isPending;
+
+  const handleManualSave = useCallback(() => {
+    if (!studentId) {
       toast({
-        title: 'Error',
-        description: 'Failed to save draft',
+        title: 'Unable to save draft',
+        description: 'Student profile not loaded yet.',
         variant: 'destructive',
       });
+      return;
     }
-  }, [formData, toast]);
+
+    manualSaveMutation.mutate({
+      studentId,
+      tenantId,
+      programId: formData.programSelection.programId || null,
+      lastStep: currentStep,
+      formData,
+    });
+  }, [currentStep, formData, manualSaveMutation, studentId, tenantId, toast]);
+
+  const isInitialLoading = loading || draftQuery.isLoading;
 
   // Handle step navigation
   const goToNextStep = () => {
@@ -271,9 +429,6 @@ export default function NewApplication() {
 
     setSubmitting(true);
     try {
-      // Get tenant ID from profile
-      const tenantId = profile?.tenant_id || '00000000-0000-0000-0000-000000000001';
-
       // Create application
       const { data: applicationData, error: appError } = await supabase
         .from('applications')
@@ -357,13 +512,24 @@ export default function NewApplication() {
           channel: 'in_app',
           status: 'pending',
         });
-      }
+        }
 
-      // Clear draft from localStorage
-      localStorage.removeItem(DRAFT_STORAGE_KEY);
+        // Clear stored draft after successful submission
+        try {
+          await supabase
+            .from('application_drafts')
+            .delete()
+            .eq('student_id', studentId);
+          queryClient.removeQueries({ queryKey: draftQueryKey });
+          setLastSavedAt(null);
+          setAutoSaveError(null);
+          skipNextAutoSave.current = true;
+        } catch (draftCleanupError) {
+          logError(draftCleanupError, 'NewApplication.clearDraftAfterSubmit');
+        }
 
-      // Show success modal
-      setShowSuccessModal(true);
+        // Show success modal
+        setShowSuccessModal(true);
     } catch (error) {
       logError(error, 'NewApplication.handleSubmit');
       toast(formatErrorForToast(error, 'Failed to submit application'));
@@ -374,7 +540,7 @@ export default function NewApplication() {
 
   const progressPercentage = (currentStep / STEPS.length) * 100;
 
-  if (loading) {
+  if (isInitialLoading) {
     return (
       <div className="container mx-auto py-8">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -488,10 +654,36 @@ export default function NewApplication() {
 
       {/* Save Draft Button */}
       <Card>
-        <CardContent className="pt-6">
-          <Button variant="outline" onClick={saveDraft} className="w-full sm:w-auto">
-            Save & Continue Later
-          </Button>
+        <CardContent className="pt-6 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <Button
+              variant="outline"
+              onClick={handleManualSave}
+              className="w-full sm:w-auto"
+              disabled={!studentId || isSavingDraft}
+            >
+              {isSavingDraft && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save & Continue Later
+            </Button>
+            <div className="flex-1 text-left sm:text-right">
+              {isSavingDraft ? (
+                <p className="text-xs text-muted-foreground">Saving draft...</p>
+              ) : lastSavedAt ? (
+                <p className="text-xs text-muted-foreground">
+                  Last saved at {lastSavedAt.toLocaleTimeString()}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Auto-save keeps your progress safe.
+                </p>
+              )}
+              {autoSaveError && (
+                <p className="text-xs text-destructive mt-1">
+                  Auto-save failed: {autoSaveError}
+                </p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
