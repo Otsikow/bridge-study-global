@@ -89,11 +89,23 @@ export function ChatList({
     }
 
     if (lastMessage.attachments && lastMessage.attachments.length > 0) {
-      const allImages = lastMessage.attachments.every(attachment => attachment.type === 'image');
-      if (allImages) {
-        return lastMessage.attachments.length > 1 ? 'Sent multiple images' : 'Sent an image';
+      const types = new Set(lastMessage.attachments.map((attachment) => attachment.type));
+      if (types.size === 1) {
+        const type = types.values().next().value;
+        if (type === 'image') {
+          return lastMessage.attachments.length > 1 ? 'Sent multiple images' : 'Sent an image';
+        }
+        if (type === 'audio') {
+          return lastMessage.attachments.length > 1 ? 'Sent multiple audio messages' : 'Sent an audio message';
+        }
+        if (type === 'video') {
+          return lastMessage.attachments.length > 1 ? 'Sent multiple videos' : 'Sent a video';
+        }
+        if (type === 'file') {
+          return lastMessage.attachments.length > 1 ? 'Sent multiple files' : 'Sent a file';
+        }
       }
-      return 'Sent an attachment';
+      return 'Sent attachments';
     }
 
     return truncateMessage(lastMessage.content);

@@ -2,10 +2,21 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Send, Smile, Image as ImageIcon, Mic, Square, Loader2, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import {
+  Send,
+  Smile,
+  Paperclip,
+  Mic,
+  Square,
+  Loader2,
+  X,
+  Keyboard,
+  FileText,
+  AudioLines,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import type { MessageAttachment, SendMessagePayload } from '@/hooks/useMessages';
 
 interface MessageInputProps {
@@ -23,13 +34,39 @@ const EMOJI_CATEGORIES = {
   'Activities': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪀', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋'],
 };
 
-const MAX_ATTACHMENTS = 5;
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_ATTACHMENTS = 10;
+const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const STORAGE_BUCKET = 'message-attachments';
+const SUPPORTED_FILE_TYPES = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.json';
 
 const createLocalAttachmentId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+
+const formatFileSize = (bytes?: number | null) => {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatDuration = (seconds: number) => {
+  const mins = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, '0');
+  const secs = Math.floor(seconds % 60)
+    .toString()
+    .padStart(2, '0');
+  return `${mins}:${secs}`;
+};
+
+const deriveAttachmentType = (file: File): MessageAttachment['type'] => {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('audio/')) return 'audio';
+  return 'file';
+};
 
 export function MessageInput({
   onSendMessage,
@@ -37,17 +74,93 @@ export function MessageInput({
   onStopTyping,
   disabled = false
 }: MessageInputProps) {
+  const { user } = useAuth();
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [isUploading, setIsUploading] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingEventRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  const uploadFileAttachment = useCallback(async (file: File): Promise<MessageAttachment | null> => {
+    if (!user?.id) {
+      toast({
+        title: 'Sign-in required',
+        description: 'You need to be signed in to share files.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast({
+        title: 'File too large',
+        description: 'Files must be 20MB or smaller.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    const type = deriveAttachmentType(file);
+    const extension = file.name.split('.').pop() || file.type.split('/')[1] || 'bin';
+    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+    const storagePath = `${user.id}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, file, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: false,
+    });
+
+    if (uploadError) {
+      console.error('Attachment upload error:', uploadError);
+      toast({
+        title: 'Upload failed',
+        description: uploadError.message || 'Unable to upload the selected file.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    const { data: publicUrlData, error: publicUrlError } = supabase
+      .storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(storagePath);
+
+    if (publicUrlError || !publicUrlData?.publicUrl) {
+      console.error('Public URL error:', publicUrlError);
+      toast({
+        title: 'Upload failed',
+        description: 'Could not retrieve the uploaded file.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
+    return {
+      id: createLocalAttachmentId(),
+      type,
+      url: publicUrlData.publicUrl,
+      name: file.name,
+      size: file.size,
+      mime_type: file.type,
+      preview_url: type === 'image' || type === 'video' ? publicUrlData.publicUrl : undefined,
+      storage_path: storagePath,
+      meta: {
+        storagePath,
+        originalName: file.name,
+      },
+    };
+  }, [toast, user?.id]);
 
   useEffect(() => {
     // Cleanup typing timeout and notify stop typing on unmount
@@ -63,6 +176,19 @@ export function MessageInput({
           console.error('Error stopping speech recognition on unmount:', error);
         }
         recognitionRef.current = null;
+      }
+      if (mediaRecorderRef.current) {
+        try {
+          mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+          mediaRecorderRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping audio recorder on unmount:', error);
+        }
+        mediaRecorderRef.current = null;
+      }
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
       }
     };
   }, [onStopTyping]);
@@ -110,116 +236,62 @@ export function MessageInput({
   }
 }, [isTyping, onStartTyping]);
 
-const handleAttachmentSelection = useCallback(async (fileList: FileList | null) => {
-  if (!fileList || disabled) return;
+  const handleAttachmentSelection = useCallback(async (fileList: FileList | null) => {
+    if (!fileList || disabled) return;
 
-  const files = Array.from(fileList);
-  if (files.length === 0) return;
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
 
-  const remainingSlots = MAX_ATTACHMENTS - attachments.length;
-  if (remainingSlots <= 0) {
-    toast({
-      title: 'Attachment limit reached',
-      description: `You can add up to ${MAX_ATTACHMENTS} images per message.`,
-      variant: 'destructive',
-    });
-    return;
-  }
-
-  const selectedFiles = files.slice(0, remainingSlots);
-  if (files.length > remainingSlots) {
-    toast({
-      title: 'Too many images selected',
-      description: `Only the first ${remainingSlots} image${remainingSlots > 1 ? 's' : ''} were added.`,
-    });
-  }
-
-  setIsUploading(true);
-
-  try {
-    const uploaded: MessageAttachment[] = [];
-
-    for (const file of selectedFiles) {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Unsupported file',
-          description: 'Only image files are supported at the moment.',
-          variant: 'destructive',
-        });
-        continue;
-      }
-
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        toast({
-          title: 'Image too large',
-          description: 'Images must be smaller than 5MB.',
-          variant: 'destructive',
-        });
-        continue;
-      }
-
-      const extension = file.name.split('.').pop() || file.type.split('/')[1] || 'png';
-      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-      const filePath = `message-attachments/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage.from('public').upload(filePath, file);
-
-      if (uploadError) {
-        console.error('Attachment upload error:', uploadError);
-        toast({
-          title: 'Upload failed',
-          description: uploadError.message || 'Unable to upload the selected image.',
-          variant: 'destructive',
-        });
-        continue;
-      }
-
-      const { data: urlData } = supabase.storage.from('public').getPublicUrl(filePath);
-
-      if (!urlData?.publicUrl) {
-        toast({
-          title: 'Upload failed',
-          description: 'Could not retrieve the uploaded image.',
-          variant: 'destructive',
-        });
-        continue;
-      }
-
-      uploaded.push({
-        id: createLocalAttachmentId(),
-        type: 'image',
-        url: urlData.publicUrl,
-        preview_url: urlData.publicUrl,
-        name: file.name,
-        size: file.size,
-        mime_type: file.type,
-        meta: {
-          storagePath: filePath,
-        },
-      });
-    }
-
-    if (uploaded.length > 0) {
-      setAttachments(prev => [...prev, ...uploaded]);
+    const remainingSlots = MAX_ATTACHMENTS - attachments.length;
+    if (remainingSlots <= 0) {
       toast({
-        title: uploaded.length === 1 ? 'Image added' : `${uploaded.length} images added`,
-        description: 'Image attachments are ready to send.',
+        title: 'Attachment limit reached',
+        description: `You can add up to ${MAX_ATTACHMENTS} attachments per message.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const selectedFiles = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      toast({
+        title: 'Too many files selected',
+        description: `Only the first ${remainingSlots} file${remainingSlots > 1 ? 's' : ''} were added.`,
       });
     }
-  } catch (error) {
-    console.error('Unexpected attachment upload error:', error);
-    toast({
-      title: 'Upload error',
-      description: 'Something went wrong while uploading the image.',
-      variant: 'destructive',
-    });
-  } finally {
-    setIsUploading(false);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+
+    setIsUploading(true);
+
+    try {
+      const uploaded: MessageAttachment[] = [];
+      for (const file of selectedFiles) {
+        const attachment = await uploadFileAttachment(file);
+        if (attachment) {
+          uploaded.push(attachment);
+        }
+      }
+
+      if (uploaded.length > 0) {
+        setAttachments((prev) => [...prev, ...uploaded]);
+        toast({
+          title: uploaded.length === 1 ? 'Attachment added' : `${uploaded.length} attachments added`,
+          description: 'Attachments are ready to send.',
+        });
+      }
+    } catch (error) {
+      console.error('Unexpected attachment upload error:', error);
+      toast({
+        title: 'Upload error',
+        description: 'Something went wrong while uploading.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
-  }
-}, [attachments.length, disabled, toast]);
+  }, [attachments.length, disabled, toast, uploadFileAttachment]);
 
 const handleAttachmentButtonClick = useCallback(() => {
   if (disabled) return;
@@ -228,7 +300,7 @@ const handleAttachmentButtonClick = useCallback(() => {
   if (remainingSlots <= 0) {
     toast({
       title: 'Attachment limit reached',
-      description: `You can add up to ${MAX_ATTACHMENTS} images per message.`,
+        description: `You can add up to ${MAX_ATTACHMENTS} attachments per message.`,
     });
     return;
   }
@@ -236,9 +308,18 @@ const handleAttachmentButtonClick = useCallback(() => {
   fileInputRef.current?.click();
 }, [attachments.length, disabled, toast]);
 
-const handleRemoveAttachment = useCallback((attachmentId: string) => {
-  setAttachments(prev => prev.filter(attachment => attachment.id !== attachmentId));
-}, []);
+  const handleRemoveAttachment = useCallback((attachmentId: string) => {
+    setAttachments((prev) => {
+      const attachmentToRemove = prev.find((attachment) => attachment.id === attachmentId);
+      if (attachmentToRemove?.storage_path) {
+        supabase.storage
+          .from(STORAGE_BUCKET)
+          .remove([attachmentToRemove.storage_path])
+          .catch(() => undefined);
+      }
+      return prev.filter((attachment) => attachment.id !== attachmentId);
+    });
+  }, []);
 
 const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -262,14 +343,22 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       return;
     }
 
+    const inferredMessageType = () => {
+      if (!hasAttachments) return 'text';
+      const types = new Set(attachments.map((attachment) => attachment.type));
+      if (types.size === 1) {
+        return types.values().next().value as string;
+      }
+      if (types.has('video')) return 'video';
+      if (types.has('audio')) return 'audio';
+      if (types.has('image')) return 'image';
+      return 'file';
+    };
+
     onSendMessage({
-      content: message,
+      content: hasText ? trimmed : '',
       attachments,
-      messageType: hasAttachments
-        ? attachments.every(attachment => attachment.type === 'image')
-          ? 'image'
-          : undefined
-        : 'text',
+      messageType: inferredMessageType(),
     });
 
     setMessage('');
@@ -318,10 +407,10 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     }, 0);
   };
 
-  const handleToggleRecording = useCallback(() => {
+    const handleToggleTranscription = useCallback(() => {
     if (disabled) return;
 
-    if (isRecording) {
+      if (isTranscribing) {
       try {
         recognitionRef.current?.stop?.();
       } catch (error) {
@@ -356,15 +445,15 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => {
-      setIsRecording(true);
+      recognition.onstart = () => {
+        setIsTranscribing(true);
       emitTypingEvent();
       scheduleStopTyping();
     };
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event);
-      setIsRecording(false);
+        setIsTranscribing(false);
       recognition.stop();
       recognitionRef.current = null;
       toast({
@@ -375,7 +464,7 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     };
 
     recognition.onend = () => {
-      setIsRecording(false);
+        setIsTranscribing(false);
       recognitionRef.current = null;
       emitStopTyping();
     };
@@ -411,9 +500,187 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         variant: 'destructive',
       });
       recognitionRef.current = null;
-      setIsRecording(false);
+        setIsTranscribing(false);
     }
-  }, [disabled, emitStopTyping, emitTypingEvent, isRecording, scheduleStopTyping, toast]);
+    }, [disabled, emitStopTyping, emitTypingEvent, isTranscribing, scheduleStopTyping, toast]);
+
+  const stopRecordingTimer = useCallback(() => {
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+  }, []);
+
+  const startRecordingTimer = useCallback(() => {
+    stopRecordingTimer();
+    setRecordingDuration(0);
+    recordingIntervalRef.current = setInterval(() => {
+      setRecordingDuration((prev) => prev + 1);
+    }, 1000);
+  }, [stopRecordingTimer]);
+
+  const handleAudioRecordingToggle = useCallback(async () => {
+    if (disabled) return;
+
+    if (isRecordingAudio) {
+      mediaRecorderRef.current?.stop();
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast({
+        title: 'Recording unavailable',
+        description: 'Your browser does not support audio recording.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        stopRecordingTimer();
+        setIsRecordingAudio(false);
+        setRecordingDuration(0);
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        audioChunksRef.current = [];
+
+        if (blob.size === 0) {
+          stream.getTracks().forEach((track) => track.stop());
+          mediaRecorderRef.current = null;
+          return;
+        }
+
+        const file = new File([blob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        setIsUploading(true);
+        try {
+          const attachment = await uploadFileAttachment(file);
+          if (attachment) {
+            attachment.meta = {
+              ...(attachment.meta ?? {}),
+              durationMs: recordingDuration * 1000,
+            };
+            attachment.duration_ms = recordingDuration * 1000;
+            setAttachments((prev) => [...prev, attachment]);
+            toast({
+              title: 'Audio message added',
+              description: 'Audio attachment is ready to send.',
+            });
+          }
+        } catch (error) {
+          console.error('Audio upload error:', error);
+          toast({
+            title: 'Upload error',
+            description: 'Failed to upload audio message.',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsUploading(false);
+          stream.getTracks().forEach((track) => track.stop());
+          mediaRecorderRef.current = null;
+        }
+      };
+
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setIsRecordingAudio(true);
+      startRecordingTimer();
+    } catch (error) {
+      console.error('Audio recording error:', error);
+      toast({
+        title: 'Recording error',
+        description: 'Unable to access your microphone.',
+        variant: 'destructive',
+      });
+      setIsRecordingAudio(false);
+      stopRecordingTimer();
+      setRecordingDuration(0);
+    }
+  }, [disabled, isRecordingAudio, recordingDuration, startRecordingTimer, stopRecordingTimer, toast, uploadFileAttachment]);
+
+  const renderAttachmentPreview = (attachment: MessageAttachment) => {
+    const removeButton = (
+      <button
+        type="button"
+        onClick={() => handleRemoveAttachment(attachment.id)}
+        className="absolute -top-2 -right-2 rounded-full border bg-background p-1 shadow-sm"
+        aria-label="Remove attachment"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    );
+
+    if (attachment.type === 'image') {
+      return (
+        <div key={attachment.id} className="relative h-24 w-24 rounded-lg border overflow-hidden">
+          <img
+            src={attachment.preview_url || attachment.url}
+            alt={attachment.name || 'Image attachment'}
+            className="h-full w-full object-cover"
+          />
+          {removeButton}
+        </div>
+      );
+    }
+
+    if (attachment.type === 'video') {
+      return (
+        <div key={attachment.id} className="relative h-24 w-32 rounded-lg border overflow-hidden">
+          <video className="h-full w-full object-cover" controls>
+            <source src={attachment.url} type={attachment.mime_type || 'video/mp4'} />
+          </video>
+          {removeButton}
+        </div>
+      );
+    }
+
+    if (attachment.type === 'audio') {
+      return (
+        <div
+          key={attachment.id}
+          className="relative flex flex-col justify-center gap-2 rounded-lg border px-4 py-3 min-w-[200px]"
+        >
+          {removeButton}
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <AudioLines className="h-4 w-4" />
+            <span className="truncate">{attachment.name || 'Audio message'}</span>
+          </div>
+          <audio controls className="w-full">
+            <source src={attachment.url} type={attachment.mime_type || 'audio/webm'} />
+          </audio>
+          <div className="text-xs text-muted-foreground">
+            {formatFileSize(attachment.size)}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={attachment.id}
+        className="relative flex items-start gap-2 rounded-lg border px-3 py-2 min-w-[200px]"
+      >
+        <FileText className="h-5 w-5 text-muted-foreground" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium truncate">{attachment.name || 'File attachment'}</div>
+          <div className="text-xs text-muted-foreground">
+            {formatFileSize(attachment.size)}
+          </div>
+        </div>
+        {removeButton}
+      </div>
+    );
+  };
 
   return (
     <div className="p-4 border-t bg-background">
@@ -457,9 +724,10 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept={SUPPORTED_FILE_TYPES}
             multiple
             className="hidden"
+            data-testid="message-file-input"
             onChange={(event) => handleAttachmentSelection(event.target.files)}
           />
 
@@ -469,20 +737,34 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
             className="flex-shrink-0"
             disabled={disabled || isUploading || attachments.length >= MAX_ATTACHMENTS}
             onClick={handleAttachmentButtonClick}
-            title="Attach image"
+            title="Attach files"
+            aria-label="Attach files"
           >
-            <ImageIcon className="h-5 w-5" />
+            <Paperclip className="h-5 w-5" />
           </Button>
 
           <Button
-            variant={isRecording ? 'destructive' : 'ghost'}
+            variant={isTranscribing ? 'destructive' : 'ghost'}
             size="icon"
             className="flex-shrink-0"
-            disabled={disabled || isUploading}
-            onClick={handleToggleRecording}
-            title={isRecording ? 'Stop voice input' : 'Voice to text'}
+            disabled={disabled || isUploading || isRecordingAudio}
+            onClick={handleToggleTranscription}
+            title={isTranscribing ? 'Stop voice to text' : 'Voice to text'}
+            aria-label={isTranscribing ? 'Stop voice to text' : 'Voice to text'}
           >
-            {isRecording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+            {isTranscribing ? <Square className="h-5 w-5" /> : <Keyboard className="h-5 w-5" />}
+          </Button>
+
+          <Button
+            variant={isRecordingAudio ? 'destructive' : 'ghost'}
+            size="icon"
+            className="flex-shrink-0"
+            disabled={disabled || isUploading || isTranscribing}
+            onClick={handleAudioRecordingToggle}
+            title={isRecordingAudio ? 'Stop audio recording' : 'Record audio message'}
+            aria-label={isRecordingAudio ? 'Stop audio recording' : 'Record audio message'}
+          >
+            {isRecordingAudio ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </Button>
 
         {/* Message Input */}
@@ -503,40 +785,32 @@ const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         {/* Send Button */}
           <Button
             onClick={handleSend}
-            disabled={disabled || isUploading || (!message.trim() && attachments.length === 0)}
+            disabled={disabled || isUploading || isRecordingAudio || (!message.trim() && attachments.length === 0)}
             size="icon"
             className="flex-shrink-0"
+            aria-label="Send message"
           >
             <Send className="h-5 w-5" />
           </Button>
       </div>
+        {(isRecordingAudio || isTranscribing) && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {isRecordingAudio ? `Recording audio… ${formatDuration(recordingDuration)}` : 'Listening…'}
+          </div>
+        )}
+
         {(attachments.length > 0 || isUploading) && (
           <div className="flex flex-col gap-2 mt-3 px-2">
             {isUploading && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Uploading image...
+                Uploading...
               </div>
             )}
             {attachments.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {attachments.map((attachment) => (
-                  <div key={attachment.id} className="relative h-20 w-20 rounded-lg border overflow-hidden">
-                    <img
-                      src={attachment.preview_url || attachment.url}
-                      alt={attachment.name || 'Attachment preview'}
-                      className="h-full w-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAttachment(attachment.id)}
-                      className="absolute -top-2 -right-2 rounded-full border bg-background p-1 shadow-sm"
-                      aria-label="Remove image"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-3">
+                {attachments.map((attachment) => renderAttachmentPreview(attachment))}
               </div>
             )}
           </div>
