@@ -2204,7 +2204,85 @@ export type Database = {
           },
         ]
       }
-      user_presence: {
+        knowledge_base: {
+          Row: {
+            audience: string[]
+            category: string
+            content: string
+            created_at: string
+            embedding: string | null
+            expires_at: string | null
+            id: string
+            locale: string
+            metadata: Json
+            source_type: string
+            source_url: string | null
+            tags: string[]
+            tenant_id: string | null
+            title: string
+            updated_at: string
+            verified: boolean
+            verified_at: string | null
+            verified_by: string | null
+          }
+          Insert: {
+            audience?: string[]
+            category: string
+            content: string
+            created_at?: string
+            embedding?: string | null
+            expires_at?: string | null
+            id?: string
+            locale?: string
+            metadata?: Json
+            source_type?: string
+            source_url?: string | null
+            tags?: string[]
+            tenant_id?: string | null
+            title: string
+            updated_at?: string
+            verified?: boolean
+            verified_at?: string | null
+            verified_by?: string | null
+          }
+          Update: {
+            audience?: string[]
+            category?: string
+            content?: string
+            created_at?: string
+            embedding?: string | null
+            expires_at?: string | null
+            id?: string
+            locale?: string
+            metadata?: Json
+            source_type?: string
+            source_url?: string | null
+            tags?: string[]
+            tenant_id?: string | null
+            title?: string
+            updated_at?: string
+            verified?: boolean
+            verified_at?: string | null
+            verified_by?: string | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "knowledge_base_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "knowledge_base_verified_by_fkey"
+              columns: ["verified_by"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+          ]
+        }
+        user_presence: {
         Row: {
           id: string
           last_seen: string
@@ -2228,35 +2306,133 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string | null
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+        user_roles: {
+          Row: {
+            created_at: string | null
+            id: string
+            role: Database["public"]["Enums"]["app_role"]
+            user_id: string
+          }
+          Insert: {
+            created_at?: string | null
+            id?: string
+            role: Database["public"]["Enums"]["app_role"]
+            user_id: string
+          }
+          Update: {
+            created_at?: string | null
+            id?: string
+            role?: Database["public"]["Enums"]["app_role"]
+            user_id?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "user_roles_user_id_fkey"
+              columns: ["user_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+          ]
         }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+        zoe_chat_conversations: {
+          Row: {
+            audience: string | null
+            created_at: string
+            external_session_id: string
+            id: string
+            last_assistant_message_at: string | null
+            last_user_message_at: string | null
+            locale: string | null
+            persona: string
+            tenant_id: string | null
+            updated_at: string
+            user_id: string | null
+          }
+          Insert: {
+            audience?: string | null
+            created_at?: string
+            external_session_id: string
+            id?: string
+            last_assistant_message_at?: string | null
+            last_user_message_at?: string | null
+            locale?: string | null
+            persona?: string
+            tenant_id?: string | null
+            updated_at?: string
+            user_id?: string | null
+          }
+          Update: {
+            audience?: string | null
+            created_at?: string
+            external_session_id?: string
+            id?: string
+            last_assistant_message_at?: string | null
+            last_user_message_at?: string | null
+            locale?: string | null
+            persona?: string
+            tenant_id?: string | null
+            updated_at?: string
+            user_id?: string | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "zoe_chat_conversations_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "zoe_chat_conversations_user_id_fkey"
+              columns: ["user_id"]
+              isOneToOne: false
+              referencedRelation: "profiles"
+              referencedColumns: ["id"]
+            },
+          ]
         }
-        Update: {
-          created_at?: string | null
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+        zoe_chat_messages: {
+          Row: {
+            content: string
+            conversation_id: string
+            created_at: string
+            id: string
+            metadata: Json
+            response_time_ms: number | null
+            role: string
+            tokens: number | null
+          }
+          Insert: {
+            content: string
+            conversation_id: string
+            created_at?: string
+            id?: string
+            metadata?: Json
+            response_time_ms?: number | null
+            role: string
+            tokens?: number | null
+          }
+          Update: {
+            content?: string
+            conversation_id?: string
+            created_at?: string
+            id?: string
+            metadata?: Json
+            response_time_ms?: number | null
+            role?: string
+            tokens?: number | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "zoe_chat_messages_conversation_id_fkey"
+              columns: ["conversation_id"]
+              isOneToOne: false
+              referencedRelation: "zoe_chat_conversations"
+              referencedColumns: ["id"]
+            },
+          ]
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
@@ -2299,6 +2475,29 @@ export type Database = {
           name: string
         }[]
       }
+        match_knowledge: {
+          Args: {
+            audience_filter?: string[]
+            locale_filter?: string
+            match_count?: number
+            match_threshold?: number
+            query_embedding: number[]
+            tenant_filter?: string
+          }
+          Returns: {
+            audience: string[]
+            category: string
+            content: string
+            id: string
+            locale: string
+            metadata: Json
+            similarity: number | null
+            source_type: string
+            source_url: string | null
+            tags: string[]
+            title: string
+          }[]
+        }
       get_unread_count: {
         Args: { p_conversation_id: string; p_user_id: string }
         Returns: number
