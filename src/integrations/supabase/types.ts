@@ -84,6 +84,44 @@ export type Database = {
           },
         ]
       }
+        analytics_events: {
+          Row: {
+            created_at: string
+            event_name: string
+            event_properties: Json
+            event_source: string | null
+            id: string
+            tenant_id: string
+            user_id: string | null
+          }
+          Insert: {
+            created_at?: string
+            event_name: string
+            event_properties?: Json
+            event_source?: string | null
+            id?: string
+            tenant_id?: string
+            user_id?: string | null
+          }
+          Update: {
+            created_at?: string
+            event_name?: string
+            event_properties?: Json
+            event_source?: string | null
+            id?: string
+            tenant_id?: string
+            user_id?: string | null
+          }
+          Relationships: [
+            {
+              foreignKeyName: "analytics_events_tenant_id_fkey"
+              columns: ["tenant_id"]
+              isOneToOne: false
+              referencedRelation: "tenants"
+              referencedColumns: ["id"]
+            },
+          ]
+        }
       application_documents: {
         Row: {
           application_id: string

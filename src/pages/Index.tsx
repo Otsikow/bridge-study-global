@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/ContactForm";
+import { logVisaCalculatorCardClick } from "@/lib/analytics";
 import {
   Accordion,
   AccordionContent,
@@ -376,7 +377,10 @@ const Index = () => {
               </div>
               <div className="flex flex-wrap items-center gap-4">
                 <Button asChild size="lg" className="gap-2">
-                  <Link to="/visa-calculator">
+                  <Link
+                    to="/visa-calculator"
+                    onClick={() => logVisaCalculatorCardClick("cta_button")}
+                  >
                     <Calculator className="h-5 w-5" /> Explore the Visa Calculator
                   </Link>
                 </Button>
@@ -385,7 +389,11 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <Link to="/visa-calculator" className="block">
+            <Link
+              to="/visa-calculator"
+              className="block"
+              onClick={() => logVisaCalculatorCardClick("card")}
+            >
               <Card className="relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm dark:bg-slate-950/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl cursor-pointer">
                 <CardContent className="space-y-8 p-6 sm:p-8">
                 <div className="flex items-center justify-between gap-4">
