@@ -56,11 +56,15 @@ const menuItems = {
   ],
   agent: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "My Leads", url: "/dashboard/leads", icon: Users },
+    { title: "My Leads", url: "/dashboard/my-leads", icon: Users },
     { title: "Applications", url: "/dashboard/applications", icon: FileText },
     { title: "Tasks", url: "/dashboard/tasks", icon: CheckSquare },
-    { title: "Ranking", url: "/dashboard/ranking", icon: TrendingUp },
-    { title: "Payments & Commissions", url: "/agent/payments", icon: DollarSign },
+    { title: "Ranking", url: "/dashboard/my-ranking", icon: TrendingUp },
+    {
+      title: "Payments & Commissions",
+      url: "/agent/payments",
+      icon: DollarSign,
+    },
     { title: "Import", url: "/dashboard/import", icon: Upload },
     { title: "Resources", url: "/dashboard/resources", icon: BookOpen },
   ],
@@ -121,7 +125,9 @@ export function AppSidebar() {
       : menuItems.student;
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14 md:w-16" : "w-56 md:w-64"}>
+    <Sidebar
+      className={state === "collapsed" ? "w-14 md:w-16" : "w-56 md:w-64"}
+    >
       {/* Header */}
       <SidebarHeader className="border-b p-3 md:p-4">
         <div className="flex items-center gap-2 md:gap-3">
@@ -145,7 +151,9 @@ export function AppSidebar() {
       <SidebarContent className="scrollbar-hide">
         <SidebarGroup>
           {state !== "collapsed" && (
-            <SidebarGroupLabel className="text-xs px-3">Navigation</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-xs px-3">
+              Navigation
+            </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
             <SidebarMenu>
@@ -182,14 +190,15 @@ export function AppSidebar() {
                       {state !== "collapsed" && (
                         <>
                           <span className="truncate text-sm">{item.title}</span>
-                          {item.title === "Notifications" && unreadCount > 0 && (
-                            <Badge
-                              variant="destructive"
-                              className="ml-auto h-5 w-5 flex items-center justify-center text-[10px] animate-pulse"
-                            >
-                              {unreadCount > 9 ? "9+" : unreadCount}
-                            </Badge>
-                          )}
+                          {item.title === "Notifications" &&
+                            unreadCount > 0 && (
+                              <Badge
+                                variant="destructive"
+                                className="ml-auto h-5 w-5 flex items-center justify-center text-[10px] animate-pulse"
+                              >
+                                {unreadCount > 9 ? "9+" : unreadCount}
+                              </Badge>
+                            )}
                         </>
                       )}
                     </NavLink>
@@ -221,7 +230,9 @@ export function AppSidebar() {
             onClick={() => navigate("/settings")}
           >
             <Settings className="h-4 w-4 flex-shrink-0" />
-            {state !== "collapsed" && <span className="ml-2 text-sm">Settings</span>}
+            {state !== "collapsed" && (
+              <span className="ml-2 text-sm">Settings</span>
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -230,7 +241,9 @@ export function AppSidebar() {
             onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
-            {state !== "collapsed" && <span className="ml-2 text-sm">Sign Out</span>}
+            {state !== "collapsed" && (
+              <span className="ml-2 text-sm">Sign Out</span>
+            )}
           </Button>
         </div>
         <SidebarTrigger className="mt-2 w-full" />

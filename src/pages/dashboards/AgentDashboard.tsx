@@ -43,14 +43,36 @@ export default function AgentDashboard() {
     "resources",
   ] as const;
 
-  const pathSegment = location.pathname.split("/")[2] || "overview";
-  const currentTab = (validTabs as readonly string[]).includes(pathSegment)
-    ? pathSegment
-    : "overview";
+  const tabToPath: Record<(typeof validTabs)[number], string> = {
+    overview: "/dashboard",
+    applications: "/dashboard/applications",
+    leads: "/dashboard/my-leads",
+    tasks: "/dashboard/tasks",
+    ranking: "/dashboard/my-ranking",
+    commissions: "/dashboard/commissions",
+    import: "/dashboard/import",
+    resources: "/dashboard/resources",
+  };
 
-  const handleTabChange = (value: string) => {
-    if (value === "overview") navigate("/dashboard");
-    else navigate(`/dashboard/${value}`);
+  const pathToTab: Record<string, (typeof validTabs)[number]> = {
+    overview: "overview",
+    applications: "applications",
+    leads: "leads",
+    "my-leads": "leads",
+    tasks: "tasks",
+    ranking: "ranking",
+    "my-ranking": "ranking",
+    commissions: "commissions",
+    import: "import",
+    resources: "resources",
+  };
+
+  const pathSegment = location.pathname.split("/")[2] || "overview";
+  const currentTab = pathToTab[pathSegment] ?? "overview";
+
+  const handleTabChange = (value: (typeof validTabs)[number]) => {
+    const targetPath = tabToPath[value] ?? `/dashboard/${value}`;
+    navigate(targetPath);
   };
 
   return (
