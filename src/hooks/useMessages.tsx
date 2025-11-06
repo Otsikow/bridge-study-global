@@ -7,15 +7,14 @@ import { useToast } from './use-toast';
 export interface Conversation {
   id: string;
   tenant_id: string;
-  name: string | null;
-  title?: string | null;
-  type?: string | null;
+  title: string | null;
+  type: string | null;
   is_group: boolean | null;
-  avatar_url: string | null;
-  created_by?: string | null;
   created_at: string | null;
   updated_at: string | null;
   last_message_at?: string | null;
+  name?: string | null;
+  avatar_url?: string | null;
   participants?: ConversationParticipant[];
   lastMessage?: Message;
   unreadCount?: number;
@@ -510,40 +509,37 @@ export function useMessages() {
       }
 
         try {
-          const { data, error } = await supabase
-            .from('conversations')
-            .select(`
-              id,
-              tenant_id,
-              title,
-              name,
-              type,
-              is_group,
-              avatar_url,
-              created_by,
-              created_at,
-              updated_at,
-              last_message_at,
-              participants:conversation_participants!inner (
+        const { data, error } = await supabase
+          .from('conversations')
+          .select(`
                 id,
-                conversation_id,
-                user_id,
-                joined_at,
-                last_read_at
-              ),
-              lastMessage:conversation_messages (
-                id,
-                conversation_id,
-                sender_id,
-                content,
-                message_type,
-                attachments,
-                reply_to_id,
-                edited_at,
-                deleted_at,
-                created_at
-              )
-            `)
+                tenant_id,
+                title,
+                type,
+                is_group,
+                created_at,
+                updated_at,
+                last_message_at,
+                participants:conversation_participants!inner (
+                  id,
+                  conversation_id,
+                  user_id,
+                  joined_at,
+                  last_read_at
+                ),
+                lastMessage:conversation_messages (
+                  id,
+                  conversation_id,
+                  sender_id,
+                  content,
+                  message_type,
+                  attachments,
+                  reply_to_id,
+                  edited_at,
+                  deleted_at,
+                  created_at
+                )
+              `)
             .eq('participants.user_id', user.id)
             .order('last_message_at', { ascending: false, nullsLast: true })
             .order('updated_at', { ascending: false })
@@ -635,22 +631,35 @@ export function useMessages() {
 
           const updatedAtCandidate = conversation.last_message_at ?? conversation.updated_at;
 
-          return {
-            id: conversation.id,
-            tenant_id: conversation.tenant_id,
-            name: conversation.name ?? conversation.title ?? null,
-            title: conversation.title ?? conversation.name ?? null,
-            type: conversation.type ?? (conversation.is_group ? 'group' : 'direct'),
-            is_group: conversation.is_group,
-            avatar_url: conversation.avatar_url ?? null,
-            created_by: conversation.created_by,
-            created_at: conversation.created_at,
-            updated_at: updatedAtCandidate,
-            last_message_at: conversation.last_message_at,
-            participants,
-            lastMessage,
-            unreadCount: 0,
-          } as Conversation;
+            const isGroup = Boolean(conversation.is_group);
+            const otherParticipant = !isGroup
+              ? participants.find((participant) => participant.user_id !== user?.id)
+              : undefined;
+
+            const displayName = conversation.title
+              ?? (isGroup
+                    ? 'Group Chat'
+                    : otherParticipant?.profile?.full_name ?? 'Direct Conversation');
+
+            const displayAvatar = isGroup
+              ? null
+              : otherParticipant?.profile?.avatar_url ?? null;
+
+            return {
+              id: conversation.id,
+              tenant_id: conversation.tenant_id,
+              title: conversation.title ?? null,
+              type: conversation.type ?? (isGroup ? 'group' : 'direct'),
+              is_group: conversation.is_group,
+              created_at: conversation.created_at,
+              updated_at: updatedAtCandidate,
+              last_message_at: conversation.last_message_at,
+              participants,
+              lastMessage,
+              unreadCount: 0,
+              name: displayName,
+              avatar_url: displayAvatar,
+            } as Conversation;
         });
 
         const unreadCounts = await Promise.all(
@@ -875,13 +884,13 @@ export function useMessages() {
           }
         }
 
-        const { data: conversation, error: conversationError } = await supabase
-          .from('conversations')
-          .insert({
-            tenant_id: profile.tenant_id,
-            is_group: false,
-            created_by: user.id,
-          })
+          const { data: conversation, error: conversationError } = await supabase
+            .from('conversations')
+            .insert({
+              tenant_id: profile.tenant_id,
+              is_group: false,
+              type: 'direct',
+            })
           .select('id')
           .single();
 
