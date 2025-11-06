@@ -156,6 +156,7 @@ const LegalPrivacy = lazyWithErrorHandling(() => import("./pages/LegalPrivacy"))
 const LegalTerms = lazyWithErrorHandling(() => import("./pages/LegalTerms"));
 const Login = lazyWithErrorHandling(() => import("./pages/auth/Login"));
 const Signup = lazyWithErrorHandling(() => import("./pages/auth/Signup"));
+const VerifyEmail = lazyWithErrorHandling(() => import("./pages/auth/VerifyEmail"));
 const ForgotPassword = lazyWithErrorHandling(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazyWithErrorHandling(() => import("./pages/auth/ResetPassword"));
 const Dashboard = lazyWithErrorHandling(() => import("./pages/Dashboard"));
@@ -228,38 +229,46 @@ const App = () => {
                     <div className="flex-1">
                       <Routes>
                     {/* Public Routes */}
-                    <Route
-                      path="/"
-                      element={
-                        <PublicLayout>
-                          <Index />
-                        </PublicLayout>
-                      }
-                    />
-                    <Route
-                      path="/auth/login"
-                      element={
-                        <PublicLayout>
-                          <Login />
-                        </PublicLayout>
-                      }
-                    />
-                    <Route
-                      path="/auth/signup"
-                      element={
-                        <PublicLayout>
-                          <Signup />
-                        </PublicLayout>
-                      }
-                    />
-                    <Route
-                      path="/auth/forgot-password"
-                      element={
-                        <PublicLayout>
-                          <ForgotPassword />
-                        </PublicLayout>
-                      }
-                    />
+                      <Route
+                        path="/"
+                        element={
+                          <PublicLayout>
+                            <Index />
+                          </PublicLayout>
+                        }
+                      />
+                      <Route
+                        path="/auth/login"
+                        element={
+                          <PublicLayout>
+                            <Login />
+                          </PublicLayout>
+                        }
+                      />
+                      <Route
+                        path="/auth/signup"
+                        element={
+                          <PublicLayout>
+                            <Signup />
+                          </PublicLayout>
+                        }
+                      />
+                      <Route
+                        path="/verify-email"
+                        element={
+                          <PublicLayout>
+                            <VerifyEmail />
+                          </PublicLayout>
+                        }
+                      />
+                      <Route
+                        path="/auth/forgot-password"
+                        element={
+                          <PublicLayout>
+                            <ForgotPassword />
+                          </PublicLayout>
+                        }
+                      />
                     <Route
                       path="/auth/reset-password"
                       element={

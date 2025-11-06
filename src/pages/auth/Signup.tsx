@@ -250,12 +250,12 @@ const Signup = () => {
       } else {
         toast({
           title: 'Account created!',
-          description:
-            'Please check your email to verify your account. You will be redirected to login.',
+          description: 'Check your email to verify your account before logging in.',
         });
-        setTimeout(() => {
-          navigate('/auth/login');
-        }, 2000);
+        setLoading(false);
+        navigate('/verify-email', {
+          state: { email },
+        });
       }
     } catch (err) {
       toast({

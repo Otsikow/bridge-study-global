@@ -187,6 +187,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
       setSession(session);
 
+      if (currentUser && !currentUser.email_confirmed_at) {
+        console.info('User email address is not verified yet. Redirecting to verification gate.');
+        setProfile(null);
+        return;
+      }
+
       // Fetch profile only if user has changed
       if (currentUserId && currentUserId !== lastUserId) {
         await fetchProfile(currentUserId);
@@ -258,6 +264,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
+      if (data?.user && !data.user.email_confirmed_at) {
+        console.warn('Sign-in blocked: email address is not verified yet.');
+        await supabase.auth.signOut();
+        return {
+          error: new Error('Please verify your email before signing in.'),
+        };
+      }
+
       console.log('Sign-in successful:', data);
       return { error: null };
     } catch (err) {
@@ -279,7 +293,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     country?: string
   ) => {
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/auth/callback`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -300,7 +314,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error };
       }
 
-      console.log('Sign-up successful:', data);
+      console.log('Sign-up successful. Verification email sent:', data);
       return { error: null };
     } catch (err) {
       console.error('Sign-up exception:', err);
