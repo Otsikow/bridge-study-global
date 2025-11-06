@@ -132,7 +132,7 @@ const Index = () => {
 
           <h1 className="text-5xl font-bold mb-4">
             {heroTitleParts.prefix}{" "}
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+            <span className="text-primary">
               {heroTitleParts.highlight}
             </span>
             {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
