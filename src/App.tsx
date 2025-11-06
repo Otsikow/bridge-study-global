@@ -14,6 +14,7 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Messages from "./pages/student/Messages";
+import ZoeChatbot from "@/components/ai/AIChatbot";
 
 // ✅ Lazy loading wrapper with error handling & recovery from chunk errors
 const CHUNK_ERROR_PATTERNS = [
@@ -222,9 +223,9 @@ const App = () => (
                 </div>
                 }
               >
-                <div className="min-h-screen flex flex-col">
-                  <div className="flex-1">
-                    <Routes>
+                  <div className="min-h-screen flex flex-col">
+                    <div className="flex-1">
+                      <Routes>
                     {/* Public Routes */}
                     <Route
                       path="/"
@@ -628,8 +629,9 @@ const App = () => (
                         </PublicLayout>
                       }
                     />
-                    </Routes>
-                  </div>
+                      </Routes>
+                    </div>
+                    <ZoeChatbot />
                 </div>
               </Suspense>
             </NavigationHistoryProvider>
