@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import BackButton from '@/components/BackButton';
+import { getSiteUrl } from '@/lib/supabaseClientConfig';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ const ForgotPassword = () => {
     setLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${getSiteUrl()}/auth/reset-password`,
     });
 
     if (error) {

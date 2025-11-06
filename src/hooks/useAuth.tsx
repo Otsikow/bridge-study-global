@@ -4,6 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { logFailedAuthentication } from '@/lib/securityLogger';
 import { formatReferralUsername } from '@/lib/referrals';
+import { getSiteUrl } from '@/lib/supabaseClientConfig';
 
 type SignupRole = 'student' | 'agent' | 'partner' | 'admin' | 'staff';
 
@@ -338,59 +339,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-    const signUp = async ({
-      email,
-      password,
-      fullName,
-      role = 'student',
-      phone,
-      country,
-      username,
-      referrerId,
-      referrerUsername,
-    }: SignUpParams) => {
-      try {
-        const redirectUrl = `${window.location.origin}/auth/callback`;
+  const signUp = async ({
+    email,
+    password,
+    fullName,
+    role = 'student',
+    phone,
+    country,
+    username,
+    referrerId,
+    referrerUsername,
+  }: SignUpParams) => {
+    try {
+      const redirectUrl = `${getSiteUrl()}/auth/callback`;
 
-        const sanitizedUsername = formatReferralUsername(username);
+      const sanitizedUsername = formatReferralUsername(username);
 
-        const metadata: Record<string, string> = {
-          full_name: fullName,
-          role,
-          phone: phone || '',
-          country: country || '',
-          username: sanitizedUsername || `user_${crypto.randomUUID().slice(0, 12)}`,
-        };
+      const metadata: Record<string, string> = {
+        full_name: fullName,
+        role,
+        phone: phone || '',
+        country: country || '',
+        username: sanitizedUsername || `user_${crypto.randomUUID().slice(0, 12)}`,
+      };
 
-        if (referrerUsername) {
-          metadata.referrer_username = referrerUsername;
-        }
-
-        if (referrerId) {
-          metadata.referrer_id = referrerId;
-        }
-
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl,
-            data: metadata,
-          },
-        });
-
-        if (error) {
-          console.error('Sign-up error:', error);
-          return { error };
-        }
-
-        console.log('Sign-up successful. Verification email sent:', data);
-        return { error: null };
-      } catch (err) {
-        console.error('Sign-up exception:', err);
-        return { error: err };
+      if (referrerUsername) {
+        metadata.referrer_username = referrerUsername;
       }
-    };
+
+      if (referrerId) {
+        metadata.referrer_id = referrerId;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: metadata,
+        },
+      });
+
+      if (error) {
+        console.error('Sign-up error:', error);
+        return { error };
+      }
+
+      console.log('Sign-up successful. Verification email sent:', data);
+      return { error: null };
+    } catch (err) {
+      console.error('Sign-up exception:', err);
+      return { error: err };
+    }
+  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
