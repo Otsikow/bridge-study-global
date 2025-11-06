@@ -385,8 +385,9 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <Card className="relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm dark:bg-slate-950/70">
-              <CardContent className="space-y-8 p-6 sm:p-8">
+            <Link to="/visa-calculator" className="block">
+              <Card className="relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm dark:bg-slate-950/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl cursor-pointer">
+                <CardContent className="space-y-8 p-6 sm:p-8">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -441,6 +442,7 @@ const Index = () => {
                 </div>
               </CardContent>
             </Card>
+            </Link>
           </div>
         </section>
 
