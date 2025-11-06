@@ -12,6 +12,7 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "app.language";
+const RTL_LANGUAGES: SupportedLanguage[] = ["ar"];
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<SupportedLanguage>(() => {
@@ -31,6 +32,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
 
     return "en";
   });
+
   useEffect(() => {
     const handleLanguageChanged = (lng: string) => {
       const normalized = (lng || "en").split("-")[0] as SupportedLanguage;
@@ -47,6 +49,30 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       i18n.off("languageChanged", handleLanguageChanged);
     };
+  }, [language]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const html = document.documentElement;
+    html.lang = language;
+
+    const direction = RTL_LANGUAGES.includes(language) ? "rtl" : "ltr";
+    html.dir = direction;
+    document.body.dir = direction;
+
+    html.dataset.language = language;
+    document.body.dataset.language = language;
+
+    if (direction === "rtl") {
+      html.classList.add("rtl");
+      document.body.classList.add("rtl");
+    } else {
+      html.classList.remove("rtl");
+      document.body.classList.remove("rtl");
+    }
   }, [language]);
 
   const changeLanguage = useCallback((lng: SupportedLanguage) => {
