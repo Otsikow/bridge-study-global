@@ -24,11 +24,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
-  ArrowRight,
   Calculator,
   ShieldCheck,
   Globe2,
   TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -235,40 +235,71 @@ const Index = () => {
                 Global Education
               </span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Connect with top universities, track applications in real-time, and
-              receive expert guidance from verified agents.
-            </p>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+                Connect with top universities, track applications in real-time, and
+                receive expert guidance from verified agents.
+              </p>
 
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
-              {heroCtas.map((cta) => (
-                <Link key={cta.title} to={cta.href} className="block h-full">
-                  <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-                    <div className="relative h-48 overflow-hidden sm:h-56">
-                      <img
-                        src={cta.image}
-                        alt={cta.title}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                      <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
-                        {cta.badge}
-                      </Badge>
-                    </div>
-                    <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
-                      <h3 className="text-2xl font-bold leading-snug text-foreground">
-                        {cta.title}
-                      </h3>
-                      <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
-                        {cta.description}
-                      </p>
-                      <Button className="w-full sm:w-auto">{cta.action}</Button>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-            <JourneyRibbon />
+              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+                {heroCtas.map((cta) => (
+                  <Link key={cta.title} to={cta.href} className="block h-full">
+                    <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                      <div className="relative h-48 overflow-hidden sm:h-56">
+                        <img
+                          src={cta.image}
+                          alt={cta.title}
+                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
+                        <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                          {cta.badge}
+                        </Badge>
+                      </div>
+                      <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
+                        <h3 className="text-2xl font-bold leading-snug text-foreground">
+                          {cta.title}
+                        </h3>
+                        <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                          {cta.description}
+                        </p>
+                        <Button className="w-full sm:w-auto">{cta.action}</Button>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-12">
+                <div className="flex flex-col gap-6 rounded-3xl border border-primary/15 bg-background/80 p-6 text-left shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-8">
+                  <div className="space-y-3 sm:max-w-2xl">
+                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary/80">
+                      Students & Agents
+                    </p>
+                    <h3 className="text-2xl font-bold text-foreground sm:text-3xl">
+                      Explore the verified university directory
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Discover institutions ready to welcome global applicants and share shortlists with the people you guide.
+                    </p>
+                  </div>
+                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+                    <Button asChild size="lg" className="justify-center sm:justify-between">
+                      <Link to="/universities" className="flex items-center gap-2">
+                        View directory
+                        <ExternalLink className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="lg" className="justify-center">
+                      <Link to="/auth/signup?role=student">Create student account</Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="lg" className="justify-center">
+                      <Link to="/auth/signup?role=agent">Join as agent</Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <JourneyRibbon />
           </div>
         </section>
 
