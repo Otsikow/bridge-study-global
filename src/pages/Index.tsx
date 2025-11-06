@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/ContactForm";
 import {
@@ -25,7 +26,10 @@ import {
   ShieldCheck,
   Globe2,
   TrendingUp,
+  BellRing,
+  CheckCircle,
 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 import gegLogo from "@/assets/geg-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
@@ -385,64 +389,167 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <Link to="/visa-calculator" className="block">
-              <Card className="relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm dark:bg-slate-950/70 transition-all duration-300 hover:scale-[1.02] hover:shadow-3xl cursor-pointer">
-                <CardContent className="space-y-8 p-6 sm:p-8">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                      <Calculator className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-wide text-muted-foreground">Interactive Tool</p>
-                      <p className="text-lg font-semibold text-foreground">Visa Eligibility Calculator</p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
-                    <Globe2 className="h-4 w-4" /> Compare Countries
-                  </span>
-                </div>
-                <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                  <div className="space-y-4 rounded-3xl bg-slate-50/60 p-5 shadow-inner dark:bg-slate-900/50">
-                    <div className="grid grid-cols-2 gap-4 text-left text-sm text-muted-foreground">
-                      {["IELTS Score", "TOEFL Score", "GPA", "Age", "Bank Balance", "Work Experience"].map((label) => (
-                        <div key={label} className="space-y-2">
-                          <div className="font-semibold text-foreground/80">{label}</div>
-                          <div className="h-10 rounded-2xl bg-white/80 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/40 dark:ring-slate-800" />
+              <div className="grid gap-6">
+                <Link to="/visa-calculator" className="block group">
+                  <Card className="card-interactive relative overflow-hidden rounded-3xl border-0 bg-white/95 shadow-2xl ring-1 ring-primary/10 backdrop-blur-sm dark:bg-slate-950/70">
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <CardContent className="relative space-y-8 p-6 sm:p-8">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <Calculator className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Interactive Tool</p>
+                            <p className="text-lg font-semibold text-foreground">Visa Eligibility Calculator</p>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-center text-sm font-semibold shadow-lg">
-                      Calculate Eligibility
-                    </div>
-                  </div>
-                  <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-200 bg-white/80 p-6 text-left shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-primary uppercase tracking-wide">Instant results</p>
-                      <h4 className="text-2xl font-bold text-foreground">You are 87% ready for Canada</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Strengthen your finances and add proof of funds to boost your chances even further.
-                      </p>
-                    </div>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex items-center justify-between rounded-2xl bg-slate-100/90 px-4 py-3 font-medium text-foreground dark:bg-slate-800/80">
-                        <span>Study Permit Checklist</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary">
+                          <Globe2 className="h-4 w-4" /> Compare Countries
+                        </span>
                       </div>
-                      <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
-                        <span>Agent guidance session</span>
-                        <ArrowRight className="h-4 w-4" />
+                      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                        <div className="space-y-4 rounded-3xl bg-slate-50/60 p-5 shadow-inner dark:bg-slate-900/50">
+                          <div className="grid grid-cols-2 gap-4 text-left text-sm text-muted-foreground">
+                            {["IELTS Score", "TOEFL Score", "GPA", "Age", "Bank Balance", "Work Experience"].map((label) => (
+                              <div key={label} className="space-y-2">
+                                <div className="font-semibold text-foreground/80">{label}</div>
+                                <div className="h-10 rounded-2xl bg-white/80 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/40 dark:ring-slate-800" />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="rounded-2xl bg-primary text-primary-foreground px-6 py-3 text-center text-sm font-semibold shadow-lg">
+                            Calculate Eligibility
+                          </div>
+                        </div>
+                        <div className="flex h-full flex-col justify-between rounded-3xl border border-slate-200 bg-white/80 p-6 text-left shadow-lg dark:border-slate-800 dark:bg-slate-900/70">
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-primary uppercase tracking-wide">Instant results</p>
+                            <h4 className="text-2xl font-bold text-foreground">You are 87% ready for Canada</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Strengthen your finances and add proof of funds to boost your chances even further.
+                            </p>
+                          </div>
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-center justify-between rounded-2xl bg-slate-100/90 px-4 py-3 font-medium text-foreground dark:bg-slate-800/80">
+                              <span>Study Permit Checklist</span>
+                              <ArrowRight className="h-4 w-4" />
+                            </div>
+                            <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
+                              <span>Agent guidance session</span>
+                              <ArrowRight className="h-4 w-4" />
+                            </div>
+                            <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
+                              <span>Compare another country</span>
+                              <ArrowRight className="h-4 w-4" />
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center justify-between rounded-2xl bg-slate-100/70 px-4 py-3 text-muted-foreground dark:bg-slate-800/60">
-                        <span>Compare another country</span>
-                        <ArrowRight className="h-4 w-4" />
+                    </CardContent>
+                  </Card>
+                </Link>
+
+                <Link to="/student/application-tracking" className="block group">
+                  <Card className="card-interactive relative overflow-hidden rounded-3xl border border-primary/10 bg-white/95 shadow-xl ring-1 ring-primary/10 backdrop-blur-sm dark:border-white/10 dark:bg-slate-950/70">
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-400/10 via-transparent to-primary/20 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <CardContent className="relative space-y-8 p-6 sm:p-8">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                            <FileCheck className="h-6 w-6" />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Workflow Preview</p>
+                            <p className="text-lg font-semibold text-foreground">Application Tracking Workspace</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
+                          Live Sync
+                        </Badge>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            </Link>
+
+                      <div className="rounded-3xl bg-slate-50/70 p-5 shadow-inner dark:bg-slate-900/60">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-muted-foreground">Current Application</p>
+                            <h3 className="text-xl font-semibold text-foreground">Toronto MBA Fall 25</h3>
+                            <p className="text-sm text-muted-foreground">University of Toronto • Canada</p>
+                          </div>
+                          <Badge variant="outline" className="border-emerald-300/60 text-emerald-600 dark:border-emerald-400/40 dark:text-emerald-300">
+                            Decision in 5 days
+                          </Badge>
+                        </div>
+
+                        <div className="mt-5 space-y-4">
+                          <div>
+                            <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+                              <span>Milestone Progress</span>
+                              <span className="text-foreground">72%</span>
+                            </div>
+                            <Progress value={72} className="mt-2 h-2 rounded-full" />
+                          </div>
+
+                          <div className="space-y-3 text-sm">
+                            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm dark:border-slate-800/60 dark:bg-slate-950/60">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                                  <CheckCircle className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">Offer interview recap</p>
+                                  <p className="text-xs text-muted-foreground">Completed • Apr 12, 2025</p>
+                                </div>
+                              </div>
+                              <Badge className="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-300">
+                                Done
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-2xl border border-slate-200/80 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800/60 dark:bg-slate-950/60">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
+                                  <BellRing className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">Financial documents upload</p>
+                                  <p className="text-xs text-muted-foreground">Reminder • due in 3 days</p>
+                                </div>
+                              </div>
+                              <Badge variant="outline" className="border-amber-300/60 text-amber-500 dark:border-amber-400/60">
+                                Action needed
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-2xl border border-dashed border-slate-300/70 px-4 py-3 text-muted-foreground dark:border-slate-700/70">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                  <ArrowRight className="h-4 w-4" />
+                                </div>
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">Visa prep session</p>
+                                  <p className="text-xs text-muted-foreground">Scheduled • May 20, 2025</p>
+                                </div>
+                              </div>
+                              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                Upcoming
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm font-medium text-primary">
+                        <span className="inline-flex items-center gap-2">
+                          Explore full tracking hub
+                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                        </span>
+                        <span className="text-xs uppercase tracking-wide text-muted-foreground">Real data preview</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </div>
           </div>
         </section>
 
