@@ -1,4 +1,22 @@
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Search,
+  FileText,
+  Upload,
+  MessageCircle,
+  Bell,
+  TrendingUp,
+  Calendar,
+  DollarSign,
+  BookOpen,
+  MapPin,
+  Clock,
+  CheckCircle2,
+  ArrowRight,
+  Activity,
+} from 'lucide-react';
+
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,74 +31,54 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { StatusBadge } from '@/components/StatusBadge';
-import {
-  Search,
-  FileText,
-  Upload,
-  MessageCircle,
-  Bell,
-  TrendingUp,
-  Calendar,
-  DollarSign,
-  BookOpen,
-  MapPin,
-  Clock,
-  AlertCircle,
-  CheckCircle2,
-  ArrowRight,
-  BarChart3,
-  ClipboardList,
-  Star,
-  MessageSquare,
-  Activity,
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { formatErrorForToast } from '@/lib/errorUtils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/StatusBadge';
+import { useAuth } from '@/hooks/useAuth';
+import { useStudentRecord } from '@/hooks/useStudentRecord';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { formatErrorForToast, logError } from '@/lib/errorUtils';
+import type { Tables } from '@/integrations/supabase/types';
 
 interface ApplicationWithDetails {
   id: string;
-  status: string;
-  intake_year: number;
-  intake_month: number;
+  status: string | null;
+  intake_year: number | null;
+  intake_month: number | null;
   created_at: string;
   updated_at: string | null;
   program: {
     id: string;
     name: string;
-    level: string;
-    discipline: string;
-    tuition_amount: number;
-    tuition_currency: string;
+    level: string | null;
+    discipline: string | null;
+    tuition_amount: number | null;
+    tuition_currency: string | null;
     university: {
       name: string;
-      city: string;
-      country: string;
+      city: string | null;
+      country: string | null;
       logo_url: string | null;
     };
   };
   intake?: {
-    app_deadline: string;
+    app_deadline: string | null;
   };
 }
 
 interface RecommendedProgram {
   id: string;
   name: string;
-  level: string;
-  discipline: string;
-  tuition_amount: number;
-  tuition_currency: string;
-  duration_months: number;
+  level: string | null;
+  discipline: string | null;
+  tuition_amount: number | null;
+  tuition_currency: string | null;
+  duration_months: number | null;
   university: {
     name: string;
-    city: string;
-    country: string;
+    city: string | null;
+    country: string | null;
     logo_url: string | null;
   };
 }
@@ -94,98 +92,110 @@ interface Notification {
   status: string;
 }
 
-interface StudentProfile {
-  id: string;
-  profile_completeness: number | null;
-  education_history: any;
-  test_scores: any;
-  nationality: string | null;
-  date_of_birth: string | null;
-  passport_number: string | null;
-}
+type StudentProfile = Tables<'students'>;
 
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const { toast } = useToast();
+  const {
+    data: studentRecord,
+    isLoading: studentRecordLoading,
+    error: studentRecordError,
+  } = useStudentRecord();
+
   const [applications, setApplications] = useState<ApplicationWithDetails[]>([]);
   const [recommendedPrograms, setRecommendedPrograms] = useState<RecommendedProgram[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  const studentProfile = studentRecord;
+  const studentId = studentProfile?.id ?? null;
+
+  const educationHistory = useMemo<Record<string, unknown> | null>(() => {
+    const raw = studentProfile?.education_history;
+    if (!raw) return null;
+
+    if (typeof raw === 'string') {
+      try {
+        return JSON.parse(raw);
+      } catch (error) {
+        logError(error, 'StudentDashboard.parseEducationHistory');
+        return null;
+      }
+    }
+
+    if (typeof raw === 'object') {
+      return raw as Record<string, unknown>;
+    }
+
+    return null;
+  }, [studentProfile?.education_history]);
+
+  const preferredProgramLevel = useMemo(() => {
+    const candidate =
+      (educationHistory?.preferred_level as string | undefined) ??
+      (educationHistory?.highest_level as string | undefined) ??
+      (educationHistory?.current_level as string | undefined);
+
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.toLowerCase();
+    }
+
+    return 'bachelors';
+  }, [educationHistory]);
 
   useEffect(() => {
-    if (user) fetchDashboardData();
-  }, [user]);
+    if (studentRecordError) {
+      toast(formatErrorForToast(studentRecordError, 'Failed to load student profile'));
+    }
+  }, [studentRecordError, toast]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.id) {
+      setApplications([]);
+      setRecommendedPrograms([]);
+      setNotifications([]);
+      setDataLoading(false);
+      return;
+    }
+
+    setDataLoading(true);
+
     try {
-      setLoading(true);
+      const applicationsPromise = studentId
+        ? supabase
+            .from('applications')
+            .select(`
+              id,
+              status,
+              intake_year,
+              intake_month,
+              created_at,
+              updated_at,
+              program:programs (
+                id,
+                name,
+                level,
+                discipline,
+                tuition_amount,
+                tuition_currency,
+                university:universities (
+                  name,
+                  city,
+                  country,
+                  logo_url
+                )
+              ),
+              intake:intakes (
+                app_deadline
+              )
+            `)
+            .eq('student_id', studentId)
+            .order('created_at', { ascending: false })
+            .limit(10)
+        : Promise.resolve({ data: [] as ApplicationWithDetails[], error: null });
 
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('*')
-        .eq('profile_id', user?.id)
-        .maybeSingle();
-
-      if (studentError) throw studentError;
-      if (!studentData) {
-        setLoading(false);
-        return;
-      }
-
-      setStudentProfile(studentData);
-
-      const { data: appsData, error: appsError } = await supabase
-        .from('applications')
-        .select(`
-          id,
-          status,
-          intake_year,
-          intake_month,
-          created_at,
-          updated_at,
-          intake_id,
-          program:programs (
-            id,
-            name,
-            level,
-            discipline,
-            tuition_amount,
-            tuition_currency,
-            university:universities (
-              name,
-              city,
-              country,
-              logo_url
-            )
-          )
-        `)
-        .eq('student_id', studentData.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (appsError) throw appsError;
-
-      const applicationsWithIntakes = await Promise.all(
-        (appsData || []).map(async (app) => {
-          if (app.intake_id) {
-            const { data: intakeData } = await supabase
-              .from('intakes')
-              .select('app_deadline')
-              .eq('id', app.intake_id)
-              .single();
-            return { ...app, intake: intakeData };
-          }
-          return app;
-        })
-      );
-
-      setApplications(applicationsWithIntakes as ApplicationWithDetails[]);
-
-      const educationHistory = studentData.education_history as any;
-      const preferredLevel = educationHistory?.highest_level || 'bachelors';
-
-      const { data: programsData } = await supabase
+      const programsPromise = supabase
         .from('programs')
         .select(`
           id,
@@ -203,31 +213,100 @@ export default function StudentDashboard() {
           )
         `)
         .eq('active', true)
-        .eq('level', preferredLevel)
+        .eq('level', preferredProgramLevel)
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (programsData) setRecommendedPrograms(programsData as RecommendedProgram[]);
-
-      const { data: notificationsData } = await supabase
+      const notificationsPromise = supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
-      if (notificationsData) setNotifications(notificationsData);
+      const [appsResult, programsResult, notificationsResult] = await Promise.allSettled([
+        applicationsPromise,
+        programsPromise,
+        notificationsPromise,
+      ]);
+
+      if (appsResult.status === 'fulfilled') {
+        const { data, error } = appsResult.value as {
+          data: ApplicationWithDetails[] | null;
+          error: unknown;
+        };
+
+        if (error) {
+          logError(error, 'StudentDashboard.fetchApplications');
+          toast(formatErrorForToast(error, 'Failed to load applications'));
+          setApplications([]);
+        } else {
+          const sanitized = (data ?? []).filter(
+            (app): app is ApplicationWithDetails =>
+              Boolean(app?.program && app.program?.university && app.created_at)
+          );
+          setApplications(sanitized);
+        }
+      } else {
+        logError(appsResult.reason, 'StudentDashboard.fetchApplications');
+        toast(formatErrorForToast(appsResult.reason, 'Failed to load applications'));
+        setApplications([]);
+      }
+
+      if (programsResult.status === 'fulfilled') {
+        const { data, error } = programsResult.value as {
+          data: RecommendedProgram[] | null;
+          error: unknown;
+        };
+
+        if (error) {
+          logError(error, 'StudentDashboard.fetchPrograms');
+          toast(formatErrorForToast(error, 'Failed to load recommended programs'));
+          setRecommendedPrograms([]);
+        } else {
+          const sanitized = (data ?? []).filter((program) => program?.university);
+          setRecommendedPrograms(sanitized as RecommendedProgram[]);
+        }
+      } else {
+        logError(programsResult.reason, 'StudentDashboard.fetchPrograms');
+        toast(formatErrorForToast(programsResult.reason, 'Failed to load recommended programs'));
+        setRecommendedPrograms([]);
+      }
+
+      if (notificationsResult.status === 'fulfilled') {
+        const { data, error } = notificationsResult.value as {
+          data: Notification[] | null;
+          error: unknown;
+        };
+
+        if (error) {
+          logError(error, 'StudentDashboard.fetchNotifications');
+          toast(formatErrorForToast(error, 'Failed to load notifications'));
+          setNotifications([]);
+        } else {
+          setNotifications(data ?? []);
+        }
+      } else {
+        logError(notificationsResult.reason, 'StudentDashboard.fetchNotifications');
+        toast(formatErrorForToast(notificationsResult.reason, 'Failed to load notifications'));
+        setNotifications([]);
+      }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      logError(error, 'StudentDashboard.fetchDashboardData');
       toast(formatErrorForToast(error, 'Failed to load dashboard data'));
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
-  };
+  }, [user?.id, studentId, preferredProgramLevel, toast]);
 
-  const calculateProfileCompleteness = () => {
+  useEffect(() => {
+    if (studentRecordLoading) return;
+    fetchDashboardData();
+  }, [fetchDashboardData, studentRecordLoading]);
+
+  const profileCompleteness = useMemo(() => {
     if (!studentProfile) return 0;
-    let completeness = 0;
+
     const fields = [
       studentProfile.nationality,
       studentProfile.date_of_birth,
@@ -235,11 +314,12 @@ export default function StudentDashboard() {
       studentProfile.education_history,
       studentProfile.test_scores,
     ];
-    fields.forEach((field) => {
-      if (field) completeness += 20;
-    });
-    return studentProfile.profile_completeness || completeness;
-  };
+
+    const computed = fields.reduce((acc, field) => (field ? acc + 20 : acc), 0);
+    const stored = typeof studentProfile.profile_completeness === 'number' ? studentProfile.profile_completeness : null;
+
+    return Math.min(100, stored ?? computed);
+  }, [studentProfile]);
 
   const getInitials = (name: string) =>
     name
@@ -249,27 +329,45 @@ export default function StudentDashboard() {
       .toUpperCase()
       .slice(0, 2);
 
-  const formatCurrency = (amount: number, currency: string = 'USD') =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const formatCurrency = (amount?: number | null, currency: string = 'USD') => {
+    if (typeof amount !== 'number' || Number.isNaN(amount)) return '—';
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+      }).format(amount);
+    } catch (error) {
+      logError(error, 'StudentDashboard.formatCurrency');
+      return `${amount}`;
+    }
+  };
+
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
+  };
 
-  const formatDeadline = (year: number, month: number) => {
+  const formatDeadline = (year?: number | null, month?: number | null) => {
+    if (!year || !month || month < 1 || month > 12) return 'TBD';
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${monthNames[month - 1]} ${year}`;
   };
 
-  const getRelativeTime = (dateString: string) => {
+  const getRelativeTime = (dateString?: string | null) => {
+    if (!dateString) return 'N/A';
+
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return 'N/A';
+
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
     if (diffInDays === 0) return 'Today';
@@ -279,10 +377,10 @@ export default function StudentDashboard() {
     return formatDate(dateString);
   };
 
-  const profileCompleteness = calculateProfileCompleteness();
   const unreadNotifications = notifications.filter((n) => !n.read_at).length;
+  const isLoading = studentRecordLoading || dataLoading;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <DashboardLayout>
         <div className="p-4 md:p-8 space-y-6">

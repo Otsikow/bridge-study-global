@@ -1,6 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +10,7 @@ import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils
 import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
+import { useStudentRecord } from '@/hooks/useStudentRecord';
 
 interface Document {
   id: string;
@@ -39,9 +38,12 @@ const DOCUMENT_TYPES = [
 ];
 
 export default function Documents() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const { toast } = useToast();
+  const {
+    data: studentRecord,
+    isLoading: studentRecordLoading,
+    error: studentRecordError,
+  } = useStudentRecord();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -49,53 +51,55 @@ export default function Documents() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [documentType, setDocumentType] = useState<string>('');
 
-  const fetchStudentAndDocuments = useCallback(async () => {
-    try {
-      if (!user?.id) {
-        console.log('No user ID available');
+  const loadDocumentsForStudent = useCallback(
+    async (id: string) => {
+      try {
+        setLoading(true);
+
+        const { data: docsData, error: docsError } = await supabase
+          .from('student_documents')
+          .select('*')
+          .eq('student_id', id)
+          .order('created_at', { ascending: false });
+
+        if (docsError) throw docsError;
+
+        setDocuments(docsData || []);
+      } catch (error) {
+        logError(error, 'Documents.loadDocumentsForStudent');
+        toast(formatErrorForToast(error, 'Failed to load documents'));
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', user.id)
-        .maybeSingle();
-
-      if (studentError) throw studentError;
-
-      if (!studentData) {
-        toast({
-          title: 'Error',
-          description: 'Student profile not found. Please complete your profile first.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      setStudentId(studentData.id);
-
-      const { data: docsData, error: docsError } = await supabase
-        .from('student_documents')
-        .select('*')
-        .eq('student_id', studentData.id)
-        .order('created_at', { ascending: false });
-
-      if (docsError) throw docsError;
-
-      setDocuments(docsData || []);
-    } catch (error) {
-      logError(error, 'Documents.fetchStudentAndDocuments');
-      toast(formatErrorForToast(error, 'Failed to load documents'));
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, toast]);
+    },
+    [toast]
+  );
 
   useEffect(() => {
-    if (user) fetchStudentAndDocuments();
-  }, [user, fetchStudentAndDocuments]);
+    if (studentRecordLoading) return;
+
+    if (studentRecordError) {
+      logError(studentRecordError, 'Documents.studentRecord');
+      toast(formatErrorForToast(studentRecordError, 'Failed to load student information'));
+      setLoading(false);
+      return;
+    }
+
+    if (!studentRecord?.id) {
+      setStudentId(null);
+      setDocuments([]);
+      setLoading(false);
+      toast({
+        title: 'Profile Required',
+        description: 'Student profile not found. Please complete your profile first.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setStudentId(studentRecord.id);
+    loadDocumentsForStudent(studentRecord.id);
+  }, [studentRecord, studentRecordLoading, studentRecordError, loadDocumentsForStudent, toast]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) setSelectedFile(e.target.files[0]);
@@ -169,18 +173,20 @@ export default function Documents() {
           verified_status: 'pending',
         });
 
-      if (dbError) {
-        await supabase.storage.from('student-documents').remove([filePath]);
-        throw new Error(dbError.message);
-      }
+        if (dbError) {
+          await supabase.storage.from('student-documents').remove([filePath]);
+          throw new Error(dbError.message);
+        }
 
-      toast({ title: 'Success', description: 'Document uploaded successfully' });
-      setSelectedFile(null);
-      setDocumentType('');
-      const fileInput = document.getElementById('file-input') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+        toast({ title: 'Success', description: 'Document uploaded successfully' });
+        setSelectedFile(null);
+        setDocumentType('');
+        const fileInput = document.getElementById('file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
 
-      fetchStudentAndDocuments();
+        if (studentId) {
+          loadDocumentsForStudent(studentId);
+        }
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -221,11 +227,13 @@ export default function Documents() {
     if (!confirm('Are you sure you want to delete this document?')) return;
 
     try {
-      await supabase.storage.from('student-documents').remove([doc.storage_path]);
-      await supabase.from('student_documents').delete().eq('id', doc.id);
+        await supabase.storage.from('student-documents').remove([doc.storage_path]);
+        await supabase.from('student_documents').delete().eq('id', doc.id);
 
-      toast({ title: 'Deleted', description: 'Document removed successfully' });
-      fetchStudentAndDocuments();
+        toast({ title: 'Deleted', description: 'Document removed successfully' });
+        if (studentId) {
+          loadDocumentsForStudent(studentId);
+        }
     } catch (error) {
       toast({
         title: 'Error',

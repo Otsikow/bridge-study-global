@@ -1,6 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -16,10 +15,10 @@ import type { Tables } from '@/integrations/supabase/types';
 import { Loader2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
+import { useStudentRecord } from '@/hooks/useStudentRecord';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { toast } = useToast();
   const {
     hasError,
@@ -29,11 +28,19 @@ export default function StudentProfile() {
     retry: retryWithHandler,
   } = useErrorHandler({ context: 'Student Profile' });
 
+  const {
+    data: studentRecord,
+    isLoading: studentRecordLoading,
+    error: studentRecordError,
+    refetch: refetchStudentRecord,
+  } = useStudentRecord();
+
   const [loading, setLoading] = useState(true);
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [activeTab, setActiveTab] = useState('personal');
   const [completeness, setCompleteness] = useState(0);
   const [completedSteps, setCompletedSteps] = useState(0);
+  const hasRedirectedRef = useRef(false);
 
   const recalcCompleteness = useCallback(async (studentRecord: Tables<'students'>) => {
     const personalDone = !!(
@@ -71,49 +78,96 @@ export default function StudentProfile() {
     }
   }, []);
 
-  const fetchStudentData = useCallback(async () => {
+  const syncStudentState = useCallback(
+    async (record: Tables<'students'>) => {
+      setStudent(record);
+      await recalcCompleteness(record);
+    },
+    [recalcCompleteness]
+  );
+
+  const refreshStudentData = useCallback(async () => {
     try {
-      setLoading(true);
       clearError();
+      setLoading(true);
 
-      const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .eq('profile_id', user?.id)
-        .maybeSingle();
-
+      const { data, error } = await refetchStudentRecord();
       if (error) throw error;
 
-      if (!data) {
-        toast({
-          title: 'Profile Setup Required',
-          description: 'Please complete your student profile to continue',
-        });
-        navigate('/student/onboarding');
+      const record = (data ?? studentRecord) as Tables<'students'> | null;
+
+      if (!record) {
+        if (!hasRedirectedRef.current) {
+          toast({
+            title: 'Profile Setup Required',
+            description: 'Please complete your student profile to continue',
+          });
+          navigate('/student/onboarding');
+          hasRedirectedRef.current = true;
+        }
+        setStudent(null);
         return;
       }
 
-      setStudent(data);
-      await recalcCompleteness(data);
+      await syncStudentState(record);
     } catch (error) {
-      // ✅ Merge: both logError & structured handler
-      logError(error, 'StudentProfile.fetchStudentData');
+      logError(error, 'StudentProfile.refreshStudentData');
       handleError(error, 'Failed to load profile data');
       toast(formatErrorForToast(error, 'Failed to load profile data'));
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast, navigate, recalcCompleteness, clearError, handleError]);
+  }, [clearError, refetchStudentRecord, studentRecord, syncStudentState, toast, navigate, handleError]);
 
   useEffect(() => {
-    if (user) {
-      fetchStudentData();
-    }
     const hash = window.location.hash.replace('#', '');
     if (hash && ['personal', 'education', 'tests', 'finances'].includes(hash)) {
       setActiveTab(hash);
     }
-  }, [user, fetchStudentData]);
+  }, []);
+
+  useEffect(() => {
+    if (studentRecordLoading) return;
+
+    clearError();
+
+    if (studentRecordError) {
+      logError(studentRecordError, 'StudentProfile.load');
+      handleError(studentRecordError, 'Failed to load profile data');
+      toast(formatErrorForToast(studentRecordError, 'Failed to load profile data'));
+      setLoading(false);
+      return;
+    }
+
+    if (!studentRecord) {
+      setStudent(null);
+      setLoading(false);
+      if (!hasRedirectedRef.current) {
+        toast({
+          title: 'Profile Setup Required',
+          description: 'Please complete your student profile to continue',
+        });
+        navigate('/student/onboarding');
+        hasRedirectedRef.current = true;
+      }
+      return;
+    }
+
+    const run = async () => {
+      try {
+        setLoading(true);
+        await syncStudentState(studentRecord);
+      } catch (error) {
+        logError(error, 'StudentProfile.syncStudentState');
+        handleError(error, 'Failed to load profile data');
+        toast(formatErrorForToast(error, 'Failed to load profile data'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [studentRecord, studentRecordLoading, studentRecordError, syncStudentState, handleError, toast, clearError, navigate]);
 
   useEffect(() => {
     if (['personal', 'education', 'tests', 'finances'].includes(activeTab)) {
@@ -137,11 +191,11 @@ export default function StudentProfile() {
       <div className="min-h-screen bg-gradient-subtle">
         <div className="container mx-auto py-6 md:py-8 px-4 space-y-6">
           <BackButton variant="ghost" size="sm" fallback="/dashboard" />
-          <ErrorDisplay
-            error={error}
-            onRetry={() => retryWithHandler(fetchStudentData)}
-            onClear={clearError}
-          />
+            <ErrorDisplay
+              error={error}
+              onRetry={() => retryWithHandler(refreshStudentData)}
+              onClear={clearError}
+            />
         </div>
       </div>
     );
@@ -231,19 +285,19 @@ export default function StudentProfile() {
             </TabsList>
 
             <TabsContent value="personal" className="space-y-4 animate-fade-in">
-              <PersonalInfoTab student={student} onUpdate={fetchStudentData} />
+                <PersonalInfoTab student={student} onUpdate={refreshStudentData} />
             </TabsContent>
 
             <TabsContent value="education" className="space-y-4 animate-fade-in">
-              <EducationTab studentId={student.id} onUpdate={fetchStudentData} />
+                <EducationTab studentId={student.id} onUpdate={refreshStudentData} />
             </TabsContent>
 
             <TabsContent value="tests" className="space-y-4 animate-fade-in">
-              <TestScoresTab studentId={student.id} onUpdate={fetchStudentData} />
+                <TestScoresTab studentId={student.id} onUpdate={refreshStudentData} />
             </TabsContent>
 
             <TabsContent value="finances" className="space-y-4 animate-fade-in">
-              <FinancesTab student={student} onUpdate={fetchStudentData} />
+                <FinancesTab student={student} onUpdate={refreshStudentData} />
             </TabsContent>
           </Tabs>
       </div>
