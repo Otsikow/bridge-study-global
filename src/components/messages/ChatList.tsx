@@ -100,19 +100,20 @@ export function ChatList({
   };
 
   return (
-    <div className="flex flex-col h-full border-r bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">Messages</h2>
+      <div className="p-3 sm:p-4 border-b flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg sm:text-xl font-semibold">Conversations</h2>
           {onNewChat && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onNewChat}
               title="New Chat"
+              className="h-8 w-8 sm:h-9 sm:w-9"
             >
-              <MessageSquarePlus className="h-5 w-5" />
+              <MessageSquarePlus className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           )}
         </div>
@@ -124,7 +125,7 @@ export function ChatList({
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9"
           />
         </div>
       </div>
@@ -133,13 +134,13 @@ export function ChatList({
       <ScrollArea className="flex-1">
         <div className="divide-y">
           {filteredConversations.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              <p>No conversations yet</p>
+            <div className="p-6 sm:p-8 text-center text-muted-foreground">
+              <p className="text-sm">No conversations yet</p>
               {onNewChat && (
                 <Button
                   variant="link"
                   onClick={onNewChat}
-                  className="mt-2"
+                  className="mt-2 text-sm"
                 >
                   Start a new chat
                 </Button>
@@ -156,33 +157,33 @@ export function ChatList({
                   key={conversation.id}
                   onClick={() => onSelectConversation(conversation.id)}
                   className={cn(
-                    'w-full p-4 flex items-start gap-3 hover:bg-accent transition-colors text-left',
+                    'w-full p-3 sm:p-4 flex items-start gap-2 sm:gap-3 hover:bg-accent transition-colors text-left',
                     isActive && 'bg-accent'
                   )}
                 >
-                  <Avatar className="h-12 w-12 flex-shrink-0">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
                     <AvatarImage src={avatarUrl || undefined} alt={name} />
-                    <AvatarFallback>{getInitials(name)}</AvatarFallback>
+                    <AvatarFallback className="text-xs sm:text-sm">{getInitials(name)}</AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold truncate">{name}</h3>
+                      <h3 className="font-semibold text-sm sm:text-base truncate">{name}</h3>
                       {conversation.lastMessage && (
-                        <span className="text-xs text-muted-foreground flex-shrink-0 ml-2">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0 ml-2">
                           {formatMessageTime(conversation.lastMessage.created_at)}
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground truncate">
-                          {getConversationPreview(conversation)}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate flex-1">
+                        {getConversationPreview(conversation)}
                       </p>
                       {(conversation.unreadCount || 0) > 0 && (
                         <Badge
                           variant="default"
-                          className="ml-2 flex-shrink-0 rounded-full px-2 min-w-[20px] h-5 flex items-center justify-center"
+                          className="flex-shrink-0 rounded-full px-1.5 sm:px-2 min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs"
                         >
                           {conversation.unreadCount}
                         </Badge>
