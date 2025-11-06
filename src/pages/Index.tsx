@@ -1,7 +1,8 @@
 "use client";
 
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,8 +17,6 @@ import {
 import {
   Users,
   FileCheck,
-  GraduationCap,
-  Search,
   Clock,
   Star,
   Quote,
@@ -30,151 +29,91 @@ import {
   TrendingUp,
   ExternalLink,
 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 import gegLogo from "@/assets/geg-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
-import studentAirportTravel from "@/assets/student-airport-travel.png";
-import universityApplication from "@/assets/university-application.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
 import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
+import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 
 const Index = () => {
+  const { t } = useTranslation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
-  const heroCtas = [
-    {
-      badge: "Students",
-      title: "Launch your global application",
-      description:
-        "Create a profile, upload documents once, and send polished applications to top universities in minutes.",
-      action: "Start Application",
-      href: "/auth/signup?role=student",
-      image: studentsStudyingGroup,
-    },
-    {
-      badge: "Agents",
-      title: "Serve students with smart tools",
-      description:
-        "Access dashboards, collaborate in real time, and track every milestone while growing your agency brand.",
-      action: "Join as Agent",
-      href: "/auth/signup?role=agent",
-      image: agentStudentConsulting,
-    },
-    {
-      badge: "Universities",
-      title: "Scale partnerships that convert",
-      description:
-        "Connect with qualified applicants, get market insights, and collaborate with vetted advisors worldwide.",
-      action: "Partner with Us",
-      href: "/partnership",
-      image: universityBuildings,
-    },
-  ];
+  // --- HERO SECTION ---
+  const heroCtas = useMemo(
+    () =>
+      [
+        {
+          key: "students" as const,
+          href: "/auth/signup?role=student",
+          image: studentsStudyingGroup,
+        },
+        {
+          key: "agents" as const,
+          href: "/auth/signup?role=agent",
+          image: agentStudentConsulting,
+        },
+        {
+          key: "universities" as const,
+          href: "/partnership",
+          image: universityBuildings,
+        },
+      ].map((cta) => ({
+        ...cta,
+        badge: t(`pages.index.hero.ctas.${cta.key}.badge`),
+        title: t(`pages.index.hero.ctas.${cta.key}.title`),
+        description: t(`pages.index.hero.ctas.${cta.key}.description`),
+        action: t(`pages.index.hero.ctas.${cta.key}.action`),
+      })),
+    [t]
+  );
 
-  const features = [
-    {
-      icon: FileCheck,
-      title: "Apply Easily",
-      description:
-        "Streamlined application process with step-by-step guidance. Submit applications to multiple universities effortlessly.",
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: Clock,
-      title: "Track in Real-Time",
-      description:
-        "Monitor your application status 24/7 with live updates and instant notifications.",
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      icon: Users,
-      title: "Connect with Verified Agents",
-      description:
-        "Access certified education agents who provide personalized support throughout your journey.",
-      color: "from-orange-500 to-red-500",
-    },
-  ];
+  const heroTitleParts = useMemo(
+    () =>
+      t("pages.index.hero.title", {
+        returnObjects: true,
+      }) as { prefix: string; highlight: string; suffix?: string },
+    [t]
+  );
 
-  const howItWorksSteps = [
-    {
-      step: "01",
-      icon: Search,
-      title: "Find Your Perfect Program",
-      description:
-        "Browse hundreds of universities and use our AI-powered recommendation engine to find the ideal match for your goals.",
-      image: universityBuildings,
-    },
-    {
-      step: "02",
-      icon: FileCheck,
-      title: "Apply with Confidence",
-      description:
-        "Submit your application with verified agent support. Upload documents, track progress, and communicate in one place.",
-      image: universityApplication,
-    },
-    {
-      step: "03",
-      icon: GraduationCap,
-      title: "Get Admitted & Enroll",
-      description:
-        "Receive your offer letter, complete visa processing with our guidance, and start your global education journey.",
-      image: studentAirportTravel,
-    },
-  ];
+  const heroBadgeText = t("pages.index.hero.trustBadge", { count: 5000 });
+  const heroDescription = t("pages.index.hero.description");
 
-  const visaHighlights = [
-    {
-      icon: ShieldCheck,
-      title: "Personalized Assessment",
-      description:
-        "Enter your academic profile, test scores, and finances to receive a tailored visa-readiness score in seconds.",
-    },
-    {
-      icon: Globe2,
-      title: "Country Comparisons",
-      description:
-        "Compare eligibility requirements for top study destinations side by side to plan with confidence.",
-    },
-    {
-      icon: TrendingUp,
-      title: "Actionable Guidance",
-      description:
-        "Unlock a checklist of next steps, documentation tips, and expert advice to boost your approval chances.",
-    },
-  ];
+  // --- FEATURES SECTION ---
+  const features = useMemo(
+    () =>
+      [
+        { key: "applyEasily" as const, icon: FileCheck, color: "from-blue-500 to-cyan-500" },
+        { key: "trackRealtime" as const, icon: Clock, color: "from-purple-500 to-pink-500" },
+        { key: "connectAgents" as const, icon: Users, color: "from-orange-500 to-red-500" },
+      ].map((feature) => ({
+        ...feature,
+        title: t(`pages.index.features.cards.${feature.key}.title`),
+        description: t(`pages.index.features.cards.${feature.key}.description`),
+      })),
+    [t]
+  );
 
-  const testimonials = [
-    {
-      name: "Sarah Johnson",
-      role: "Master's Student at MIT",
-      country: "USA",
-      quote:
-        "GEG made my dream of studying at MIT a reality. The platform was intuitive, and my agent was incredibly supportive.",
-      rating: 5,
-    },
-    {
-      name: "Raj Patel",
-      role: "MBA Student at Oxford",
-      country: "UK",
-      quote:
-        "The real-time tracking feature gave me peace of mind. I always knew where my application stood. Highly recommend GEG!",
-      rating: 5,
-    },
-    {
-      name: "Maria Garcia",
-      role: "Engineering Student at Stanford",
-      country: "USA",
-      quote:
-        "From finding the right program to visa approval, GEG supported me every step of the way. Outstanding service!",
-      rating: 5,
-    },
-  ];
+  // --- TESTIMONIALS SECTION ---
+  const testimonials = useMemo(
+    () =>
+      t("pages.index.testimonials.items", {
+        returnObjects: true,
+      }) as Array<{
+        name: string;
+        role: string;
+        country: string;
+        quote: string;
+        rating: number;
+      }>,
+    [t]
+  );
 
   const testimonialCount = testimonials.length;
 
@@ -185,180 +124,151 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [testimonialCount]);
 
-  const nextTestimonial = () =>
-    setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
+  const nextTestimonial = () => setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
   const prevTestimonial = () =>
-    setCurrentTestimonial((prev) =>
-      prev === 0 ? testimonialCount - 1 : prev - 1
-    );
+    setCurrentTestimonial((prev) => (prev === 0 ? testimonialCount - 1 : prev - 1));
 
-  const faqs = [
-    {
-      audience: "Students",
-      items: [
-        {
-          question: "How does GEG help me apply to universities?",
-          answer:
-            "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
-        },
-        {
-          question: "Is there a fee to use the platform?",
-          answer:
-            "Creating an account and exploring universities is free. Agents may charge consulting fees, clearly shown before commitment.",
-        },
-        {
-          question: "What documents do I need to apply?",
-          answer:
-            "Academic transcripts, English test scores (IELTS/TOEFL), recommendations, personal statement, and passport copy are typically required.",
-        },
-      ],
-    },
-  ];
+  // --- FAQ SECTION ---
+  const faqs = useMemo(
+    () =>
+      t("pages.index.faq.sections", {
+        returnObjects: true,
+      }) as Array<{
+        audience: string;
+        items: Array<{ question: string; answer: string }>;
+      }>,
+    [t]
+  );
 
+  // --- TRANSLATIONS ---
+  const featuresHeading = t("pages.index.features.heading");
+  const visaBadgeLabel = t("pages.index.visa.badge");
+  const visaTitle = t("pages.index.visa.title");
+  const visaDescription = t("pages.index.visa.description");
+  const visaButtonLabel = t("pages.index.visa.cta");
+  const testimonialsHeading = t("pages.index.testimonials.heading");
+  const faqHeading = t("pages.index.faq.heading");
+  const faqSubtitle = t("pages.index.faq.subtitle");
+  const contactHeading = t("pages.index.contact.heading");
+  const contactSubtitle = t("pages.index.contact.subtitle");
+  const footerText = t("layout.footer.copyright", { year: new Date().getFullYear() });
+
+  // --- RENDER ---
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
-          <div className="container relative mx-auto px-4 py-24 text-center">
-            <img
-              src={gegLogo}
-              alt="Global Education Gateway logo"
-              className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
-            />
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
-              <Sparkles className="h-4 w-4 animate-pulse" />
-              <span>Trusted by 5000+ students worldwide</span>
-            </div>
-            <h1 className="text-5xl font-bold mb-4">
-              Your Gateway to{" "}
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                Global Education
-              </span>
-            </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Connect with top universities, track applications in real-time, and
-                receive expert guidance from verified agents.
-              </p>
+      {/* HERO SECTION */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+        <div className="container relative mx-auto px-4 py-24 text-center">
+          <img
+            src={gegLogo}
+            alt="Global Education Gateway logo"
+            className="mx-auto mb-8 h-12 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+          />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary border border-primary/20 mb-6">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span>{heroBadgeText}</span>
+          </div>
 
-              <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
-                {heroCtas.map((cta) => (
-                  <Link key={cta.title} to={cta.href} className="block h-full">
-                    <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
-                      <div className="relative h-48 overflow-hidden sm:h-56">
-                        <img
-                          src={cta.image}
-                          alt={cta.title}
-                          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                        <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
-                          {cta.badge}
-                        </Badge>
-                      </div>
-                      <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
-                        <h3 className="text-2xl font-bold leading-snug text-foreground">
-                          {cta.title}
-                        </h3>
-                        <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
-                          {cta.description}
-                        </p>
-                        <Button className="w-full sm:w-auto">{cta.action}</Button>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
+          <h1 className="text-5xl font-bold mb-4">
+            {heroTitleParts.prefix}{" "}
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              {heroTitleParts.highlight}
+            </span>
+            {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
+          </h1>
 
-              <div className="mt-12">
-                <div className="flex flex-col gap-6 rounded-3xl border border-primary/15 bg-background/80 p-6 text-left shadow-xl backdrop-blur sm:flex-row sm:items-center sm:justify-between sm:p-8">
-                  <div className="space-y-3 sm:max-w-2xl">
-                    <p className="text-xs font-semibold uppercase tracking-[0.35em] text-primary/80">
-                      Students & Agents
-                    </p>
-                    <h3 className="text-2xl font-bold text-foreground sm:text-3xl">
-                      Explore the verified university directory
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            {heroDescription}
+          </p>
+
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-4 sm:gap-5 md:grid-cols-3">
+            {heroCtas.map((cta) => (
+              <Link key={cta.key} to={cta.href} className="block h-full">
+                <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="relative h-48 overflow-hidden sm:h-56">
+                    <img
+                      src={cta.image}
+                      alt={cta.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                      {cta.badge}
+                    </Badge>
+                  </div>
+                  <CardContent className="flex flex-1 flex-col gap-4 bg-background p-6 pt-6 text-left sm:p-8 sm:pt-8">
+                    <h3 className="text-2xl font-bold leading-snug text-foreground">
+                      {cta.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Discover institutions ready to welcome global applicants and share shortlists with the people you guide.
+                    <p className="flex-1 text-sm leading-relaxed text-muted-foreground">
+                      {cta.description}
                     </p>
-                  </div>
-                  <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
-                    <Button asChild size="lg" className="justify-center sm:justify-between">
-                      <Link to="/universities" className="flex items-center gap-2">
-                        View directory
-                        <ExternalLink className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button asChild variant="ghost" size="lg" className="justify-center">
-                      <Link to="/auth/signup?role=student">Create student account</Link>
-                    </Button>
-                    <Button asChild variant="ghost" size="lg" className="justify-center">
-                      <Link to="/auth/signup?role=agent">Join as agent</Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <JourneyRibbon />
-          </div>
-        </section>
-
-        {/* Visa Calculator Spotlight */}
-        <section className="relative py-24">
-          <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-8">
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
-                <Sparkles className="h-4 w-4" /> Feature Spotlight
-              </span>
-              <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-                Understand your visa eligibility before you apply
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.
-              </p>
-              <Button asChild size="lg" className="gap-2">
-                <Link
-                  to="/visa-calculator"
-                  onClick={() => logVisaCalculatorCardClick("cta_button")}
-                >
-                  <Calculator className="h-5 w-5" /> Explore the Visa Calculator
-                </Link>
-              </Button>
-            </div>
-            <div className="relative">
-              <img
-                src={visaEligibilityImage}
-                alt="Student using laptop to check visa eligibility checklist"
-                className="w-full h-auto rounded-2xl shadow-2xl"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="container mx-auto px-4 py-20">
-          <h2 className="text-4xl font-bold text-center mb-12">Why Choose GEG?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((f, i) => (
-              <Card key={i} className="relative overflow-hidden group hover:shadow-2xl">
-                <CardContent className="p-8">
-                  <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
-                    <f.icon className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
-                  <p className="text-muted-foreground">{f.description}</p>
-                </CardContent>
-              </Card>
+                    <Button className="w-full sm:w-auto">{cta.action}</Button>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
-        </section>
 
+          <JourneyRibbon />
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="text-4xl font-bold text-center mb-12">{featuresHeading}</h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {features.map((f) => (
+            <Card key={f.key} className="relative overflow-hidden group hover:shadow-2xl">
+              <CardContent className="p-8">
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
+                  <f.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
+                <p className="text-muted-foreground">{f.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* VISA CALCULATOR */}
+      <section className="relative py-24">
+        <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="space-y-8">
+            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-semibold text-primary ring-1 ring-primary/20">
+              <Sparkles className="h-4 w-4" /> {visaBadgeLabel}
+            </span>
+            <h2 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl">
+              {visaTitle}
+            </h2>
+            <p className="text-lg text-muted-foreground">{visaDescription}</p>
+            <Button asChild size="lg" className="gap-2">
+              <Link
+                to="/visa-calculator"
+                onClick={() => logVisaCalculatorCardClick("cta_button")}
+              >
+                <Calculator className="h-5 w-5" /> {visaButtonLabel}
+              </Link>
+            </Button>
+          </div>
+          <div className="relative">
+            <img
+              src={visaEligibilityImage}
+              alt="Student using laptop to check visa eligibility checklist"
+              className="w-full h-auto rounded-2xl shadow-2xl"
+            />
+          </div>
+        </div>
+      </section>
+
+      <AIPoweredSearchSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
-      {/* Testimonials */}
+      {/* TESTIMONIALS */}
       <section className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-4xl font-bold mb-12">Success Stories</h2>
+        <h2 className="text-4xl font-bold mb-12">{testimonialsHeading}</h2>
         <Card className="max-w-3xl mx-auto border-2 shadow-xl">
           <CardContent className="p-10">
             <Quote className="h-10 w-10 text-primary/20 mb-6 mx-auto" />
@@ -392,16 +302,14 @@ const Index = () => {
       {/* FAQ */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-          <p className="text-muted-foreground">
-            Quick answers to common questions
-          </p>
+          <h2 className="text-3xl font-bold mb-4">{faqHeading}</h2>
+          <p className="text-muted-foreground">{faqSubtitle}</p>
         </div>
         <div className="max-w-4xl mx-auto space-y-12">
           {faqs.map((section, sectionIndex) => (
-            <div key={section.audience} className="space-y-6">
+            <div key={`${sectionIndex}-${section.audience}`} className="space-y-6">
               <h3 className="text-2xl font-semibold text-left">
-                For {section.audience}
+                {t("pages.index.faq.audienceHeading", { audience: section.audience })}
               </h3>
               <Accordion type="single" collapsible className="space-y-4">
                 {section.items.map((faq, faqIndex) => (
@@ -424,13 +332,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Contact */}
+      {/* CONTACT */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-          <p className="text-muted-foreground">
-            Have questions? We’d love to help.
-          </p>
+          <h2 className="text-3xl font-bold mb-4">{contactHeading}</h2>
+          <p className="text-muted-foreground">{contactSubtitle}</p>
         </div>
         <Card className="max-w-2xl mx-auto border-2">
           <CardContent className="p-8">
@@ -439,10 +345,10 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="bg-muted/50 border-t">
         <div className="container mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Global Education Gateway. All rights reserved.
+          {footerText}
         </div>
       </footer>
     </div>

@@ -23,6 +23,8 @@ import {
   Award
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface VisaRequirements {
   country: string;
@@ -176,6 +178,7 @@ const COMPARISON_METRICS: Array<{
 
 export default function VisaCalculator() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [selectedCountry, setSelectedCountry] = useState('');
   const [studentProfile, setStudentProfile] = useState({
     ielts_score: '',
@@ -773,44 +776,68 @@ export default function VisaCalculator() {
                   </div>
                 )}
 
-                {/* Country Requirements */}
-                {selectedCountry && (
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium mb-3">Requirements for {VISA_REQUIREMENTS[selectedCountry].country}:</h4>
-                    <div className="grid gap-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>IELTS Minimum:</span>
-                        <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].ielts_min}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>GPA Minimum:</span>
-                        <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].gpa_min}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Bank Balance:</span>
-                        <span className="font-medium">
-                          {VISA_REQUIREMENTS[selectedCountry].currency} {VISA_REQUIREMENTS[selectedCountry].bank_balance_min.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Work Experience:</span>
-                        <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].work_experience_min} years</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Age Limit:</span>
-                        <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].age_limit} years</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Processing Time:</span>
-                        <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].processing_time_days} days</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Success Rate:</span>
-                        <span className="font-medium text-success">{VISA_REQUIREMENTS[selectedCountry].success_rate}%</span>
+                  {/* Country Requirements */}
+                  {selectedCountry && (
+                    <div className="border-t pt-4">
+                      <h4 className="font-medium mb-3">Requirements for {VISA_REQUIREMENTS[selectedCountry].country}:</h4>
+                      <div className="grid gap-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>IELTS Minimum:</span>
+                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].ielts_min}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>GPA Minimum:</span>
+                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].gpa_min}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Bank Balance:</span>
+                          <span className="font-medium">
+                            {VISA_REQUIREMENTS[selectedCountry].currency} {VISA_REQUIREMENTS[selectedCountry].bank_balance_min.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Work Experience:</span>
+                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].work_experience_min} years</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Age Limit:</span>
+                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].age_limit} years</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Processing Time:</span>
+                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].processing_time_days} days</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Success Rate:</span>
+                          <span className="font-medium text-success">{VISA_REQUIREMENTS[selectedCountry].success_rate}%</span>
+                        </div>
                       </div>
                     </div>
+                  )}
+
+                  {/* Next Steps CTA */}
+                  <div className="border-t pt-6 space-y-4">
+                    <div>
+                      <h4 className="text-lg font-semibold">Ready to take the next step?</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {user
+                          ? 'Turn these results into a successful application with our team guiding you end to end.'
+                          : 'Create your free account to save your progress and let our team guide you through your application.'}
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      {!user && (
+                        <Button asChild className="sm:w-auto">
+                          <Link to="/auth/signup">Sign up to start</Link>
+                        </Button>
+                      )}
+                      <Button asChild variant={user ? 'default' : 'outline'} className="sm:w-auto">
+                        <Link to={user ? '/student/applications/new' : '/auth/login'}>
+                          {user ? 'Start your application' : 'Log in to continue'}
+                        </Link>
+                      </Button>
+                    </div>
                   </div>
-                )}
               </div>
             ) : (
               <div className="text-center py-8">
