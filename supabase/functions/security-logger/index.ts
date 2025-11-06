@@ -146,11 +146,11 @@ function getSupabaseClient() {
 
   return createClient(url, serviceKey, {
     auth: { persistSession: false },
-  });
+  }) as any;
 }
 
 async function recordFailedAuthHeuristic(
-  supabaseClient: ReturnType<typeof createClient>,
+  supabaseClient: any,
   eventId: string,
   identifier: string | null,
   tenantId: string | null,
@@ -207,7 +207,7 @@ async function recordFailedAuthHeuristic(
 }
 
 async function maybeCreateAlert(
-  supabaseClient: ReturnType<typeof createClient>,
+  supabaseClient: any,
   eventType: EventType,
   severity: Severity,
   tenantId: string | null,
