@@ -1,14 +1,14 @@
 const SUPABASE_MANAGED_SUFFIXES = [
-  '.supabase.co',
-  '.supabase.in',
-  '.supabase.net',
-  '.supabase.red',
+  ".supabase.co",
+  ".supabase.in",
+  ".supabase.net",
+  ".supabase.red",
 ];
 
-const DEFAULT_SITE_URL = 'http://localhost:5173';
+const DEFAULT_SITE_URL = "http://localhost:5173";
 
 const safeString = (value: unknown): string | undefined => {
-  if (typeof value !== 'string') return undefined;
+  if (typeof value !== "string") return undefined;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
 };
@@ -16,7 +16,9 @@ const safeString = (value: unknown): string | undefined => {
 const toOrigin = (input: string): string => {
   const candidate = input.trim();
   if (!candidate) {
-    throw new Error('[supabase] Received an empty URL while normalizing configuration');
+    throw new Error(
+      "[supabase] Received an empty URL while normalizing configuration",
+    );
   }
 
   const hasProtocol = /^https?:\/\//i.test(candidate);
@@ -24,10 +26,23 @@ const toOrigin = (input: string): string => {
   return parsed.origin;
 };
 
+const normalizeAbsoluteUrl = (input: string): string => {
+  const candidate = input.trim();
+  if (!candidate) {
+    throw new Error(
+      "[supabase] Received an empty URL while normalizing configuration",
+    );
+  }
+
+  const hasProtocol = /^https?:\/\//i.test(candidate);
+  const parsed = new URL(hasProtocol ? candidate : `https://${candidate}`);
+  return parsed.href.replace(/\/+$/, "");
+};
+
 const isSupabaseManagedHost = (host: string): boolean => {
   const lowerHost = host.toLowerCase();
 
-  if (lowerHost === 'localhost' || lowerHost === '127.0.0.1') {
+  if (lowerHost === "localhost" || lowerHost === "127.0.0.1") {
     return true;
   }
 
@@ -37,9 +52,40 @@ const isSupabaseManagedHost = (host: string): boolean => {
 const deriveProjectDomain = (projectId: string): string => {
   const sanitized = projectId.trim();
   if (!sanitized) {
-    throw new Error('[supabase] VITE_SUPABASE_PROJECT_ID is defined but empty');
+    throw new Error("[supabase] VITE_SUPABASE_PROJECT_ID is defined but empty");
   }
   return `https://${sanitized}.supabase.co`;
+};
+
+const deriveFunctionsDomainFromProjectId = (projectId: string): string => {
+  const sanitized = projectId.trim();
+  if (!sanitized) {
+    throw new Error("[supabase] VITE_SUPABASE_PROJECT_ID is defined but empty");
+  }
+  return `https://${sanitized}.functions.supabase.co`;
+};
+
+const deriveFunctionsDomainFromHost = (
+  hostname: string,
+): string | undefined => {
+  const lowerHost = hostname.toLowerCase();
+
+  if (lowerHost === "localhost" || lowerHost === "127.0.0.1") {
+    return undefined;
+  }
+
+  if (!SUPABASE_MANAGED_SUFFIXES.some((suffix) => lowerHost.endsWith(suffix))) {
+    return undefined;
+  }
+
+  const parts = lowerHost.split(".");
+  if (parts.length < 3) {
+    return undefined;
+  }
+
+  const [projectRef, ...rest] = parts;
+  const domain = rest.join(".");
+  return `https://${projectRef}.functions.${domain}`;
 };
 
 export const resolveSupabaseApiUrl = (): string => {
@@ -92,16 +138,59 @@ export const resolveSupabaseApiUrl = (): string => {
   }
 
   throw new Error(
-    '[supabase] Missing Supabase configuration. Define VITE_SUPABASE_URL, VITE_SUPABASE_CUSTOM_DOMAIN, or VITE_SUPABASE_PROJECT_ID.',
+    "[supabase] Missing Supabase configuration. Define VITE_SUPABASE_URL, VITE_SUPABASE_CUSTOM_DOMAIN, or VITE_SUPABASE_PROJECT_ID.",
   );
 };
 
 export const getSupabaseAnonKey = (): string => {
   const anonKey = safeString(import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY);
   if (!anonKey) {
-    throw new Error('[supabase] Missing VITE_SUPABASE_PUBLISHABLE_KEY.');
+    throw new Error("[supabase] Missing VITE_SUPABASE_PUBLISHABLE_KEY.");
   }
   return anonKey;
+};
+
+export const resolveSupabaseFunctionsUrl = (): string => {
+  const configuredFunctionsUrl = safeString(
+    import.meta.env?.VITE_SUPABASE_FUNCTIONS_URL,
+  );
+  if (configuredFunctionsUrl) {
+    try {
+      return normalizeAbsoluteUrl(configuredFunctionsUrl);
+    } catch (error) {
+      console.warn(
+        `[supabase] VITE_SUPABASE_FUNCTIONS_URL "${configuredFunctionsUrl}" is invalid. Ignoring custom functions URL.`,
+      );
+    }
+  }
+
+  const apiUrl = resolveSupabaseApiUrl();
+  const apiOrigin = toOrigin(apiUrl);
+  const hostname = new URL(apiOrigin).hostname;
+
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`);
+  }
+
+  const managedDomain = deriveFunctionsDomainFromHost(hostname);
+  if (managedDomain) {
+    return normalizeAbsoluteUrl(managedDomain);
+  }
+
+  const projectId = safeString(import.meta.env?.VITE_SUPABASE_PROJECT_ID);
+  if (projectId) {
+    try {
+      return normalizeAbsoluteUrl(
+        deriveFunctionsDomainFromProjectId(projectId),
+      );
+    } catch (error) {
+      console.warn(
+        "[supabase] Unable to derive functions domain from project id. Falling back to API URL.",
+      );
+    }
+  }
+
+  return normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`);
 };
 
 export const getSiteUrl = (): string => {
@@ -116,7 +205,7 @@ export const getSiteUrl = (): string => {
     }
   }
 
-  if (typeof window !== 'undefined' && window.location?.origin) {
+  if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
 
@@ -126,4 +215,5 @@ export const getSiteUrl = (): string => {
 export const getSupabaseBrowserConfig = () => ({
   url: resolveSupabaseApiUrl(),
   anonKey: getSupabaseAnonKey(),
+  functionsUrl: resolveSupabaseFunctionsUrl(),
 });
