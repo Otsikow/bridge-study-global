@@ -31,15 +31,15 @@ const AppNavbar = () => {
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
+    <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -87,19 +87,37 @@ const AppNavbar = () => {
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} />
-                          <AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback>
+                          <AvatarImage
+                            src={profile.avatar_url || ""}
+                            alt={profile.full_name}
+                          />
+                          <AvatarFallback>
+                            {getInitials(profile.full_name)}
+                          </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{profile.full_name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+                          <p className="text-sm font-semibold truncate">
+                            {profile.full_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {profile.email}
+                          </p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button asChild variant="outline" size="sm" onClick={() => setMobileOpen(false)}>
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setMobileOpen(false)}
+                        >
                           <Link to="/dashboard">Dashboard</Link>
                         </Button>
-                        <Button asChild size="sm" onClick={() => setMobileOpen(false)}>
+                        <Button
+                          asChild
+                          size="sm"
+                          onClick={() => setMobileOpen(false)}
+                        >
                           <Link to="/settings">Settings</Link>
                         </Button>
                         <Button
@@ -117,10 +135,19 @@ const AppNavbar = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <Button asChild variant="outline" className="w-full" onClick={() => setMobileOpen(false)}>
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setMobileOpen(false)}
+                      >
                         <Link to="/auth/login">Log in</Link>
                       </Button>
-                      <Button asChild className="w-full" onClick={() => setMobileOpen(false)}>
+                      <Button
+                        asChild
+                        className="w-full"
+                        onClick={() => setMobileOpen(false)}
+                      >
                         <Link to="/auth/signup">Sign up</Link>
                       </Button>
                     </div>
@@ -130,13 +157,18 @@ const AppNavbar = () => {
             </SheetContent>
           </Sheet>
 
-          <Link to="/" className="flex items-center gap-2 transition-transform duration-300 hover:scale-105">
+          <Link
+            to="/"
+            className="flex items-center gap-2 transition-transform duration-300 hover:scale-105"
+          >
             <img
               src={gegLogo}
               alt="GEG"
               className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
             />
-            <span className="text-base font-semibold hidden sm:inline">Global Education Gateway</span>
+            <span className="text-base font-semibold hidden sm:inline">
+              Global Education Gateway
+            </span>
           </Link>
         </div>
 
@@ -160,10 +192,18 @@ const AppNavbar = () => {
           {profile ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={profile.avatar_url || ""} alt={profile.full_name} />
-                    <AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback>
+                    <AvatarImage
+                      src={profile.avatar_url || ""}
+                      alt={profile.full_name}
+                    />
+                    <AvatarFallback>
+                      {getInitials(profile.full_name)}
+                    </AvatarFallback>
                   </Avatar>
                   <span className="sr-only">Open user menu</span>
                 </Button>
@@ -171,7 +211,9 @@ const AppNavbar = () => {
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{profile.full_name}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {profile.full_name}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {profile.email}
                     </p>
@@ -191,7 +233,10 @@ const AppNavbar = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive">
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="cursor-pointer text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
@@ -199,7 +244,12 @@ const AppNavbar = () => {
             </DropdownMenu>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="hidden md:inline-flex"
+              >
                 <Link to="/auth/login">Log in</Link>
               </Button>
               <Button size="sm" asChild className="hidden md:inline-flex">

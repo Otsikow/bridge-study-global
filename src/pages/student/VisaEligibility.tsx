@@ -37,15 +37,11 @@ export default function VisaEligibility() {
     let s = 0;
     s += (gpaNum / 4) * 0.35; // academics
     s += (ieltsNum / 9) * 0.25; // language
-    s +=
-      financial === "adequate"
-        ? 0.25
-        : financial === "strong"
-        ? 0.35
-        : 0.1; // funds
+    s += financial === "adequate" ? 0.25 : financial === "strong" ? 0.35 : 0.1; // funds
     s += hasOffer === "yes" ? 0.15 : 0.05; // offer letter
 
-    const destBoost = country === "Canada" ? 0.0 : country === "UK" ? -0.02 : 0.0;
+    const destBoost =
+      country === "Canada" ? 0.0 : country === "UK" ? -0.02 : 0.0;
     s = Math.max(0, Math.min(1, s + destBoost));
 
     setCalc(s);
@@ -56,7 +52,7 @@ export default function VisaEligibility() {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Top bar with back button and theme toggle */}
-      <div className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
+      <div className="border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
           <Button
             variant="ghost"
