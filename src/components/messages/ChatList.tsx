@@ -82,6 +82,23 @@ export function ChatList({
     return text.slice(0, maxLength) + '...';
   };
 
+  const getConversationPreview = (conversation: Conversation) => {
+    const lastMessage = conversation.lastMessage;
+    if (!lastMessage) {
+      return 'No messages yet';
+    }
+
+    if (lastMessage.attachments && lastMessage.attachments.length > 0) {
+      const allImages = lastMessage.attachments.every(attachment => attachment.type === 'image');
+      if (allImages) {
+        return lastMessage.attachments.length > 1 ? 'Sent multiple images' : 'Sent an image';
+      }
+      return 'Sent an attachment';
+    }
+
+    return truncateMessage(lastMessage.content);
+  };
+
   return (
     <div className="flex flex-col h-full border-r bg-background">
       {/* Header */}
@@ -160,9 +177,7 @@ export function ChatList({
 
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-muted-foreground truncate">
-                        {conversation.lastMessage
-                          ? truncateMessage(conversation.lastMessage.content)
-                          : 'No messages yet'}
+                          {getConversationPreview(conversation)}
                       </p>
                       {(conversation.unreadCount || 0) > 0 && (
                         <Badge

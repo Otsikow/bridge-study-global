@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { format, formatDistanceToNow, isToday, isYesterday } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { MessageInput } from './MessageInput';
-import type { Message, TypingIndicator, Conversation } from '@/hooks/useMessages';
+import type { Message, TypingIndicator, Conversation, SendMessagePayload } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { UserPresence } from '@/hooks/usePresence';
@@ -16,7 +16,7 @@ interface ChatAreaProps {
   messages: Message[];
   typingUsers: TypingIndicator[];
   loading: boolean;
-  onSendMessage: (content: string) => void;
+    onSendMessage: (payload: SendMessagePayload) => void;
   onStartTyping: () => void;
   onStopTyping: () => void;
   getUserPresence?: (userId: string) => UserPresence | null;
@@ -239,14 +239,38 @@ export function ChatArea({
                           : 'bg-muted'
                       )}
                     >
-                      {!isOwnMessage && !groupWithPrevious && (
-                        <p className="text-xs font-semibold mb-1">
-                          {message.sender?.full_name}
+                        {!isOwnMessage && !groupWithPrevious && (
+                          <p className="text-xs font-semibold mb-1">
+                            {message.sender?.full_name}
+                          </p>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap break-words">
+                          {message.content}
                         </p>
-                      )}
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {message.content}
-                      </p>
+                        {message.attachments.length > 0 && (
+                          <div className="mt-2 space-y-2">
+                            {message.attachments.map((attachment) =>
+                              attachment.type === 'image' ? (
+                                <img
+                                  key={attachment.id}
+                                  src={attachment.preview_url || attachment.url}
+                                  alt={attachment.name || 'Shared image'}
+                                  className="max-w-[240px] rounded-lg border"
+                                />
+                              ) : (
+                                <a
+                                  key={attachment.id}
+                                  href={attachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs underline break-all"
+                                >
+                                  {attachment.name || 'View attachment'}
+                                </a>
+                              )
+                            )}
+                          </div>
+                        )}
                       <p
                         className={cn(
                           'text-xs mt-1',
