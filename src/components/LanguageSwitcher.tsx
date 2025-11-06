@@ -1,9 +1,9 @@
-import { useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import { Globe2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLanguage } from "@/providers/LanguageProvider";
 import { cn } from "@/lib/utils";
+import { useMemo } from "react";
+import type { SupportedLanguage } from "@/i18n/resources";
 
 interface LanguageSwitcherProps {
   className?: string;
@@ -12,16 +12,27 @@ interface LanguageSwitcherProps {
 }
 
 export const LanguageSwitcher = ({ className, size = "default", showLabel = false }: LanguageSwitcherProps) => {
-  const { t } = useTranslation();
   const { language, setLanguage, availableLanguages } = useLanguage();
+
+  const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+    en: "English",
+    de: "German",
+    fr: "French",
+    pt: "Portuguese",
+    sw: "Swahili",
+    es: "Spanish",
+    zh: "Chinese",
+    hi: "Hindi",
+    ar: "Arabic",
+  } as const;
 
   const options = useMemo(
     () =>
       availableLanguages.map((code) => ({
         code,
-        label: t(`common.languageNames.${code}`),
+        label: LANGUAGE_LABELS[code] ?? code.toUpperCase(),
       })),
-    [availableLanguages, t],
+    [availableLanguages],
   );
 
   return (
@@ -31,12 +42,12 @@ export const LanguageSwitcher = ({ className, size = "default", showLabel = fals
           className={cn(
             "w-[160px] justify-between",
             size === "sm" && "h-8 w-[140px] text-xs",
-          )}
-          aria-label={t("common.labels.selectLanguage")}
+            )}
+            aria-label="Select language"
         >
           <div className="flex items-center gap-2">
             <Globe2 className={cn("h-4 w-4", size === "sm" && "h-3.5 w-3.5")} />
-            {showLabel && <span className="text-xs text-muted-foreground hidden sm:inline">{t("common.labels.language")}</span>}
+              {showLabel && <span className="text-xs text-muted-foreground hidden sm:inline">Language</span>}
             <SelectValue />
           </div>
         </SelectTrigger>

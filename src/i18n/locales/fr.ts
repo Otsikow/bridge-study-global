@@ -116,18 +116,49 @@ const fr = {
       questions: "Des questions ?",
     },
   },
-  components: {
-    loadingState: {
-      defaultMessage: "Chargement...",
-      retry: "Réessayer",
+    components: {
+      loadingState: {
+        defaultMessage: "Chargement...",
+        retry: "Réessayer",
+      },
+      emptyState: {
+        noRecentPages: "Aucune page récente",
+        goToFallback: "Aller vers la page alternative",
+        clearHistory: "Effacer l'historique",
+        currentPage: "Page actuelle",
+      },
+      contactForm: {
+        placeholders: {
+          name: "Votre nom",
+          email: "Votre e-mail",
+          whatsapp: "Votre numéro WhatsApp (optionnel)",
+          message: "Votre message",
+        },
+        submit: {
+          default: "Envoyer le message",
+          loading: "Envoi...",
+        },
+        notifications: {
+          signInRequiredTitle: "Connexion requise",
+          signInRequiredDescription: "Veuillez vous connecter pour nous envoyer un message.",
+          successTitle: "Message envoyé !",
+          successDescription: "Merci de nous avoir contactés. Nous vous répondrons très bientôt.",
+          validationTitle: "Erreur de validation",
+          errorTitle: "Erreur",
+          errorDescription: "Impossible d'envoyer le message. Veuillez réessayer.",
+        },
+        errors: {
+          nameRequired: "Le nom est requis",
+          nameMax: "Le nom doit contenir moins de 100 caractères",
+          emailInvalid: "Adresse e-mail invalide",
+          emailMax: "L'e-mail doit contenir moins de 255 caractères",
+          messageRequired: "Le message est requis",
+          messageMax: "Le message doit contenir moins de 1000 caractères",
+          whatsappInvalid: "Le numéro WhatsApp ne peut contenir que des chiffres et des symboles téléphoniques",
+          whatsappMax: "Le numéro WhatsApp doit contenir moins de 30 caractères",
+        },
+      },
     },
-    emptyState: {
-      noRecentPages: "Aucune page récente",
-      goToFallback: "Aller vers la page alternative",
-      clearHistory: "Effacer l'historique",
-      currentPage: "Page actuelle",
-    },
-  },
   app: {
     errors: {
       failedToLoadPageTitle: "Impossible de charger la page",
@@ -161,7 +192,131 @@ const fr = {
       maxRetriesReached: "Nombre maximal de tentatives atteint. Veuillez rafraîchir la page ou contacter le support.",
     },
   },
-  pages: {
+    pages: {
+      index: {
+        journeyRibbon: {
+          items: {
+            discover: {
+              stage: "Découvrir",
+              metricValue: "200+",
+              metricLabel: "Universités partenaires",
+              description:
+                "Les recommandations pilotées par l'IA révèlent immédiatement les universités les plus adaptées dès votre inscription.",
+              ctaLabel: "Commencer la candidature",
+            },
+            plan: {
+              stage: "Planifier",
+              metricValue: "5000+",
+              metricLabel: "Plans personnalisés créés",
+              description:
+                "Des listes de tâches et des rappels intelligents aident des milliers d'étudiants à rester organisés des relevés jusqu'aux lettres de motivation.",
+              ctaLabel: "",
+            },
+            collaborate: {
+              stage: "Collaborer",
+              metricValue: "24h",
+              metricLabel: "Délai de réponse moyen des agents",
+              description:
+                "Des conseillers vérifiés co-éditent les documents, répondent aux questions et synchronisent les calendriers en temps réel sur tous les canaux.",
+              ctaLabel: "Rencontrer votre agent",
+            },
+            submit: {
+              stage: "Soumettre",
+              metricValue: "95%",
+              metricLabel: "Taux de réussite",
+              description:
+                "Des soumissions centralisées et des rappels proactifs font avancer les candidatures sans manquer une seule échéance.",
+              ctaLabel: "",
+            },
+            celebrate: {
+              stage: "Célébrer",
+              metricValue: "50+",
+              metricLabel: "Pays représentés",
+              description:
+                "Des check-lists prêtes pour le visa et une préparation au départ permettent aux étudiants de rejoindre les campus du monde entier en toute confiance.",
+              ctaLabel: "",
+            },
+          },
+        },
+        storyboard: {
+          heading: "Comment GEG simplifie chaque étape",
+          subheading:
+            "Suivez notre storyboard pour découvrir comment notre plateforme et nos équipes accompagnent votre candidature de l'idée à l'arrivée.",
+          stepLabel: "Étape {{number}}",
+          steps: {
+            discover: {
+              title: "Découvrez vos programmes idéaux",
+              description:
+                "Partagez vos objectifs et vos résultats : GEG sélectionne instantanément des universités, programmes et bourses adaptés.",
+              support:
+                "Des filtres intelligents et des recommandations IA éliminent les tâtonnements pour constituer une short-list en quelques minutes.",
+              imageAlt: "Étudiante examinant des programmes universitaires lors d'une visite de campus",
+            },
+            plan: {
+              title: "Construisez un plan de candidature personnalisé",
+              description:
+                "Téléchargez relevés, tests et essais grâce à des check-lists guidées qui découpent tout en tâches gérables.",
+              support: "Des rappels automatiques et des conseils sur les documents vous gardent en avance sur chaque échéance.",
+              imageAlt: "Étudiante planifiant ses tâches de candidature sur un ordinateur portable en plein air",
+            },
+            collaborate: {
+              title: "Collaborez avec votre agent expert",
+              description:
+                "Travaillez avec un conseiller GEG vérifié pour affiner les documents, aligner les délais et rester prêt pour les entretiens.",
+              support:
+                "Espaces partagés, commentaires annotés et messagerie instantanée offrent une collaboration transparente et sereine.",
+              imageAlt: "Étudiante échangeant avec un agent d'éducation via un smartphone",
+            },
+            track: {
+              title: "Soumettez et suivez sans stress",
+              description:
+                "Postulez auprès de plusieurs universités simultanément et suivez chaque retour, demande et offre sur une chronologie simple.",
+              support: "Des statuts en direct et des rappels proactifs indiquent la prochaine étape pour qu'aucune action ne soit oubliée.",
+              imageAlt: "Étudiante vérifiant l'avancement de sa candidature sur le campus",
+            },
+            celebrate: {
+              title: "Célébrez et préparez votre départ",
+              description:
+                "Acceptez votre offre, finalisez les démarches de visa et accédez aux ressources de pré-départ adaptées à votre destination.",
+              support:
+                "Check-lists visa, conseils logement et confirmations d'inscription vous accompagnent jusqu'à l'embarquement.",
+              imageAlt: "Étudiante célébrant l'approbation de son visa avec ses documents",
+            },
+          },
+        },
+        featuredUniversities: {
+          heading: "Universités mises en avant",
+          description:
+            "Des établissements qui offrent systématiquement aux étudiants internationaux de GEG une expérience d'intégration exceptionnelle.",
+          network: {
+            label: "Réseau en vedette",
+            summary: "{{count}} établissements sélectionnés par notre équipe partenariats",
+          },
+          badges: {
+            topPick: "Sélection premium",
+            priority: "Priorité n°{{position}}",
+          },
+          actions: {
+            visitSite: "Visiter le site",
+            scrollLeft: "Faire défiler les universités mises en avant vers la gauche",
+            scrollRight: "Faire défiler les universités mises en avant vers la droite",
+          },
+          fallback: {
+            summary:
+              "Des partenaires engagés qui accueillent les étudiants de Global Education Gateway avec un accompagnement personnalisé.",
+            highlight: "Partenaire dédié à la réussite étudiante",
+            notice: {
+              error: "Nous affichons des partenaires mis en avant pendant la reconnexion de la liste.",
+              updating: "Nous affichons des partenaires mis en avant pendant la mise à jour de la liste.",
+            },
+          },
+          partnerCta: {
+            heading: "Devenir partenaire",
+            description: "Présentez votre établissement à des milliers d'étudiants motivés dans le monde.",
+            action: "Rejoindre le réseau",
+          },
+        },
+      },
     contact: {
       heroTitle: "Contactez-nous",
       heroSubtitle: "Nous répondons généralement sous un jour ouvrable.",

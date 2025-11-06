@@ -123,10 +123,41 @@ const es = {
     },
     emptyState: {
       noRecentPages: "No hay páginas recientes",
-      goToFallback: "Ir a la alternativa",
+        goToFallback: "Ir a la alternativa",
       clearHistory: "Borrar historial",
       currentPage: "Página actual",
     },
+      contactForm: {
+        placeholders: {
+          name: "Tu nombre",
+          email: "Tu correo electrónico",
+          whatsapp: "Tu número de WhatsApp (opcional)",
+          message: "Tu mensaje",
+        },
+        submit: {
+          default: "Enviar mensaje",
+          loading: "Enviando...",
+        },
+        notifications: {
+          signInRequiredTitle: "Debes iniciar sesión",
+          signInRequiredDescription: "Inicia sesión para enviarnos un mensaje.",
+          successTitle: "¡Mensaje enviado!",
+          successDescription: "Gracias por contactarnos. Te responderemos pronto.",
+          validationTitle: "Error de validación",
+          errorTitle: "Error",
+          errorDescription: "No se pudo enviar el mensaje. Vuelve a intentarlo.",
+        },
+        errors: {
+          nameRequired: "El nombre es obligatorio",
+          nameMax: "El nombre debe tener menos de 100 caracteres",
+          emailInvalid: "Correo electrónico inválido",
+          emailMax: "El correo debe tener menos de 255 caracteres",
+          messageRequired: "El mensaje es obligatorio",
+          messageMax: "El mensaje debe tener menos de 1000 caracteres",
+          whatsappInvalid: "El número de WhatsApp solo puede contener números y símbolos telefónicos",
+          whatsappMax: "El número de WhatsApp debe tener menos de 30 caracteres",
+        },
+      },
   },
   app: {
     errors: {

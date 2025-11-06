@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,18 +6,32 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 
-const contactSchema = z.object({
-  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
-  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
-  message: z.string().trim().min(1, "Message is required").max(1000, "Message must be less than 1000 characters"),
-  whatsapp: z
-    .string()
-    .trim()
-    .regex(/^[0-9+()\-\s]*$/, "WhatsApp number can only contain numbers and phone symbols")
-    .max(30, "WhatsApp number must be less than 30 characters")
-    .optional(),
-});
+const createContactSchema = (t: (key: string, options?: Record<string, unknown>) => string) =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t("components.contactForm.errors.nameRequired"))
+      .max(100, t("components.contactForm.errors.nameMax")),
+    email: z
+      .string()
+      .trim()
+      .email(t("components.contactForm.errors.emailInvalid"))
+      .max(255, t("components.contactForm.errors.emailMax")),
+    message: z
+      .string()
+      .trim()
+      .min(1, t("components.contactForm.errors.messageRequired"))
+      .max(1000, t("components.contactForm.errors.messageMax")),
+    whatsapp: z
+      .string()
+      .trim()
+      .regex(/^[0-9+()\-\s]*$/, t("components.contactForm.errors.whatsappInvalid"))
+      .max(30, t("components.contactForm.errors.whatsappMax"))
+      .optional(),
+  });
 
 export const ContactForm = () => {
   const [name, setName] = useState("");
@@ -27,6 +41,9 @@ export const ContactForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { session } = useAuth();
+  const { t } = useTranslation();
+
+  const contactSchema = useMemo(() => createContactSchema(t), [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +51,8 @@ export const ContactForm = () => {
     try {
       if (!session?.access_token) {
         toast({
-          title: "Sign in required",
-          description: "Please sign in to send us a message.",
+          title: t("components.contactForm.notifications.signInRequiredTitle"),
+          description: t("components.contactForm.notifications.signInRequiredDescription"),
           variant: "destructive",
         });
         return;
@@ -60,8 +77,8 @@ export const ContactForm = () => {
       if (error) throw error;
 
       toast({
-        title: "Message sent!",
-        description: "Thank you for contacting us. We'll get back to you soon.",
+          title: t("components.contactForm.notifications.successTitle"),
+          description: t("components.contactForm.notifications.successDescription"),
       });
 
       // Clear form
@@ -72,14 +89,14 @@ export const ContactForm = () => {
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
-          title: "Validation Error",
-          description: error.issues[0].message,
+            title: t("components.contactForm.notifications.validationTitle"),
+            description: error.issues[0].message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
+            title: t("components.contactForm.notifications.errorTitle"),
+            description: t("components.contactForm.notifications.errorDescription"),
           variant: "destructive",
         });
       }
@@ -93,7 +110,7 @@ export const ContactForm = () => {
       <div>
         <Input
           type="text"
-          placeholder="Your Name"
+            placeholder={t("components.contactForm.placeholders.name")}
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
@@ -103,7 +120,7 @@ export const ContactForm = () => {
       <div>
         <Input
           type="email"
-          placeholder="Your Email"
+            placeholder={t("components.contactForm.placeholders.email")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -113,7 +130,7 @@ export const ContactForm = () => {
       <div>
         <Input
           type="tel"
-          placeholder="Your WhatsApp Number (optional)"
+            placeholder={t("components.contactForm.placeholders.whatsapp")}
           value={whatsapp}
           onChange={(e) => setWhatsapp(e.target.value)}
           maxLength={30}
@@ -121,7 +138,7 @@ export const ContactForm = () => {
       </div>
       <div>
         <Textarea
-          placeholder="Your Message"
+            placeholder={t("components.contactForm.placeholders.message")}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           required
@@ -131,7 +148,9 @@ export const ContactForm = () => {
         />
       </div>
       <Button type="submit" disabled={isSubmitting} className="w-full">
-        {isSubmitting ? "Sending..." : "Send Message"}
+          {isSubmitting
+            ? t("components.contactForm.submit.loading")
+            : t("components.contactForm.submit.default")}
       </Button>
     </form>
   );

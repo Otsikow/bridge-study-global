@@ -127,6 +127,37 @@ const de = {
       clearHistory: "Verlauf löschen",
       currentPage: "Aktuelle Seite",
     },
+      contactForm: {
+        placeholders: {
+          name: "Ihr Name",
+          email: "Ihre E-Mail",
+          whatsapp: "Ihre WhatsApp-Nummer (optional)",
+          message: "Ihre Nachricht",
+        },
+        submit: {
+          default: "Nachricht senden",
+          loading: "Wird gesendet...",
+        },
+        notifications: {
+          signInRequiredTitle: "Anmeldung erforderlich",
+          signInRequiredDescription: "Bitte melden Sie sich an, um uns eine Nachricht zu senden.",
+          successTitle: "Nachricht gesendet!",
+          successDescription: "Vielen Dank für Ihre Kontaktaufnahme. Wir melden uns bald bei Ihnen.",
+          validationTitle: "Validierungsfehler",
+          errorTitle: "Fehler",
+          errorDescription: "Nachricht konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        },
+        errors: {
+          nameRequired: "Name ist erforderlich",
+          nameMax: "Der Name darf maximal 100 Zeichen enthalten",
+          emailInvalid: "Ungültige E-Mail-Adresse",
+          emailMax: "Die E-Mail darf maximal 255 Zeichen enthalten",
+          messageRequired: "Nachricht ist erforderlich",
+          messageMax: "Die Nachricht darf maximal 1000 Zeichen enthalten",
+          whatsappInvalid: "Die WhatsApp-Nummer darf nur Zahlen und Telefonsymbole enthalten",
+          whatsappMax: "Die WhatsApp-Nummer darf maximal 30 Zeichen enthalten",
+        },
+      },
   },
   app: {
     errors: {
@@ -161,7 +192,131 @@ const de = {
       maxRetriesReached: "Maximale Anzahl an Wiederholungen erreicht. Bitte laden Sie die Seite neu oder kontaktieren Sie den Support.",
     },
   },
-  pages: {
+    pages: {
+      index: {
+        journeyRibbon: {
+          items: {
+            discover: {
+              stage: "Entdecken",
+              metricValue: "200+",
+              metricLabel: "Partneruniversitäten",
+              description:
+                "KI-gestützte Empfehlungen zeigen Ihnen sofort die bestpassenden Hochschulen, sobald Sie sich anmelden.",
+              ctaLabel: "Bewerbung starten",
+            },
+            plan: {
+              stage: "Planen",
+              metricValue: "5000+",
+              metricLabel: "Personalisierte Pläne erstellt",
+              description:
+                "Checklisten und intelligente Erinnerungen halten tausende Studierende vom Zeugnis bis zum Motivationsschreiben organisiert.",
+              ctaLabel: "",
+            },
+            collaborate: {
+              stage: "Zusammenarbeiten",
+              metricValue: "24h",
+              metricLabel: "Durchschnittliche Agentenantwort",
+              description:
+                "Verifizierte Berater überarbeiten Dokumente, beantworten Fragen und stimmen Zeitpläne in Echtzeit über alle Kanäle ab.",
+              ctaLabel: "Agenten kennenlernen",
+            },
+            submit: {
+              stage: "Einreichen",
+              metricValue: "95%",
+              metricLabel: "Erfolgsquote",
+              description:
+                "Zentralisierte Einreichungen mit proaktiven Hinweisen sorgen dafür, dass Bewerbungen ohne Fristversäumnis vorankommen.",
+              ctaLabel: "",
+            },
+            celebrate: {
+              stage: "Feiern",
+              metricValue: "50+",
+              metricLabel: "Vertretene Länder",
+              description:
+                "Visa-Checklisten und Abreisevorbereitung führen Studierende mit Zuversicht an Campus weltweit.",
+              ctaLabel: "",
+            },
+          },
+        },
+        storyboard: {
+          heading: "So vereinfacht GEG jeden Schritt",
+          subheading:
+            "Erleben Sie Schritt für Schritt, wie unsere Plattform und unser Team Ihre Bewerbung von der Idee bis zur Ankunft begleiten.",
+          stepLabel: "Schritt {{number}}",
+          steps: {
+            discover: {
+              title: "Finden Sie Ihre passenden Programme",
+              description:
+                "Nennen Sie Ihre Ziele und Leistungen – GEG kuratiert sofort Universitäten, Programme und Stipendien, die zu Ihnen passen.",
+              support:
+                "Intelligente Filter und KI-Empfehlungen nehmen das Rätselraten ab, damit Sie in Minuten eine Shortlist erstellen.",
+              imageAlt: "Studierende überprüft Studienprogramme bei einem Campusbesuch",
+            },
+            plan: {
+              title: "Erstellen Sie einen persönlichen Bewerbungsplan",
+              description:
+                "Laden Sie Zeugnisse, Testergebnisse und Texte mit geführten Checklisten hoch, die alles in handliche Aufgaben aufteilen.",
+              support: "Automatische Erinnerungen und Dokumenttipps halten Sie vor jeder Frist auf Kurs.",
+              imageAlt: "Studierende plant Bewerbungsaufgaben im Freien am Laptop",
+            },
+            collaborate: {
+              title: "Arbeiten Sie mit Ihrem Expert:innen-Agenten zusammen",
+              description:
+                "Arbeiten Sie mit einem verifizierten GEG-Berater zusammen, um Dokumente zu verfeinern, Zeitpläne abzustimmen und interviewbereit zu bleiben.",
+              support:
+                "Gemeinsame Arbeitsbereiche, kommentiertes Feedback und Sofortnachrichten sorgen für transparente Entscheidungen.",
+              imageAlt: "Studierende kommuniziert mit einem Bildungsberater über das Smartphone",
+            },
+            track: {
+              title: "Einreichen & verfolgen ohne Stress",
+              description:
+                "Bewerben Sie sich gleichzeitig bei mehreren Universitäten und verfolgen Sie jede Rückmeldung und jedes Angebot auf einer Zeitachse.",
+              support: "Live-Statusanzeigen und proaktive Hinweise zeigen den nächsten Schritt, damit nichts untergeht.",
+              imageAlt: "Studierende verfolgt den Bewerbungsstatus auf dem Campus",
+            },
+            celebrate: {
+              title: "Feiern & Abreise vorbereiten",
+              description:
+                "Nehmen Sie Ihr Angebot an, schließen Sie Visa-Schritte ab und erhalten Sie zielgenaue Vorbereitungsressourcen.",
+              support:
+                "Visa-Checklisten, Wohnungsrat und Einschreibe-Bestätigungen begleiten Sie bis zum Abflug.",
+              imageAlt: "Studierende feiert die Visa-Genehmigung mit Dokumenten in der Hand",
+            },
+          },
+        },
+        featuredUniversities: {
+          heading: "Ausgewählte Universitäten",
+          description:
+            "Institutionen, die internationalen GEG-Studierenden konsequent ein herausragendes Onboarding-Erlebnis bieten.",
+          network: {
+            label: "Ausgewähltes Netzwerk",
+            summary: "{{count}} Institutionen, kuratiert von unserem Partnerschaftsteam",
+          },
+          badges: {
+            topPick: "Top-Empfehlung",
+            priority: "Priorität #{{position}}",
+          },
+          actions: {
+            visitSite: "Website besuchen",
+            scrollLeft: "Ausgewählte Universitäten nach links scrollen",
+            scrollRight: "Ausgewählte Universitäten nach rechts scrollen",
+          },
+          fallback: {
+            summary:
+              "Engagierte Partner, die Studierende von Global Education Gateway mit maßgeschneiderter Unterstützung begrüßen.",
+            highlight: "Engagierter Erfolgspartner für Studierende",
+            notice: {
+              error: "Wir zeigen hervorgehobene Partner, während wir die Auswahlliste wieder verbinden.",
+              updating: "Wir zeigen hervorgehobene Partner, während unsere Auswahlliste aktualisiert wird.",
+            },
+          },
+          partnerCta: {
+            heading: "Partner werden",
+            description: "Präsentieren Sie Ihre Institution tausenden motivierten Studierenden weltweit.",
+            action: "Dem Netzwerk beitreten",
+          },
+        },
+      },
     contact: {
       heroTitle: "Kontaktieren Sie uns",
       heroSubtitle: "In der Regel antworten wir innerhalb eines Werktags.",

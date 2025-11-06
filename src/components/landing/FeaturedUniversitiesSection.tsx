@@ -9,7 +9,7 @@ import {
   MapPin,
   Sparkles,
 } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +31,6 @@ interface FeaturedUniversity {
   featured_highlight: string | null;
   featured_image_url?: string | null;
 }
-
-const FALLBACK_SUMMARY =
-  "Dedicated partners that consistently welcome Global Education Gateway students with tailored support.";
 
 const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
   {
@@ -108,8 +105,7 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
 
 export function FeaturedUniversitiesSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
+  const { t } = useTranslation();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["featured-universities"],
@@ -146,6 +142,27 @@ export function FeaturedUniversitiesSection() {
 
   const isUsingFallback = hasError || featuredUniversities.length < 4;
 
+  const fallbackSummary = t("pages.index.featuredUniversities.fallback.summary");
+  const fallbackNotice = hasError
+    ? t("pages.index.featuredUniversities.fallback.notice.error")
+    : t("pages.index.featuredUniversities.fallback.notice.updating");
+  const topPickLabel = t("pages.index.featuredUniversities.badges.topPick");
+  const priorityLabel = (position: number) =>
+    t("pages.index.featuredUniversities.badges.priority", { position });
+  const visitSiteLabel = t("pages.index.featuredUniversities.actions.visitSite");
+  const recommendedHighlight = t("pages.index.featuredUniversities.fallback.highlight");
+  const networkLabel = t("pages.index.featuredUniversities.network.label");
+  const networkSummary = t("pages.index.featuredUniversities.network.summary", {
+    count: universitiesToDisplay.length,
+  });
+  const scrollLeftLabel = t("pages.index.featuredUniversities.actions.scrollLeft");
+  const scrollRightLabel = t("pages.index.featuredUniversities.actions.scrollRight");
+  const sectionHeading = t("pages.index.featuredUniversities.heading");
+  const sectionDescription = t("pages.index.featuredUniversities.description");
+  const partnerCtaHeading = t("pages.index.featuredUniversities.partnerCta.heading");
+  const partnerCtaDescription = t("pages.index.featuredUniversities.partnerCta.description");
+  const partnerCtaAction = t("pages.index.featuredUniversities.partnerCta.action");
+
   const formatWebsiteUrl = (website: string | null) => {
     if (!website) return null;
     const trimmed = website.trim();
@@ -172,7 +189,7 @@ export function FeaturedUniversitiesSection() {
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" role="status" aria-live="polite">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index} className="border-muted/40">
-              <CardContent className="p-6 space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
@@ -192,28 +209,23 @@ export function FeaturedUniversitiesSection() {
       <div className="space-y-6">
         {isUsingFallback && (
           <Card className="border-muted/40 bg-muted/10">
-            <CardContent className="p-4 text-sm text-muted-foreground">
-              {hasError
-                ? "We're showing highlighted partners while we reconnect to the featured list."
-                : "We're showing highlighted partners while our featured list updates."}
-            </CardContent>
+            <CardContent className="p-4 text-sm text-muted-foreground">{fallbackNotice}</CardContent>
           </Card>
         )}
+
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-sm uppercase tracking-[0.25em] text-primary/70">Featured network</p>
-            <p className="text-muted-foreground text-sm">
-              {universitiesToDisplay.length} institutions selected by our partnerships team
-            </p>
+            <p className="text-sm uppercase tracking-[0.25em] text-primary/70">{networkLabel}</p>
+            <p className="text-sm text-muted-foreground">{networkSummary}</p>
           </div>
           {universitiesToDisplay.length > 3 && (
-            <div className="hidden md:flex gap-2">
+            <div className="hidden gap-2 md:flex">
               <Button
                 variant="outline"
                 size="icon"
                 className="rounded-full"
                 onClick={() => scrollBy("left")}
-                aria-label="Scroll featured universities left"
+                aria-label={scrollLeftLabel}
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -222,7 +234,7 @@ export function FeaturedUniversitiesSection() {
                 size="icon"
                 className="rounded-full"
                 onClick={() => scrollBy("right")}
-                aria-label="Scroll featured universities right"
+                aria-label={scrollRightLabel}
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -230,10 +242,7 @@ export function FeaturedUniversitiesSection() {
           )}
         </div>
 
-        <div
-          ref={scrollRef}
-          className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3 max-md:overflow-x-auto max-md:pb-2"
-        >
+        <div ref={scrollRef} className="grid gap-6 max-md:overflow-x-auto max-md:pb-2 sm:grid-cols-2 xl:grid-cols-3">
           {universitiesToDisplay.map((university, index) => {
             const formattedWebsite = formatWebsiteUrl(university.website);
 
@@ -261,7 +270,7 @@ export function FeaturedUniversitiesSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/5 to-transparent" />
                   {index < 3 && (
                     <Badge className="absolute left-4 top-4 bg-primary/90 text-primary-foreground" variant="secondary">
-                      <Sparkles className="mr-1 h-3 w-3" /> Top pick
+                      <Sparkles className="mr-1 h-3 w-3" /> {topPickLabel}
                     </Badge>
                   )}
                 </div>
@@ -281,9 +290,7 @@ export function FeaturedUniversitiesSection() {
                         )}
                       </div>
                       <div>
-                        <CardTitle className="text-lg leading-tight">
-                          {university.name}
-                        </CardTitle>
+                        <CardTitle className="text-lg leading-tight">{university.name}</CardTitle>
                         {(university.city || university.country) && (
                           <p className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4 text-primary" />
@@ -295,13 +302,13 @@ export function FeaturedUniversitiesSection() {
                   </div>
                   {typeof university.featured_priority === "number" && (
                     <Badge variant="outline" className="self-start text-xs">
-                      Priority #{university.featured_priority + 1}
+                      {priorityLabel(university.featured_priority + 1)}
                     </Badge>
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {university.featured_summary || university.featured_highlight || FALLBACK_SUMMARY}
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {university.featured_summary || university.featured_highlight || fallbackSummary}
                   </p>
                   {university.ranking && typeof university.ranking === "object" && (
                     <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
@@ -317,19 +324,19 @@ export function FeaturedUniversitiesSection() {
                   )}
                   <div className="flex items-center justify-between">
                     <div className="text-xs text-muted-foreground">
-                      {university.featured_highlight || "Dedicated student success partner"}
+                      {university.featured_highlight || recommendedHighlight}
                     </div>
                     {formattedWebsite ? (
                       <Button asChild variant="ghost" size="sm" className="gap-1">
                         <a href={formattedWebsite} target="_blank" rel="noopener noreferrer">
-                          Visit site
+                          {visitSiteLabel}
                           <ExternalLink className="h-3.5 w-3.5" />
                         </a>
                       </Button>
                     ) : (
                       <Button asChild variant="ghost" size="sm" className="gap-1" disabled>
                         <span className="flex items-center gap-1 text-muted-foreground/70">
-                          Visit site
+                          {visitSiteLabel}
                           <ExternalLink className="h-3.5 w-3.5" />
                         </span>
                       </Button>
@@ -339,19 +346,17 @@ export function FeaturedUniversitiesSection() {
               </Card>
             );
           })}
-          </div>
+        </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border bg-card/70 p-6">
-            <div>
-              <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">Become a partner</p>
-              <p className="text-sm text-muted-foreground">
-                Showcase your institution to thousands of motivated students worldwide.
-              </p>
-            </div>
-            <Button asChild size="sm">
-              <Link to="/partnership">Join the network</Link>
-            </Button>
+        <div className="flex flex-col gap-4 rounded-2xl border bg-card/70 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">{partnerCtaHeading}</p>
+            <p className="text-sm text-muted-foreground">{partnerCtaDescription}</p>
           </div>
+          <Button asChild size="sm">
+            <Link to="/partnership">{partnerCtaAction}</Link>
+          </Button>
+        </div>
       </div>
     );
   };
@@ -360,14 +365,12 @@ export function FeaturedUniversitiesSection() {
     <section className="relative py-20" aria-labelledby="featured-universities-heading">
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/5 via-background to-primary/10" />
       <div className="container mx-auto px-4 space-y-12">
-        <div className="text-center max-w-2xl mx-auto space-y-4">
-          <h2 id="featured-universities-heading" className="text-4xl font-bold">
-            Featured Universities
-          </h2>
-          <p className="text-muted-foreground">
-            Institutions that consistently deliver an exceptional onboarding experience for Global Education Gateway students.
-          </p>
-        </div>
+          <div className="mx-auto max-w-2xl space-y-4 text-center">
+            <h2 id="featured-universities-heading" className="text-4xl font-bold">
+              {sectionHeading}
+            </h2>
+            <p className="text-muted-foreground">{sectionDescription}</p>
+          </div>
         {renderContent()}
       </div>
     </section>
