@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +25,7 @@ import { Loader2, Eye, EyeOff, ArrowLeft, ArrowRight, Check, UserCircle, Mail, L
 import gegLogo from '@/assets/geg-logo.png';
 import { cn } from '@/lib/utils';
 import { formatReferralUsername } from '@/lib/referrals';
+import { LoadingState } from '@/components/LoadingState';
 
 type UserRole = 'student' | 'agent' | 'partner';
 
@@ -76,24 +77,34 @@ const Signup = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [country, setCountry] = useState('');
-    const [username, setUsername] = useState('');
-    const [usernameError, setUsernameError] = useState<string | null>(null);
-    const [checkingUsername, setCheckingUsername] = useState(false);
-    const [refParam, setRefParam] = useState<string | null>(null);
-    const [referrerInfo, setReferrerInfo] = useState<{ id: string; username: string; full_name?: string } | null>(null);
-    const [referrerError, setReferrerError] = useState<string | null>(null);
-    const [referrerLoading, setReferrerLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [refParam, setRefParam] = useState<string | null>(null);
+  const [referrerInfo, setReferrerInfo] = useState<{ id: string; username: string; full_name?: string } | null>(null);
+  const [referrerError, setReferrerError] = useState<string | null>(null);
+  const [referrerLoading, setReferrerLoading] = useState(false);
   const [role, setRole] = useState<UserRole>('student');
   const [loading, setLoading] = useState(false);
 
-  const { signUp } = useAuth();
+  const { signUp, user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [redirecting, setRedirecting] = useState(false);
+  const hasRedirectedRef = useRef(false);
 
   const totalSteps = 3;
 
   const countryOptions = useMemo(() => buildCountryOptions(role), [role]);
+
+  useEffect(() => {
+    if (!authLoading && user && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      setRedirecting(true);
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authLoading, user, navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -441,6 +452,17 @@ const Signup = () => {
         return '';
     }
   };
+
+  if (authLoading || redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <LoadingState
+          message={authLoading ? 'Checking your session...' : 'Redirecting to your dashboard...'}
+          size="lg"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 px-4 py-8">
