@@ -339,27 +339,19 @@ export function FeaturedUniversitiesSection() {
               </Card>
             );
           })}
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border bg-card/70 p-6">
-          <div>
-            <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">Become a partner</p>
-            <p className="text-sm text-muted-foreground">
-              Showcase your institution to thousands of motivated students worldwide.
-            </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border bg-card/70 p-6">
+            <div>
+              <p className="text-sm font-semibold text-primary uppercase tracking-[0.2em]">Become a partner</p>
+              <p className="text-sm text-muted-foreground">
+                Showcase your institution to thousands of motivated students worldwide.
+              </p>
+            </div>
             <Button asChild size="sm">
               <Link to="/partnership">Join the network</Link>
             </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/universities" className="flex items-center gap-1">
-                View directory
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
-            </Button>
           </div>
-        </div>
       </div>
     );
   };

@@ -24,6 +24,10 @@ import {
   ChevronRight,
   Sparkles,
   Calculator,
+  ShieldCheck,
+  Globe2,
+  TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 
 import gegLogo from "@/assets/geg-logo.png";
@@ -41,7 +45,7 @@ const Index = () => {
   const { t } = useTranslation();
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
-  // Hero CTAs (translated)
+  // --- HERO SECTION ---
   const heroCtas = useMemo(
     () =>
       [
@@ -81,25 +85,13 @@ const Index = () => {
   const heroBadgeText = t("pages.index.hero.trustBadge", { count: 5000 });
   const heroDescription = t("pages.index.hero.description");
 
-  // Features
+  // --- FEATURES SECTION ---
   const features = useMemo(
     () =>
       [
-        {
-          key: "applyEasily" as const,
-          icon: FileCheck,
-          color: "from-blue-500 to-cyan-500",
-        },
-        {
-          key: "trackRealtime" as const,
-          icon: Clock,
-          color: "from-purple-500 to-pink-500",
-        },
-        {
-          key: "connectAgents" as const,
-          icon: Users,
-          color: "from-orange-500 to-red-500",
-        },
+        { key: "applyEasily" as const, icon: FileCheck, color: "from-blue-500 to-cyan-500" },
+        { key: "trackRealtime" as const, icon: Clock, color: "from-purple-500 to-pink-500" },
+        { key: "connectAgents" as const, icon: Users, color: "from-orange-500 to-red-500" },
       ].map((feature) => ({
         ...feature,
         title: t(`pages.index.features.cards.${feature.key}.title`),
@@ -108,32 +100,20 @@ const Index = () => {
     [t]
   );
 
-  // Testimonials
+  // --- TESTIMONIALS SECTION ---
   const testimonials = useMemo(
     () =>
-      (t("pages.index.testimonials.items", { returnObjects: true }) as Array<{
+      t("pages.index.testimonials.items", {
+        returnObjects: true,
+      }) as Array<{
         name: string;
         role: string;
         country: string;
         quote: string;
         rating: number;
-      }>),
+      }>,
     [t]
   );
-
-  const featuresHeading = t("pages.index.features.heading");
-  const visaBadgeLabel = t("pages.index.visa.badge");
-  const visaTitle = t("pages.index.visa.title");
-  const visaDescription = t("pages.index.visa.description");
-  const visaButtonLabel = t("pages.index.visa.cta");
-  const testimonialsHeading = t("pages.index.testimonials.heading");
-  const faqHeading = t("pages.index.faq.heading");
-  const faqSubtitle = t("pages.index.faq.subtitle");
-  const contactHeading = t("pages.index.contact.heading");
-  const contactSubtitle = t("pages.index.contact.subtitle");
-  const footerText = t("layout.footer.copyright", {
-    year: new Date().getFullYear(),
-  });
 
   const testimonialCount = testimonials.length;
 
@@ -144,27 +124,39 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [testimonialCount]);
 
-  const nextTestimonial = () =>
-    setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
+  const nextTestimonial = () => setCurrentTestimonial((prev) => (prev + 1) % testimonialCount);
   const prevTestimonial = () =>
-    setCurrentTestimonial((prev) =>
-      prev === 0 ? testimonialCount - 1 : prev - 1
-    );
+    setCurrentTestimonial((prev) => (prev === 0 ? testimonialCount - 1 : prev - 1));
 
+  // --- FAQ SECTION ---
   const faqs = useMemo(
     () =>
-      (t("pages.index.faq.sections", {
+      t("pages.index.faq.sections", {
         returnObjects: true,
       }) as Array<{
         audience: string;
         items: Array<{ question: string; answer: string }>;
-      }>),
+      }>,
     [t]
   );
 
+  // --- TRANSLATIONS ---
+  const featuresHeading = t("pages.index.features.heading");
+  const visaBadgeLabel = t("pages.index.visa.badge");
+  const visaTitle = t("pages.index.visa.title");
+  const visaDescription = t("pages.index.visa.description");
+  const visaButtonLabel = t("pages.index.visa.cta");
+  const testimonialsHeading = t("pages.index.testimonials.heading");
+  const faqHeading = t("pages.index.faq.heading");
+  const faqSubtitle = t("pages.index.faq.subtitle");
+  const contactHeading = t("pages.index.contact.heading");
+  const contactSubtitle = t("pages.index.contact.subtitle");
+  const footerText = t("layout.footer.copyright", { year: new Date().getFullYear() });
+
+  // --- RENDER ---
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Hero Section */}
+      {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="container relative mx-auto px-4 py-24 text-center">
           <img
@@ -176,6 +168,7 @@ const Index = () => {
             <Sparkles className="h-4 w-4 animate-pulse" />
             <span>{heroBadgeText}</span>
           </div>
+
           <h1 className="text-5xl font-bold mb-4">
             {heroTitleParts.prefix}{" "}
             <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
@@ -183,6 +176,7 @@ const Index = () => {
             </span>
             {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
           </h1>
+
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             {heroDescription}
           </p>
@@ -215,20 +209,19 @@ const Index = () => {
               </Link>
             ))}
           </div>
+
           <JourneyRibbon />
         </div>
       </section>
 
-      {/* Features */}
+      {/* FEATURES */}
       <section className="container mx-auto px-4 py-20">
         <h2 className="text-4xl font-bold text-center mb-12">{featuresHeading}</h2>
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((f) => (
             <Card key={f.key} className="relative overflow-hidden group hover:shadow-2xl">
               <CardContent className="p-8">
-                <div
-                  className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}
-                >
+                <div className={`inline-flex p-4 rounded-2xl bg-gradient-to-br ${f.color} mb-6`}>
                   <f.icon className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
@@ -239,7 +232,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Visa Calculator Spotlight */}
+      {/* VISA CALCULATOR */}
       <section className="relative py-24">
         <div className="container mx-auto grid items-center gap-14 px-4 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-8">
@@ -273,7 +266,7 @@ const Index = () => {
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
-      {/* Testimonials */}
+      {/* TESTIMONIALS */}
       <section className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-4xl font-bold mb-12">{testimonialsHeading}</h2>
         <Card className="max-w-3xl mx-auto border-2 shadow-xl">
@@ -316,9 +309,7 @@ const Index = () => {
           {faqs.map((section, sectionIndex) => (
             <div key={`${sectionIndex}-${section.audience}`} className="space-y-6">
               <h3 className="text-2xl font-semibold text-left">
-                {t("pages.index.faq.audienceHeading", {
-                  audience: section.audience,
-                })}
+                {t("pages.index.faq.audienceHeading", { audience: section.audience })}
               </h3>
               <Accordion type="single" collapsible className="space-y-4">
                 {section.items.map((faq, faqIndex) => (
@@ -341,7 +332,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Contact */}
+      {/* CONTACT */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">{contactHeading}</h2>
@@ -354,7 +345,7 @@ const Index = () => {
         </Card>
       </section>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="bg-muted/50 border-t">
         <div className="container mx-auto px-4 py-12 text-center text-sm text-muted-foreground">
           {footerText}
