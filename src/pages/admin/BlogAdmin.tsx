@@ -77,6 +77,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BlogAnalytics } from "@/components/blog/BlogAnalytics";
 import { BlogPreview } from "@/components/blog/BlogPreview";
+import BackButton from "@/components/BackButton";
 import { useAuth } from "@/hooks/useAuth";
 
 const generateSlug = (title: string): string =>
@@ -624,6 +625,7 @@ export default function BlogAdmin() {
 
   return (
     <div className="space-y-6 px-4 py-6 sm:px-6 lg:mx-auto lg:max-w-6xl">
+      <BackButton variant="ghost" size="sm" fallback="/dashboard" />
       <Card>
         <CardHeader>
           <CardTitle>Manage Blog Posts</CardTitle>
