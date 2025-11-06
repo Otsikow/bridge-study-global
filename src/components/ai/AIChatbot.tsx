@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -756,8 +757,8 @@ export default function ZoeChatbot() {
           )}
 
           <form
-            className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition ${
-              isDragOver ? "border-primary bg-primary/10" : "border-border"
+            className={`flex flex-col gap-3 rounded-xl border p-4 transition ${
+              isDragOver ? "border-primary bg-primary/10" : "border-border bg-background"
             }`}
             onSubmit={(event) => {
               event.preventDefault();
@@ -782,44 +783,65 @@ export default function ZoeChatbot() {
               className="hidden"
             />
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isUploading}
-            >
-              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isLoading}
-            >
-              {isRecording ? <MicOff className="h-4 w-4 text-destructive" /> : <Mic className="h-4 w-4" />}
-            </Button>
-
-            <Input
+            <Textarea
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="Ask Zoe about admissions, partnerships, or agent docs…"
               disabled={isLoading || isUploading}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0"
+              className="min-h-[100px] resize-none border-0 bg-transparent focus-visible:ring-0 text-base p-0"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault();
+                  void sendMessage();
+                }
+              }}
             />
 
-            <Button
-              type="submit"
-              size="icon"
-              disabled={isLoading || isUploading || (!input.trim() && attachments.length === 0)}
-              className="h-9 w-9"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center justify-between gap-2 pt-2 border-t">
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 px-3"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading || isUploading}
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-2" />
+                  )}
+                  <span className="text-sm">Attach</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 px-3"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={isLoading}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-4 w-4 text-destructive mr-2" />
+                  ) : (
+                    <Mic className="h-4 w-4 mr-2" />
+                  )}
+                  <span className="text-sm">{isRecording ? 'Stop' : 'Voice'}</span>
+                </Button>
+              </div>
+
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isLoading || isUploading || (!input.trim() && attachments.length === 0)}
+                className="h-9 px-4"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">Send</span>
+              </Button>
+            </div>
           </form>
 
           <p className="mt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
