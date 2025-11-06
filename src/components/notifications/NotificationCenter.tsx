@@ -243,78 +243,106 @@ export default function NotificationCenter() {
         </div>
       </div>
 
-      <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-        <TabsList className="flex w-full gap-2 overflow-x-auto rounded-full bg-muted/40 p-1 sm:flex-wrap sm:rounded-none sm:bg-transparent sm:p-0">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="unread">Unread</TabsTrigger>
-          <TabsTrigger value="read">Read</TabsTrigger>
-          <TabsTrigger value="application_status">Apps</TabsTrigger>
-          <TabsTrigger value="message">Messages</TabsTrigger>
-          <TabsTrigger value="commission">Commissions</TabsTrigger>
-          <TabsTrigger value="course_recommendation">Courses</TabsTrigger>
-        </TabsList>
-        <TabsContent value={filter}>
-          <Card className="w-full border border-border/70 shadow-sm sm:rounded-2xl">
-            <CardHeader className="space-y-1.5 p-4 sm:p-6">
-              <CardTitle>Recent</CardTitle>
-              <CardDescription>Stay updated with your activity</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="py-8 text-center">
-                  <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin" />
-                  <p className="text-muted-foreground">Loading...</p>
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="py-8 text-center">
-                  <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-                  <p className="text-muted-foreground">No notifications</p>
-                </div>
-              ) : (
-                <ScrollArea className="max-h-[65vh] sm:max-h-[60vh]">
-                  <div className="divide-y">
-                    {filtered.map((n) => {
-                      const Icon = iconFor(n.type);
-                      return (
-                        <div
-                          key={n.id}
-                          className={`p-4 transition hover:bg-muted/50 ${!n.read ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}
-                          onClick={() => handleClick(n)}
-                        >
-                          <div className="flex items-start gap-3">
-                            <Icon className={`mt-1 h-5 w-5 ${colorFor(n.type)}`} />
-                            <div className="flex-1">
-                              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                <div>
-                                  <p className="font-medium">{n.title}</p>
-                                  <p className="text-sm text-muted-foreground">{n.message}</p>
-                                </div>
-                                <div className="flex shrink-0 gap-1 self-start">
-                                  {!n.read && (
-                                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}>
-                                      <Check className="h-4 w-4" />
+        <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
+          <TabsList className="flex w-full flex-wrap items-center justify-start gap-3 overflow-x-auto rounded-2xl border border-border bg-card/80 p-2 shadow-sm sm:justify-center sm:gap-4">
+            <TabsTrigger className="px-4 sm:px-5" value="all">
+              All
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="unread">
+              Unread
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="read">
+              Read
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="application_status">
+              Apps
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="message">
+              Messages
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="commission">
+              Commissions
+            </TabsTrigger>
+            <TabsTrigger className="px-4 sm:px-5" value="course_recommendation">
+              Courses
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value={filter}>
+            <Card className="w-full border border-border/70 shadow-sm sm:rounded-2xl">
+              <CardHeader className="space-y-1.5 p-4 sm:p-6">
+                <CardTitle>Recent</CardTitle>
+                <CardDescription>Stay updated with your activity</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                {loading ? (
+                  <div className="py-8 text-center">
+                    <Loader2 className="mx-auto mb-3 h-6 w-6 animate-spin" />
+                    <p className="text-muted-foreground">Loading...</p>
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Bell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                    <p className="text-muted-foreground">No notifications</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="max-h-[65vh] sm:max-h-[60vh]">
+                    <div className="divide-y">
+                      {filtered.map((n) => {
+                        const Icon = iconFor(n.type);
+                        return (
+                          <div
+                            key={n.id}
+                            className={`p-4 transition hover:bg-muted/50 ${!n.read ? "bg-blue-50 dark:bg-blue-950/20" : ""}`}
+                            onClick={() => handleClick(n)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <Icon className={`mt-1 h-5 w-5 ${colorFor(n.type)}`} />
+                              <div className="flex-1">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                  <div>
+                                    <p className="font-medium">{n.title}</p>
+                                    <p className="text-sm text-muted-foreground">{n.message}</p>
+                                  </div>
+                                  <div className="flex shrink-0 gap-1 self-start">
+                                    {!n.read && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          markAsRead(n.id);
+                                        }}
+                                      >
+                                        <Check className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteNotification(n.id);
+                                      }}
+                                    >
+                                      <X className="h-4 w-4" />
                                     </Button>
-                                  )}
-                                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}>
-                                    <X className="h-4 w-4" />
-                                  </Button>
+                                  </div>
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                                </p>
                               </div>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
-                              </p>
                             </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
     </div>
   );
 }
