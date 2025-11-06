@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.audio-transcribe]
 verify_jwt = true
+
+[functions.generate-blog-image]
+verify_jwt = true

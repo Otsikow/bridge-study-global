@@ -101,38 +101,37 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is not configured");
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     const prompt = buildPrompt(title, excerpt, tags);
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`,
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
         method: "POST",
         headers: {
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          instances: [
+          model: "google/gemini-2.5-flash-image",
+          messages: [
             {
-              prompt: prompt,
+              role: "user",
+              content: prompt,
             },
           ],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: "16:9",
-            negativePrompt: "text, words, captions, watermark, logo, low resolution, blurry, distorted",
-          },
+          modalities: ["image", "text"],
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error", response.status, errorText);
+      console.error("Lovable AI error", response.status, errorText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({
@@ -144,18 +143,29 @@ serve(async (req) => {
           },
         );
       }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({
+            error: "Payment required. Please add credits to your Lovable workspace.",
+          }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
 
-      throw new Error(`Gemini API error: ${response.status}`);
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const result = await response.json();
-    const imageBase64 = result?.predictions?.[0]?.bytesBase64Encoded;
+    const imageBase64 = result?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageBase64) {
-      console.error("Gemini API response missing image", result);
+      console.error("Lovable AI response missing image", result);
       return new Response(
         JSON.stringify({
-          error: "Gemini API did not return an image",
+          error: "AI did not return an image",
         }),
         {
           status: 502,
@@ -164,10 +174,16 @@ serve(async (req) => {
       );
     }
 
-    const mimeType = result?.predictions?.[0]?.mimeType || "image/png";
+    // Extract base64 data from data URL format
+    const base64Data = imageBase64.startsWith("data:") 
+      ? imageBase64.split(",")[1] 
+      : imageBase64;
+    const mimeType = imageBase64.startsWith("data:") 
+      ? imageBase64.split(";")[0].split(":")[1] 
+      : "image/png";
 
     return new Response(
-      JSON.stringify({ imageBase64, mimeType }),
+      JSON.stringify({ imageBase64: base64Data, mimeType }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
