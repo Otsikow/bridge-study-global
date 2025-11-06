@@ -144,6 +144,54 @@ export type Database = {
           },
         ]
       }
+      application_drafts: {
+        Row: {
+          created_at: string
+          form_data: Json
+          id: string
+          last_step: number | null
+          program_id: string | null
+          student_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          last_step?: number | null
+          program_id?: string | null
+          student_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          form_data?: Json
+          id?: string
+          last_step?: number | null
+          program_id?: string | null
+          student_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_drafts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_drafts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           agent_id: string | null
@@ -1514,6 +1562,116 @@ export type Database = {
           },
         ]
       }
+      security_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          created_at: string
+          details: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          severity: Database["public"]["Enums"]["security_event_severity"]
+          source_event_id: string | null
+          summary: string
+          tenant_id: string | null
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          details?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          severity: Database["public"]["Enums"]["security_event_severity"]
+          source_event_id?: string | null
+          summary: string
+          tenant_id?: string | null
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          created_at?: string
+          details?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          severity?: Database["public"]["Enums"]["security_event_severity"]
+          source_event_id?: string | null
+          summary?: string
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alerts_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "security_audit_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alerts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_audit_logs: {
+        Row: {
+          actor_email: string | null
+          created_at: string
+          description: string | null
+          event_type: Database["public"]["Enums"]["security_event_type"]
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          severity: Database["public"]["Enums"]["security_event_severity"]
+          tenant_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actor_email?: string | null
+          created_at?: string
+          description?: string | null
+          event_type: Database["public"]["Enums"]["security_event_type"]
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          severity: Database["public"]["Enums"]["security_event_severity"]
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actor_email?: string | null
+          created_at?: string
+          description?: string | null
+          event_type?: Database["public"]["Enums"]["security_event_type"]
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          severity?: Database["public"]["Enums"]["security_event_severity"]
+          tenant_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_audit_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_assignments: {
         Row: {
           assigned_at: string | null
@@ -2224,6 +2382,13 @@ export type Database = {
         | "tuition"
         | "other"
       payment_status: "pending" | "succeeded" | "failed" | "refunded"
+      security_event_severity: "low" | "medium" | "high" | "critical"
+      security_event_type:
+        | "failed_authentication"
+        | "privilege_escalation_attempt"
+        | "suspicious_activity"
+        | "policy_violation"
+        | "custom"
       task_status: "open" | "in_progress" | "done" | "blocked"
     }
     CompositeTypes: {
@@ -2399,6 +2564,14 @@ export const Constants = {
         "other",
       ],
       payment_status: ["pending", "succeeded", "failed", "refunded"],
+      security_event_severity: ["low", "medium", "high", "critical"],
+      security_event_type: [
+        "failed_authentication",
+        "privilege_escalation_attempt",
+        "suspicious_activity",
+        "policy_violation",
+        "custom",
+      ],
       task_status: ["open", "in_progress", "done", "blocked"],
     },
   },
