@@ -298,6 +298,7 @@ export default function StaffMessages() {
               </DialogContent>
             </Dialog>
           )}
+        </div>
       </div>
     </DashboardLayout>
   );
