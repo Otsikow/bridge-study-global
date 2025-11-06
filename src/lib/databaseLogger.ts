@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PostgrestError } from '@supabase/supabase-js';
+import { logPrivilegeEscalationAttempt } from './securityLogger';
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 export type OperationType = 'select' | 'insert' | 'update' | 'delete' | 'rpc';
@@ -39,24 +40,73 @@ class DatabaseLogger {
     return `[DB ${level.toUpperCase()}]${contextStr} ${operation.toUpperCase()} ${target}${durationStr}${errorStr}`;
   }
 
-  private addLog(entry: DatabaseLogEntry) {
-    this.logs.push(entry);
-    
-    // Limit log size
-    if (this.logs.length > this.maxLogs) {
-      this.logs.shift();
+    private addLog(entry: DatabaseLogEntry) {
+      this.logs.push(entry);
+
+      // Limit log size
+      if (this.logs.length > this.maxLogs) {
+        this.logs.shift();
+      }
+
+      if (entry.level === 'error') {
+        this.evaluateSecuritySignals(entry);
+      }
+
+      // Console logging
+      if (this.enableConsoleLog) {
+        const logFn = entry.level === 'error'
+          ? console.error
+          : entry.level === 'warn'
+            ? console.warn
+            : entry.level === 'debug'
+              ? console.debug
+              : console.log;
+
+        logFn(this.formatLog(entry), {
+          params: entry.params,
+          error: entry.error,
+        });
+      }
     }
 
-    // Console logging
-    if (this.enableConsoleLog) {
-      const logFn = entry.level === 'error' ? console.error : 
-                    entry.level === 'warn' ? console.warn : 
-                    entry.level === 'debug' ? console.debug : 
-                    console.log;
-      
-      logFn(this.formatLog(entry), {
-        params: entry.params,
-        error: entry.error,
+    private evaluateSecuritySignals(entry: DatabaseLogEntry) {
+      const errorMessage = entry.error?.message || (typeof entry.params?.message === 'string' ? entry.params.message : '') || '';
+      const normalizedMessage = errorMessage.toLowerCase();
+      const errorCode = (entry.error as PostgrestError | undefined)?.code || (typeof entry.params?.code === 'string' ? entry.params.code : undefined);
+
+      const indicatesPrivilegeIssue =
+        normalizedMessage.includes('permission denied') ||
+        normalizedMessage.includes('insufficient_privilege') ||
+        errorCode === '42501';
+
+      if (!indicatesPrivilegeIssue) {
+        return;
+      }
+
+      void logPrivilegeEscalationAttempt({
+        description: entry.context
+          ? `Unauthorized ${entry.operation.toUpperCase()} attempt on ${entry.table || entry.function || 'unknown'}`
+          : undefined,
+        metadata: {
+          operation: entry.operation,
+          table: entry.table,
+          function: entry.function,
+          context: entry.context,
+          params: entry.params,
+          error: entry.error
+            ? {
+                message: entry.error.message,
+                name: entry.error.name,
+                ...(entry.error instanceof Error && entry.error.stack ? { stack: entry.error.stack } : {}),
+                ...(typeof (entry.error as PostgrestError).code === 'string'
+                  ? { code: (entry.error as PostgrestError).code }
+                  : {}),
+                ...(typeof (entry.error as PostgrestError).details === 'string'
+                  ? { details: (entry.error as PostgrestError).details }
+                  : {}),
+              }
+            : null,
+        },
       });
     }
 
