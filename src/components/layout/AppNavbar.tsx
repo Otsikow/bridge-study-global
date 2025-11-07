@@ -201,7 +201,7 @@ const AppNavbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive">
+                  <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     {t("common.actions.logout")}
                   </DropdownMenuItem>

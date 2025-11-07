@@ -285,9 +285,15 @@ export default function UsersTab() {
         status: 'invited',
       };
 
+      // Insert into profiles table (staff_profiles is a view)
       const { data, error } = await supabase
-        .from('staff_profiles')
-        .insert(payload)
+        .from('profiles')
+        .insert({
+          full_name: payload.full_name,
+          email: payload.email,
+          role: 'staff',
+          tenant_id: tenantId,
+        })
         .select()
         .single();
 

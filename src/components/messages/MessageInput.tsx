@@ -131,13 +131,13 @@ export function MessageInput({
       return null;
     }
 
-    const { data: publicUrlData, error: publicUrlError } = supabase
+    const { data: publicUrlData } = supabase
       .storage
       .from(STORAGE_BUCKET)
       .getPublicUrl(storagePath);
 
-    if (publicUrlError || !publicUrlData?.publicUrl) {
-      console.error('Public URL error:', publicUrlError);
+    if (!publicUrlData?.publicUrl) {
+      console.error('Failed to get public URL for file');
       toast({
         title: 'Upload failed',
         description: 'Could not retrieve the uploaded file.',
