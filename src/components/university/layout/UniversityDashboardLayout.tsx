@@ -17,7 +17,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Building2, AlertCircle, ArrowUpRight } from "lucide-react";
+import { Building2, AlertCircle, ArrowUpRight, RefreshCw } from "lucide-react";
 
 type Nullable<T> = T | null;
 
@@ -220,6 +220,8 @@ const isWithinLastDays = (dateISO: string | null, days: number) => {
 const fetchUniversityDashboardData = async (
   tenantId: string,
 ): Promise<UniversityDashboardData> => {
+  console.log("Fetching university dashboard for tenant:", tenantId);
+  
   const { data: uniRows, error: uniError } = await supabase
     .from("universities")
     .select("*")
@@ -230,14 +232,20 @@ const fetchUniversityDashboardData = async (
     .limit(1);
 
   if (uniError) {
+    console.error("Error fetching universities:", uniError);
     throw uniError;
   }
+
+  console.log("Universities found:", uniRows?.length ?? 0);
 
   const uniData = (uniRows?.[0] ?? null) as Nullable<UniversityRecord>;
 
   if (!uniData) {
+    console.warn("No university found for tenant:", tenantId);
     return buildEmptyDashboardData();
   }
+
+  console.log("Loading data for university:", uniData.name);
 
   const [programsRes, documentRequestsRes, agentsRes] = await Promise.all([
     supabase
@@ -648,21 +656,34 @@ export const UniversityDashboardLayout = ({
   } = useQuery({
     queryKey: ["university-dashboard", tenantId],
     enabled: Boolean(tenantId),
-    queryFn: () => {
+    queryFn: async () => {
       if (!tenantId) {
-        return Promise.resolve(buildEmptyDashboardData());
+        console.log("No tenant ID available");
+        return buildEmptyDashboardData();
       }
-      return fetchUniversityDashboardData(tenantId);
+      try {
+        const result = await fetchUniversityDashboardData(tenantId);
+        console.log("Dashboard data loaded successfully");
+        return result;
+      } catch (err) {
+        console.error("Error in queryFn:", err);
+        throw err;
+      }
     },
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 1,
   });
 
-  // Handle errors separately
+  // Handle errors
   useEffect(() => {
     if (error) {
-      console.error("Failed to load university dashboard", error);
+      console.error("University dashboard error:", {
+        error,
+        message: (error as Error)?.message,
+        tenantId,
+        timestamp: new Date().toISOString()
+      });
       toast({
         title: "Unable to load dashboard",
         description:
@@ -671,7 +692,7 @@ export const UniversityDashboardLayout = ({
         variant: "destructive",
       });
     }
-  }, [error, toast]);
+  }, [error, toast, tenantId]);
 
   const contextValue = useMemo<UniversityDashboardContextValue>(
     () => ({
@@ -695,6 +716,7 @@ export const UniversityDashboardLayout = ({
   }
 
   if (!profile) {
+    console.log("No profile found");
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16]">
         <EmptyState
@@ -707,12 +729,13 @@ export const UniversityDashboardLayout = ({
   }
 
   if (error) {
+    console.log("Rendering error state");
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
         <StatePlaceholder
           icon={<AlertCircle className="h-12 w-12 text-red-400" />}
           title="We couldn't load your dashboard"
-          description="Please refresh the page. If the issue continues, contact your GEG partnership manager."
+          description={`Error: ${(error as Error)?.message || 'Unknown error'}. Please try refreshing or contact support.`}
           action={
             <Button onClick={() => void queryRefetch()} className="gap-2">
               Try again
@@ -725,24 +748,28 @@ export const UniversityDashboardLayout = ({
   }
 
   if (!data || !data.university) {
+    console.log("No university data available", { data, tenantId });
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
         <StatePlaceholder
           icon={<Building2 className="h-12 w-12 text-blue-400" />}
-          title="Connect your university profile"
-          description="No university profile is linked to your tenant yet. Complete your onboarding to unlock the dashboard experience."
+          title="No university profile found"
+          description={`No active university is linked to your account (Tenant ID: ${tenantId?.slice(0, 8)}...). Please contact GEG Support to set up your university profile.`}
           action={
             <Button
-              variant="outline"
-              className="border-blue-500/50 text-blue-200 hover:bg-blue-500/10"
+              onClick={() => void queryRefetch()}
+              className="gap-2"
             >
-              Contact GEG Support
+              <RefreshCw className="h-4 w-4" />
+              Retry
             </Button>
           }
         />
       </div>
     );
   }
+
+  console.log("Rendering dashboard for:", data.university.name);
 
   return (
     <UniversityDashboardContext.Provider value={contextValue}>
