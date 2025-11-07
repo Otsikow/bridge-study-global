@@ -2,12 +2,11 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
-  Activity,
   AlarmClock,
   BellDot,
   Bot,
   Building2,
-  CalendarRange,
+  ChevronRight,
   CheckCircle2,
   CheckSquare,
   FileText,
@@ -18,11 +17,23 @@ import {
   MessageCircle,
   ShieldCheck,
   Sparkles,
-  Target,
   TrendingUp,
   Users,
   Settings,
 } from 'lucide-react';
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import BackButton from '@/components/BackButton';
 import { StatsCard } from '@/components/dashboard/StatsCard';
@@ -64,17 +75,70 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
-const overviewStats = [
-  { title: 'Active Students', value: '128', description: 'Across all intakes', icon: Users, to: '/dashboard/students' },
-  { title: 'Applications in Review', value: '46', description: '12 urgent actions', icon: FileText, to: '/dashboard/applications' },
-  { title: 'Tasks Due Today', value: '9', description: '3 critical items', icon: CheckSquare, to: '/dashboard/tasks' },
-  { title: 'Avg. SLA', value: '2.8 days', description: 'Goal: 3 days', icon: AlarmClock, to: '/dashboard/reports' },
+const personalOverviewKpis = [
+  {
+    title: 'Students Assigned',
+    value: '32',
+    description: 'vs. last week',
+    icon: Users,
+    trend: { value: 12, isPositive: true },
+    to: '/dashboard/students',
+  },
+  {
+    title: 'Applications Processed',
+    value: '18',
+    description: 'Completed in the last 7 days',
+    icon: FileText,
+    trend: { value: 8, isPositive: true },
+    to: '/dashboard/applications',
+  },
+  {
+    title: 'Tasks Pending',
+    value: '7',
+    description: '2 flagged as urgent',
+    icon: CheckSquare,
+    trend: { value: 5, isPositive: false },
+    to: '/dashboard/tasks',
+  },
+  {
+    title: 'Approvals Today',
+    value: '5',
+    description: 'Across student finances',
+    icon: AlarmClock,
+    trend: { value: 3, isPositive: true },
+    to: '/dashboard/payments',
+  },
 ];
 
-const productivityMetrics = [
-  { label: 'Daily Tasks Closed', value: 14, target: 18 },
-  { label: 'Weekly Offers Secured', value: 6, target: 8 },
-  { label: 'Pending Verifications', value: 5, target: 0 },
+const applicationProgressData = [
+  { status: 'Submitted', value: 12 },
+  { status: 'Screening', value: 9 },
+  { status: 'Documents', value: 7 },
+  { status: 'Offer', value: 6 },
+  { status: 'Visa', value: 4 },
+  { status: 'Enrolled', value: 3 },
+];
+
+const dailyActivityTrendData = [
+  { day: 'Mon', tasks: 9, approvals: 2 },
+  { day: 'Tue', tasks: 12, approvals: 3 },
+  { day: 'Wed', tasks: 10, approvals: 3 },
+  { day: 'Thu', tasks: 14, approvals: 4 },
+  { day: 'Fri', tasks: 11, approvals: 3 },
+  { day: 'Sat', tasks: 6, approvals: 1 },
+  { day: 'Sun', tasks: 5, approvals: 1 },
+];
+
+const quickLinks = [
+  { label: 'My Students', description: 'Review assigned cases and next actions', to: '/dashboard/students', icon: Users },
+  { label: 'My Tasks', description: 'Update task progress and workflows', to: '/dashboard/tasks', icon: CheckSquare },
+  { label: 'My Agents', description: 'Coordinate with partner agents', to: '/dashboard/agents', icon: Building2 },
+];
+
+const zoeSuggestions = [
+  { id: 'tip-1', message: '3 students need document verification before Friday.' },
+  { id: 'tip-2', message: 'Follow up with Bridge Lagos about two new applicants waiting for screening.' },
+  { id: 'tip-3', message: 'Schedule a payment approval review for commissions logged today.' },
 ];
 
 const studentRecords = [
@@ -293,13 +357,6 @@ const resourceLinks = [
   },
 ];
 
-const notifications = [
-  { id: 'NT-001', title: 'Visa stage update', detail: 'Emily Davis visa approved.', priority: 'high', time: 'Just now' },
-  { id: 'NT-002', title: 'New agent lead', detail: 'Bridge Lagos submitted 3 new candidates.', priority: 'medium', time: '15m ago' },
-  { id: 'NT-003', title: 'Document verification', detail: 'Upload proof of funds for John Smith.', priority: 'high', time: '45m ago' },
-  { id: 'NT-004', title: 'Finance reminder', detail: 'Review commissions pending for LatAm Partners.', priority: 'medium', time: '1h ago' },
-];
-
 export default function StaffDashboard() {
   const [studentSearch, setStudentSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -310,6 +367,7 @@ export default function StaffDashboard() {
   const [paymentPage, setPaymentPage] = useState(1);
   const [zoeQuestion, setZoeQuestion] = useState('');
   const [zoeResponse, setZoeResponse] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
 
   const studentsQuery = useQuery({
     queryKey: ['staff-dashboard', 'students'],
@@ -459,48 +517,7 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        <section aria-label="Staff KPIs" className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {overviewStats.map((stat) => (
-            <StatsCard key={stat.title} {...stat} />
-          ))}
-        </section>
-
-        <Card>
-          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <LineChart className="h-5 w-5 text-primary" /> Staff productivity snapshot
-              </CardTitle>
-              <CardDescription>Daily and weekly performance across your queues.</CardDescription>
-            </div>
-            <Button asChild size="sm" variant="outline">
-              <Link to="/dashboard/reports" className="gap-2">
-                <TrendingUp className="h-4 w-4" /> View full analytics
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-3">
-            {productivityMetrics.map((metric) => {
-              const progress = Math.min(100, Math.round((metric.value / metric.target) * 100));
-
-              return (
-                <div key={metric.label} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{metric.label}</p>
-                      <p className="text-xs text-muted-foreground">Target {metric.target}</p>
-                    </div>
-                    <Badge variant={progress >= 100 ? 'secondary' : 'outline'}>{progress}%</Badge>
-                  </div>
-                  <Progress value={progress} aria-label={`${metric.label} progress`} />
-                  <p className="text-xs text-muted-foreground">Completed {metric.value} of {metric.target} goal.</p>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="w-full justify-start overflow-x-auto rounded-lg border bg-background p-1">
             <TabsTrigger value="overview" className="px-4">🏠 Overview</TabsTrigger>
             <TabsTrigger value="students" className="px-4">🎓 Students</TabsTrigger>
@@ -514,63 +531,130 @@ export default function StaffDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-5">
-              <Card className="lg:col-span-3">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" /> Live notifications
-                  </CardTitle>
-                  <CardDescription>Realtime events sourced from Supabase.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {notifications.map((item) => (
-                    <div key={item.id} className="rounded-lg border p-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">{item.detail}</p>
-                        </div>
-                        <Badge variant={item.priority === 'high' ? 'destructive' : 'outline'} className="capitalize">
-                          {item.priority}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">{item.time}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                {personalOverviewKpis.map((stat) => (
+                  <StatsCard key={stat.title} {...stat} />
+                ))}
+              </div>
 
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" /> Action queue
-                  </CardTitle>
-                  <CardDescription>Next best actions suggested by Zoe.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3 rounded-lg border p-3">
-                    <Sparkles className="mt-1 h-5 w-5 text-primary" />
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <LineChart className="h-5 w-5 text-primary" /> Application progress
+                    </CardTitle>
+                    <CardDescription>Status mix across your assigned students.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={applicationProgressData} barSize={28}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                        <XAxis dataKey="status" tickLine={false} axisLine={false} className="text-xs" />
+                        <YAxis allowDecimals={false} tickLine={false} axisLine={false} className="text-xs" />
+                        <RechartsTooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                        <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Quick links</CardTitle>
+                    <CardDescription>Jump straight into your most-used views.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {quickLinks.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.label}
+                          to={item.to}
+                          className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5 text-primary" />
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">{item.label}</p>
+                              <p className="text-xs text-muted-foreground">{item.description}</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </Link>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
                     <div>
-                      <p className="text-sm font-medium">Prioritize pending document verifications.</p>
-                      <p className="text-xs text-muted-foreground">3 students waiting &mdash; due by tomorrow.</p>
+                      <CardTitle className="text-lg">Daily activity trend</CardTitle>
+                      <CardDescription>Track throughput and approvals over the last 7 days.</CardDescription>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-lg border p-3">
-                    <MessageCircle className="mt-1 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Follow up with Bridge Lagos about new leads.</p>
-                      <p className="text-xs text-muted-foreground">Schedule call or send message from the agent tab.</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-lg border p-3">
-                    <CalendarRange className="mt-1 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">Check payments due in the next 7 days.</p>
-                      <p className="text-xs text-muted-foreground">3 commission items still require approval.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                      Last 7 days
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={dailyActivityTrendData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} className="text-xs" />
+                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} className="text-xs" />
+                        <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} />
+                        <Legend verticalAlign="top" align="left" iconType="circle" wrapperStyle={{ paddingTop: 12 }} />
+                        <Line
+                          type="monotone"
+                          dataKey="tasks"
+                          name="Tasks completed"
+                          stroke="hsl(var(--chart-1))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="approvals"
+                          name="Approvals"
+                          stroke="hsl(var(--chart-2))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Sparkles className="h-5 w-5 text-primary" /> Zoe’s AI tips
+                    </CardTitle>
+                    <CardDescription>Smart nudges tailored to today’s workload.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {zoeSuggestions.map((tip) => (
+                      <div key={tip.id} className="rounded-lg border p-3 text-sm leading-relaxed text-muted-foreground">
+                        {tip.message}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => setActiveTab('ai')}
+                    >
+                      <Bot className="h-4 w-4" /> Ask Zoe for more
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
