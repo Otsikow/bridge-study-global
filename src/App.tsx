@@ -195,7 +195,7 @@ const UniversityDashboard = lazyWithErrorHandling(() => import("./pages/dashboar
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // Staff Dashboard Pages
-const StaffApplications = lazyWithErrorHandling(() => import("./pages/dashboard/StaffApplications"));
+const DashboardApplications = lazyWithErrorHandling(() => import("./pages/dashboard/ApplicationsRouter"));
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
 const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
 const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
@@ -378,8 +378,8 @@ const App = () => {
                       <Route
                         path="/dashboard/applications"
                         element={
-                          <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
-                            <StaffApplications />
+                          <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
+                            <DashboardApplications />
                           </ProtectedRoute>
                         }
                       />
