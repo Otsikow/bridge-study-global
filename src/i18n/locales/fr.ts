@@ -331,6 +331,98 @@ const fr = {
   },
     pages: {
       index: {
+        aiSearch: {
+          badge: "Recherche universitaire et bourses propulsée par l'IA",
+          heading: "Trouvez le bon programme avec une intelligence en temps réel",
+          description:
+            "Posez toutes vos questions sur les universités, les formations ou les financements dans le monde entier. Notre IA analyse les informations d'admission, les bourses et les parcours de visa adaptés à vos objectifs.",
+          subheading:
+            "Inscrivez-vous pour débloquer des recommandations personnalisées alimentées par l'IA sur les admissions, les bourses et les visas.",
+          ctaLabel: "Commencer",
+          stats: [
+            { value: "12k+", label: "Analyses IA générées pour des candidats internationaux" },
+            { value: "84%", label: "Étudiants assortis à au moins trois programmes idéaux" },
+            { value: "50+", label: "Pays couverts avec des données d'admission vérifiées" },
+          ],
+          panel: {
+            title: "Aperçu de Zoe Intelligence",
+            subtitle: "Choisissez un axe pour découvrir les informations auxquelles vous aurez accès.",
+            previewLabel: "Exemple",
+            highlightsHeading: "Ce que l'IA prépare pour vous",
+          },
+          focusAreas: [
+            {
+              key: "stem",
+              label: "STEM",
+              headline: "Parcours sur mesure pour innovateurs techniques",
+              description:
+                "Mettez en lumière des programmes avec laboratoires de recherche, stages et financements dédiés aux sciences et à l'ingénierie.",
+              highlights: [
+                "Bourses privilégiant les filières STEM et la production de recherche",
+                "Programmes alignés sur l'industrie avec stages et alternances",
+                "Conseils visa pour les métiers technologiques et d'ingénierie les plus demandés",
+              ],
+            },
+            {
+              key: "scholarships",
+              label: "Bourses",
+              headline: "Opportunités de financement adaptées à votre profil",
+              description:
+                "Identifiez les subventions, bourses et assistanats que vous pouvez réellement obtenir.",
+              highlights: [
+                "Liste sélectionnée de bourses au mérite et sur critères sociaux avec échéances",
+                "Critères d'éligibilité associés à votre parcours académique",
+                "Conseils pour renforcer lettres de motivation et recommandations",
+              ],
+            },
+            {
+              key: "visa",
+              label: "Visa facilité",
+              headline: "Parcours d'études avec démarches migratoires fluides",
+              description: "Comparez les pays et institutions offrant des parcours de visa favorables.",
+              highlights: [
+                "Options de travail post-études et durées de séjour résumées",
+                "Listes de contrôle des documents adaptées à votre nationalité",
+                "Recommandations sur justificatifs financiers, assurances et préparation aux entretiens",
+              ],
+            },
+            {
+              key: "undergraduate",
+              label: "Premier cycle",
+              headline: "Parcours licence pour premières candidatures",
+              description:
+                "Comprenez les conditions d'admission, prérequis et services d'accompagnement.",
+              highlights: [
+                "Calendrier pas à pas de l'évaluation des relevés à l'acceptation",
+                "Orientation pour choisir majeure, mineure et années préparatoires",
+                "Ressources de transition sur le logement, l'accueil et la gestion budgétaire",
+              ],
+            },
+            {
+              key: "postgraduate",
+              label: "Deuxième cycle",
+              headline: "Programmes de master et doctorat alignés sur vos objectifs",
+              description: "Comparez encadrants de recherche, tailles de cohorte et modèles de financement.",
+              highlights: [
+                "Mises en avant de professeurs et thématiques de recherche actuelles",
+                "Disponibilité d'assistanats et de bourses avec indemnités",
+                "Préparation aux entretiens et exigences de portfolio selon le programme",
+              ],
+            },
+            {
+              key: "coop",
+              label: "Stages & alternances",
+              headline: "Apprentissage intégré au travail avec des employeurs internationaux",
+              description:
+                "Repérez des programmes qui associent études et expérience professionnelle concrète.",
+              highlights: [
+                "Taux de placement et partenariats entreprises par région",
+                "Points de vigilance visa pour stages rémunérés et périodes en entreprise",
+                "Accompagnement carrière pour CV, entretiens et réseau",
+              ],
+            },
+          ],
+        },
         journeyRibbon: {
           items: {
             discover: {

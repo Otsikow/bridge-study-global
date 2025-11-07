@@ -382,6 +382,98 @@ const pt = {
             },
           },
         },
+        aiSearch: {
+          badge: "Busca de universidades e bolsas com IA",
+          heading: "Encontre o programa ideal com inteligência em tempo real",
+          description:
+            "Pergunte tudo sobre universidades, cursos ou financiamento no mundo inteiro. Nossa IA analisa dados de admissão, bolsas e rotas de visto alinhadas aos seus objetivos.",
+          subheading:
+            "Crie uma conta para liberar recomendações personalizadas de admissão, bolsas e vistos alimentadas por IA.",
+          ctaLabel: "Começar",
+          stats: [
+            { value: "12k+", label: "Insights com IA para candidatos globais" },
+            { value: "84%", label: "Estudantes com pelo menos três programas ideais" },
+            { value: "50+", label: "Países com dados de admissão verificados" },
+          ],
+          panel: {
+            title: "Prévia do Zoe Intelligence",
+            subtitle: "Escolha um foco para ver os insights que você vai desbloquear.",
+            previewLabel: "Exemplo",
+            highlightsHeading: "O que a IA prepara para você",
+          },
+          focusAreas: [
+            {
+              key: "stem",
+              label: "STEM",
+              headline: "Caminhos personalizados para inovadores técnicos",
+              description:
+                "Destaque programas com laboratórios de pesquisa, estágios e financiamento para ciências e engenharia.",
+              highlights: [
+                "Bolsas que priorizam cursos STEM e produção científica",
+                "Currículos alinhados ao mercado com estágios e programas co-op",
+                "Orientação de visto para carreiras tecnológicas e de engenharia em alta demanda",
+              ],
+            },
+            {
+              key: "scholarships",
+              label: "Bolsas",
+              headline: "Oportunidades de financiamento compatíveis com seu perfil",
+              description:
+                "Identifique bolsas, auxílios e assistantships que você tem chances reais de conquistar.",
+              highlights: [
+                "Lista curada de bolsas por mérito e necessidade com prazos",
+                "Critérios de elegibilidade conectados ao seu histórico acadêmico",
+                "Dicas para fortalecer cartas de motivação e recomendações",
+              ],
+            },
+            {
+              key: "visa",
+              label: "Facilidade de visto",
+              headline: "Rotas de estudo com processos migratórios tranquilos",
+              description: "Compare países e instituições com caminhos de visto favoráveis.",
+              highlights: [
+                "Opções de trabalho pós-estudo e tempos de permanência resumidos",
+                "Checklists de documentos adaptadas à sua nacionalidade",
+                "Orientações sobre comprovação financeira, seguros e preparação para entrevistas",
+              ],
+            },
+            {
+              key: "undergraduate",
+              label: "Graduação",
+              headline: "Jornadas de graduação para primeiras candidaturas",
+              description:
+                "Entenda requisitos de ingresso, pré-requisitos e serviços de apoio.",
+              highlights: [
+                "Cronograma passo a passo da análise de histórico até a aceitação",
+                "Orientação para escolher cursos, minors e anos preparatórios",
+                "Recursos de transição sobre moradia, acolhimento e orçamento",
+              ],
+            },
+            {
+              key: "postgraduate",
+              label: "Pós-graduação",
+              headline: "Programas de mestrado e doutorado alinhados às suas metas",
+              description: "Compare orientadores, tamanho de turmas e modelos de financiamento.",
+              highlights: [
+                "Destaques de docentes e temas de pesquisa atuais",
+                "Disponibilidade de assistantships e bolsas com bolsas auxílio",
+                "Preparação para entrevistas e portfólios conforme o programa",
+              ],
+            },
+            {
+              key: "coop",
+              label: "Co-op e estágios",
+              headline: "Aprendizado integrado ao trabalho com empregadores globais",
+              description:
+                "Encontre programas que combinam estudo com experiência profissional prática.",
+              highlights: [
+                "Taxas de colocação e parcerias com empresas em diversas regiões",
+                "Considerações de visto para estágios remunerados e períodos de trabalho",
+                "Suporte de carreiras para currículo, entrevistas e networking",
+              ],
+            },
+          ],
+        },
         journeyRibbon: {
           items: {
             discover: {

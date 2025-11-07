@@ -259,6 +259,98 @@ const de = {
           },
         },
       },
+      aiSearch: {
+        badge: "KI-gestützte Universitäts- & Stipendiensuche",
+        heading: "Finden Sie das passende Programm mit Echtzeit-Intelligenz",
+        description:
+          "Stellen Sie Fragen zu Universitäten, Studiengängen oder Finanzierungen weltweit. Unsere KI analysiert Zulassungsinformationen, Stipendien und Visawege, die auf Ihre Ziele zugeschnitten sind.",
+        subheading:
+          "Registrieren Sie sich, um maßgeschneiderte KI-Empfehlungen zu Zulassungen, Stipendien und Visa zu erhalten.",
+        ctaLabel: "Jetzt starten",
+        stats: [
+          { value: "12k+", label: "KI-Einblicke für Studieninteressierte weltweit" },
+          { value: "84%", label: "Studierende mit mindestens drei passenden Programmen" },
+          { value: "50+", label: "Länder mit verifizierten Zulassungsdaten" },
+        ],
+        panel: {
+          title: "Zoe Intelligence entdecken",
+          subtitle: "Wählen Sie einen Fokusbereich und sehen Sie, welche Einblicke Sie erhalten.",
+          previewLabel: "Vorschau",
+          highlightsHeading: "Was die KI für Sie vorbereitet",
+        },
+        focusAreas: [
+          {
+            key: "stem",
+            label: "STEM",
+            headline: "Individuelle Wege für technische Innovator:innen",
+            description:
+              "Entdecken Sie Programme mit Forschungslaboren, Praxisphasen und Finanzierung für Naturwissenschaften und Technik.",
+            highlights: [
+              "Stipendien mit Fokus auf MINT-Fächer und Forschung",
+              "Branchengerechte Curricula mit Praktika und Co-op-Phasen",
+              "Visa-Leitfäden für gefragte Technik- und Ingenieurberufe",
+            ],
+          },
+          {
+            key: "scholarships",
+            label: "Stipendien",
+            headline: "Finanzierungsmöglichkeiten passend zu Ihrem Profil",
+            description:
+              "Identifizieren Sie Zuschüsse, Stipendien und Assistenzstellen, die Sie realistisch erhalten können.",
+            highlights: [
+              "Kuratiertes Verzeichnis von Leistungs- und Bedürftigkeitsstipendien",
+              "Eignungsempfehlungen abgestimmt auf Ihren akademischen Hintergrund",
+              "Tipps für überzeugende Motivationsschreiben und Referenzen",
+            ],
+          },
+          {
+            key: "visa",
+            label: "Visafreundlich",
+            headline: "Studienwege mit reibungslosem Visaprozess",
+            description: "Vergleichen Sie Länder und Institutionen mit günstigen Visabestimmungen.",
+            highlights: [
+              "Zusammengefasste Optionen für Aufenthalts- und Arbeitsvisa nach dem Studium",
+              "Dokumenten-Checklisten zugeschnitten auf Ihre Staatsangehörigkeit",
+              "Hinweise zu Finanzierungsnachweisen, Versicherung und Interviewvorbereitung",
+            ],
+          },
+          {
+            key: "undergraduate",
+            label: "Bachelor",
+            headline: "Bachelorwege für Erstbewerber:innen",
+            description:
+              "Verstehen Sie Zulassungsvoraussetzungen, Vorkurse und Unterstützungsangebote.",
+            highlights: [
+              "Zeitplan von der Zeugnisbewertung bis zur Zusage",
+              "Orientierung bei der Wahl von Hauptfach, Nebenfach und Foundation-Jahr",
+              "Ressourcen für Wohnen, Orientierung und Budgetplanung",
+            ],
+          },
+          {
+            key: "postgraduate",
+            label: "Master & PhD",
+            headline: "Postgraduale Programme abgestimmt auf Ihre Ziele",
+            description: "Vergleichen Sie Betreuende, Kohortengröße und Finanzierungsmodelle.",
+            highlights: [
+              "Porträts von Fakultäten mit aktuellen Forschungsthemen",
+              "Informationen zu Assistenz- und Fellowship-Stellen mit Stipendien",
+              "Vorbereitung auf Interviews und Portfolio-Anforderungen je Programm",
+            ],
+          },
+          {
+            key: "coop",
+            label: "Co-op & Praktika",
+            headline: "Praxisintegriertes Lernen mit globalen Arbeitgebern",
+            description:
+              "Finden Sie Programme, die Studium mit praktischer Berufserfahrung verbinden.",
+            highlights: [
+              "Vermittlungsquoten und Unternehmenspartner nach Regionen",
+              "Visa-Aspekte für vergütete Praxisphasen",
+              "Karriereservices für Lebenslauf, Interviews und Networking",
+            ],
+          },
+        ],
+      },
       journeyRibbon: {
         items: {
           discover: {
