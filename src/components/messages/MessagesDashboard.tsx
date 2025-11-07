@@ -131,7 +131,7 @@ export default function MessagesDashboard() {
     bootstrap();
   }, [user]);
 
-  // Fetch full thread when selecting a conversation
+  // Fetch full thread when selecting a message thread
   useEffect(() => {
     const loadThread = async () => {
       if (!selectedAppId) return;
@@ -142,7 +142,7 @@ export default function MessagesDashboard() {
         .order('created_at', { ascending: true });
       if (!error) {
         setMessagesByApp((prev) => ({ ...prev, [selectedAppId]: (data || []) as MessageRow[] }));
-        // mark last seen for this conversation now
+          // mark last seen for this message thread now
         const nextSeen = { ...lastSeen, [selectedAppId]: new Date().toISOString() };
         setLastSeen(nextSeen);
         persistLastSeen(nextSeen);
@@ -166,7 +166,7 @@ export default function MessagesDashboard() {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           const m = payload.new as MessageRow;
-          // Update latest per conversation
+            // Update latest per message thread
           setLatestByApp((prev) => ({ ...prev, [m.application_id]: m }));
           // If current thread loaded, append
           setMessagesByApp((prev) => {
@@ -175,7 +175,7 @@ export default function MessagesDashboard() {
             const next = [...arr, m];
             return { ...prev, [m.application_id]: next };
           });
-          // Auto-scroll if new message belongs to open conversation
+            // Auto-scroll if new message belongs to open message thread
           if (m.application_id === selectedAppId) {
             setTimeout(() => listBottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
           }
@@ -252,7 +252,7 @@ export default function MessagesDashboard() {
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <Button variant="outline" className="gap-2 hover-scale whitespace-nowrap" disabled>
-            <MessageSquare className="h-4 w-4" /> <span className="hidden sm:inline">New Conversation</span>
+            <MessageSquare className="h-4 w-4" /> <span className="hidden sm:inline">New Message</span>
           </Button>
         </div>
       </div>
@@ -260,7 +260,7 @@ export default function MessagesDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <Card className="lg:col-span-1 rounded-xl border shadow-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Conversations</CardTitle>
+            <CardTitle className="text-base">Messages</CardTitle>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -276,7 +276,7 @@ export default function MessagesDashboard() {
               {loading ? (
                 <div className="p-4 text-sm text-muted-foreground">Loading...</div>
               ) : filteredApplications.length === 0 ? (
-                <div className="p-4 text-sm text-muted-foreground">No conversations yet</div>
+                <div className="p-4 text-sm text-muted-foreground">No messages yet</div>
               ) : (
                 <ul className="divide-y">
                   {filteredApplications.map((app) => {
@@ -329,22 +329,22 @@ export default function MessagesDashboard() {
         <Card className="lg:col-span-2 rounded-xl border shadow-card">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">
-              {selectedAppId ? selectedTitle : 'Conversation'}
+              {selectedAppId ? selectedTitle : 'Message'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {!selectedAppId ? (
-              <div className="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
-                Select a conversation to view messages
+                <div className="h-[360px] flex items-center justify-center text-muted-foreground text-sm">
+                  Select a message thread to view details
               </div>
             ) : (
               <>
                 <ScrollArea className="h-[360px] pr-2">
                   <div className="space-y-3">
                     {selectedMessages.length === 0 ? (
-                      <div className="text-sm text-muted-foreground px-1">
-                        No messages yet. Start the conversation below.
-                      </div>
+                        <div className="text-sm text-muted-foreground px-1">
+                          No messages yet. Start messaging below.
+                        </div>
                     ) : (
                       selectedMessages.map((m) => {
                         const mine = user && m.sender_id === user.id;

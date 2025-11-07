@@ -217,14 +217,14 @@ export default function Messages() {
         </div>
       )}
 
-      {/* New Chat Dialog */}
+        {/* New Message Dialog */}
       <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>New Conversation</DialogTitle>
-            <DialogDescription>
-              Search for users to start a conversation
-            </DialogDescription>
+              <DialogTitle>New Message</DialogTitle>
+              <DialogDescription>
+                Search for users to start messaging
+              </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">

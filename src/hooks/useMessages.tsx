@@ -332,6 +332,51 @@ const getErrorDetails = (error: SupabaseError) => {
   return '';
 };
 
+const getErrorHint = (error: SupabaseError) => {
+  if (!error || error instanceof Error) return '';
+
+  if (error && typeof error === 'object' && 'hint' in error) {
+    return (error.hint as string | null) || '';
+  }
+
+  return '';
+};
+
+const getErrorSummary = (error: SupabaseError) => {
+  const parts = [getErrorMessage(error), getErrorDetails(error), getErrorHint(error)]
+    .map((part) => (typeof part === 'string' ? part.trim() : ''))
+    .filter(Boolean);
+  return parts.join(' ').toLowerCase();
+};
+
+const isMissingColumnError = (error: SupabaseError, columnName: string) => {
+  if (!error) return false;
+  const summary = getErrorSummary(error);
+  if (!summary) return false;
+
+  const normalized = columnName.toLowerCase();
+  return (
+    summary.includes(`column "${normalized}"`) ||
+    summary.includes(`column ${normalized}`) ||
+    summary.includes(`"${normalized}" does not exist`) ||
+    summary.includes(`${normalized} does not exist`)
+  );
+};
+
+const isMissingRelationError = (error: SupabaseError, relationName: string) => {
+  if (!error) return false;
+  const summary = getErrorSummary(error);
+  if (!summary) return false;
+
+  const normalized = relationName.toLowerCase();
+  return (
+    summary.includes(`relation "${normalized}"`) ||
+    summary.includes(`relation ${normalized}`) ||
+    summary.includes(`"${normalized}" does not exist`) ||
+    summary.includes(`${normalized} does not exist`)
+  );
+};
+
 const isMissingRpcFunctionError = (error: SupabaseError) => {
   const message = `${getErrorMessage(error)} ${getErrorDetails(error)}`.toLowerCase();
 
@@ -484,8 +529,8 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         };
       })
     );
-  } catch (error) {
-    console.error('Error marking conversation as read:', error);
+    } catch (error) {
+      console.error('Error marking message thread as read:', error);
   }
 }, [supabase, user?.id]);
 
@@ -549,98 +594,143 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+    const fullMessageSelect =
+      'id, conversation_id, sender_id, content, message_type, attachments, metadata, reply_to_id, edited_at, deleted_at, created_at';
+    const fallbackWithoutMetadata =
+      'id, conversation_id, sender_id, content, message_type, attachments, created_at';
+    const fallbackMinimal =
+      'id, conversation_id, sender_id, content, message_type, created_at';
+
+    const buildBaseQuery = (selectColumns: string) =>
+      supabase
         .from('conversation_messages')
-        .select(`
-          id,
-          conversation_id,
-          sender_id,
-          content,
-          message_type,
-          attachments,
-          metadata,
-          reply_to_id,
-          edited_at,
-          deleted_at,
-          created_at
-        `)
+        .select(selectColumns)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+    let { data, error } = await buildBaseQuery(fullMessageSelect);
 
-      const messageRows = (data || []) as RawMessage[];
-      const messageIds = messageRows.map((msg) => msg.id);
-      const senderIds = new Set<string>();
+    if (error) {
+      if (
+        isMissingColumnError(error, 'metadata') ||
+        isMissingColumnError(error, 'reply_to_id') ||
+        isMissingColumnError(error, 'edited_at') ||
+        isMissingColumnError(error, 'deleted_at')
+      ) {
+        const fallbackResult = await buildBaseQuery(fallbackWithoutMetadata);
+        data = fallbackResult.data;
+        error = fallbackResult.error;
+      }
+    }
 
-      messageRows.forEach((msg) => {
-        if (msg.sender_id) senderIds.add(msg.sender_id);
-      });
+    if (error && isMissingColumnError(error, 'attachments')) {
+      const fallbackResult = await buildBaseQuery(fallbackMinimal);
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
 
-      // Fetch receipts for the messages in this conversation
-      let receiptsByMessage = new Map<string, RawReceipt[]>();
-      if (messageIds.length > 0) {
-        const { data: receiptsData, error: receiptsError } = await supabase
-          .from('message_receipts')
-          .select('message_id, user_id, read_at')
-          .in('message_id', messageIds);
+    if (error) throw error;
 
-        if (receiptsError) {
+    const messageRows = (data || []) as Partial<RawMessage>[];
+    const messageIds = messageRows
+      .map((msg) => msg?.id)
+      .filter((id): id is string => Boolean(id));
+    const senderIds = new Set<string>();
+
+    messageRows.forEach((msg) => {
+      if (msg?.sender_id) senderIds.add(msg.sender_id);
+    });
+
+    // Fetch receipts for the messages in this conversation
+    let receiptsByMessage = new Map<string, RawReceipt[]>();
+    if (messageIds.length > 0) {
+      const { data: receiptsData, error: receiptsError } = await supabase
+        .from('message_receipts')
+        .select('message_id, user_id, read_at')
+        .in('message_id', messageIds);
+
+      if (receiptsError) {
+        if (!isMissingRelationError(receiptsError, 'message_receipts')) {
           console.error('Error fetching message receipts:', receiptsError);
-        } else {
-          receiptsByMessage = receiptsData?.reduce((map, receipt) => {
+        }
+      } else if (receiptsData) {
+        receiptsByMessage =
+          receiptsData.reduce((map, receipt) => {
             const arr = map.get(receipt.message_id) || [];
             arr.push(receipt as RawReceipt);
             map.set(receipt.message_id, arr);
             senderIds.add(receipt.user_id);
             return map;
           }, new Map<string, RawReceipt[]>()) ?? new Map();
-        }
       }
+    }
 
-      // Fetch profiles for senders and recipients (for receipts)
-      const uniqueUserIds = Array.from(senderIds).filter(Boolean);
-      let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
+    // Fetch profiles for senders and recipients (for receipts)
+    const uniqueUserIds = Array.from(senderIds).filter(Boolean);
+    let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null }>();
 
-      if (uniqueUserIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, full_name, avatar_url')
-          .in('id', uniqueUserIds);
+    if (uniqueUserIds.length > 0) {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', uniqueUserIds);
 
-        if (profilesError) {
-          console.error('Error fetching message profiles:', profilesError);
-        } else {
-          profilesMap = new Map(
-            (profilesData || []).map((p: any) => [p.id, p])
-          );
-        }
+      if (profilesError) {
+        console.error('Error fetching message profiles:', profilesError);
+      } else if (profilesData) {
+        profilesMap = new Map(
+          (profilesData || []).map((p: any) => [p.id, p])
+        );
       }
+    }
 
-      const formatted = messageRows.map((rawMessage) => {
+    const formatted = messageRows
+      .map((rawMessage) => {
+        if (!rawMessage?.id || !rawMessage.conversation_id || !rawMessage.sender_id || !rawMessage.created_at) {
+          return null;
+        }
+
+        const senderProfile = profilesMap.get(rawMessage.sender_id);
         const messageWithRelations: RawMessage = {
-          ...rawMessage,
-          sender: profilesMap.get(rawMessage.sender_id) || {
-            id: rawMessage.sender_id,
-            full_name: 'Unknown User',
-            avatar_url: null,
-          },
+          id: rawMessage.id,
+          conversation_id: rawMessage.conversation_id,
+          sender_id: rawMessage.sender_id,
+          content: rawMessage.content ?? '',
+          message_type: rawMessage.message_type ?? null,
+          attachments: rawMessage.attachments ?? [],
+          metadata: rawMessage.metadata ?? null,
+          reply_to_id: rawMessage.reply_to_id ?? null,
+          edited_at: rawMessage.edited_at ?? null,
+          deleted_at: rawMessage.deleted_at ?? null,
+          created_at: rawMessage.created_at,
+          sender: senderProfile
+            ? {
+                id: senderProfile.id,
+                full_name: senderProfile.full_name,
+                avatar_url: senderProfile.avatar_url,
+              }
+            : {
+                id: rawMessage.sender_id,
+                full_name: 'Unknown User',
+                avatar_url: null,
+              },
           receipts: receiptsByMessage.get(rawMessage.id) || [],
         };
 
         return transformMessage(messageWithRelations);
-      });
+      })
+      .filter((message): message is Message => Boolean(message));
 
-      // Enhance receipts with profile data now that messages are transformed
-      const messagesWithReceiptProfiles = formatted.map((message) => ({
-        ...message,
-        receipts: message.receipts.map((receipt) => ({
-          ...receipt,
-          profile: profilesMap.get(receipt.user_id) || undefined,
-        })),
-      }));
+    // Enhance receipts with profile data now that messages are transformed
+    const messagesWithReceiptProfiles = formatted.map((message) => ({
+      ...message,
+      receipts: message.receipts.map((receipt) => ({
+        ...receipt,
+        profile: profilesMap.get(receipt.user_id) || receipt.profile,
+      })),
+    }));
 
-      setMessages(messagesWithReceiptProfiles);
+    setMessages(messagesWithReceiptProfiles);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -657,10 +747,9 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
       if (!user?.id) {
         setConversations([]);
         return;
-        }
+      }
 
-        try {
-        // First, get conversation IDs where user participates
+      try {
         const { data: userParticipations, error: partError } = await supabase
           .from('conversation_participants')
           .select('conversation_id')
@@ -668,57 +757,186 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         if (partError) throw partError;
 
-        if (!userParticipations || userParticipations.length === 0) {
+        const conversationIds = (userParticipations || [])
+          .map((record) => record?.conversation_id)
+          .filter((id): id is string => Boolean(id));
+
+        if (conversationIds.length === 0) {
           setConversations([]);
           return;
         }
 
-        const conversationIds = userParticipations.map(p => p.conversation_id);
+        const baseConversationSelect =
+          'id, tenant_id, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at';
+        const fallbackConversationSelect =
+          'id, tenant_id, title, type, is_group, avatar_url, created_at, updated_at';
 
-        // Get all conversations
-        const { data: conversationsData, error: convError } = await supabase
-          .from('conversations')
-          .select('id, tenant_id, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at')
-          .in('id', conversationIds)
-          .order('last_message_at', { ascending: false })
-          .order('updated_at', { ascending: false });
+        const runConversationQuery = async (
+          selectString: string,
+          includeLastMessageOrder: boolean
+        ) => {
+          let query = supabase
+            .from('conversations')
+            .select(selectString)
+            .in('id', conversationIds);
+
+          if (includeLastMessageOrder) {
+            query = query.order('last_message_at', { ascending: false, nullsLast: true });
+          }
+
+          return query.order('updated_at', { ascending: false, nullsLast: true });
+        };
+
+        let { data: conversationRows, error: convError } = await runConversationQuery(
+          baseConversationSelect,
+          true
+        );
+
+        if (convError) {
+          if (isMissingColumnError(convError, 'last_message_at')) {
+            ({ data: conversationRows, error: convError } = await runConversationQuery(
+              baseConversationSelect,
+              false
+            ));
+          }
+        }
+
+        if (convError && isMissingColumnError(convError, 'updated_at')) {
+          ({ data: conversationRows, error: convError } = await supabase
+            .from('conversations')
+            .select(baseConversationSelect)
+            .in('id', conversationIds)
+            .order('created_at', { ascending: false, nullsLast: true }));
+        }
+
+        if (
+          convError &&
+          (isMissingColumnError(convError, 'metadata') ||
+            isMissingColumnError(convError, 'avatar_url') ||
+            isMissingColumnError(convError, 'title') ||
+            isMissingColumnError(convError, 'type'))
+        ) {
+          ({ data: conversationRows, error: convError } = await runConversationQuery(
+            fallbackConversationSelect,
+            false
+          ));
+        }
 
         if (convError) throw convError;
 
-        if (!conversationsData || conversationsData.length === 0) {
-          setConversations([]);
-          return;
-        }
+        const sanitizedConversations = (conversationRows || []).map((row: any) => ({
+          id: row.id as string,
+          tenant_id: row.tenant_id as string,
+          title: typeof row.title === 'string' ? row.title : null,
+          type: typeof row.type === 'string' ? row.type : null,
+          is_group: typeof row.is_group === 'boolean' ? row.is_group : Boolean(row.is_group),
+          avatar_url: typeof row.avatar_url === 'string' ? row.avatar_url : null,
+          created_by: typeof row.created_by === 'string' ? row.created_by : null,
+          created_at: row.created_at ?? null,
+          updated_at: row.updated_at ?? row.created_at ?? null,
+          last_message_at: row.last_message_at ?? null,
+          metadata: row.metadata ?? null,
+          participants: [],
+          lastMessage: [],
+        })) as RawConversation[];
 
-        // Get all participants for these conversations
-        const { data: allParticipants, error: allPartError } = await supabase
+        const baseParticipantSelect =
+          'id, conversation_id, user_id, joined_at, last_read_at, is_admin, role';
+        const fallbackParticipantSelect =
+          'id, conversation_id, user_id, joined_at, is_admin';
+
+        let { data: participantRows, error: participantsError } = await supabase
           .from('conversation_participants')
-          .select('id, conversation_id, user_id, joined_at, last_read_at, is_admin, role')
+          .select(baseParticipantSelect)
           .in('conversation_id', conversationIds);
 
-        if (allPartError) throw allPartError;
+        if (
+          participantsError &&
+          (isMissingColumnError(participantsError, 'last_read_at') ||
+            isMissingColumnError(participantsError, 'role'))
+        ) {
+          const fallbackResult = await supabase
+            .from('conversation_participants')
+            .select(fallbackParticipantSelect)
+            .in('conversation_id', conversationIds);
+          participantRows = fallbackResult.data;
+          participantsError = fallbackResult.error;
+        }
 
-        // Get last message for each conversation
-        const { data: lastMessages, error: lastMsgError } = await supabase
-          .from('conversation_messages')
-          .select('id, conversation_id, sender_id, content, message_type, attachments, metadata, reply_to_id, edited_at, deleted_at, created_at')
-          .in('conversation_id', conversationIds)
-          .order('created_at', { ascending: false });
+        if (participantsError) throw participantsError;
 
-        if (lastMsgError) throw lastMsgError;
+        const baseMessageSelect =
+          'id, conversation_id, sender_id, content, message_type, attachments, metadata, reply_to_id, edited_at, deleted_at, created_at';
+        const fallbackMessageSelect =
+          'id, conversation_id, sender_id, content, message_type, attachments, created_at';
+        const minimalMessageSelect =
+          'id, conversation_id, sender_id, content, message_type, created_at';
 
-        // Group last messages by conversation
-        const lastMessageMap = new Map();
-        lastMessages?.forEach(msg => {
-          if (!lastMessageMap.has(msg.conversation_id)) {
-            lastMessageMap.set(msg.conversation_id, msg);
+        const runLastMessageQuery = async (selectString: string) =>
+          supabase
+            .from('conversation_messages')
+            .select(selectString)
+            .in('conversation_id', conversationIds)
+            .order('created_at', { ascending: false });
+
+        let { data: lastMessageRows, error: lastMessageError } = await runLastMessageQuery(
+          baseMessageSelect
+        );
+
+        if (lastMessageError) {
+          if (
+            isMissingColumnError(lastMessageError, 'metadata') ||
+            isMissingColumnError(lastMessageError, 'reply_to_id') ||
+            isMissingColumnError(lastMessageError, 'edited_at') ||
+            isMissingColumnError(lastMessageError, 'deleted_at')
+          ) {
+            const fallbackResult = await runLastMessageQuery(fallbackMessageSelect);
+            lastMessageRows = fallbackResult.data;
+            lastMessageError = fallbackResult.error;
           }
+        }
+
+        if (lastMessageError && isMissingColumnError(lastMessageError, 'attachments')) {
+          const fallbackResult = await runLastMessageQuery(minimalMessageSelect);
+          lastMessageRows = fallbackResult.data;
+          lastMessageError = fallbackResult.error;
+        }
+
+        if (lastMessageError) throw lastMessageError;
+
+        const lastMessageMap = new Map<string, RawMessage>();
+        lastMessageRows?.forEach((row: any) => {
+          if (!row?.conversation_id || lastMessageMap.has(row.conversation_id)) {
+            return;
+          }
+
+          if (!row.id || !row.sender_id || !row.created_at) {
+            return;
+          }
+
+          lastMessageMap.set(row.conversation_id, {
+            id: row.id,
+            conversation_id: row.conversation_id,
+            sender_id: row.sender_id,
+            content: row.content ?? '',
+            message_type: row.message_type ?? null,
+            attachments: row.attachments ?? [],
+            metadata: row.metadata ?? null,
+            reply_to_id: row.reply_to_id ?? null,
+            edited_at: row.edited_at ?? null,
+            deleted_at: row.deleted_at ?? null,
+            created_at: row.created_at,
+          });
         });
 
-        const typedData = conversationsData.map(conv => ({
-          ...conv,
-          participants: (allParticipants || []).filter((p: any) => p.conversation_id === conv.id),
-          lastMessage: lastMessageMap.get(conv.id) ? [lastMessageMap.get(conv.id)] : [],
+        const typedData = sanitizedConversations.map((conversation) => ({
+          ...conversation,
+          participants: (participantRows || []).filter(
+            (participant: any) => participant?.conversation_id === conversation.id
+          ),
+          lastMessage: lastMessageMap.has(conversation.id)
+            ? [lastMessageMap.get(conversation.id) as RawMessage]
+            : [],
         })) as unknown as RawConversation[];
 
         const participantIds = new Set<string>();
@@ -735,7 +953,10 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
           }
         });
 
-        let profilesMap = new Map<string, { id: string; full_name: string; avatar_url: string | null; role?: string | null }>();
+        let profilesMap = new Map<
+          string,
+          { id: string; full_name: string; avatar_url: string | null; role?: string | null }
+        >();
         if (participantIds.size > 0) {
           const ids = Array.from(participantIds);
           const { data: profilesData, error: profilesError } = await supabase
@@ -769,7 +990,10 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
                 conversation_id: participant.conversation_id,
                 user_id: participant.user_id,
                 joined_at: participant.joined_at,
-                last_read_at: participant.last_read_at,
+                last_read_at:
+                  participant.last_read_at ??
+                  participant.joined_at ??
+                  new Date().toISOString(),
                 is_admin: participant.is_admin,
                 role: participant.role ?? profileRecord?.role ?? 'member',
                 profile: profileRecord
@@ -804,45 +1028,49 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
           const updatedAtCandidate = conversation.last_message_at ?? conversation.updated_at;
 
-            const isGroup = Boolean(conversation.is_group);
-            const otherParticipant = !isGroup
-              ? participants.find((participant) => participant.user_id !== user?.id)
-              : undefined;
+          const isGroup = Boolean(conversation.is_group);
+          const otherParticipant = !isGroup
+            ? participants.find((participant) => participant.user_id !== user?.id)
+            : undefined;
 
-            const displayName = conversation.title
-              ?? (isGroup
-                    ? 'Group Chat'
-                    : otherParticipant?.profile?.full_name ?? 'Direct Conversation');
+          const displayName =
+            conversation.title ??
+            (isGroup
+              ? 'Group Message'
+              : otherParticipant?.profile?.full_name ?? 'Direct Message');
 
-            const displayAvatar = isGroup
-              ? conversation.avatar_url ?? null
-              : otherParticipant?.profile?.avatar_url ?? conversation.avatar_url ?? null;
+          const displayAvatar = isGroup
+            ? conversation.avatar_url ?? null
+            : otherParticipant?.profile?.avatar_url ?? conversation.avatar_url ?? null;
 
-            return {
-              id: conversation.id,
-              tenant_id: conversation.tenant_id,
-              title: conversation.title ?? null,
-              type: conversation.type ?? (isGroup ? 'group' : 'direct'),
-              is_group: conversation.is_group,
-              created_at: conversation.created_at,
-              updated_at: updatedAtCandidate,
-              last_message_at: conversation.last_message_at,
-              participants,
-              lastMessage,
-              unreadCount: 0,
-              name: displayName,
-              avatar_url: displayAvatar,
-              metadata: parseMetadata(conversation.metadata),
-            } as Conversation;
+          return {
+            id: conversation.id,
+            tenant_id: conversation.tenant_id,
+            title: conversation.title ?? null,
+            type: conversation.type ?? (isGroup ? 'group' : 'direct'),
+            is_group: conversation.is_group,
+            created_at: conversation.created_at,
+            updated_at: updatedAtCandidate,
+            last_message_at: conversation.last_message_at,
+            participants,
+            lastMessage,
+            unreadCount: 0,
+            name: displayName,
+            avatar_url: displayAvatar,
+            metadata: parseMetadata(conversation.metadata),
+          } as Conversation;
         });
 
         const unreadCounts = await Promise.all(
           formatted.map(async (conversation) => {
             try {
-              const { data: unreadData, error: unreadError } = await supabase.rpc('get_unread_count', {
-                p_user_id: user.id,
-                p_conversation_id: conversation.id,
-              });
+              const { data: unreadData, error: unreadError } = await supabase.rpc(
+                'get_unread_count',
+                {
+                  p_user_id: user.id,
+                  p_conversation_id: conversation.id,
+                }
+              );
 
               if (unreadError) throw unreadError;
               return (unreadData as number | null) ?? 0;
@@ -866,14 +1094,14 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         setConversations(withUnread);
       } catch (error) {
-        console.error('Error fetching conversations:', error);
+        console.error('Error loading messages list:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load conversations',
+          description: 'Failed to load messages',
           variant: 'destructive',
         });
       }
-    }, [toast, transformMessage, user?.id]);
+    }, [supabase, toast, transformMessage, user?.id]);
 
     const sendMessage = useCallback(async (conversationId: string, payload: SendMessagePayload) => {
       if (!user?.id) return;
@@ -1150,7 +1378,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         const conversationId = conversation?.id as string | undefined;
         if (!conversationId) {
-          throw new Error('Failed to create conversation');
+          throw new Error('Failed to create message thread');
         }
 
         const { error: participantsError } = await supabase
@@ -1171,7 +1399,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         return conversationId;
       } catch (fallbackError) {
-        console.error('Fallback conversation creation failed:', fallbackError);
+        console.error('Fallback message thread creation failed:', fallbackError);
         throw fallbackError;
       }
     },
@@ -1181,8 +1409,8 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
   const getOrCreateConversation = useCallback(
     async (otherUserId: string) => {
       if (!user?.id || !profile?.tenant_id) {
-        toast({
-          title: 'Unable to start conversation',
+          toast({
+            title: 'Unable to start messaging',
           description: 'Please try again after signing in.',
           variant: 'destructive',
         });
@@ -1198,9 +1426,9 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         if (error) {
           if (isMissingRpcFunctionError(error)) {
-            console.warn(
-              'get_or_create_conversation RPC not available. Falling back to client-side creation.'
-            );
+              console.warn(
+                'get_or_create_conversation RPC not available. Falling back to client-side message thread creation.'
+              );
             const conversationId = await createConversationFallback(otherUserId);
             if (conversationId) {
               await fetchConversations();
@@ -1215,16 +1443,16 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
           await fetchConversations();
           return data as string;
         }
-      } catch (error) {
-        console.error('Error getting or creating conversation:', error);
+        } catch (error) {
+          console.error('Error getting or creating message thread:', error);
 
-        const fallbackMessage = isMissingRpcFunctionError(error as SupabaseError)
-          ? 'Messaging is almost ready. Please ensure the latest database migrations have been applied.'
-          : 'An unexpected error occurred while starting the conversation.';
+          const fallbackMessage = isMissingRpcFunctionError(error as SupabaseError)
+            ? 'Messaging is almost ready. Please ensure the latest database migrations have been applied.'
+            : 'An unexpected error occurred while starting the message.';
 
         const description = getErrorDescription(error as SupabaseError, fallbackMessage);
-        toast({
-          title: 'Unable to start conversation',
+          toast({
+            title: 'Unable to start messaging',
           description,
           variant: 'destructive',
         });

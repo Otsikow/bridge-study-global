@@ -228,13 +228,13 @@ export default function StaffMessages() {
           )}
           {isAgent && (
             <Dialog open={showNewChatDialog} onOpenChange={handleNewChatDialogChange}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>New Conversation</DialogTitle>
-                  <DialogDescription>
-                    Message your assigned students or reach out to the staff team.
-                  </DialogDescription>
-                </DialogHeader>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>New Message</DialogTitle>
+                    <DialogDescription>
+                      Message your assigned students or reach out to the staff team.
+                    </DialogDescription>
+                  </DialogHeader>
 
                 <div className="space-y-4">
                   <div className="relative">
