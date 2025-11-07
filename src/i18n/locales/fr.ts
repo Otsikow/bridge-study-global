@@ -5,6 +5,7 @@ const fr = {
       de: "Allemand",
       fr: "Français",
       pt: "Portugais",
+      it: "Italien",
       sw: "Swahili",
       es: "Espagnol",
       zh: "Chinois",
@@ -116,11 +117,11 @@ const fr = {
       questions: "Des questions ?",
     },
   },
-    components: {
-      loadingState: {
-        defaultMessage: "Chargement...",
-        retry: "Réessayer",
-      },
+  components: {
+    loadingState: {
+      defaultMessage: "Chargement...",
+      retry: "Réessayer",
+    },
       emptyState: {
         noRecentPages: "Aucune page récente",
         goToFallback: "Aller vers la page alternative",
@@ -190,6 +191,142 @@ const fr = {
       tryAgainCount: "Réessayer (il reste {count})",
       goHome: "Retour à l'accueil",
       maxRetriesReached: "Nombre maximal de tentatives atteint. Veuillez rafraîchir la page ou contacter le support.",
+    },
+  },
+  admin: {
+    layout: {
+      sidebar: {
+        logoAlt: "GEG",
+        organization: "Global Education Gateway",
+        subtitle: "Centre de contrôle administrateur",
+      },
+      navigation: {
+        overview: { label: "Vue d'ensemble", description: "Synthèse exécutive" },
+        users: { label: "Utilisateurs", description: "Administrateurs et rôles" },
+        admissions: { label: "Supervision des admissions", description: "Propriété du pipeline" },
+        payments: { label: "Paiements", description: "Stripe et paiements" },
+        partners: { label: "Partenaires", description: "Agences et universités" },
+        resources: { label: "Ressources", description: "Contenus et actifs" },
+        insights: { label: "Analyses", description: "IA et analytique" },
+        intelligence: { label: "Zoe Intelligence", description: "Console d'insights IA" },
+        settings: { label: "Paramètres", description: "Configuration du locataire" },
+        notifications: { label: "Notifications", description: "Alertes système" },
+        logs: { label: "Journaux", description: "Pistes d'audit" },
+      },
+      profile: {
+        defaultName: "Administrateur",
+      },
+      header: {
+        openNavigation: "Ouvrir la navigation",
+        organization: "Global Education Gateway",
+        workspace: "Espace administrateur",
+        privilegedAccess: "Accès privilégié",
+        askZoe: "Demander à Zoe",
+        askZoePrompt: "Fournir un résumé de gouvernance pour aujourd'hui",
+      },
+    },
+    settings: {
+      heading: "Paramètres du système",
+      subheading: "Configurer les politiques, intégrations et automatisations du locataire.",
+      securityReview: "Revue de sécurité",
+      securityPrompt: "Examiner la posture de sécurité pour les changements de paramètres",
+      accessControl: {
+        title: "Contrôle d'accès",
+        description: "Gérer les exigences d'authentification et les rôles privilégiés.",
+        mfa: {
+          label: "Imposer l'authentification multifacteur",
+          description: "Obliger la MFA pour chaque administrateur et utilisateur finance.",
+        },
+        auditAlerts: {
+          label: "Alertes d'audit en temps réel",
+          description: "Envoyer des alertes lorsque des paramètres privilégiés changent.",
+        },
+        summarize: "Résumer les changements",
+        summarizePrompt: "Résumer les dernières modifications de configuration",
+      },
+      branding: {
+        title: "Image de marque de l'organisation",
+        description: "Contrôler l'identité visuelle utilisée dans l'expérience admin.",
+        logo: {
+          label: "Téléverser le logo",
+          selected: "Fichier sélectionné : {{name}}",
+        },
+        color: {
+          label: "Couleur principale",
+          aria: "Valeur hexadécimale de la couleur principale",
+          helpText: "S'applique aux boutons, surlignages et éléments clés de l'interface.",
+        },
+        favicon: {
+          label: "Téléverser le favicon",
+          selected: "Fichier sélectionné : {{name}}",
+        },
+        save: "Enregistrer l'identité",
+      },
+    },
+    overview: {
+      loading: {
+        trends: "Chargement des tendances d'admission",
+        geography: "Chargement de la répartition géographique",
+        activity: "Chargement de l'activité",
+      },
+      emptyStates: {
+        noAdmissions: "Aucune activité d'admission enregistrée pour la période sélectionnée.",
+        noApplications: "Aucune candidature en cours disponible.",
+      },
+      trends: {
+        title: "Tendances des admissions",
+        subtitle: "Cadence de soumission et d'inscription sur six mois",
+        submitted: "Soumises",
+        enrolled: "Inscrits",
+      },
+      geography: {
+        title: "Candidatures par pays",
+        subtitle: "Répartition actuelle du pipeline par destination",
+      },
+      kpis: {
+        totalStudents: "Étudiants totaux",
+        totalAgents: "Agents totaux",
+        totalUniversities: "Universités totales",
+        activeApplications: "Candidatures actives",
+        totalCommissionPaid: "Commission totale versée",
+        pendingVerifications: "Vérifications en attente",
+        lastUpdated: "Mis à jour {{time}}",
+        justNow: "à l'instant",
+      },
+      badges: {
+        actionRequired: "Action requise",
+      },
+      recentActivity: {
+        title: "Activité récente",
+        subtitle: "Derniers événements d'audit du locataire",
+        prompt: "Résumer les événements d'audit critiques du jour",
+        cta: "Escalader avec Zoe",
+        empty: "Aucune activité récente enregistrée.",
+        byUser: "par {{name}}",
+      },
+      quickActions: {
+        title: "Actions rapides",
+        subtitle: "Résoudre les blocages opérationnels majeurs",
+        agents: "Approuver de nouveaux agents",
+        agentsPrompt: "Lister les agents en attente d'approbation et les risques potentiels",
+        universities: "Approuver les universités",
+        universitiesPrompt: "Quelles universités ont des tâches d'intégration en attente ?",
+        compliance: "Examiner les profils signalés",
+        compliancePrompt: "Afficher les profils signalés pour examen de conformité",
+      },
+      health: {
+        title: "Santé du système",
+        subtitle: "Signaux de sécurité agrégés des 30 derniers jours",
+        scoreLabel: "score de risque",
+        operational: "Opérationnel",
+        monitoring: "Surveillance",
+        degraded: "Dégradé",
+        critical: "Critique",
+        unknown: "Inconnu",
+        noRecommendations: "Aucune recommandation active — continuer la surveillance.",
+        prompt: "Fournir un résumé de triage de sécurité pour l'admin",
+        cta: "Trier avec Zoe",
+      },
     },
   },
     pages: {

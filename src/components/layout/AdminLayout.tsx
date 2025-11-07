@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, useCallback, useMemo, type ComponentType, type SVGProps } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -32,37 +34,127 @@ import {
   ShieldCheck,
   LogOut,
   Sparkles,
-  Wrench,
+  Menu,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import gegLogo from "@/assets/geg-logo.png";
 import { Badge } from "@/components/ui/badge";
 
+/* -------------------------------------------------------------------------- */
+/* ✅ Nav Items with Localization Support                                     */
+/* -------------------------------------------------------------------------- */
 interface NavItem {
   to: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
+  labelDefault: string;
+  descriptionDefault: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/admin/overview", label: "Overview", description: "Executive summary", icon: LayoutDashboard },
-  { to: "/admin/users", label: "Users", description: "Administrators & roles", icon: Users },
-  { to: "/admin/admissions", label: "Admissions Oversight", description: "Pipeline ownership", icon: GraduationCap },
-  { to: "/admin/payments", label: "Payments", description: "Stripe & payouts", icon: CreditCard },
-  { to: "/admin/partners", label: "Partners", description: "Agencies & universities", icon: Building },
-  { to: "/admin/resources", label: "Resources", description: "Content & assets", icon: Library },
-  { to: "/admin/tools", label: "Tools", description: "Optional add-ons", icon: Wrench },
-  { to: "/admin/insights", label: "Insights", description: "AI & analytics", icon: Brain },
-  { to: "/admin/intelligence", label: "Zoe Intelligence", description: "AI insights console", icon: Sparkles },
-  { to: "/admin/settings", label: "Settings", description: "Tenant configuration", icon: Settings },
-  { to: "/admin/notifications", label: "Notifications", description: "System alerts", icon: Bell },
-  { to: "/admin/logs", label: "Logs", description: "Audit trails", icon: ShieldCheck },
-  { to: "/admin/tools", label: "Tools", description: "Automation & QA", icon: Wrench },
+  {
+    to: "/admin/overview",
+    labelKey: "admin.layout.navigation.overview.label",
+    descriptionKey: "admin.layout.navigation.overview.description",
+    labelDefault: "Overview",
+    descriptionDefault: "Executive summary",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/admin/users",
+    labelKey: "admin.layout.navigation.users.label",
+    descriptionKey: "admin.layout.navigation.users.description",
+    labelDefault: "Users",
+    descriptionDefault: "Administrators & roles",
+    icon: Users,
+  },
+  {
+    to: "/admin/admissions",
+    labelKey: "admin.layout.navigation.admissions.label",
+    descriptionKey: "admin.layout.navigation.admissions.description",
+    labelDefault: "Admissions Oversight",
+    descriptionDefault: "Pipeline ownership",
+    icon: GraduationCap,
+  },
+  {
+    to: "/admin/payments",
+    labelKey: "admin.layout.navigation.payments.label",
+    descriptionKey: "admin.layout.navigation.payments.description",
+    labelDefault: "Payments",
+    descriptionDefault: "Stripe & payouts",
+    icon: CreditCard,
+  },
+  {
+    to: "/admin/partners",
+    labelKey: "admin.layout.navigation.partners.label",
+    descriptionKey: "admin.layout.navigation.partners.description",
+    labelDefault: "Partners",
+    descriptionDefault: "Agencies & universities",
+    icon: Building,
+  },
+  {
+    to: "/admin/resources",
+    labelKey: "admin.layout.navigation.resources.label",
+    descriptionKey: "admin.layout.navigation.resources.description",
+    labelDefault: "Resources",
+    descriptionDefault: "Content & assets",
+    icon: Library,
+  },
+  {
+    to: "/admin/tools",
+    labelKey: "admin.layout.navigation.tools.label",
+    descriptionKey: "admin.layout.navigation.tools.description",
+    labelDefault: "Tools",
+    descriptionDefault: "Automation & QA",
+    icon: Wrench,
+  },
+  {
+    to: "/admin/insights",
+    labelKey: "admin.layout.navigation.insights.label",
+    descriptionKey: "admin.layout.navigation.insights.description",
+    labelDefault: "Insights",
+    descriptionDefault: "AI & analytics",
+    icon: Brain,
+  },
+  {
+    to: "/admin/intelligence",
+    labelKey: "admin.layout.navigation.intelligence.label",
+    descriptionKey: "admin.layout.navigation.intelligence.description",
+    labelDefault: "Zoe Intelligence",
+    descriptionDefault: "AI insights console",
+    icon: Sparkles,
+  },
+  {
+    to: "/admin/settings",
+    labelKey: "admin.layout.navigation.settings.label",
+    descriptionKey: "admin.layout.navigation.settings.description",
+    labelDefault: "Settings",
+    descriptionDefault: "Tenant configuration",
+    icon: Settings,
+  },
+  {
+    to: "/admin/notifications",
+    labelKey: "admin.layout.navigation.notifications.label",
+    descriptionKey: "admin.layout.navigation.notifications.description",
+    labelDefault: "Notifications",
+    descriptionDefault: "System alerts",
+    icon: Bell,
+  },
+  {
+    to: "/admin/logs",
+    labelKey: "admin.layout.navigation.logs.label",
+    descriptionKey: "admin.layout.navigation.logs.description",
+    labelDefault: "Logs",
+    descriptionDefault: "Audit trails",
+    icon: ShieldCheck,
+  },
 ];
 
+/* -------------------------------------------------------------------------- */
+/* ✅ Helpers                                                                 */
+/* -------------------------------------------------------------------------- */
 const getInitials = (value: string) =>
   value
     .split(" ")
@@ -72,6 +164,9 @@ const getInitials = (value: string) =>
     .join("")
     .toUpperCase();
 
+/* -------------------------------------------------------------------------- */
+/* ✅ Main Admin Layout                                                       */
+/* -------------------------------------------------------------------------- */
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
   const { t } = useTranslation();
@@ -82,20 +177,24 @@ const AdminLayout = () => {
   const openZoe = useCallback(() => {
     window.dispatchEvent(
       new CustomEvent("zoe:open-chat", {
-        detail: { prompt: "Summarize key admin workspace updates for leadership." },
+        detail: {
+          prompt: t("admin.layout.header.askZoePrompt", {
+            defaultValue: "Summarize key admin workspace updates for leadership.",
+          }),
+        },
       }),
     );
-  }, []);
+  }, [t]);
 
+  /* ---------------------------------------------------------------------- */
+  /* ✅ Breadcrumb Builder                                                  */
+  /* ---------------------------------------------------------------------- */
   const breadcrumbs = useMemo(() => {
     const path = location.pathname.replace(/\/+$/, "");
-    if (!path.startsWith("/admin")) {
-      return [] as { label: string; to: string; isCurrent: boolean }[];
-    }
+    if (!path.startsWith("/admin")) return [];
 
     const segments = path.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
     const items: { label: string; to: string; isCurrent: boolean }[] = [];
-
     items.push({ label: "Admin", to: "/admin/overview", isCurrent: segments.length === 0 });
 
     let accumulated = "/admin";
@@ -108,24 +207,21 @@ const AdminLayout = () => {
         .join(" ");
 
       items.push({
-        label: navMatch?.label ?? fallbackLabel,
+        label: navMatch?.labelDefault ?? fallbackLabel,
         to: accumulated,
         isCurrent: index === segments.length - 1,
       });
     });
 
-    if (items.length > 1) {
-      items.forEach((item, index) => {
-        if (index < items.length - 1) {
-          item.isCurrent = false;
-        }
-      });
-      items[items.length - 1]!.isCurrent = true;
-    }
-
-    return items;
+    return items.map((item, index) => ({
+      ...item,
+      isCurrent: index === items.length - 1,
+    }));
   }, [location.pathname]);
 
+  /* ---------------------------------------------------------------------- */
+  /* ✅ Role Validation                                                     */
+  /* ---------------------------------------------------------------------- */
   if (rolesLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-muted/20">
@@ -137,7 +233,9 @@ const AdminLayout = () => {
   if (!hasRole("admin")) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-muted/20 p-6 text-center">
-        <Badge variant="destructive" className="uppercase tracking-wide">Access Restricted</Badge>
+        <Badge variant="destructive" className="uppercase tracking-wide">
+          Access Restricted
+        </Badge>
         <h1 className="text-2xl font-semibold">Administrator role required</h1>
         <p className="max-w-md text-sm text-muted-foreground">
           Your account does not have the necessary permissions to access the Admin Dashboard. Please contact a system
@@ -150,13 +248,24 @@ const AdminLayout = () => {
     );
   }
 
+  /* ---------------------------------------------------------------------- */
+  /* ✅ Sidebar                                                             */
+  /* ---------------------------------------------------------------------- */
   const sidebar = (
     <div className="flex h-full w-72 flex-col border-r bg-card">
       <div className="flex h-16 items-center gap-3 border-b px-6">
-        <img src={gegLogo} alt="GEG" className="h-9 w-9 rounded-lg bg-white object-contain p-1" />
+        <img
+          src={gegLogo}
+          alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "GEG" })}
+          className="h-9 w-9 rounded-lg bg-white object-contain p-1"
+        />
         <div>
-          <p className="text-sm font-semibold">Global Education Gateway</p>
-          <p className="text-xs text-muted-foreground">Admin Control Center</p>
+          <p className="text-sm font-semibold">
+            {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Center" })}
+          </p>
         </div>
       </div>
       <ScrollArea className="flex-1">
@@ -165,13 +274,22 @@ const AdminLayout = () => {
             const isActive = location.pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
-              <NavLink key={item.to} to={item.to} className={cn("group block rounded-lg p-3 transition", isActive ? "bg-primary/10 text-primary" : "hover:bg-muted")}> 
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "group block rounded-lg p-3 transition",
+                  isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
+                )}
+              >
                 <div className="flex items-center gap-3">
                   <Icon className="h-5 w-5" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">
+                      {t(item.labelKey, { defaultValue: item.labelDefault })}
+                    </span>
                     <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80">
-                      {item.description}
+                      {t(item.descriptionKey, { defaultValue: item.descriptionDefault })}
                     </span>
                   </div>
                 </div>
@@ -180,6 +298,8 @@ const AdminLayout = () => {
           })}
         </nav>
       </ScrollArea>
+
+      {/* Footer user profile */}
       <div className="border-t p-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
@@ -187,18 +307,23 @@ const AdminLayout = () => {
             <AvatarFallback>{profile?.full_name ? getInitials(profile.full_name) : "AD"}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{profile?.full_name ?? "Admin"}</p>
+            <p className="truncate text-sm font-semibold">
+              {profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
+            </p>
             <p className="truncate text-xs text-muted-foreground">{profile?.email}</p>
           </div>
         </div>
         <Button variant="outline" className="mt-3 w-full" onClick={() => void signOut()}>
           <LogOut className="h-4 w-4" />
-          {t("common.actions.logout")}
+          {t("common.actions.logout", { defaultValue: "Logout" })}
         </Button>
       </div>
     </div>
   );
 
+  /* ---------------------------------------------------------------------- */
+  /* ✅ Header                                                              */
+  /* ---------------------------------------------------------------------- */
   const header = (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 md:px-8">
@@ -217,10 +342,16 @@ const AdminLayout = () => {
             </Sheet>
           ) : null}
           <div className="hidden md:flex flex-col">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">Global Education Gateway</span>
-            <span className="text-lg font-semibold">Administrator Workspace</span>
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+              {t("admin.layout.header.organization", { defaultValue: "Global Education Gateway" })}
+            </span>
+            <span className="text-lg font-semibold">
+              {t("admin.layout.header.workspace", { defaultValue: "Administrator Workspace" })}
+            </span>
           </div>
-          <Badge variant="outline" className="md:ml-3">Privileged access</Badge>
+          <Badge variant="outline" className="md:ml-3">
+            {t("admin.layout.header.privilegedAccess", { defaultValue: "Privileged Access" })}
+          </Badge>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <LanguageSwitcher size="sm" />
@@ -243,6 +374,7 @@ const AdminLayout = () => {
           </Button>
         </div>
       </div>
+
       <div className="border-t px-4 py-2 md:px-8">
         <Breadcrumb>
           <BreadcrumbList>
@@ -257,7 +389,7 @@ const AdminLayout = () => {
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>
-                {index < breadcrumbs.length - 1 ? <BreadcrumbSeparator /> : null}
+                {index < breadcrumbs.length - 1 && <BreadcrumbSeparator />}
               </Fragment>
             ))}
           </BreadcrumbList>
@@ -266,6 +398,9 @@ const AdminLayout = () => {
     </header>
   );
 
+  /* ---------------------------------------------------------------------- */
+  /* ✅ Layout Wrapper                                                       */
+  /* ---------------------------------------------------------------------- */
   return (
     <div className="flex min-h-screen bg-muted/20">
       <div className="hidden md:flex md:w-72">{sidebar}</div>
