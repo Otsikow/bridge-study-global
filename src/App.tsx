@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -241,13 +241,20 @@ const App = () => {
                         <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
                         <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
-
                         {/* ✅ Protected Routes */}
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","admin","agent","partner"]}><DashboardApplications /></ProtectedRoute>} />
                         <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
                         <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                        <Route
+                          path="/settings"
+                          element={
+                            <ProtectedRoute>
+                              <Navigate to="/profile/settings" replace />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
                         <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
                         <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
