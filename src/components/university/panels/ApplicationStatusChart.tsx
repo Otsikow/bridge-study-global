@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatePlaceholder } from "../common/StatePlaceholder";
+import { withUniversityCardStyles } from "../common/cardStyles";
 import { CheckCircle } from "lucide-react";
 import type { ChartDatum } from "../layout/UniversityDashboardLayout";
 
@@ -21,16 +22,16 @@ export const ApplicationStatusChart = ({
   data,
 }: ApplicationStatusChartProps) => {
   return (
-    <Card className="h-full rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+    <Card className={withUniversityCardStyles("h-full rounded-2xl bg-muted/40")}>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-slate-300">
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           Application Outcomes
         </CardTitle>
       </CardHeader>
       <CardContent className="h-72">
         {data.every((item) => item.value === 0) ? (
           <StatePlaceholder
-            icon={<CheckCircle className="h-8 w-8 text-slate-500" />}
+            icon={<CheckCircle className="h-8 w-8 text-muted-foreground" />}
             title="No outcome data yet"
             description="Outcome data will populate once applications progress through offers and enrolment."
             className="h-full bg-transparent"
@@ -38,22 +39,22 @@ export const ApplicationStatusChart = ({
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis dataKey="name" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
               <Tooltip
                 contentStyle={{
-                  background: "#0f172a",
-                  borderColor: "#1e293b",
+                  background: "hsl(var(--card))",
+                  borderColor: "hsl(var(--border))",
                   borderRadius: "12px",
-                  color: "#f8fafc",
+                  color: "hsl(var(--card-foreground))",
                 }}
               />
               <Bar dataKey="value" radius={[12, 12, 0, 0]}>
                 {data.map((entry) => (
                   <Cell
                     key={entry.name}
-                    fill={entry.color ?? "#3b82f6"}
+                    fill={entry.color ?? "hsl(var(--primary))"}
                     className="rounded-lg"
                   />
                 ))}

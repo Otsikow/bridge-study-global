@@ -219,7 +219,7 @@ const ProgramForm = ({
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-blue-950/90 text-slate-100">
+                  <SelectContent className="bg-background text-card-foreground">
                     {levelOptions.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -277,7 +277,7 @@ const ProgramForm = ({
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-blue-950/90 text-slate-100">
+                  <SelectContent className="bg-background text-card-foreground">
                     {CURRENCY_OPTIONS.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -412,7 +412,7 @@ const ProgramForm = ({
                 {INTAKE_MONTH_OPTIONS.map((option) => (
                   <label
                     key={option.value}
-                    className={withUniversitySurfaceTint("flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200")}
+                    className={withUniversitySurfaceTint("flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground")}
                   >
                     <Checkbox
                       checked={field.value.includes(option.value)}
@@ -827,23 +827,23 @@ const ProgramsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Programmes</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-foreground">Programmes</h1>
+        <p className="text-sm text-muted-foreground">
           Manage your published courses and control which ones are visible to GEG agents and students.
         </p>
       </div>
 
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Programme catalogue
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {programs.length} programme{programs.length === 1 ? "" : "s"} connected to your university profile.
             </CardDescription>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-blue-500 text-white hover:bg-blue-400">
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-blue-500 text-foreground hover:bg-primary">
             <Plus className="h-4 w-4" /> Add programme
           </Button>
         </CardHeader>
@@ -851,7 +851,7 @@ const ProgramsPage = () => {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
@@ -863,7 +863,7 @@ const ProgramsPage = () => {
                 <SelectTrigger className="sm:w-[180px]">
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
-                <SelectContent className="bg-blue-950/90 text-slate-100">
+                <SelectContent className="bg-background text-card-foreground">
                   {levelFilterOptions.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option === "all" ? "All levels" : option}
@@ -875,7 +875,7 @@ const ProgramsPage = () => {
                 <SelectTrigger className="sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-blue-950/90 text-slate-100">
+                <SelectContent className="bg-background text-card-foreground">
                   {STATUS_FILTER_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -885,7 +885,7 @@ const ProgramsPage = () => {
               </Select>
             </div>
             {isRefetching ? (
-              <Badge variant="outline" className="self-start border-blue-500/40 bg-blue-500/10 text-blue-200">
+              <Badge variant="outline" className="self-start border-primary/30 bg-primary/10 text-primary">
                 Updating data…
               </Badge>
             ) : null}
@@ -911,9 +911,9 @@ const ProgramsPage = () => {
               />
             )
           ) : (
-            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-blue-950/30")}>
+            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-muted/30")}>
               <table className="w-full min-w-[920px] text-left text-sm">
-                <thead className="border-b border-blue-900/50 text-xs uppercase tracking-wide text-slate-400">
+                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 font-medium">Programme</th>
                     <th className="px-4 py-3 font-medium">Level</th>
@@ -926,21 +926,21 @@ const ProgramsPage = () => {
                     <th className="px-4 py-3 text-right font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {filteredPrograms.map((program) => (
-                    <tr key={program.id} className="text-slate-200">
+                    <tr key={program.id} className="text-foreground">
                       <td className="px-4 py-4 align-top">
                         <div className="flex flex-col gap-1">
-                          <span className="font-semibold text-white">{program.name}</span>
+                          <span className="font-semibold text-foreground">{program.name}</span>
                           {program.description ? (
-                            <p className="text-xs text-slate-400 line-clamp-2">
+                            <p className="text-xs text-muted-foreground line-clamp-2">
                               {program.description}
                             </p>
                           ) : null}
                         </div>
                       </td>
                       <td className="px-4 py-4 align-top">
-                        <Badge variant="outline" className="border-blue-900/50 bg-blue-950/60 text-slate-200">
+                        <Badge variant="outline" className="border-border bg-muted/60 text-foreground">
                           {program.level}
                         </Badge>
                       </td>
@@ -959,14 +959,14 @@ const ProgramsPage = () => {
                                 <Badge
                                   key={`${program.id}-${month}`}
                                   variant="secondary"
-                                  className="border-blue-900/50 bg-blue-950/50 text-slate-200"
+                                  className="border-border bg-muted/50 text-foreground"
                                 >
                                   {monthFormatter.format(new Date(2000, month - 1, 1))}
                                 </Badge>
                               ))}
                           </div>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="px-4 py-4 align-top">
@@ -980,13 +980,13 @@ const ProgramsPage = () => {
                             variant="outline"
                             className={
                               program.active
-                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
-                                : "border-blue-900/50 bg-blue-950/50 text-slate-400"
+                                ? "border-success/30 bg-success/10 text-success"
+                                : "border-border bg-muted/50 text-muted-foreground"
                             }
                           >
                             {program.active ? "Active" : "Inactive"}
                           </Badge>
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <span>Visible</span>
                             <Switch
                               checked={Boolean(program.active)}
@@ -1005,7 +1005,7 @@ const ProgramsPage = () => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-slate-300 hover:text-white"
+                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
                               >
                                 <MoreHorizontal className="h-4 w-4" />
                                 <span className="sr-only">Open menu</span>
@@ -1013,7 +1013,7 @@ const ProgramsPage = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="w-48 border border-blue-900/50 bg-blue-950/90 text-slate-100"
+                              className="w-48 border border-border bg-background text-card-foreground"
                             >
                               <DropdownMenuItem onClick={() => setViewingProgram(program)}>
                                 <Eye className="mr-2 h-4 w-4" /> View details
@@ -1042,7 +1042,7 @@ const ProgramsPage = () => {
       </Card>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border border-border bg-background text-card-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add a new programme</DialogTitle>
             <DialogDescription>
@@ -1061,7 +1061,7 @@ const ProgramsPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(editingProgram)} onOpenChange={(open) => !open && setEditingProgram(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border border-border bg-background text-card-foreground sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit programme</DialogTitle>
             <DialogDescription>
@@ -1082,12 +1082,12 @@ const ProgramsPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(viewingProgram)} onOpenChange={(open) => !open && setViewingProgram(null)}>
-        <DialogContent className="max-h-[90vh] overflow-hidden border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-hidden border border-border bg-background text-card-foreground sm:max-w-2xl">
           {viewingProgram ? (
             <>
               <DialogHeader className="pb-2">
-                <DialogTitle className="text-xl text-white">{viewingProgram.name}</DialogTitle>
-                <DialogDescription className="text-slate-400">
+                <DialogTitle className="text-xl text-foreground">{viewingProgram.name}</DialogTitle>
+                <DialogDescription className="text-muted-foreground">
                   {viewingProgram.discipline ?? "Discipline not specified"}
                 </DialogDescription>
               </DialogHeader>
@@ -1095,20 +1095,20 @@ const ProgramsPage = () => {
                 <div className="space-y-5 pb-2 text-sm">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">Level</span>
-                      <p className="mt-1 text-base text-white">{viewingProgram.level}</p>
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">Level</span>
+                      <p className="mt-1 text-base text-foreground">{viewingProgram.level}</p>
                     </div>
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">Duration</span>
-                      <p className="mt-1 text-base text-white">
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">Duration</span>
+                      <p className="mt-1 text-base text-foreground">
                         {viewingProgram.duration_months
                           ? `${viewingProgram.duration_months} months`
                           : "—"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">Annual tuition</span>
-                      <p className="mt-1 text-base text-white">
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">Annual tuition</span>
+                      <p className="mt-1 text-base text-foreground">
                         {formatCurrency(
                           viewingProgram.tuition_currency,
                           viewingProgram.tuition_amount,
@@ -1116,24 +1116,24 @@ const ProgramsPage = () => {
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">Application fee</span>
-                      <p className="mt-1 text-base text-white">
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">Application fee</span>
+                      <p className="mt-1 text-base text-foreground">
                         {viewingProgram.app_fee ?
                           formatCurrency(viewingProgram.tuition_currency, viewingProgram.app_fee) :
                           "—"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">Seats available</span>
-                      <p className="mt-1 text-base text-white">
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">Seats available</span>
+                      <p className="mt-1 text-base text-foreground">
                         {typeof viewingProgram.seats_available === "number"
                           ? viewingProgram.seats_available
                           : "—"}
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs uppercase tracking-wide text-slate-500">English requirements</span>
-                      <p className="mt-1 text-base text-white">
+                      <span className="text-xs uppercase tracking-wide text-muted-foreground">English requirements</span>
+                      <p className="mt-1 text-base text-foreground">
                         {viewingProgram.ielts_overall || viewingProgram.toefl_overall ? (
                           <span>
                             {viewingProgram.ielts_overall
@@ -1152,7 +1152,7 @@ const ProgramsPage = () => {
                   </div>
 
                   <div>
-                    <span className="text-xs uppercase tracking-wide text-slate-500">Intake months</span>
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Intake months</span>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {viewingProgram.intake_months && viewingProgram.intake_months.length > 0 ? (
                         viewingProgram.intake_months
@@ -1162,36 +1162,36 @@ const ProgramsPage = () => {
                             <Badge
                               key={`${viewingProgram.id}-detail-${month}`}
                               variant="secondary"
-                              className="border-blue-900/50 bg-blue-950/50 text-slate-200"
+                              className="border-border bg-muted/50 text-foreground"
                             >
                               {monthFormatter.format(new Date(2000, month - 1, 1))}
                             </Badge>
                           ))
                       ) : (
-                        <span className="text-slate-400">No intake months specified.</span>
+                        <span className="text-muted-foreground">No intake months specified.</span>
                       )}
                     </div>
                   </div>
 
                   <div>
-                    <span className="text-xs uppercase tracking-wide text-slate-500">Entry requirements</span>
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Entry requirements</span>
                     {viewingProgram.entry_requirements && viewingProgram.entry_requirements.length > 0 ? (
-                      <ul className="mt-2 space-y-2 text-slate-200">
+                      <ul className="mt-2 space-y-2 text-foreground">
                         {viewingProgram.entry_requirements.map((requirement, index) => (
                           <li key={`${viewingProgram.id}-requirement-${index}`} className="flex gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-blue-400" />
+                            <span className="mt-1 h-1.5 w-1.5 flex-none rounded-full bg-primary" />
                             <span>{requirement}</span>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="mt-2 text-slate-400">No entry requirements provided.</p>
+                      <p className="mt-2 text-muted-foreground">No entry requirements provided.</p>
                     )}
                   </div>
 
                   <div>
-                    <span className="text-xs uppercase tracking-wide text-slate-500">Programme overview</span>
-                    <p className="mt-2 whitespace-pre-line text-slate-200">
+                    <span className="text-xs uppercase tracking-wide text-muted-foreground">Programme overview</span>
+                    <p className="mt-2 whitespace-pre-line text-foreground">
                       {viewingProgram.description?.length
                         ? viewingProgram.description
                         : "No programme overview has been provided yet."}
@@ -1210,7 +1210,7 @@ const ProgramsPage = () => {
       </Dialog>
 
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
-        <AlertDialogContent className="border border-blue-900/50 bg-blue-950/95 text-slate-100">
+        <AlertDialogContent className="border border-border bg-background text-card-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete programme</AlertDialogTitle>
             <AlertDialogDescription>

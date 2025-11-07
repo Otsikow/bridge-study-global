@@ -300,12 +300,12 @@ const SummaryCard = ({
   <Card className={withUniversityCardStyles()}>
     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
       <div>
-        <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         {description ? (
-          <CardDescription className="text-xs text-slate-500">{description}</CardDescription>
+          <CardDescription className="text-xs text-muted-foreground">{description}</CardDescription>
         ) : null}
       </div>
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-blue-300">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon className="h-5 w-5" />
       </div>
     </CardHeader>
@@ -313,7 +313,7 @@ const SummaryCard = ({
       {loading ? (
         <Skeleton className="mt-1" lines={1} />
       ) : (
-        <p className="text-3xl font-semibold tracking-tight text-slate-100">{value}</p>
+        <p className="text-3xl font-semibold tracking-tight text-card-foreground">{value}</p>
       )}
     </CardContent>
   </Card>
@@ -354,8 +354,8 @@ const RecentApplicationsTable = ({
           "flex flex-col items-center justify-center space-y-3 rounded-lg border-dashed p-8 text-center",
         )}
       >
-        <p className="text-sm font-medium text-slate-200">No recent applications</p>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm font-medium text-foreground">No recent applications</p>
+        <p className="text-sm text-muted-foreground">
           As new student applications arrive, you&apos;ll see them listed here.
         </p>
       </div>
@@ -366,12 +366,12 @@ const RecentApplicationsTable = ({
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-blue-900/50 bg-blue-950/40">
-            <TableHead className="text-slate-300">Student</TableHead>
-            <TableHead className="text-slate-300">Course</TableHead>
-            <TableHead className="text-slate-300">Agent</TableHead>
-            <TableHead className="text-slate-300">Status</TableHead>
-            <TableHead className="text-right text-slate-300">Date Submitted</TableHead>
+          <TableRow className="border-b border-border bg-muted/40">
+            <TableHead className="text-muted-foreground">Student</TableHead>
+            <TableHead className="text-muted-foreground">Course</TableHead>
+            <TableHead className="text-muted-foreground">Agent</TableHead>
+            <TableHead className="text-muted-foreground">Status</TableHead>
+            <TableHead className="text-right text-muted-foreground">Date Submitted</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -389,15 +389,15 @@ const RecentApplicationsTable = ({
             return (
               <TableRow
                 key={application.id}
-                className="border-b border-blue-900/40 bg-blue-950/30 hover:bg-blue-900/40"
+                className="border-b border-border bg-muted/30 hover:bg-muted/40"
               >
-                <TableCell className="text-slate-100">{studentName}</TableCell>
-                <TableCell className="text-slate-300">{courseName}</TableCell>
-                <TableCell className="text-slate-300">{agentName}</TableCell>
+                <TableCell className="text-card-foreground">{studentName}</TableCell>
+                <TableCell className="text-muted-foreground">{courseName}</TableCell>
+                <TableCell className="text-muted-foreground">{agentName}</TableCell>
                 <TableCell>
                   <StatusBadge status={getStatusLabel(application.status)} />
                 </TableCell>
-                <TableCell className="text-right text-slate-400">
+                <TableCell className="text-right text-muted-foreground">
                   {formatDate(application.created_at)}
                 </TableCell>
               </TableRow>
@@ -420,10 +420,10 @@ const UniversityInfoPanel = ({
     return (
       <Card className={withUniversityCardStyles()}>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-slate-100">
+          <CardTitle className="text-lg font-semibold text-card-foreground">
             University Information
           </CardTitle>
-          <CardDescription className="text-sm text-slate-400">
+          <CardDescription className="text-sm text-muted-foreground">
             Latest institution details synced from your profile.
           </CardDescription>
         </CardHeader>
@@ -446,11 +446,11 @@ const UniversityInfoPanel = ({
     return (
       <Card className={withUniversitySurfaceSubtle("text-center shadow-none rounded-3xl border-dashed")}>
         <CardContent className="flex flex-col items-center gap-3 py-12">
-          <AlertTriangle className="h-10 w-10 text-slate-500" />
-          <CardTitle className="text-base font-semibold text-slate-200">
+          <AlertTriangle className="h-10 w-10 text-muted-foreground" />
+          <CardTitle className="text-base font-semibold text-foreground">
             No University Data Found.
           </CardTitle>
-          <CardDescription className="max-w-sm text-sm text-slate-400">
+          <CardDescription className="max-w-sm text-sm text-muted-foreground">
             Add your institution&apos;s details to unlock tailored insights and analytics.
           </CardDescription>
         </CardContent>
@@ -476,7 +476,7 @@ const UniversityInfoPanel = ({
     <Card className={withUniversityCardStyles()}>
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          <div className={withUniversitySurfaceTint("flex h-16 w-16 items-center justify-center rounded-lg bg-blue-950/60")}>
+          <div className={withUniversitySurfaceTint("flex h-16 w-16 items-center justify-center rounded-lg bg-muted/60")}>
             {university.logo_url ? (
               <img
                 src={university.logo_url}
@@ -484,14 +484,14 @@ const UniversityInfoPanel = ({
                 className="h-full w-full rounded-lg object-contain"
               />
             ) : (
-              <Building2 className="h-8 w-8 text-slate-500" />
+              <Building2 className="h-8 w-8 text-muted-foreground" />
             )}
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-100">
+            <CardTitle className="text-lg font-semibold text-card-foreground">
               {university.name ?? "Unnamed University"}
             </CardTitle>
-            <CardDescription className="text-sm text-slate-400">
+            <CardDescription className="text-sm text-muted-foreground">
               Partnership profile and accreditation summary.
             </CardDescription>
           </div>
@@ -499,8 +499,8 @@ const UniversityInfoPanel = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">Accreditation</p>
-          <p className="text-sm text-slate-200">{accreditationDetails}</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Accreditation</p>
+          <p className="text-sm text-foreground">{accreditationDetails}</p>
         </div>
       </CardContent>
     </Card>
@@ -549,12 +549,12 @@ const UniversityOverviewPage = () => {
   }
 
   return (
-    <div className="space-y-10 text-slate-100">
+    <div className="space-y-10 text-card-foreground">
       <header className={withUniversityCardStyles("space-y-3 rounded-3xl p-8 shadow-[0_28px_72px_-36px_rgba(30,64,175,0.55)]")}
       >
-        <p className="text-sm text-blue-300">Welcome back</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">University Dashboard</h1>
-        <p className="max-w-2xl text-sm text-slate-400">
+        <p className="text-sm text-primary">Welcome back</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground">University Dashboard</h1>
+        <p className="max-w-2xl text-sm text-muted-foreground">
           Monitor student applications, documents, and offer progress in real time.
         </p>
       </header>
@@ -621,11 +621,11 @@ const UniversityOverviewPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <Card className={withUniversityCardStyles("hover:border-blue-800/60 hover:shadow-[0_32px_72px_-30px_rgba(37,99,235,0.55)]")}>
+        <Card className={withUniversityCardStyles("hover:border-primary/30 hover:shadow-[0_32px_72px_-30px_rgba(37,99,235,0.55)]")}>
           <CardHeader className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-100">Recent Applications</CardTitle>
-              <CardDescription className="text-sm text-slate-400">
+              <CardTitle className="text-lg font-semibold text-card-foreground">Recent Applications</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
                 The five most recent submissions in your tenant.
               </CardDescription>
             </div>
@@ -650,27 +650,27 @@ const UniversityOverviewPage = () => {
         )}
       >
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1 text-sm text-slate-400">
-            <p className="font-medium text-slate-200">Need assistance?</p>
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Need assistance?</p>
             <p>
               Reach the Global Education Gateway team at{" "}
               <a
                 href="mailto:info@globaleducationgateway.com"
-                className="text-blue-300 hover:text-blue-100 hover:underline"
+                className="text-primary hover:text-primary-foreground hover:underline"
               >
                 info@globaleducationgateway.com
               </a>
               .
             </p>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm text-blue-300">
-            <Link to="/search" className="hover:text-blue-100 hover:underline">
+          <div className="flex flex-wrap gap-4 text-sm text-primary">
+            <Link to="/search" className="hover:text-primary-foreground hover:underline">
               Search Universities
             </Link>
-            <Link to="/blog" className="hover:text-blue-100 hover:underline">
+            <Link to="/blog" className="hover:text-primary-foreground hover:underline">
               Blog
             </Link>
-            <Link to="/visa-calculator" className="hover:text-blue-100 hover:underline">
+            <Link to="/visa-calculator" className="hover:text-primary-foreground hover:underline">
               Visa Calculator
             </Link>
           </div>

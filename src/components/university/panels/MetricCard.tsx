@@ -11,14 +11,31 @@ interface MetricCardProps {
   footer?: ReactNode;
 }
 
-const toneClasses: Record<Required<MetricCardProps>["tone"], string> = {
-  default:
-    "from-slate-900/60 via-slate-900/10 to-slate-950/60 border-slate-800/80 text-slate-100",
-  success:
-    "from-emerald-500/10 via-emerald-500/5 to-slate-950/60 border-emerald-500/40 text-emerald-100",
-  warning:
-    "from-amber-500/10 via-amber-500/5 to-slate-950/60 border-amber-500/40 text-amber-100",
-  info: "from-blue-500/10 via-blue-500/5 to-slate-950/60 border-blue-500/40 text-blue-100",
+const toneStyles: Record<Required<MetricCardProps>["tone"], {
+  card: string;
+  accent: string;
+  value: string;
+}> = {
+  default: {
+    card: "border-border",
+    accent: "bg-primary/10 text-primary",
+    value: "text-foreground",
+  },
+  success: {
+    card: "border-success/30",
+    accent: "bg-success/10 text-success",
+    value: "text-success",
+  },
+  warning: {
+    card: "border-warning/30",
+    accent: "bg-warning/10 text-warning",
+    value: "text-warning",
+  },
+  info: {
+    card: "border-info/30",
+    accent: "bg-info/10 text-info",
+    value: "text-info",
+  },
 };
 
 export const MetricCard = ({
@@ -29,31 +46,32 @@ export const MetricCard = ({
   tone = "default",
   footer,
 }: MetricCardProps) => {
+  const toneConfig = toneStyles[tone];
   return (
     <Card
       className={cn(
-        "h-full overflow-hidden rounded-2xl border bg-gradient-to-br shadow-lg shadow-slate-900/40",
-        toneClasses[tone],
+        "h-full overflow-hidden rounded-2xl bg-card text-card-foreground shadow-sm transition-shadow duration-200 hover:shadow-md",
+        toneConfig.card,
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <div>
-          <CardTitle className="text-sm font-medium text-slate-300">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             {label}
           </CardTitle>
           {description ? (
-            <p className="mt-1 text-xs text-slate-400">{description}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{description}</p>
           ) : null}
         </div>
         {icon ? (
-          <div className="rounded-xl bg-slate-900/50 p-2 text-slate-200">
+          <div className={cn("rounded-xl p-2", toneConfig.accent)}>
             {icon}
           </div>
         ) : null}
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-semibold tracking-tight">{value}</p>
-        {footer ? <div className="mt-4 text-xs text-slate-300">{footer}</div> : null}
+        <p className={cn("text-3xl font-semibold tracking-tight", toneConfig.value)}>{value}</p>
+        {footer ? <div className="mt-4 text-xs text-muted-foreground">{footer}</div> : null}
       </CardContent>
     </Card>
   );

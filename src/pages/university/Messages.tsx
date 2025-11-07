@@ -324,10 +324,10 @@ const UniversityMessagesPage = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-6">
-      <header className={withUniversityCardStyles("flex flex-col gap-4 rounded-3xl px-6 py-6 text-slate-100 shadow-[0_28px_72px_-36px_rgba(37,99,235,0.5)] md:flex-row md:items-center md:justify-between")}>
+      <header className={withUniversityCardStyles("flex flex-col gap-4 rounded-3xl px-6 py-6 text-card-foreground shadow-[0_28px_72px_-36px_rgba(37,99,235,0.5)] md:flex-row md:items-center md:justify-between")}>
           <div>
-            <h1 className="text-2xl font-semibold text-white md:text-3xl">University Messages</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-2xl font-semibold text-foreground md:text-3xl">University Messages</h1>
+            <p className="text-sm text-muted-foreground">
               Coordinate with agents and GEG staff to keep your applicants on track.
             </p>
           </div>
@@ -335,7 +335,7 @@ const UniversityMessagesPage = () => {
           <Button
             onClick={handleNewChat}
             size="sm"
-            className="gap-2 rounded-full bg-blue-600 px-4 py-2 text-blue-50 shadow-lg hover:bg-blue-500"
+            className="gap-2 rounded-full bg-primary px-4 py-2 text-primary-foreground shadow-lg hover:bg-primary/90"
           >
             <MessageCircle className="h-4 w-4" />
             New Message
@@ -343,7 +343,7 @@ const UniversityMessagesPage = () => {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 rounded-full border-blue-900/50 bg-blue-950/50 text-blue-100 hover:bg-blue-900/60"
+            className="gap-2 rounded-full border-border bg-muted/50 text-primary-foreground hover:bg-muted"
             onClick={() =>
               window.dispatchEvent(
                 new CustomEvent("zoe:open-chat", {
@@ -362,7 +362,7 @@ const UniversityMessagesPage = () => {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full border-blue-900/50">
+              <Button variant="outline" size="icon" className="rounded-full border-border">
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">Conversation actions</span>
               </Button>
@@ -386,7 +386,7 @@ const UniversityMessagesPage = () => {
       </header>
 
       <div className="flex flex-1 gap-4 lg:gap-6">
-        <section className={withUniversityCardStyles("flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl text-slate-100 md:w-[360px] lg:w-[380px]")}>
+        <section className={withUniversityCardStyles("flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl text-card-foreground md:w-[360px] lg:w-[380px]")}>
           <ChatList
             conversations={conversations}
             currentConversation={currentConversation}
@@ -395,7 +395,7 @@ const UniversityMessagesPage = () => {
           />
         </section>
 
-        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl text-slate-100 md:flex")}>
+        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl text-card-foreground md:flex")}>
           <ChatArea
             conversation={currentConversationData}
             messages={messages}
@@ -410,13 +410,13 @@ const UniversityMessagesPage = () => {
           />
         </section>
 
-        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-slate-100 xl:flex")}>
+        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-card-foreground xl:flex")}>
           <UniversityZoeAssistant />
         </section>
       </div>
 
       {currentConversation && (
-        <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-blue-950">
+        <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-background">
           <ChatArea
             conversation={currentConversationData}
             messages={messages}
@@ -479,15 +479,15 @@ const UniversityMessagesPage = () => {
                     <button
                       key={contact.id}
                       onClick={() => void handleSelectContact(contact)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-blue-950/60 p-3 text-left transition hover:border-blue-900/60 hover:bg-blue-900/50"
+                      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-muted/60 p-3 text-left transition hover:border-border hover:bg-muted/50"
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={contact.avatar_url ?? undefined} alt={contact.full_name} />
                         <AvatarFallback>{initialsForName(contact.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-slate-100">{contact.full_name}</p>
-                        <p className="truncate text-xs text-slate-400">{contact.email}</p>
+                        <p className="truncate text-sm font-semibold text-card-foreground">{contact.full_name}</p>
+                        <p className="truncate text-xs text-muted-foreground">{contact.email}</p>
                       </div>
                       <Badge variant="outline" className="text-xs capitalize">
                         {contact.role}
@@ -522,7 +522,7 @@ const UniversityMessagesPage = () => {
       </AlertDialog>
 
       {isInitializingAudio && (
-        <div className="fixed bottom-4 right-4 z-50 rounded-full bg-blue-600 px-3 py-2 text-xs font-semibold text-blue-50 shadow-lg">
+        <div className="fixed bottom-4 right-4 z-50 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-lg">
           Preparing audio…
         </div>
       )}

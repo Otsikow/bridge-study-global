@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface UniversityHeaderProps {
   onRefresh?: () => void;
@@ -135,21 +136,21 @@ export const UniversityHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-800 bg-[#0C1528]/95 px-4 backdrop-blur lg:px-8">
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:px-8">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
           size="icon"
-          className="text-slate-300 hover:bg-slate-800/70 lg:hidden"
+          className="text-muted-foreground hover:text-foreground lg:hidden"
           onClick={onToggleMobileNav}
         >
           <Menu className="h-5 w-5" />
         </Button>
         <div>
-          <p className="text-xs uppercase tracking-[0.4rem] text-slate-500">
+          <p className="text-xs uppercase tracking-[0.4rem] text-muted-foreground">
             Global Education Gateway
           </p>
-          <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
+          <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>
       </div>
 
@@ -158,7 +159,7 @@ export const UniversityHeader = ({
           variant="ghost"
           size="icon"
           className={cn(
-            "text-slate-300 hover:bg-slate-800/60",
+            "text-muted-foreground hover:text-foreground",
             refreshing && "cursor-progress opacity-70",
           )}
           onClick={onRefresh}
@@ -170,40 +171,42 @@ export const UniversityHeader = ({
         <Button
           variant="ghost"
           size="icon"
-          className="text-slate-300 hover:bg-slate-800/60"
+          className="text-muted-foreground hover:text-foreground"
         >
           <Bell className="h-5 w-5" />
         </Button>
+
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="flex items-center gap-2 rounded-xl bg-slate-900/60 px-2 py-1 text-sm text-slate-100 hover:bg-slate-800/80"
+              className="flex items-center gap-2 rounded-xl bg-muted/60 px-2 py-1 text-sm text-foreground hover:bg-muted"
             >
-                <Avatar className="h-8 w-8 border border-blue-500/30 bg-slate-800">
+                <Avatar className="h-8 w-8 border border-primary/20 bg-muted">
                   {partnerProfile.avatarUrl ? (
                     <AvatarImage
                       src={partnerProfile.avatarUrl}
                       alt={partnerProfile.displayName ?? "University Partner"}
                     />
                   ) : null}
-                  <AvatarFallback className="bg-blue-600/70 text-white">
+                  <AvatarFallback className="bg-primary/80 text-primary-foreground">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden text-left leading-tight md:block">
                   {partnerProfileQuery.isLoading ? (
                     <div className="flex flex-col gap-1">
-                      <Skeleton className="h-3 w-24 bg-slate-800/80" />
-                      <Skeleton className="h-2.5 w-20 bg-slate-800/70" />
+                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="h-2.5 w-20" />
                     </div>
                   ) : (
                     <>
                       <span className="text-sm font-medium">
                         {partnerProfile.displayName}
                       </span>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs text-muted-foreground">
                         {partnerProfile.roleLabel}
                       </p>
                     </>
@@ -214,45 +217,45 @@ export const UniversityHeader = ({
           <DropdownMenuContent
             side="bottom"
             align="end"
-            className="w-56 border-slate-800 bg-slate-900/95 text-slate-200"
+            className="w-56 border border-border bg-popover text-popover-foreground"
           >
               <DropdownMenuLabel>
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-slate-100">
+                  <span className="text-sm font-semibold text-foreground">
                     {partnerProfile.displayName}
                   </span>
-                  <span className="text-xs font-medium text-blue-300">
+                  <span className="text-xs font-medium text-primary">
                     {partnerProfile.roleLabel}
                   </span>
                   {partnerProfile.contactName &&
                     partnerProfile.contactName !== partnerProfile.displayName && (
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-muted-foreground">
                         Contact: {partnerProfile.contactName}
                       </span>
                     )}
                   {partnerProfile.contactEmail && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs text-muted-foreground">
                       {partnerProfile.contactEmail}
                     </span>
                   )}
                 </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-slate-800" />
+            <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 onSelect={handleViewProfile}
-                className="focus:bg-slate-800 focus:text-slate-50"
+                className="focus:bg-muted focus:text-foreground"
               >
                 View Profile
             </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={handleAccountSettings}
-                className="focus:bg-slate-800 focus:text-slate-50"
+                className="focus:bg-muted focus:text-foreground"
               >
                 Account Settings
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-slate-800" />
+            <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
-              className="focus:bg-red-600/70 focus:text-white"
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                 onSelect={() => {
                   void signOut();
                 }}
