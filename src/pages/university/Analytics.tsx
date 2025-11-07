@@ -35,6 +35,11 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  UNIVERSITY_CARD_GRADIENT,
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 import { useToast } from "@/hooks/use-toast";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 
@@ -383,7 +388,11 @@ const AnalyticsPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center rounded-full border border-slate-800/60 bg-slate-900/50 p-1">
+          <div
+            className={withUniversitySurfaceTint(
+              "flex items-center rounded-full p-1",
+            )}
+          >
             {RANGE_OPTIONS.map((option) => (
               <Button
                 key={option.id}
@@ -394,7 +403,7 @@ const AnalyticsPage = () => {
                   "rounded-full px-3 text-xs font-medium tracking-wide text-slate-300 transition focus-visible:ring-0",
                   selectedRange === option.id
                     ? "bg-blue-500/20 text-blue-100 shadow-sm"
-                    : "hover:bg-slate-800/60",
+                    : "hover:bg-blue-900/40",
                 )}
               >
                 {option.label}
@@ -405,7 +414,7 @@ const AnalyticsPage = () => {
             variant="outline"
             size="sm"
             onClick={handleExport}
-            className="gap-2 border-slate-700 bg-slate-900/40 text-slate-200 hover:bg-slate-800"
+            className="gap-2 border-blue-900/50 bg-blue-950/40 text-slate-100 hover:bg-blue-900/40"
           >
             <Download className="h-4 w-4" />
             Export CSV
@@ -417,7 +426,7 @@ const AnalyticsPage = () => {
         {summaryCards.map((card) => (
           <Card
             key={card.id}
-            className="rounded-2xl border border-slate-800/60 bg-gradient-to-br from-slate-900/80 via-slate-900/60 to-slate-900/30 text-slate-100 shadow-lg shadow-slate-950/30"
+            className={cn(UNIVERSITY_CARD_GRADIENT, "rounded-2xl")}
           >
             <CardContent className="flex items-start justify-between gap-4 p-6">
               <div className="space-y-2">
@@ -443,7 +452,7 @@ const AnalyticsPage = () => {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-base font-semibold text-slate-100">
               Applications Over Time
@@ -503,7 +512,7 @@ const AnalyticsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-base font-semibold text-slate-100">
               Offers by Country
@@ -563,7 +572,7 @@ const AnalyticsPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-base font-semibold text-slate-100">
               Application Status Distribution

@@ -32,6 +32,10 @@ import type { Database } from "@/integrations/supabase/types";
 import { formatErrorForToast, logError } from "@/lib/errorUtils";
 import { LoadingState } from "@/components/LoadingState";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 
 const STORAGE_BUCKET = "student-documents";
 const ACCEPTED_FILE_TYPES = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
@@ -330,7 +334,7 @@ const UniversityDocumentRequestsPage = () => {
 
   if (dashboardLoading) {
     return (
-      <Card className="border border-slate-800/60 bg-slate-900/40">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardContent className="py-16">
           <LoadingState message="Loading document requests..." />
         </CardContent>
@@ -357,7 +361,7 @@ const UniversityDocumentRequestsPage = () => {
         </p>
       </div>
 
-      <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardHeader className="space-y-4 md:flex md:items-center md:justify-between md:space-y-0">
           <div>
             <CardTitle className="text-base font-semibold text-slate-100">
@@ -369,10 +373,10 @@ const UniversityDocumentRequestsPage = () => {
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full border-slate-800 bg-slate-950/60 text-slate-100 sm:w-52">
+              <SelectTrigger className="w-full border-blue-900/50 bg-blue-950/60 text-slate-100 sm:w-52">
                 <SelectValue placeholder="Document type" />
               </SelectTrigger>
-              <SelectContent className="border-slate-800 bg-slate-900 text-slate-100">
+              <SelectContent className="border-blue-900/50 bg-blue-950/80 text-slate-100">
                 {documentTypeOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -381,10 +385,10 @@ const UniversityDocumentRequestsPage = () => {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilterValue)}>
-              <SelectTrigger className="w-full border-slate-800 bg-slate-950/60 text-slate-100 sm:w-48">
+              <SelectTrigger className="w-full border-blue-900/50 bg-blue-950/60 text-slate-100 sm:w-48">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="border-slate-800 bg-slate-900 text-slate-100">
+              <SelectContent className="border-blue-900/50 bg-blue-950/80 text-slate-100">
                 {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -396,7 +400,7 @@ const UniversityDocumentRequestsPage = () => {
               variant="outline"
               onClick={() => void handleRefresh()}
               disabled={loading || refreshing}
-              className="border-slate-700 bg-slate-950/60 text-slate-100 hover:bg-slate-900/80"
+              className="border-blue-900/50 bg-blue-950/60 text-slate-100 hover:bg-blue-900/40"
             >
               {refreshing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -425,10 +429,10 @@ const UniversityDocumentRequestsPage = () => {
               className="bg-transparent"
             />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/40">
+            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-blue-950/40")}>
               <Table>
-                <TableHeader className="bg-slate-950/60">
-                  <TableRow className="border-slate-800/60">
+                <TableHeader className="bg-blue-950/50">
+                  <TableRow className="border-blue-900/50">
                     <TableHead className="text-slate-300">Student</TableHead>
                     <TableHead className="text-slate-300">Document Type</TableHead>
                     <TableHead className="text-slate-300">Requested Date</TableHead>
@@ -440,7 +444,7 @@ const UniversityDocumentRequestsPage = () => {
                   {filteredRequests.map((request) => (
                     <TableRow
                       key={request.id}
-                      className="border-slate-800/60 bg-slate-950/30 hover:bg-slate-900/60 transition-colors"
+                      className="border-blue-900/40 bg-blue-950/30 transition-colors hover:bg-blue-900/40"
                     >
                       <TableCell className="font-medium text-white">
                         {request.studentName}
@@ -491,7 +495,7 @@ const UniversityDocumentRequestsPage = () => {
                             variant="outline"
                             onClick={() => handleUploadClick(request.id)}
                             disabled={uploadingId === request.id}
-                            className="gap-2 border-slate-700 text-slate-100 hover:bg-slate-900/80"
+                            className="gap-2 border-blue-900/50 text-slate-100 hover:bg-blue-900/40"
                           >
                             {uploadingId === request.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />

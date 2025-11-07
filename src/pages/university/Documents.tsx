@@ -18,6 +18,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -107,7 +111,7 @@ const DocumentsPage = () => {
         </p>
       </div>
 
-      <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
             <CardTitle className="text-base font-semibold text-slate-100">
@@ -155,7 +159,7 @@ const DocumentsPage = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">
+                <thead className="border-b border-blue-900/50 text-xs uppercase tracking-wide text-slate-400">
                   <tr>
                     <th className="py-2">Student</th>
                     <th className="py-2">Request</th>
