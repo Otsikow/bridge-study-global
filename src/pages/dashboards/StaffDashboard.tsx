@@ -12,16 +12,15 @@ import {
   CheckSquare,
   FileText,
   Filter,
-  LifeBuoy,
   LineChart,
   Loader2,
   MessageCircle,
+  Settings,
   ShieldCheck,
   Sparkles,
   Target,
   TrendingUp,
   Users,
-  Settings,
 } from 'lucide-react';
 
 import BackButton from '@/components/BackButton';
@@ -32,6 +31,13 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import {
   Pagination,
@@ -63,6 +69,21 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+
+type AssignedAgent = {
+  id: string;
+  company: string;
+  country: string;
+  leadsSubmitted: number;
+  activeStudents: number;
+  commissionRate: string;
+  verificationStatus: 'approved' | 'pending';
+  conversionRate: number;
+  latestSubmission: {
+    description: string;
+    time: string;
+  };
+};
 
 const overviewStats = [
   { title: 'Active Students', value: '128', description: 'Across all intakes', icon: Users, to: '/dashboard/students' },
@@ -152,33 +173,48 @@ const studentRecords = [
   },
 ];
 
-const partnerLeads = [
+const assignedAgents: AssignedAgent[] = [
   {
     id: 'AG-001',
-    name: 'Bridge Lagos',
-    region: 'West Africa',
-    owner: 'You',
-    newLeads: 4,
-    lastContact: 'Today, 09:20',
-    focus: 'Undergraduate STEM',
-  },
-  {
-    id: 'AG-002',
-    name: 'Global Pathways',
-    region: 'Asia',
-    owner: 'Jane Doe',
-    newLeads: 7,
-    lastContact: 'Yesterday',
-    focus: 'Postgraduate Business',
+    company: 'Bridge Lagos',
+    country: 'Nigeria',
+    leadsSubmitted: 34,
+    activeStudents: 12,
+    commissionRate: '18%',
+    verificationStatus: 'approved',
+    conversionRate: 42,
+    latestSubmission: {
+      description: 'Submitted 3 new undergraduate leads',
+      time: '2h ago',
+    },
   },
   {
     id: 'AG-003',
-    name: 'LatAm Partners',
-    region: 'Latin America',
-    owner: 'You',
-    newLeads: 2,
-    lastContact: '3 days ago',
-    focus: 'Scholarship Seekers',
+    company: 'LatAm Partners',
+    country: 'Mexico',
+    leadsSubmitted: 21,
+    activeStudents: 9,
+    commissionRate: '16%',
+    verificationStatus: 'approved',
+    conversionRate: 37,
+    latestSubmission: {
+      description: 'Uploaded visa documents for 2 students',
+      time: '1d ago',
+    },
+  },
+  {
+    id: 'AG-004',
+    company: 'Bridge Dubai',
+    country: 'UAE',
+    leadsSubmitted: 18,
+    activeStudents: 7,
+    commissionRate: '17%',
+    verificationStatus: 'pending',
+    conversionRate: 33,
+    latestSubmission: {
+      description: 'Shared financial proof updates',
+      time: '3d ago',
+    },
   },
 ];
 
@@ -310,6 +346,9 @@ export default function StaffDashboard() {
   const [paymentPage, setPaymentPage] = useState(1);
   const [zoeQuestion, setZoeQuestion] = useState('');
   const [zoeResponse, setZoeResponse] = useState('');
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<AssignedAgent | null>(null);
+  const [messageDraft, setMessageDraft] = useState('');
 
   const studentsQuery = useQuery({
     queryKey: ['staff-dashboard', 'students'],
@@ -382,6 +421,34 @@ export default function StaffDashboard() {
       'Here is what I recommend next: 1) Confirm pending document verification for John Smith before Friday. 2) Send visa preparation checklist to Michael Chen. 3) Follow up with LatAm Partners about commission invoice support.',
     );
     setZoeQuestion('');
+  };
+
+  const totalAgentLeads = assignedAgents.reduce((sum, agent) => sum + agent.leadsSubmitted, 0);
+  const totalAgentStudents = assignedAgents.reduce((sum, agent) => sum + agent.activeStudents, 0);
+  const averageAgentConversion = assignedAgents.length
+    ? Math.round(assignedAgents.reduce((sum, agent) => sum + agent.conversionRate, 0) / assignedAgents.length)
+    : 0;
+
+  const handleOpenAgentChat = (agent: AssignedAgent) => {
+    setSelectedAgent(agent);
+    setIsChatOpen(true);
+  };
+
+  const handleChatOpenChange = (open: boolean) => {
+    setIsChatOpen(open);
+
+    if (!open) {
+      setMessageDraft('');
+      setSelectedAgent(null);
+    }
+  };
+
+  const handleSendAgentMessage = () => {
+    if (!messageDraft.trim()) return;
+
+    setIsChatOpen(false);
+    setMessageDraft('');
+    setSelectedAgent(null);
   };
 
   const renderPagination = (
@@ -740,69 +807,118 @@ export default function StaffDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="agents" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
+        <TabsContent value="agents" className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[3fr,2fr]">
+            <Card className="overflow-hidden">
+              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
                   <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-primary" /> Partner pipelines
+                    <Building2 className="h-5 w-5 text-primary" /> Assigned agents
                   </CardTitle>
-                  <CardDescription>Focus on the agents you manage directly.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {partnerLeads.map((partner) => (
-                    <div key={partner.id} className="rounded-lg border p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold">{partner.name}</p>
-                          <p className="text-xs text-muted-foreground">{partner.region} &bull; Focus: {partner.focus}</p>
-                          <p className="text-xs text-muted-foreground">Last contacted {partner.lastContact}</p>
-                        </div>
-                        <div className="text-right space-y-1">
-                          <Badge variant="secondary">{partner.owner === 'You' ? 'Assigned to you' : partner.owner}</Badge>
-                          <p className="text-xs text-muted-foreground">New leads: {partner.newLeads}</p>
-                          <Button size="sm" variant="outline" className="mt-1" asChild>
-                            <Link to="/dashboard/messages">Open chat</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+                  <CardDescription>Track the partners directly assigned to your portfolio.</CardDescription>
+                </div>
+                <Badge variant="outline" className="px-3 text-xs">
+                  {assignedAgents.length} active partnerships
+                </Badge>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Company Name</TableHead>
+                        <TableHead>Country</TableHead>
+                        <TableHead>Leads Submitted</TableHead>
+                        <TableHead>Active Students</TableHead>
+                        <TableHead>Commission Rate</TableHead>
+                        <TableHead>Verification Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {assignedAgents.map((agent) => (
+                        <TableRow key={agent.id} className="align-top hover:bg-muted/50">
+                          <TableCell className="space-y-3">
+                            <div>
+                              <p className="text-sm font-semibold">{agent.company}</p>
+                              <p className="text-xs text-muted-foreground">ID {agent.id}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-fit px-3 text-xs"
+                              onClick={() => handleOpenAgentChat(agent)}
+                            >
+                              Message Agent
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-sm">{agent.country}</TableCell>
+                          <TableCell className="text-sm">{agent.leadsSubmitted}</TableCell>
+                          <TableCell className="text-sm">{agent.activeStudents}</TableCell>
+                          <TableCell className="text-sm">{agent.commissionRate}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                agent.verificationStatus === 'approved'
+                                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                  : 'border-amber-200 bg-amber-50 text-amber-700'
+                              }
+                            >
+                              {agent.verificationStatus === 'approved' ? 'Approved' : 'Pending'}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <LifeBuoy className="h-5 w-5 text-primary" /> Agent health
-                  </CardTitle>
-                  <CardDescription>Quick signals for agent engagement.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="rounded-lg border p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">New lead response time</p>
-                        <p className="text-xs text-muted-foreground">Average across your agents</p>
-                      </div>
-                      <Badge variant="outline">1.4 hours</Badge>
-                    </div>
-                    <Progress value={72} className="mt-3" aria-label="Lead response progress" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" /> Agent performance
+                </CardTitle>
+                <CardDescription>Conversion trends and recent partner activity.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Avg. conversion rate</p>
+                    <p className="text-xl font-semibold">{averageAgentConversion}%</p>
                   </div>
-                  <div className="rounded-lg border p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">Unread partner messages</p>
-                        <p className="text-xs text-muted-foreground">Action in the messages tab</p>
-                      </div>
-                      <Badge variant="destructive">5</Badge>
-                    </div>
-                    <Progress value={40} className="mt-3" aria-label="Messages progress" />
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Leads this quarter</p>
+                    <p className="text-xl font-semibold">{totalAgentLeads}</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                  <div className="rounded-lg border p-3">
+                    <p className="text-xs text-muted-foreground">Active students</p>
+                    <p className="text-xl font-semibold">{totalAgentStudents}</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">Latest submissions</p>
+                  <div className="space-y-2">
+                    {assignedAgents.map((agent) => (
+                      <div key={`${agent.id}-submission`} className="rounded-lg border p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">{agent.company}</p>
+                            <p className="text-xs text-muted-foreground">{agent.latestSubmission.description}</p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {agent.latestSubmission.time}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
 
           <TabsContent value="tasks" className="space-y-6">
             <div className="grid gap-6 xl:grid-cols-2">
@@ -1104,6 +1220,50 @@ export default function StaffDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+        <Dialog open={isChatOpen} onOpenChange={handleChatOpenChange}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Message {selectedAgent?.company ?? 'agent'}</DialogTitle>
+              <DialogDescription>Send a quick update without leaving the staff workspace.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedAgent ? (
+                <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>
+                      {selectedAgent.company
+                        .split(' ')
+                        .map((word) => word[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="text-sm font-semibold">{selectedAgent.company}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedAgent.country} • {selectedAgent.activeStudents} active students
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+              <Textarea
+                value={messageDraft}
+                onChange={(event) => setMessageDraft(event.target.value)}
+                placeholder="Share an update, request documents, or schedule a call."
+                rows={4}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => handleChatOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSendAgentMessage} disabled={!messageDraft.trim()}>
+                Send message
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   );
