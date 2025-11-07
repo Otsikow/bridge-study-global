@@ -193,6 +193,8 @@ const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/Staf
 const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
 const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
 const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
+const StaffAIInsightsPage = lazyWithErrorHandling(() => import("./pages/dashboard/StaffAIInsights"));
+const StaffSettingsRouter = lazyWithErrorHandling(() => import("./pages/dashboard/SettingsRouter"));
 const ApplicationsRouter = lazyWithErrorHandling(
   () => import("./pages/dashboard/ApplicationsRouter")
 );
@@ -202,7 +204,6 @@ const AgentImport = lazyWithErrorHandling(() => import("./pages/agent/Import"));
 const AgentResources = lazyWithErrorHandling(() => import("./pages/agent/Resources"));
 const AgentPayments = lazyWithErrorHandling(() => import("./pages/agent/Payments"));
 const AgentCommissions = lazyWithErrorHandling(() => import("./pages/agent/Commissions"));
-const AgentSettings = lazyWithErrorHandling(() => import("./pages/agent/Settings"));
 const StaffBlogManagement = lazyWithErrorHandling(() => import("./pages/dashboard/StaffBlog"));
 const PartnerDocumentRequests = lazyWithErrorHandling(() => import("./pages/dashboard/DocumentRequests"));
 const OffersManagement = lazyWithErrorHandling(() => import("./pages/dashboard/OffersManagement"));
@@ -292,7 +293,8 @@ const App = () => {
                         <Route path="/dashboard/commissions" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentCommissions /></ProtectedRoute>} />
                         <Route path="/dashboard/import" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentImport /></ProtectedRoute>} />
                         <Route path="/dashboard/resources" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentResources /></ProtectedRoute>} />
-                        <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentSettings /></ProtectedRoute>} />
+                        <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><StaffSettingsRouter /></ProtectedRoute>} />
+                        <Route path="/dashboard/ai-insights" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffAIInsightsPage /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
                         <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
 

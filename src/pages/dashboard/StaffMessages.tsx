@@ -1,38 +1,41 @@
+"use client";
 
-import { useCallback, useMemo, useState } from 'react';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import BackButton from '@/components/BackButton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChatList } from '@/components/messages/ChatList';
-import { ChatArea } from '@/components/messages/ChatArea';
+import { useCallback, useMemo, useState, Suspense } from "react";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import BackButton from "@/components/BackButton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChatList } from "@/components/messages/ChatList";
+import { ChatArea } from "@/components/messages/ChatArea";
 import {
   useMessages,
   type SendMessagePayload,
   type Conversation,
   type Message as ChatMessage,
   type TypingIndicator,
-} from '@/hooks/useMessages';
-import { useAgentMessages } from '@/hooks/useAgentMessages';
-import { usePresence } from '@/hooks/usePresence';
-import { Badge } from '@/components/ui/badge';
+} from "@/hooks/useMessages";
+import { useAgentMessages } from "@/hooks/useAgentMessages";
+import { usePresence } from "@/hooks/usePresence";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import AIChatbot from '@/components/ai/AIChatbot';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import AIChatbot from "@/components/ai/AIChatbot";
+import { Skeleton } from "@/components/ui/skeleton";
+import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
 
-type TabValue = 'zoe' | 'partners' | 'staff';
+type TabValue = "zoe" | "partners" | "staff" | "insights";
 
 interface AgentContact {
   profile_id: string;
@@ -40,14 +43,14 @@ interface AgentContact {
   email: string;
   avatar_url: string | null;
   role: string;
-  contact_type: 'student' | 'staff';
+  contact_type: "student" | "staff";
 }
 
 const getInitials = (name: string) =>
   name
-    .split(' ')
+    .split(" ")
     .map((part) => part[0])
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 
@@ -80,42 +83,54 @@ export default function StaffMessages() {
     loading: staffLoading,
     sendMessage: sendStaffMessage,
     startTyping: startStaffTyping,
-    stopTyping: stopStaffTyping,
+    stopTyping: stopStaffStopTyping,
     getOrCreateConversation: getStaffConversation,
   } = staffMessaging;
 
-  const [activeTab, setActiveTab] = useState<TabValue>(partnerEnabled ? 'partners' : 'staff');
+  const [activeTab, setActiveTab] = useState<TabValue>(
+    partnerEnabled ? "partners" : "staff"
+  );
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [contacts, setContacts] = useState<AgentContact[]>([]);
   const [loadingContacts, setLoadingContacts] = useState(false);
 
-  const canStartInternalChat = profile?.role === 'staff' || profile?.role === 'admin';
+  const canStartInternalChat =
+    profile?.role === "staff" || profile?.role === "admin";
 
   const partnerCurrentConversation = useMemo(
     () =>
-      partnerConversations.find((conversation) => conversation.id === partnerCurrentConversationId) ??
-      null,
+      partnerConversations.find(
+        (conversation) => conversation.id === partnerCurrentConversationId
+      ) ?? null,
     [partnerConversations, partnerCurrentConversationId]
   );
 
   const staffCurrentConversation = useMemo(
     () =>
-      staffConversations.find((conversation) => conversation.id === staffCurrentConversationId) ?? null,
+      staffConversations.find(
+        (conversation) => conversation.id === staffCurrentConversationId
+      ) ?? null,
     [staffConversations, staffCurrentConversationId]
   );
 
   const totalUnread = useMemo(
     () =>
-      partnerConversations.reduce((sum, conversation) => sum + (conversation.unreadCount || 0), 0) +
-      staffConversations.reduce((sum, conversation) => sum + (conversation.unreadCount || 0), 0),
+      partnerConversations.reduce(
+        (sum, conversation) => sum + (conversation.unreadCount || 0),
+        0
+      ) +
+      staffConversations.reduce(
+        (sum, conversation) => sum + (conversation.unreadCount || 0),
+        0
+      ),
     [partnerConversations, staffConversations]
   );
 
   const handlePartnerSelectConversation = useCallback(
     (conversationId: string) => {
       setPartnerCurrentConversation(conversationId);
-      setActiveTab('partners');
+      setActiveTab("partners");
     },
     [setActiveTab, setPartnerCurrentConversation]
   );
@@ -123,7 +138,7 @@ export default function StaffMessages() {
   const handleStaffSelectConversation = useCallback(
     (conversationId: string) => {
       setStaffCurrentConversation(conversationId);
-      setActiveTab('staff');
+      setActiveTab("staff");
     },
     [setActiveTab, setStaffCurrentConversation]
   );
@@ -161,8 +176,8 @@ export default function StaffMessages() {
 
   const handleStaffStopTyping = useCallback(() => {
     if (!staffCurrentConversationId) return;
-    stopStaffTyping(staffCurrentConversationId);
-  }, [staffCurrentConversationId, stopStaffTyping]);
+    stopStaffStopTyping(staffCurrentConversationId);
+  }, [staffCurrentConversationId, stopStaffStopTyping]);
 
   const handlePartnerBack = useCallback(() => {
     setPartnerCurrentConversation(null);
@@ -174,26 +189,21 @@ export default function StaffMessages() {
 
   const fetchContacts = useCallback(
     async (query: string) => {
-      if (!canStartInternalChat) {
-        return;
-      }
-
+      if (!canStartInternalChat) return;
       setLoadingContacts(true);
       try {
         const trimmed = query.trim();
-        const { data, error } = await supabase.rpc('search_agent_contacts', {
-          p_search: trimmed ? trimmed : null,
+        const { data, error } = await supabase.rpc("search_agent_contacts", {
+          p_search: trimmed || null,
         });
-
         if (error) throw error;
-
         setContacts((data || []) as AgentContact[]);
       } catch (error) {
-        console.error('Error fetching contacts:', error);
+        console.error("Error fetching contacts:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load contacts. Please try again.',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load contacts. Please try again.",
+          variant: "destructive",
         });
       } finally {
         setLoadingContacts(false);
@@ -206,13 +216,13 @@ export default function StaffMessages() {
     (open: boolean) => {
       setShowNewChatDialog(open);
       if (open) {
-        setActiveTab('staff');
-        void fetchContacts('');
+        setActiveTab("staff");
+        void fetchContacts("");
       } else {
-        setSearchQuery('');
+        setSearchQuery("");
       }
     },
-    [fetchContacts, setActiveTab]
+    [fetchContacts]
   );
 
   const handleNewChat = useCallback(() => {
@@ -225,22 +235,22 @@ export default function StaffMessages() {
       const conversationId = await getStaffConversation(contact.profile_id);
       if (conversationId) {
         setStaffCurrentConversation(conversationId);
-        setActiveTab('staff');
+        setActiveTab("staff");
         setShowNewChatDialog(false);
-        setSearchQuery('');
+        setSearchQuery("");
       }
     },
-    [getStaffConversation, setActiveTab, setStaffCurrentConversation]
+    [getStaffConversation, setStaffCurrentConversation]
   );
 
   const getContactBadge = (contact: AgentContact) => {
-    if (contact.contact_type === 'student') {
-      return { label: 'Student', variant: 'outline' as const };
+    if (contact.contact_type === "student") {
+      return { label: "Student", variant: "outline" as const };
     }
-    if (contact.role === 'admin') {
-      return { label: 'Admin', variant: 'destructive' as const };
+    if (contact.role === "admin") {
+      return { label: "Admin", variant: "destructive" as const };
     }
-    return { label: 'Staff', variant: 'secondary' as const };
+    return { label: "Staff", variant: "secondary" as const };
   };
 
   const renderChatWorkspace = ({
@@ -323,16 +333,11 @@ export default function StaffMessages() {
         <div className="border-b bg-background px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <BackButton
-                variant="ghost"
-                size="sm"
-                className="md:w-auto"
-                fallback="/dashboard"
-              />
+              <BackButton variant="ghost" size="sm" fallback="/dashboard" />
               <div>
-                <h1 className="text-2xl font-bold">Messaging & Notifications</h1>
+                <h1 className="text-2xl font-bold">Messaging & Insights</h1>
                 <p className="text-sm text-muted-foreground">
-                  Coordinate with partners, staff, and Zoe for faster responses.
+                  Chat with partners, staff, or Zoe AI — and view insights.
                 </p>
               </div>
             </div>
@@ -353,41 +358,41 @@ export default function StaffMessages() {
             <TabsList className="w-full justify-start">
               <TabsTrigger value="zoe">Zoe AI Chat</TabsTrigger>
               <TabsTrigger value="partners">Partner Chats</TabsTrigger>
-              <TabsTrigger value="staff">Internal Staff Chats</TabsTrigger>
+              <TabsTrigger value="staff">Internal Chats</TabsTrigger>
+              <TabsTrigger value="insights">AI Insights</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="zoe" className="flex-1 px-4 pb-4">
-            <div className="flex h-full flex-col">
-              <div className="flex-1 overflow-hidden rounded-lg border bg-card shadow-sm">
-                <AIChatbot />
-              </div>
+            <div className="h-full overflow-hidden rounded-lg border bg-card shadow-sm">
+              <AIChatbot />
             </div>
           </TabsContent>
 
           <TabsContent value="partners" className="flex-1 px-4 pb-4">
             {partnerEnabled ? (
-              <div className="flex h-full flex-col">
-                {renderChatWorkspace({
-                  conversations: partnerConversations,
-                  currentConversationId: partnerCurrentConversationId,
-                  onSelectConversation: handlePartnerSelectConversation,
-                  onSendMessage: handlePartnerSendMessage,
-                  onStartTyping: handlePartnerStartTyping,
-                  onStopTyping: handlePartnerStopTyping,
-                  messages: partnerMessages,
-                  typingUsers: partnerTypingUsers,
-                  loading: partnerLoading,
-                  currentConversationData: partnerCurrentConversation,
-                  onBack: handlePartnerBack,
-                })}
-              </div>
+              renderChatWorkspace({
+                conversations: partnerConversations,
+                currentConversationId: partnerCurrentConversationId,
+                onSelectConversation: handlePartnerSelectConversation,
+                onSendMessage: handlePartnerSendMessage,
+                onStartTyping: handlePartnerStartTyping,
+                onStopTyping: handlePartnerStopTyping,
+                messages: partnerMessages,
+                typingUsers: partnerTypingUsers,
+                loading: partnerLoading,
+                currentConversationData: partnerCurrentConversation,
+                onBack: handlePartnerBack,
+              })
             ) : (
               <div className="flex h-full items-center justify-center rounded-lg border border-dashed bg-muted/30 text-center">
                 <div className="max-w-sm space-y-2 px-6 py-8">
-                  <h3 className="text-lg font-semibold">Partner messaging unavailable</h3>
+                  <h3 className="text-lg font-semibold">
+                    Partner messaging unavailable
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Partner chats are available for agent and partner accounts.
+                    Partner chats are only available for agent or partner
+                    accounts.
                   </p>
                 </div>
               </div>
@@ -395,31 +400,29 @@ export default function StaffMessages() {
           </TabsContent>
 
           <TabsContent value="staff" className="flex-1 px-4 pb-4">
-            <div className="flex h-full flex-col">
-              {renderChatWorkspace({
-                conversations: staffConversations,
-                currentConversationId: staffCurrentConversationId,
-                onSelectConversation: handleStaffSelectConversation,
-                onSendMessage: handleStaffSendMessage,
-                onStartTyping: handleStaffStartTyping,
-                onStopTyping: handleStaffStopTyping,
-                messages: staffMessages,
-                typingUsers: staffTypingUsers,
-                loading: staffLoading,
-                currentConversationData: staffCurrentConversation,
-                onBack: handleStaffBack,
-                enableNewChat: canStartInternalChat,
-                onNewChat: canStartInternalChat ? handleNewChat : undefined,
-              })}
-            </div>
+            {renderChatWorkspace({
+              conversations: staffConversations,
+              currentConversationId: staffCurrentConversationId,
+              onSelectConversation: handleStaffSelectConversation,
+              onSendMessage: handleStaffSendMessage,
+              onStartTyping: handleStaffStartTyping,
+              onStopTyping: handleStaffStopTyping,
+              messages: staffMessages,
+              typingUsers: staffTypingUsers,
+              loading: staffLoading,
+              currentConversationData: staffCurrentConversation,
+              onBack: handleStaffBack,
+              enableNewChat: canStartInternalChat,
+              onNewChat: canStartInternalChat ? handleNewChat : undefined,
+            })}
 
             {canStartInternalChat && (
               <Dialog open={showNewChatDialog} onOpenChange={handleNewChatDialogChange}>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Start a new staff chat</DialogTitle>
+                    <DialogTitle>Start a new chat</DialogTitle>
                     <DialogDescription>
-                      Message teammates across advising, admissions, and support.
+                      Message teammates across departments.
                     </DialogDescription>
                   </DialogHeader>
 
@@ -431,7 +434,7 @@ export default function StaffMessages() {
                         value={searchQuery}
                         onChange={(event) => setSearchQuery(event.target.value)}
                         onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
+                          if (event.key === "Enter") {
                             event.preventDefault();
                             void fetchContacts(searchQuery);
                           }
@@ -444,7 +447,11 @@ export default function StaffMessages() {
                         size="sm"
                         disabled={loadingContacts}
                       >
-                        {loadingContacts ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
+                        {loadingContacts ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Search"
+                        )}
                       </Button>
                     </div>
 
@@ -452,7 +459,6 @@ export default function StaffMessages() {
                       {contacts.length === 0 && !loadingContacts ? (
                         <div className="py-8 text-center text-muted-foreground">
                           <p>No contacts found</p>
-                          <p className="mt-1 text-sm">Try a different search or clear the filters.</p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -466,14 +472,25 @@ export default function StaffMessages() {
                               >
                                 <div className="flex items-center gap-3">
                                   <Avatar className="h-10 w-10">
-                                    <AvatarImage src={contact.avatar_url || undefined} alt={contact.full_name} />
-                                    <AvatarFallback>{getInitials(contact.full_name)}</AvatarFallback>
+                                    <AvatarImage
+                                      src={contact.avatar_url || undefined}
+                                      alt={contact.full_name}
+                                    />
+                                    <AvatarFallback>
+                                      {getInitials(contact.full_name)}
+                                    </AvatarFallback>
                                   </Avatar>
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-semibold truncate">{contact.full_name}</p>
-                                    <p className="text-sm text-muted-foreground truncate">{contact.email}</p>
+                                    <p className="font-semibold truncate">
+                                      {contact.full_name}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground truncate">
+                                      {contact.email}
+                                    </p>
                                   </div>
-                                  <Badge variant={badge.variant}>{badge.label}</Badge>
+                                  <Badge variant={badge.variant}>
+                                    {badge.label}
+                                  </Badge>
                                 </div>
                               </button>
                             );
@@ -485,6 +502,12 @@ export default function StaffMessages() {
                 </DialogContent>
               </Dialog>
             )}
+          </TabsContent>
+
+          <TabsContent value="insights" className="flex-1 px-4 pb-4">
+            <Suspense fallback={<Skeleton className="h-96 w-full rounded-2xl" />}>
+              <StaffMessagesTable />
+            </Suspense>
           </TabsContent>
         </Tabs>
       </div>
