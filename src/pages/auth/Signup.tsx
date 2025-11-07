@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 import { formatReferralUsername } from "@/lib/referrals";
 import { LoadingState } from "@/components/LoadingState";
 import BackButton from "@/components/BackButton";
+import { passwordSchema } from "@/lib/validation";
 
 type UserRole = "student" | "agent" | "partner";
 
@@ -275,7 +276,17 @@ const Signup = () => {
       return toast({ variant: "destructive", title: "Username unavailable", description: usernameError }), false;
     }
     if (!email.includes("@")) return toast({ variant: "destructive", title: "Invalid email" }), false;
-    if (password.length < 6) return toast({ variant: "destructive", title: "Weak password" }), false;
+    
+    // Validate password strength using passwordSchema
+    const passwordResult = passwordSchema.safeParse(password);
+    if (!passwordResult.success) {
+      return toast({ 
+        variant: "destructive", 
+        title: "Weak password", 
+        description: passwordResult.error.issues[0].message 
+      }), false;
+    }
+    
     if (password !== confirmPassword) return toast({ variant: "destructive", title: "Passwords do not match" }), false;
     return true;
   };

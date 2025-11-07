@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import DOMPurify from "dompurify";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -108,11 +109,18 @@ export const ZoeAdminInsightsPanel = ({ metrics, trends, geography, loading }: Z
           {loading ? (
             <p className="text-sm text-muted-foreground">Synthesizing the latest signals…</p>
           ) : (
-            insights.map((message, index) => (
-              <div key={index} className="rounded-lg border border-border/60 bg-muted/40 p-3 text-sm leading-relaxed">
-                <span dangerouslySetInnerHTML={{ __html: message.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") }} />
-              </div>
-            ))
+            insights.map((message, index) => {
+              const formattedMessage = message.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+              const sanitizedMessage = DOMPurify.sanitize(formattedMessage, {
+                ALLOWED_TAGS: ['strong'],
+                ALLOWED_ATTR: []
+              });
+              return (
+                <div key={index} className="rounded-lg border border-border/60 bg-muted/40 p-3 text-sm leading-relaxed">
+                  <span dangerouslySetInnerHTML={{ __html: sanitizedMessage }} />
+                </div>
+              );
+            })
           )}
         </div>
 
