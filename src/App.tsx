@@ -182,8 +182,8 @@ const UniversityApplications = lazyWithErrorHandling(
 const UniversityDocuments = lazyWithErrorHandling(
   () => import("./pages/university/Documents")
 );
-const UniversityOffersCas = lazyWithErrorHandling(
-  () => import("./pages/university/OffersCas")
+const UniversityOffersCAS = lazyWithErrorHandling(
+  () => import("./pages/university/OffersCAS")
 );
 const UniversityAnalytics = lazyWithErrorHandling(
   () => import("./pages/university/Analytics")
@@ -404,7 +404,7 @@ const App = () => {
                             <Route index element={<UniversityOverview />} />
                             <Route path="applications" element={<UniversityApplications />} />
                             <Route path="documents" element={<UniversityDocuments />} />
-                            <Route path="offers-cas" element={<UniversityOffersCas />} />
+                            <Route path="offers-cas" element={<UniversityOffersCAS />} />
                             <Route path="analytics" element={<UniversityAnalytics />} />
                             <Route path="programs" element={<UniversityPrograms />} />
                           </Route>
