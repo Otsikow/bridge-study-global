@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CalendarClock, CheckSquare, Filter, Loader2 } from "lucide-react";
+import { AlertCircle, CalendarClock, CheckSquare, Filter, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import StaffPagination from "@/components/staff/StaffPagination";
 import { useStaffTasks, useUpdateTaskStatus, STAFF_PAGE_SIZE } from "@/hooks/useStaffData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "outline" | "secondary" }> = {
   open: { label: "To do", variant: "secondary" },
@@ -25,12 +26,19 @@ export function StaffTasksBoard() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string>("all");
   const [priority, setPriority] = useState<string>("all");
+  const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
 
-  const { data, isLoading, isFetching } = useStaffTasks(page, { status, priority });
+  const { data, isLoading, isFetching, isError, error, refetch } = useStaffTasks(page, { status, priority });
   const mutation = useUpdateTaskStatus();
 
   const total = data?.total ?? 0;
   const rows = data?.data ?? [];
+  const isFiltered = status !== "all" || priority !== "all";
+
+  const errorMessage =
+    error && typeof error === "object" && "message" in error
+      ? String((error as { message?: string }).message ?? "")
+      : "We couldn’t load your tasks. Please try again.";
 
   const statusOptions = useMemo(
     () => [
@@ -54,7 +62,23 @@ export function StaffTasksBoard() {
   );
 
   const handleUpdateStatus = (taskId: string, nextStatus: string) => {
-    mutation.mutate({ taskId, status: nextStatus });
+    if (mutation.isPending) return;
+
+    setUpdatingTaskId(taskId);
+    mutation.mutate(
+      { taskId, status: nextStatus },
+      {
+        onSettled: () => {
+          setUpdatingTaskId(null);
+        },
+      },
+    );
+  };
+
+  const handleResetFilters = () => {
+    setStatus("all");
+    setPriority("all");
+    setPage(1);
   };
 
   return (
@@ -66,34 +90,60 @@ export function StaffTasksBoard() {
           </CardTitle>
           <CardDescription>Stay on top of deadlines with Zoe-assisted triage.</CardDescription>
         </div>
-        <div className="flex w-full flex-col gap-2 md:w-auto md:flex-row">
-          <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
-            <SelectTrigger className="md:w-40">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={priority} onValueChange={(value) => { setPriority(value); setPage(1); }}>
-            <SelectTrigger className="md:w-40">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              {priorityOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-col gap-2 md:w-auto">
+          <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-end">
+            <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
+              <SelectTrigger className="md:w-40">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={priority} onValueChange={(value) => { setPriority(value); setPage(1); }}>
+              <SelectTrigger className="md:w-40">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                {priorityOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {isFetching && !isLoading ? (
+            <span className="flex items-center gap-2 text-xs text-muted-foreground md:justify-end">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Syncing latest updates…
+            </span>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isError ? (
+          <Alert variant="destructive" className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className="flex-1">
+              <AlertTitle>Unable to load tasks</AlertTitle>
+              <AlertDescription>{errorMessage || "We couldn’t load your tasks. Please try again."}</AlertDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void refetch();
+              }}
+              disabled={isFetching}
+            >
+              Retry
+            </Button>
+          </Alert>
+        ) : null}
         <div className="grid gap-3">
           {(isLoading || isFetching) && rows.length === 0 && (
             <div className="space-y-3 rounded-xl border bg-background p-4">
@@ -103,15 +153,26 @@ export function StaffTasksBoard() {
             </div>
           )}
 
-          {!isLoading && rows.length === 0 && (
+          {!isLoading && rows.length === 0 && !isError && (
             <div className="rounded-xl border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-              Zoe has no tasks for you right now.
+              <p className="font-medium text-foreground">{isFiltered ? "No tasks match your filters." : "Zoe has no tasks for you right now."}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {isFiltered
+                  ? "Try adjusting or resetting the filters to discover more tasks."
+                  : "You’re all caught up for now. Zoe will surface new priorities here automatically."}
+              </p>
+              {isFiltered ? (
+                <Button variant="ghost" size="sm" className="mt-4" onClick={handleResetFilters}>
+                  Reset filters
+                </Button>
+              ) : null}
             </div>
           )}
 
           {rows.map((task) => {
             const statusDetail = statusLabels[task.status ?? "open"] ?? statusLabels.open;
             const priorityClass = priorityBadges[task.priority ?? "medium"] ?? priorityBadges.medium;
+            const isTaskUpdating = mutation.isPending && updatingTaskId === task.id;
             return (
               <div key={task.id} className="rounded-xl border bg-background p-4 shadow-sm">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -143,7 +204,7 @@ export function StaffTasksBoard() {
                           onClick={() => handleUpdateStatus(task.id, value)}
                           disabled={mutation.isPending}
                         >
-                          {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />} {detail.label}
+                          {isTaskUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />} {detail.label}
                         </Button>
                       ))}
                   </div>

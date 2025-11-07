@@ -18,9 +18,13 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { formatError, type NormalizedError } from "@/lib/error";
+import { logError } from "@/lib/errorUtils";
 import {
+  AlertCircle,
   Download,
   FileSpreadsheet,
   FileText,
@@ -163,9 +167,11 @@ const StaffResourceCenter = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<"all" | ResourceCategory>("all");
   const [fileTypeFilter, setFileTypeFilter] = useState<"all" | FileType>("all");
+  const [errorState, setErrorState] = useState<NormalizedError | null>(null);
 
   const fetchResources = useCallback(async () => {
     setIsLoading(true);
+    setErrorState(null);
 
     try {
       const { data, error } = await supabase
@@ -215,12 +221,18 @@ const StaffResourceCenter = () => {
       );
 
       setResources(mappedResources);
+      setErrorState(null);
     } catch (fetchError) {
-      console.error("Failed to load resources", fetchError);
-      toast({
+      logError(fetchError, "StaffResourceCenter.fetchResources");
+      const normalizedError = formatError(fetchError, {
         title: "Unable to load resources",
-        description:
-          fetchError instanceof Error ? fetchError.message : "Unexpected error fetching resources.",
+        description: "We couldn't fetch the staff documents. Please try again.",
+      });
+
+      setErrorState(normalizedError);
+      toast({
+        title: normalizedError.title,
+        description: normalizedError.description,
         variant: "destructive",
       });
     } finally {
@@ -343,7 +355,29 @@ const StaffResourceCenter = () => {
         <Separator />
 
         <CardContent className="space-y-8">
-          {isLoading ? (
+          {errorState ? (
+            <Alert variant="destructive" className="border-destructive/40 bg-destructive/5">
+              <AlertCircle className="h-5 w-5" />
+              <div className="flex flex-col gap-3">
+                <div>
+                  <AlertTitle>{errorState.title}</AlertTitle>
+                  <AlertDescription>{errorState.description}</AlertDescription>
+                  {errorState.code ? (
+                    <p className="mt-2 text-xs text-muted-foreground">Error code: {errorState.code}</p>
+                  ) : null}
+                  {typeof errorState.details === "string" && errorState.details ? (
+                    <p className="mt-1 text-xs text-muted-foreground">{errorState.details}</p>
+                  ) : null}
+                </div>
+                <div>
+                  <Button variant="outline" size="sm" onClick={fetchResources} disabled={isLoading}>
+                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Try again
+                  </Button>
+                </div>
+              </div>
+            </Alert>
+          ) : isLoading ? (
             <div className="grid gap-4 md:grid-cols-2">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div key={`resource-skeleton-${index}`} className="space-y-3 rounded-lg border p-4">
