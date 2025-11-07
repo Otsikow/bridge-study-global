@@ -193,6 +193,9 @@ const PartnerDocumentRequests = lazyWithErrorHandling(
 const OffersManagement = lazyWithErrorHandling(
   () => import("./pages/dashboard/OffersManagement")
 );
+const PartnerOffersCAS = lazyWithErrorHandling(
+  () => import("./pages/partner/OffersCAS")
+);
 
 // ✅ Main App
 const App = () => {
@@ -339,6 +342,14 @@ const App = () => {
                           element={
                             <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
                               <OffersManagement />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/partner/offers-cas"
+                          element={
+                            <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                              <PartnerOffersCAS />
                             </ProtectedRoute>
                           }
                         />
