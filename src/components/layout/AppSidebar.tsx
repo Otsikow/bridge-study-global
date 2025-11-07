@@ -83,7 +83,7 @@ const menuItems = {
     { title: "Tasks", url: "/dashboard/tasks", icon: CheckSquare },
     { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
     { title: "Reports", url: "/dashboard/reports", icon: BarChart3 },
-    { title: "Blog", url: "/admin/blog", icon: FileText },
+    { title: "Blog", url: "/dashboard/blog", icon: FileText },
   ],
   admin: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
