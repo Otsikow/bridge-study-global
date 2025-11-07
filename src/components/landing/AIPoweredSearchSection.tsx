@@ -70,119 +70,6 @@ interface AISearchResults {
   sources?: Nullable<string[]>;
 }
 
-const sampleResults: AISearchResults = {
-  summary:
-    "AI preview: These picks highlight globally recognized AI and data programs with strong graduate outcomes and generous funding. Sign in to run live searches tailored to your interests.",
-  universities: [
-    {
-      name: "Imperial College London",
-      country: "United Kingdom",
-      city: "London",
-      website: "https://www.imperial.ac.uk/",
-      globalRanking: "QS 2025: #2 in Europe",
-      tuitionRange: "£36,500 – £39,000 per year",
-      acceptanceRate: "~15%",
-      notes: [
-        "Flagship AI and machine learning research with close industry partnerships",
-        "Graduates report >92% employment within 6 months",
-      ],
-      standoutPrograms: [
-        {
-          name: "MSc Artificial Intelligence",
-          level: "Postgraduate",
-          duration: "12 months",
-          overview:
-            "Hands-on curriculum across deep learning, reinforcement learning, and robotics with applied labs.",
-          admissionsInsight:
-            "Expect a 2:1 (or equivalent) in computing, engineering, or mathematics plus strong coding portfolio.",
-          careerOutlook:
-            "Popular roles include machine learning engineer, quantitative analyst, and AI consultant.",
-          scholarshipHighlight:
-            "Department offers £5k–£10k excellence scholarships for top profiles submitted by February.",
-        },
-      ],
-      scholarships: [
-        {
-          name: "Imperial Global STEM Leadership Scholarship",
-          amount: "Up to £20,000",
-          deadline: "February each year",
-          eligibility:
-            "Outstanding academic profile with leadership achievements in STEM fields.",
-          link: "https://www.imperial.ac.uk/study/pg/fees-and-funding/scholarships/",
-        },
-      ],
-    },
-    {
-      name: "University of Toronto",
-      country: "Canada",
-      city: "Toronto",
-      website: "https://www.utoronto.ca/",
-      globalRanking: "Times Higher Education 2025: #18",
-      tuitionRange: "CAD 65,000 – CAD 72,000 per year",
-      acceptanceRate: "~20% (graduate engineering)",
-      notes: [
-        "Vector Institute partnership gives access to top AI faculty and internships",
-        "Toronto has a high concentration of AI startups and corporate labs",
-      ],
-      standoutPrograms: [
-        {
-          name: "Master of Applied Science in Computer Engineering (AI focus)",
-          level: "Postgraduate",
-          duration: "24 months",
-          overview:
-            "Research-driven pathway spanning deep learning, NLP, and health AI.",
-          admissionsInsight:
-            "Competitive GPA (3.7/4.0), research proposal, and supervisor alignment required.",
-          careerOutlook:
-            "Alumni enter R&D roles at Meta, Google Brain, Layer 6, and global AI labs.",
-          scholarshipHighlight:
-            "Vector Scholarships in Artificial Intelligence provide CAD 17,500 top-up funding.",
-        },
-      ],
-      scholarships: [
-        {
-          name: "Vector Institute Scholarships in Artificial Intelligence",
-          amount: "CAD 17,500 top-up",
-          deadline: "Nominated by university (Jan–Mar)",
-          eligibility:
-            "Full-time AI-related master’s student at an Ontario university.",
-          link: "https://vectorinstitute.ai/programs/scholarships/",
-        },
-      ],
-    },
-  ],
-  scholarships: [
-    {
-      name: "DeepMind Scholarship",
-      provider: "Google DeepMind",
-      amount: "Full tuition + £15,000 stipend",
-      deadline: "Varies by partner university",
-      eligibility:
-        "Underrepresented students pursuing AI masters at partner institutions.",
-      link: "https://deepmind.google/scholarships/",
-    },
-    {
-      name: "Generation Google Scholarship (EMEA)",
-      provider: "Google",
-      amount: "€7,000",
-      deadline: "December",
-      eligibility:
-        "Undergraduate or graduate students in CS demonstrating leadership and diversity impact.",
-      link: "https://buildyourfuture.withgoogle.com/scholarships",
-    },
-  ],
-  nextSteps: [
-    "Create a free GEG account to unlock live AI search and save shortlists.",
-    "Use the Visa Eligibility Calculator to confirm post-study work visa options.",
-    "Chat with a verified GEG advisor to review documents before scholarship deadlines.",
-  ],
-  sources: [
-    "Imperial College London Graduate Prospectus 2025",
-    "University of Toronto Engineering Admissions 2025",
-    "Vector Institute Scholarship Program Overview",
-  ],
-};
-
 const exampleQueries = [
   "Top AI master's programs with full funding in Europe",
   "Affordable undergraduate business degrees in Australia",
@@ -219,20 +106,15 @@ export function AIPoweredSearchSection() {
   const { user, session, loading: authLoading } = useAuth();
   const [query, setQuery] = useState("");
   const [selectedFocus, setSelectedFocus] = useState<string[]>([]);
-  const [results, setResults] = useState<AISearchResults | null>(sampleResults);
+  const [results, setResults] = useState<AISearchResults | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSample, setIsSample] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      setResults(sampleResults);
-      setIsSample(true);
-    } else if (isSample) {
-      setResults(null);
-      setIsSample(false);
-    }
-  }, [user, isSample]);
+    if (!user) setIsSample(true);
+    else setIsSample(false);
+  }, [user]);
 
   const universities = useMemo(() => results?.universities ?? [], [results]);
   const scholarships = useMemo(() => results?.scholarships ?? [], [results]);
@@ -316,37 +198,23 @@ export function AIPoweredSearchSection() {
 
   return (
     <section className="relative overflow-hidden border-y border-primary/10 bg-gradient-to-br from-primary/10 via-background to-background/70">
-      <div
-        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_55%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -left-24 top-32 -z-10 h-72 w-72 rounded-full bg-primary/20 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -right-16 bottom-16 -z-10 h-64 w-64 rounded-full bg-sky-400/20 blur-3xl"
-        aria-hidden="true"
-      />
       <div className="container mx-auto px-4 py-24 lg:py-28">
         <div className="grid items-start gap-12 lg:grid-cols-[0.95fr_1.05fr] xl:gap-16">
-          {/* Left Section */}
-          <div className="space-y-10 motion-safe:animate-fade-in-left">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary shadow-sm shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-primary/15">
+          {/* LEFT SIDE */}
+          <div className="space-y-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               <Sparkles className="h-4 w-4" />
               <span>AI-Powered University & Scholarship Search</span>
             </div>
 
-            <div className="space-y-5">
-              <h2 className="text-balance text-4xl font-bold leading-tight sm:text-5xl bg-gradient-to-r from-primary via-sky-500 to-blue-600 bg-clip-text text-transparent">
-                Find the right program with real-time intelligence
-              </h2>
-              <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-                Ask anything about universities, courses, or funding worldwide.
-                Our AI-powered engine analyses the latest admissions insights,
-                scholarships, and visa pathways tailored to your goals.
-              </p>
-            </div>
+            <h2 className="text-4xl font-bold leading-tight sm:text-5xl bg-gradient-to-r from-primary via-sky-500 to-blue-600 bg-clip-text text-transparent">
+              Find the right program with real-time intelligence
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Ask anything about universities, courses, or funding worldwide.
+              Our AI engine analyses admissions insights, scholarships, and visa pathways
+              tailored to your goals.
+            </p>
 
             <div className="flex flex-wrap gap-2">
               {focusOptions.map((option) => {
@@ -360,9 +228,9 @@ export function AIPoweredSearchSection() {
                       badgeVariants({
                         variant: isActive ? "default" : "outline",
                       }),
-                      "cursor-pointer border border-primary/20 bg-background/60 px-3 py-1 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
+                      "cursor-pointer border border-primary/20 bg-background/60 px-3 py-1 text-sm font-medium transition-all duration-300",
                       isActive &&
-                        "bg-primary text-primary-foreground shadow-[0_18px_36px_-28px_rgba(37,99,235,0.95)]"
+                        "bg-primary text-primary-foreground shadow-md"
                     )}
                   >
                     {option.label}
@@ -371,7 +239,7 @@ export function AIPoweredSearchSection() {
               })}
             </div>
 
-            <Card className="border border-primary/20 bg-card/80 shadow-lg shadow-primary/10 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg transition-shadow duration-500 hover:shadow-xl motion-safe:animate-fade-in-up">
+            <Card className="border border-primary/20 bg-card/80 shadow-lg backdrop-blur">
               <CardContent className="space-y-6 pt-6">
                 {user ? (
                   <form className="space-y-5" onSubmit={handleSubmit}>
@@ -380,13 +248,13 @@ export function AIPoweredSearchSection() {
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="e.g. Master's in data science with scholarships in Germany"
-                        className="h-12 flex-1 rounded-xl border-primary/30 bg-background/80 text-base shadow-inner transition focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="h-12 flex-1 rounded-xl border-primary/30 bg-background/80 text-base"
                         disabled={loading}
                       />
                       <Button
                         type="submit"
                         size="lg"
-                        className="h-12 rounded-xl px-6 transition-transform duration-300 hover:-translate-y-0.5"
+                        className="h-12 rounded-xl px-6"
                         disabled={loading || authLoading}
                       >
                         {loading ? (
@@ -407,7 +275,7 @@ export function AIPoweredSearchSection() {
                           key={example}
                           type="button"
                           onClick={() => applyExample(example)}
-                          className="rounded-full border border-dashed border-muted-foreground/30 px-3 py-1 text-xs font-medium text-muted-foreground transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+                          className="rounded-full border border-dashed border-muted-foreground/30 px-3 py-1 text-xs font-medium text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
                         >
                           {example}
                         </button>
@@ -419,8 +287,8 @@ export function AIPoweredSearchSection() {
                     <div className="flex items-center gap-3 text-muted-foreground">
                       <Lock className="h-5 w-5" />
                       <span>
-                        <strong className="text-foreground">Sign up</strong> to
-                        run live searches with the full AI engine.
+                        <strong className="text-foreground">Sign up</strong> to run
+                        live searches with the full AI engine.
                       </span>
                     </div>
                     {error && (
@@ -435,9 +303,8 @@ export function AIPoweredSearchSection() {
                       <Button
                         type="button"
                         variant="outline"
-                        className="rounded-xl border-primary/30 px-6 transition-all duration-300 hover:-translate-y-0.5"
+                        className="rounded-xl border-primary/30 px-6"
                         onClick={() => {
-                          setResults(sampleResults);
                           setIsSample(true);
                           setError(null);
                         }}
@@ -451,10 +318,10 @@ export function AIPoweredSearchSection() {
             </Card>
           </div>
 
-          {/* Right Section */}
-          <div className="space-y-6 lg:space-y-8">
-            <Card className="border border-primary/25 bg-background/95 shadow-xl shadow-primary/20 backdrop-blur supports-[backdrop-filter]:backdrop-blur-lg transition-all duration-500 motion-safe:animate-fade-in-up lg:sticky lg:top-24">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-5">
+          {/* RIGHT SIDE */}
+          <div className="space-y-6">
+            <Card className="border border-primary/25 bg-background/95 shadow-xl backdrop-blur">
+              <CardHeader className="flex flex-row items-center justify-between pb-5">
                 <div className="flex items-center gap-3">
                   <div className="rounded-xl bg-primary/10 p-3">
                     <Bot className="h-6 w-6 text-primary" />
@@ -472,12 +339,12 @@ export function AIPoweredSearchSection() {
                   {isSample && (
                     <Badge
                       variant="secondary"
-                      className="bg-primary/10 text-primary shadow-sm shadow-primary/20"
+                      className="bg-primary/10 text-primary"
                     >
                       Preview
                     </Badge>
                   )}
-                  <Button asChild size="sm" className="rounded-lg px-4 transition-transform duration-300 hover:-translate-y-0.5">
+                  <Button asChild size="sm" className="rounded-lg px-4">
                     <Link to="/auth/signup?feature=ai-search">
                       Get Started
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -488,7 +355,7 @@ export function AIPoweredSearchSection() {
 
               <CardContent className="space-y-6">
                 {loading && (
-                  <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-muted-foreground/30 bg-muted/30 p-8 text-center shadow-inner">
+                  <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-muted-foreground/30 bg-muted/30 p-8 text-center">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">
                       Analysing the latest admissions data, rankings, and
@@ -498,24 +365,22 @@ export function AIPoweredSearchSection() {
                 )}
 
                 {!loading && results?.summary && (
-                  <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-primary/0 p-6 text-sm leading-relaxed text-primary-foreground/90 shadow-[0_25px_45px_-35px_rgba(37,99,235,0.75)]">
+                  <div className="rounded-2xl border border-primary/30 bg-primary/5 p-6 text-sm leading-relaxed text-primary-foreground/90">
                     {results.summary}
                   </div>
                 )}
 
-                {/* Results Section */}
-                {!loading && hasResults && (
-                  <div className="space-y-6">
-                    {/* Universities */}
-                    {universities.length > 0 && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          <School className="h-4 w-4" /> Universities & Programmes
-                        </div>
-                        <div className="space-y-4">
-                          {universities.map((university) => (
-                            <div
-                              key={`${university.name}-${university.country ?? ""}`}
-                              className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card/90 p-6 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_30px_60px_-35px_rgba(37,99,235,0.65)]"
-                            >
-                              <div className="flex flex-wrap items
+                {!loading && !hasResults && (
+                  <div className="rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/20 p-6 text-sm text-muted-foreground">
+                    Run a search to see AI-powered university matches, scholarships, and
+                    next steps tailored for you.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
