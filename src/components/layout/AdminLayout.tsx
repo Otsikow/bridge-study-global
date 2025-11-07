@@ -37,7 +37,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { to: "/admin/overview", label: "Overview", description: "Executive summary", icon: LayoutDashboard },
   { to: "/admin/users", label: "Users", description: "Administrators & roles", icon: Users },
-  { to: "/admin/admissions", label: "Admissions", description: "Pipelines & SLAs", icon: GraduationCap },
+  { to: "/admin/admissions", label: "Admissions Oversight", description: "Pipeline ownership", icon: GraduationCap },
   { to: "/admin/payments", label: "Payments", description: "Stripe & payouts", icon: CreditCard },
   { to: "/admin/partners", label: "Partners", description: "Agencies & universities", icon: Building },
   { to: "/admin/resources", label: "Resources", description: "Content & assets", icon: Library },
