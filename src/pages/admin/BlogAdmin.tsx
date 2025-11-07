@@ -82,6 +82,7 @@ import { BlogAnalytics } from "@/components/blog/BlogAnalytics";
 import { BlogPreview } from "@/components/blog/BlogPreview";
 import BackButton from "@/components/BackButton";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 // Utility functions
 const generateSlug = (title: string): string =>
@@ -174,7 +175,9 @@ const createInitialFormState = (): BlogFormState => ({
 export default function BlogAdmin() {
   const qc = useQueryClient();
   const { user, profile } = useAuth();
+  const { hasRole } = useUserRoles();
   const tenantId = profile?.tenant_id ?? "00000000-0000-0000-0000-000000000001";
+  const backFallback = hasRole("admin") ? "/admin/overview" : "/dashboard";
 
   // UI states
   const [activeTab, setActiveTab] = useState<"list" | "analytics" | "edit">(
@@ -430,7 +433,7 @@ export default function BlogAdmin() {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <BackButton />
+            <BackButton fallback={backFallback} />
             <h1 className="text-3xl font-bold">Blog Management</h1>
           </div>
           <p className="text-muted-foreground">Create and manage blog posts</p>

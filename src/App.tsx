@@ -186,6 +186,7 @@ const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin
 const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
 const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
+const BlogAdminPage = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
 
 // Staff & Agent
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
@@ -202,6 +203,7 @@ const AgentResources = lazyWithErrorHandling(() => import("./pages/agent/Resourc
 const AgentPayments = lazyWithErrorHandling(() => import("./pages/agent/Payments"));
 const AgentCommissions = lazyWithErrorHandling(() => import("./pages/agent/Commissions"));
 const AgentSettings = lazyWithErrorHandling(() => import("./pages/agent/Settings"));
+const StaffBlogManagement = lazyWithErrorHandling(() => import("./pages/dashboard/StaffBlog"));
 const PartnerDocumentRequests = lazyWithErrorHandling(() => import("./pages/dashboard/DocumentRequests"));
 const OffersManagement = lazyWithErrorHandling(() => import("./pages/dashboard/OffersManagement"));
 const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
@@ -268,6 +270,14 @@ const App = () => {
                         <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffTasks /></ProtectedRoute>} />
                         <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffStudents /></ProtectedRoute>} />
                         <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
+                        <Route
+                          path="/dashboard/blog"
+                          element={
+                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                              <StaffBlogManagement />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route
                           path="/dashboard/applications"
                           element={
@@ -346,6 +356,7 @@ const App = () => {
                           <Route path="logs" element={<AdminLogsPage />} />
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
+                          <Route path="blog" element={<BlogAdminPage />} />
                         </Route>
 
                         {/* 404 Fallback */}
