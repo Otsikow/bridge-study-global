@@ -565,6 +565,46 @@ const en = {
                 },
               ],
             },
+            {
+              audience: "Universities",
+              items: [
+                {
+                  question: "How can our university partner with GEG?",
+                  answer:
+                    "Submit a partnership request through the University Portal or contact our partnerships team. We'll verify your institution and set up onboarding within a few business days.",
+                },
+                {
+                  question: "What insights do universities receive?",
+                  answer:
+                    "Universities gain access to dashboards showing applicant pipelines, conversion metrics, and regional interest so you can plan recruitment campaigns with confidence.",
+                },
+                {
+                  question: "Can we manage offers directly on the platform?",
+                  answer:
+                    "Yes. Admissions teams can issue conditional or unconditional offers, request missing documents, and communicate with students and agents from a single workspace.",
+                },
+              ],
+            },
+            {
+              audience: "Agents",
+              items: [
+                {
+                  question: "What support do agents receive on GEG?",
+                  answer:
+                    "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programs quickly.",
+                },
+                {
+                  question: "How are agent commissions handled?",
+                  answer:
+                    "Commission structures are transparent. Universities define the terms, and payouts are tracked within the agent dashboard for easy reconciliation.",
+                },
+                {
+                  question: "Can agents collaborate with university admissions teams?",
+                  answer:
+                    "Absolutely. Shared workspaces and messaging threads keep all parties aligned on student progress, missing documents, and interview scheduling.",
+                },
+              ],
+            },
           ],
         },
         contact: {
