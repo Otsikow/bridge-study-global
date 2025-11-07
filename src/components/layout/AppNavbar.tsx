@@ -106,7 +106,7 @@ const AppNavbar = () => {
                             <Link to="/dashboard">{t("common.navigation.dashboard")}</Link>
                           </Button>
                           <Button asChild size="sm" onClick={() => setMobileOpen(false)}>
-                            <Link to="/settings">{t("common.navigation.settings")}</Link>
+                            <Link to="/profile/settings">{t("common.navigation.settings")}</Link>
                           </Button>
                           <Button
                             variant="destructive"
@@ -193,7 +193,7 @@ const AppNavbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/settings" className="cursor-pointer">
+                    <Link to="/profile/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       {t("common.navigation.settings")}
                     </Link>

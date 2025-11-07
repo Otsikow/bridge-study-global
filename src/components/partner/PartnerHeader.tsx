@@ -82,7 +82,7 @@ export function PartnerHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-slate-800" />
-            <DropdownMenuItem onClick={() => navigate("/settings")} className="gap-2 text-slate-200">
+            <DropdownMenuItem onClick={() => navigate("/profile/settings")} className="gap-2 text-slate-200">
               <Settings className="h-4 w-4" />
               Account settings
             </DropdownMenuItem>
