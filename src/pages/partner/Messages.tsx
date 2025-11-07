@@ -156,16 +156,16 @@ export default function PartnerMessagesPage() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
         <PartnerSidebar />
-        <SidebarInset className="flex flex-1 flex-col bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
+        <SidebarInset className="flex flex-1 flex-col bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 transition-colors dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
           <PartnerHeader />
           <main className="flex flex-1 flex-col overflow-hidden">
-            <div className="border-b border-slate-900/70 bg-slate-950/60">
+            <div className="border-b border-slate-200/70 bg-white/80 transition-colors dark:border-slate-900/70 dark:bg-slate-950/60">
               <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
                 <div>
-                  <h1 className="text-2xl font-semibold text-slate-100 md:text-3xl">Partner Messages</h1>
-                  <p className="text-sm text-slate-400">
+                  <h1 className="text-2xl font-semibold text-slate-900 transition-colors dark:text-slate-100 md:text-3xl">Partner Messages</h1>
+                  <p className="text-sm text-slate-600 transition-colors dark:text-slate-400">
                     Coordinate with students and universities across your pipeline.
                   </p>
                 </div>
@@ -186,7 +186,7 @@ export default function PartnerMessagesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-2 rounded-full border-blue-900/50 bg-blue-950/50 text-blue-100 hover:bg-blue-900/60"
+                    className="gap-2 rounded-full border-blue-200/70 bg-blue-50/80 text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-900/50 dark:bg-blue-950/50 dark:text-blue-100 dark:hover:bg-blue-900/60"
                     onClick={() => setShowComposer(true)}
                   >
                     <Sparkles className="h-4 w-4" />
@@ -197,7 +197,7 @@ export default function PartnerMessagesPage() {
             </div>
 
             <div className="flex flex-1 overflow-hidden">
-              <div className="w-full border-r border-slate-900/70 bg-slate-950/60 md:w-[360px] lg:w-[400px]">
+              <div className="w-full border-r border-slate-200/70 bg-white/80 transition-colors dark:border-slate-900/70 dark:bg-slate-950/60 md:w-[360px] lg:w-[400px]">
                 <ChatList
                   conversations={conversations}
                   currentConversation={currentConversation}
@@ -206,7 +206,7 @@ export default function PartnerMessagesPage() {
                 />
               </div>
 
-              <div className="hidden flex-1 bg-slate-900/50 md:flex">
+              <div className="hidden flex-1 bg-slate-100/70 transition-colors dark:bg-slate-900/50 md:flex">
                 <ChatArea
                   conversation={currentConversationData}
                   messages={messages}
@@ -221,14 +221,14 @@ export default function PartnerMessagesPage() {
                 />
               </div>
 
-              <div className="hidden w-full max-w-xl border-l border-slate-900/70 bg-slate-950/40 xl:flex">
+              <div className="hidden w-full max-w-xl border-l border-slate-200/70 bg-slate-100/60 transition-colors dark:border-slate-900/70 dark:bg-slate-950/40 xl:flex">
                 <PartnerZoeAssistant />
               </div>
             </div>
           </main>
 
           {currentConversation && (
-            <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-slate-950">
+            <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-white transition-colors dark:bg-slate-950">
               <ChatArea
                 conversation={currentConversationData}
                 messages={messages}
@@ -265,7 +265,7 @@ export default function PartnerMessagesPage() {
           </DialogHeader>
 
           {!isMessagingEnabled ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-400">
+            <div className="flex flex-col items-center justify-center gap-3 py-12 text-slate-500 dark:text-slate-400">
               <Loader2 className="h-5 w-5 animate-spin" />
               <p className="text-sm">Loading your messaging workspace…</p>
             </div>
@@ -283,9 +283,9 @@ export default function PartnerMessagesPage() {
 
               <ScrollArea className="h-[420px]">
                 {filteredOptions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-slate-400">
+                  <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-slate-500 dark:text-slate-400">
                     <p className="text-sm font-medium">No matching threads found</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-500">
                       Try a different search query or create a new application to begin messaging.
                     </p>
                   </div>
@@ -295,21 +295,21 @@ export default function PartnerMessagesPage() {
                       <button
                         key={option.id}
                         onClick={() => handleSelectConversation(option.id)}
-                        className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-slate-950/80 p-3 text-left transition hover:border-blue-900/60 hover:bg-slate-900/80"
+                        className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-slate-100/80 p-3 text-left transition hover:border-blue-200/70 hover:bg-white dark:bg-slate-950/80 dark:hover:border-blue-900/60 dark:hover:bg-slate-900/80"
                       >
-                        <Avatar className="h-10 w-10 border border-slate-800/70">
+                        <Avatar className="h-10 w-10 border border-slate-200 dark:border-slate-800/70">
                           {option.avatarUrl ? (
                             <AvatarImage src={option.avatarUrl} alt={option.name} />
                           ) : (
-                            <AvatarFallback className="bg-blue-900/40 text-blue-200">
+                            <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200">
                               {initialsForName(option.name)}
                             </AvatarFallback>
                           )}
                         </Avatar>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-100">{option.name}</p>
+                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{option.name}</p>
                           {option.subtitle && (
-                            <p className="truncate text-xs text-slate-400">{option.subtitle}</p>
+                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{option.subtitle}</p>
                           )}
                         </div>
                       </button>
