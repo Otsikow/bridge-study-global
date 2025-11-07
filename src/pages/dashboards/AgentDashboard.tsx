@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import AgentDashboardOverview from "@/components/agent/AgentDashboardOverview";
+import AgentStudentsManager from "@/components/agent/AgentStudentsManager";
 import LeadsList from "@/components/agent/LeadsList";
 import ResourceHub from "@/components/agent/ResourceHub";
 import CommissionTracker from "@/components/agent/CommissionTracker";
@@ -22,6 +23,7 @@ import {
   Star,
   DollarSign,
   Upload,
+  GraduationCap,
 } from "lucide-react";
 import BackButton from '@/components/BackButton';
 
@@ -33,6 +35,7 @@ export default function AgentDashboard() {
     "overview",
     "applications",
     "leads",
+    "students",
     "tasks",
     "ranking",
     "commissions",
@@ -44,6 +47,7 @@ export default function AgentDashboard() {
     overview: "/dashboard",
     applications: "/dashboard/applications",
     leads: "/dashboard/my-leads",
+    students: "/dashboard/my-students",
     tasks: "/dashboard/tasks",
     ranking: "/dashboard/my-ranking",
     commissions: "/dashboard/commissions",
@@ -56,6 +60,8 @@ export default function AgentDashboard() {
     applications: "applications",
     leads: "leads",
     "my-leads": "leads",
+    students: "students",
+    "my-students": "students",
     tasks: "tasks",
     ranking: "ranking",
     "my-ranking": "ranking",
@@ -84,7 +90,7 @@ export default function AgentDashboard() {
         </div>
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
@@ -96,6 +102,10 @@ export default function AgentDashboard() {
             <TabsTrigger value="leads" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               My Leads
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <GraduationCap className="h-4 w-4" />
+              Students
             </TabsTrigger>
             <TabsTrigger value="tasks" className="flex items-center gap-2">
               <ClipboardList className="h-4 w-4" />
@@ -124,17 +134,22 @@ export default function AgentDashboard() {
             <AgentDashboardOverview />
           </TabsContent>
 
-          {/* Applications */}
-          <TabsContent value="applications">
-            <ApplicationTrackingSystem />
-          </TabsContent>
+            {/* Applications */}
+            <TabsContent value="applications">
+              <ApplicationTrackingSystem />
+            </TabsContent>
 
-          {/* Leads */}
-          <TabsContent value="leads">
-            <LeadsList />
-          </TabsContent>
+            {/* Leads */}
+            <TabsContent value="leads">
+              <LeadsList />
+            </TabsContent>
 
-          {/* Tasks */}
+            {/* Students */}
+            <TabsContent value="students">
+              <AgentStudentsManager />
+            </TabsContent>
+
+            {/* Tasks */}
           <TabsContent value="tasks">
             <TaskManager />
             <TaskManagement />

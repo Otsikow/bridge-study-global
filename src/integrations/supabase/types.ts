@@ -205,7 +205,132 @@ export type Database = {
           ]
         }
 
-      /* --- (All other tables remain unchanged — same as in your provided schema) --- */
+          agent_student_links: {
+            Row: {
+              agent_profile_id: string
+              application_count: number
+              student_id: string
+            }
+            Insert: {
+              agent_profile_id: string
+              application_count?: number
+              student_id: string
+            }
+            Update: {
+              agent_profile_id?: string
+              application_count?: number
+              student_id?: string
+            }
+            Relationships: [
+              {
+                foreignKeyName: "agent_student_links_agent_profile_id_fkey"
+                columns: ["agent_profile_id"]
+                isOneToOne: false
+                referencedRelation: "profiles"
+                referencedColumns: ["id"]
+              },
+              {
+                foreignKeyName: "agent_student_links_student_id_fkey"
+                columns: ["student_id"]
+                isOneToOne: false
+                referencedRelation: "students"
+                referencedColumns: ["id"]
+              }
+            ]
+          }
+
+          students: {
+            Row: {
+              address: Json | null
+              consent_flags_json: Json | null
+              contact_email: string | null
+              contact_phone: string | null
+              created_at: string | null
+              current_country: string | null
+              date_of_birth: string | null
+              education_history: Json | null
+              finances_json: Json | null
+              guardian: Json | null
+              id: string
+              legal_name: string | null
+              nationality: string | null
+              passport_expiry: string | null
+              passport_number: string | null
+              preferred_name: string | null
+              profile_completeness: number | null
+              profile_id: string
+              tenant_id: string
+              test_scores: Json | null
+              updated_at: string | null
+              visa_history_json: Json | null
+            }
+            Insert: {
+              address?: Json | null
+              consent_flags_json?: Json | null
+              contact_email?: string | null
+              contact_phone?: string | null
+              created_at?: string | null
+              current_country?: string | null
+              date_of_birth?: string | null
+              education_history?: Json | null
+              finances_json?: Json | null
+              guardian?: Json | null
+              id?: string
+              legal_name?: string | null
+              nationality?: string | null
+              passport_expiry?: string | null
+              passport_number?: string | null
+              preferred_name?: string | null
+              profile_completeness?: number | null
+              profile_id: string
+              tenant_id: string
+              test_scores?: Json | null
+              updated_at?: string | null
+              visa_history_json?: Json | null
+            }
+            Update: {
+              address?: Json | null
+              consent_flags_json?: Json | null
+              contact_email?: string | null
+              contact_phone?: string | null
+              created_at?: string | null
+              current_country?: string | null
+              date_of_birth?: string | null
+              education_history?: Json | null
+              finances_json?: Json | null
+              guardian?: Json | null
+              id?: string
+              legal_name?: string | null
+              nationality?: string | null
+              passport_expiry?: string | null
+              passport_number?: string | null
+              preferred_name?: string | null
+              profile_completeness?: number | null
+              profile_id?: string
+              tenant_id?: string
+              test_scores?: Json | null
+              updated_at?: string | null
+              visa_history_json?: Json | null
+            }
+            Relationships: [
+              {
+                foreignKeyName: "students_profile_id_fkey"
+                columns: ["profile_id"]
+                isOneToOne: true
+                referencedRelation: "profiles"
+                referencedColumns: ["id"]
+              },
+              {
+                foreignKeyName: "students_tenant_id_fkey"
+                columns: ["tenant_id"]
+                isOneToOne: false
+                referencedRelation: "tenants"
+                referencedColumns: ["id"]
+              }
+            ]
+          }
+
+        /* --- (Remaining tables are unchanged from the generated schema) --- */
 
       typing_indicators: {
         Row: {
