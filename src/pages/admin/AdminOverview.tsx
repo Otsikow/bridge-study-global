@@ -14,6 +14,7 @@ import {
   useSystemHealth,
 } from "@/hooks/admin/useAdminOverviewData";
 import ZoeAdminInsightsPanel from "@/components/admin/ZoeAdminInsightsPanel";
+import AdminReportExportButton from "@/components/admin/AdminReportExportButton";
 import { LoadingState } from "@/components/LoadingState";
 import { AlertTriangle, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import {
@@ -221,93 +222,106 @@ const AdminOverview = () => {
   const healthStyles = getHealthStyles(healthQuery.data?.status ?? "unknown");
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="space-y-6">
-        {kpiCards}
-        <div className="grid gap-4 lg:grid-cols-2">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Operations overview</h1>
+          <p className="text-sm text-muted-foreground">
+            Monitor admissions momentum, commercial health, and platform activity in one unified console.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <AdminReportExportButton tenantId={tenantId} defaultReportType="admissions" />
+        </div>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          {kpiCards}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Admissions trends</CardTitle>
+                <p className="text-sm text-muted-foreground">Rolling six-month submission and enrollment cadence</p>
+              </CardHeader>
+              <CardContent className="pt-2">{chartContent}</CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base font-semibold">Applications by country</CardTitle>
+                <p className="text-sm text-muted-foreground">Current pipeline distribution by destination</p>
+              </CardHeader>
+              <CardContent className="pt-2">{barChart}</CardContent>
+            </Card>
+          </div>
+          {recentActivity}
+          <ZoeAdminInsightsPanel
+            metrics={metricsQuery.data}
+            trends={trendsQuery.data}
+            geography={geographyQuery.data}
+            loading={loadingState}
+          />
+        </div>
+        <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Admissions trends</CardTitle>
-              <p className="text-sm text-muted-foreground">Rolling six-month submission and enrollment cadence</p>
+              <CardTitle className="text-base font-semibold">Quick actions</CardTitle>
+              <p className="text-sm text-muted-foreground">Resolve high-impact workflow blockers</p>
             </CardHeader>
-            <CardContent className="pt-2">{chartContent}</CardContent>
+            <CardContent className="flex flex-col gap-3">
+              <Button
+                variant="default"
+                className="justify-start gap-3"
+                onClick={() => openZoe("List agents awaiting approval and potential risks")}
+              >
+                <Activity className="h-4 w-4" />
+                Approve New Agents
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start gap-3"
+                onClick={() => openZoe("Which universities are pending onboarding tasks?")}
+              >
+                <ArrowUpRight className="h-4 w-4" />
+                Approve Universities
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start gap-3"
+                onClick={() => openZoe("Show profiles flagged for compliance review")}
+              >
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                Review Flagged Profiles
+              </Button>
+            </CardContent>
           </Card>
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Applications by country</CardTitle>
-              <p className="text-sm text-muted-foreground">Current pipeline distribution by destination</p>
+            <CardHeader className="flex flex-row items-start justify-between gap-2">
+              <div>
+                <CardTitle className="text-base font-semibold">System health</CardTitle>
+                <p className="text-sm text-muted-foreground">Security signals aggregated from the last 30 days</p>
+              </div>
+              <Badge className={healthStyles.badge}>{healthStyles.label}</Badge>
             </CardHeader>
-            <CardContent className="pt-2">{barChart}</CardContent>
+            <CardContent className="space-y-3">
+              <div className="flex items-baseline gap-2">
+                <p className={`text-3xl font-semibold ${healthStyles.accent}`}>{healthQuery.data?.score ?? 0}</p>
+                <span className="text-xs uppercase tracking-wide text-muted-foreground">risk score</span>
+              </div>
+              <Separator />
+              <div className="space-y-3 text-sm text-muted-foreground">
+                {healthQuery.isLoading && <Skeleton className="h-20 w-full" />}
+                {!healthQuery.isLoading &&
+                  (healthQuery.data?.recommendations ?? ["No active recommendations—continue monitoring."]).map((item, index) => (
+                    <p key={index}>{item}</p>
+                  ))}
+              </div>
+              <Button size="sm" variant="outline" onClick={() => openZoe("Provide a security triage summary for admin") }>
+                <ArrowDownRight className="mr-2 h-4 w-4" />
+                Triage with Zoe
+              </Button>
+            </CardContent>
           </Card>
         </div>
-        {recentActivity}
-        <ZoeAdminInsightsPanel
-          metrics={metricsQuery.data}
-          trends={trendsQuery.data}
-          geography={geographyQuery.data}
-          loading={loadingState}
-        />
-      </div>
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">Quick actions</CardTitle>
-            <p className="text-sm text-muted-foreground">Resolve high-impact workflow blockers</p>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Button
-              variant="default"
-              className="justify-start gap-3"
-              onClick={() => openZoe("List agents awaiting approval and potential risks")}
-            >
-              <Activity className="h-4 w-4" />
-              Approve New Agents
-            </Button>
-            <Button
-              variant="outline"
-              className="justify-start gap-3"
-              onClick={() => openZoe("Which universities are pending onboarding tasks?")}
-            >
-              <ArrowUpRight className="h-4 w-4" />
-              Approve Universities
-            </Button>
-            <Button
-              variant="ghost"
-              className="justify-start gap-3"
-              onClick={() => openZoe("Show profiles flagged for compliance review")}
-            >
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              Review Flagged Profiles
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-2">
-            <div>
-              <CardTitle className="text-base font-semibold">System health</CardTitle>
-              <p className="text-sm text-muted-foreground">Security signals aggregated from the last 30 days</p>
-            </div>
-            <Badge className={healthStyles.badge}>{healthStyles.label}</Badge>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-baseline gap-2">
-              <p className={`text-3xl font-semibold ${healthStyles.accent}`}>{healthQuery.data?.score ?? 0}</p>
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">risk score</span>
-            </div>
-            <Separator />
-            <div className="space-y-3 text-sm text-muted-foreground">
-              {healthQuery.isLoading && <Skeleton className="h-20 w-full" />}
-              {!healthQuery.isLoading &&
-                (healthQuery.data?.recommendations ?? ["No active recommendations—continue monitoring."]).map((item, index) => (
-                  <p key={index}>{item}</p>
-                ))}
-            </div>
-            <Button size="sm" variant="outline" onClick={() => openZoe("Provide a security triage summary for admin") }>
-              <ArrowDownRight className="mr-2 h-4 w-4" />
-              Triage with Zoe
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
