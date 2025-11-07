@@ -342,6 +342,22 @@ const App = () => {
                             </ProtectedRoute>
                           }
                         />
+                        <Route
+                          path="/student/messages"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Messages />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard/messages"
+                          element={
+                            <ProtectedRoute allowedRoles={["agent", "staff", "admin"]}>
+                              <StaffMessages />
+                            </ProtectedRoute>
+                          }
+                        />
 
                         {/* ✅ Student, Staff, Admin routes (etc) go here... */}
                         {/* (shortened for brevity but complete in your original code) */}
