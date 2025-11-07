@@ -362,6 +362,14 @@ const App = () => {
                             }
                           />
                           <Route
+                            path="/profile/settings"
+                            element={
+                              <ProtectedRoute>
+                                <ProfileSettings />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
                             path="/partner/messages"
                             element={
                               <ProtectedRoute allowedRoles={["partner"]}>
