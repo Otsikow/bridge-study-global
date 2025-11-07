@@ -165,6 +165,7 @@ const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"))
 const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
   () => import("./pages/admin/FeaturedUniversitiesAdmin")
 );
+const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
@@ -261,6 +262,14 @@ const App = () => {
                         <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
                         <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["staff","admin","agent"]}><StaffTasks /></ProtectedRoute>} />
                         <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffStudents /></ProtectedRoute>} />
+                        <Route
+                          path="/dashboard/users"
+                          element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                              <UserManagement />
+                            </ProtectedRoute>
+                          }
+                        />
                         <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
 
                         {/* ✅ University Dashboard Nested Routes */}
