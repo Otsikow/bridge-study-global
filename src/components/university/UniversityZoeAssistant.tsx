@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +47,58 @@ const SUGGESTIONS: { label: string; prompt: string }[] = [
 
 const createMessageId = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+const LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
+
+const formatTextWithLinks = (text: string): ReactNode => {
+  const matches = [...text.matchAll(LINK_PATTERN)];
+
+  if (!matches.length) {
+    return text;
+  }
+
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+
+  matches.forEach((match, index) => {
+    const url = match[0];
+    const start = match.index ?? 0;
+
+    if (start > lastIndex) {
+      parts.push(text.slice(lastIndex, start));
+    }
+
+    const href = url.startsWith("http") ? url : `https://${url}`;
+
+    parts.push(
+      <a
+        key={`link-${start}-${index}`}
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium text-blue-300 underline-offset-2 transition-colors hover:text-blue-200 hover:underline"
+      >
+        {url}
+      </a>,
+    );
+
+    lastIndex = start + url.length;
+  });
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+};
+
+const renderMessageContent = (content: string): ReactNode =>
+  content.split(/\n/).map((line, lineIndex) => (
+    <Fragment key={`line-${lineIndex}`}>
+      {lineIndex > 0 && <br />}
+      {formatTextWithLinks(line)}
+    </Fragment>
+  ));
 
 export function UniversityZoeAssistant() {
   const { session, profile } = useAuth();
@@ -229,7 +282,7 @@ export function UniversityZoeAssistant() {
   }, []);
 
   return (
-    <Card className="flex h-full w-full flex-col rounded-none border-slate-800/60 bg-slate-900/50 text-slate-100 shadow-lg shadow-slate-950/40">
+    <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-none border-slate-800/60 bg-slate-900/50 text-slate-100 shadow-lg shadow-slate-950/40">
       <CardHeader className="border-b border-slate-800/60 pb-4">
         <div className="flex items-center justify-between">
           <div>
@@ -246,8 +299,8 @@ export function UniversityZoeAssistant() {
           <Sparkles className="h-5 w-5 text-blue-300" />
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col p-0">
-        <div className="space-y-4 p-4">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+        <div className="space-y-4 p-4 sm:p-6">
           <div>
             <p className="text-xs font-semibold uppercase text-slate-400">Suggested prompts</p>
             <div className="mt-3 grid gap-2">
@@ -275,8 +328,8 @@ export function UniversityZoeAssistant() {
           </div>
         </div>
         <Separator className="bg-slate-800/60" />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 pb-6 sm:px-6">
             <div className="space-y-4 py-4">
               {messages.map((message) => (
                 <div
@@ -290,8 +343,8 @@ export function UniversityZoeAssistant() {
                       <User className="h-4 w-4 text-slate-300" />
                     )}
                   </div>
-                  <p className="text-sm leading-relaxed text-slate-200 whitespace-pre-wrap">
-                    {message.content}
+                  <p className="break-words text-sm leading-relaxed text-slate-200">
+                    {renderMessageContent(message.content)}
                   </p>
                 </div>
               ))}
@@ -304,7 +357,7 @@ export function UniversityZoeAssistant() {
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
-          <div className="border-t border-slate-800/60 bg-slate-950/40 p-4">
+          <div className="border-t border-slate-800/60 bg-slate-950/50 p-4 sm:p-6">
             <label htmlFor="zoe-input" className="sr-only">
               Message Zoe
             </label>
