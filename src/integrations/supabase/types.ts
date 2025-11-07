@@ -1168,45 +1168,39 @@ export type Database = {
       }
       notifications: {
         Row: {
-          body: string
-          channel: Database["public"]["Enums"]["notification_channel"] | null
+          action_url: string | null
+          content: string
           created_at: string | null
           id: string
-          payload: Json | null
-          read_at: string | null
-          sent_at: string | null
-          status: Database["public"]["Enums"]["notification_status"] | null
-          subject: string | null
-          template_key: string
+          metadata: Json | null
+          read: boolean | null
           tenant_id: string
+          title: string
+          type: string
           user_id: string
         }
         Insert: {
-          body: string
-          channel?: Database["public"]["Enums"]["notification_channel"] | null
+          action_url?: string | null
+          content: string
           created_at?: string | null
           id?: string
-          payload?: Json | null
-          read_at?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["notification_status"] | null
-          subject?: string | null
-          template_key: string
+          metadata?: Json | null
+          read?: boolean | null
           tenant_id: string
+          title: string
+          type: string
           user_id: string
         }
         Update: {
-          body?: string
-          channel?: Database["public"]["Enums"]["notification_channel"] | null
+          action_url?: string | null
+          content?: string
           created_at?: string | null
           id?: string
-          payload?: Json | null
-          read_at?: string | null
-          sent_at?: string | null
-          status?: Database["public"]["Enums"]["notification_status"] | null
-          subject?: string | null
-          template_key?: string
+          metadata?: Json | null
+          read?: boolean | null
           tenant_id?: string
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: [

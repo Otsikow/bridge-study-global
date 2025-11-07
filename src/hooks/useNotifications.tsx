@@ -14,8 +14,40 @@ export interface Notification {
   metadata: Record<string, any>;
   action_url: string | null;
   created_at: string;
-  read_at: string | null;
 }
+
+const buildToastContent = (notification: Notification) => {
+  const metadata = notification.metadata || {};
+
+  if (notification.type === 'message') {
+    const sender = metadata.sender_name || metadata.senderName || 'New message';
+    const preview = metadata.preview || notification.content;
+    return {
+      title: `${sender} sent a message`,
+      description: preview,
+    };
+  }
+
+  if (notification.type === 'application_status') {
+    const program = metadata.program_name || metadata.programName;
+    const university = metadata.university_name || metadata.universityName;
+    const status = metadata.new_status || metadata.status || '';
+    const parts = [
+      program && university ? `${program} • ${university}` : program || university,
+      status ? `Status: ${status}` : null,
+    ].filter(Boolean);
+
+    return {
+      title: notification.title || 'Application updated',
+      description: parts.join(' — ') || notification.content,
+    };
+  }
+
+  return {
+    title: notification.title,
+    description: notification.content,
+  };
+};
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -39,7 +71,7 @@ export function useNotifications() {
       // Fetch notifications - using existing notifications table
       const { data, error: fetchError } = await supabase
         .from('notifications')
-        .select('id, tenant_id, user_id, template_key, subject, body, created_at, read_at, payload')
+        .select('id, tenant_id, user_id, type, title, content, created_at, read, metadata, action_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -51,14 +83,13 @@ export function useNotifications() {
         id: n.id,
         tenant_id: n.tenant_id,
         user_id: n.user_id,
-        type: n.template_key,
-        title: n.subject,
-        content: n.body,
-        read: !!n.read_at,
-        metadata: n.payload || {},
-        action_url: null,
+        type: n.type,
+        title: n.title,
+        content: n.content,
+        read: !!n.read,
+        metadata: (n.metadata as Record<string, any>) || {},
+        action_url: n.action_url,
         created_at: n.created_at,
-        read_at: n.read_at,
       }));
 
       setNotifications(transformed);
@@ -78,9 +109,9 @@ export function useNotifications() {
     try {
       const { data, error: countError } = await supabase
         .from('notifications')
-        .select('id, read_at')
+        .select('id, read')
         .eq('user_id', user.id)
-        .is('read_at', null);
+        .eq('read', false);
 
       if (countError) throw countError;
 
@@ -94,15 +125,13 @@ export function useNotifications() {
     try {
       const { error: updateError } = await supabase
         .from('notifications')
-        .update({ read_at: new Date().toISOString() })
+        .update({ read: true })
         .eq('id', notificationId)
         .eq('user_id', user?.id);
 
       if (updateError) throw updateError;
 
-      setNotifications(prev =>
-        prev.map(n => (n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n))
-      );
+      setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, read: true } : n)));
       setUnreadCount(prev => Math.max(0, prev - 1));
 
       toast({
@@ -124,15 +153,13 @@ export function useNotifications() {
     try {
       const { error: updateError } = await supabase
         .from('notifications')
-        .update({ read_at: new Date().toISOString() })
+        .update({ read: true })
         .eq('user_id', user.id)
-        .is('read_at', null);
+        .eq('read', false);
 
       if (updateError) throw updateError;
 
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, read: true, read_at: new Date().toISOString() }))
-      );
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       setUnreadCount(0);
 
       toast({
@@ -151,8 +178,8 @@ export function useNotifications() {
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
-      const notification = notifications.find(n => n.id === notificationId);
-      
+      const existing = notifications.find(n => n.id === notificationId);
+
       const { error: deleteError } = await supabase
         .from('notifications')
         .delete()
@@ -162,8 +189,8 @@ export function useNotifications() {
       if (deleteError) throw deleteError;
 
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
-      
-      if (notification && !notification.read) {
+
+      if (existing && !existing.read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
 
@@ -204,37 +231,34 @@ export function useNotifications() {
               id: raw.id,
               tenant_id: raw.tenant_id,
               user_id: raw.user_id,
-              type: raw.template_key,
-              title: raw.subject,
-              content: raw.body,
-              read: !!raw.read_at,
-              metadata: raw.payload || {},
-              action_url: null,
+              type: raw.type,
+              title: raw.title,
+              content: raw.content,
+              read: !!raw.read,
+              metadata: (raw.metadata as Record<string, any>) || {},
+              action_url: raw.action_url,
               created_at: raw.created_at,
-              read_at: raw.read_at,
             };
-            setNotifications(prev => [newNotification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            
-            // Show toast for new notification
-            toast({
-              title: newNotification.title,
-              description: newNotification.content,
-            });
+            setNotifications(prev => [newNotification, ...prev.filter(n => n.id !== newNotification.id)]);
+            if (!newNotification.read) {
+              setUnreadCount(prev => prev + 1);
+
+              const toastContent = buildToastContent(newNotification);
+              toast(toastContent);
+            }
           } else if (payload.eventType === 'UPDATE') {
             const raw = payload.new as any;
             const updatedNotification: Notification = {
               id: raw.id,
               tenant_id: raw.tenant_id,
               user_id: raw.user_id,
-              type: raw.template_key,
-              title: raw.subject,
-              content: raw.body,
-              read: !!raw.read_at,
-              metadata: raw.payload || {},
-              action_url: null,
+              type: raw.type,
+              title: raw.title,
+              content: raw.content,
+              read: !!raw.read,
+              metadata: (raw.metadata as Record<string, any>) || {},
+              action_url: raw.action_url,
               created_at: raw.created_at,
-              read_at: raw.read_at,
             };
             setNotifications(prev =>
               prev.map(n => (n.id === updatedNotification.id ? updatedNotification : n))
