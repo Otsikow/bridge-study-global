@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +14,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Edit, Trash2, Mail, Phone, Globe, MapPin, Building2, Users, FileText, TrendingUp, CheckCircle, XCircle, ClipboardList, Stamp, GraduationCap, Target } from 'lucide-react';
+import { Plus, Trash2, Mail, Globe, MapPin, Building2, Users, FileText, TrendingUp, CheckCircle, XCircle, ClipboardList, Stamp, GraduationCap, Target, Loader2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { LoadingState } from '@/components/LoadingState';
@@ -28,6 +28,7 @@ interface University {
   website: string | null;
   country: string;
   city: string | null;
+  description?: string | null;
 }
 
 interface Application {
@@ -69,6 +70,28 @@ interface Agent {
   referral_count: number;
 }
 
+const createDefaultProgram = () => ({
+  name: '',
+  level: 'Bachelor',
+  discipline: '',
+  duration_months: 12,
+  tuition_amount: 0,
+  tuition_currency: 'USD',
+  description: '',
+  ielts_overall: 6.5,
+  toefl_overall: 80,
+  active: true,
+});
+
+const createDefaultUniversityForm = () => ({
+  name: '',
+  country: '',
+  city: '',
+  website: '',
+  logo_url: '',
+  description: '',
+});
+
 export default function UniversityDashboard() {
   const { profile } = useAuth();
   const { toast } = useToast();
@@ -86,131 +109,135 @@ export default function UniversityDashboard() {
   
   // Modal states
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
-  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
-  const [newProgram, setNewProgram] = useState({
-    name: '',
-    level: 'Bachelor',
-    discipline: '',
-    duration_months: 12,
-    tuition_amount: 0,
-    tuition_currency: 'USD',
-    description: '',
-    ielts_overall: 6.5,
-    toefl_overall: 80,
-    active: true,
-  });
+  const [newProgram, setNewProgram] = useState(() => createDefaultProgram());
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [creatingUniversity, setCreatingUniversity] = useState(false);
+  const [universityForm, setUniversityForm] = useState(() => createDefaultUniversityForm());
 
-  useEffect(() => {
-    fetchData();
-  }, [profile]);
+  const fetchData = useCallback(async () => {
+    if (!profile) {
+      setUniversity(null);
+      setPrograms([]);
+      setApplications([]);
+      setAgents([]);
+      setLoading(false);
+      return;
+    }
 
-  const fetchData = async () => {
-    if (!profile) return;
-    
     setLoading(true);
     try {
-      // Fetch university data
-      const { data: uniData } = await supabase
+      const { data: uniData, error: uniError } = await supabase
         .from('universities')
         .select('*')
         .eq('tenant_id', profile.tenant_id)
-        .single();
-      
-      if (uniData) {
-        setUniversity(uniData);
-        
-        // Fetch programs first to get their IDs
-        const { data: programsData } = await supabase
-          .from('programs')
-          .select('id')
-          .eq('university_id', uniData.id);
-        
-        const programIds = programsData?.map(p => p.id) || [];
-        
-        // Fetch applications for this university
-        let appsData = null;
-        if (programIds.length > 0) {
-          const { data } = await supabase
-            .from('applications')
-            .select(`
-              id,
-              app_number,
-              status,
-              created_at,
-              program_id,
-              student_id
-            `)
-            .in('program_id', programIds)
-            .order('created_at', { ascending: false });
-          
-          // Fetch related data
-          if (data && data.length > 0) {
-            const studentIds = [...new Set(data.map(a => a.student_id))];
-            const { data: studentsData } = await supabase
-              .from('students')
-              .select('id, legal_name, nationality')
-              .in('id', studentIds);
-            
-            const { data: allProgramsData } = await supabase
-              .from('programs')
-              .select('id, name, level')
-              .in('id', programIds);
-            
-            const studentsMap = new Map(studentsData?.map(s => [s.id, s]) || []);
-            const programsMap = new Map(allProgramsData?.map(p => [p.id, p]) || []);
-            
-            appsData = data.map(app => ({
-              ...app,
-              student: studentsMap.get(app.student_id) || { legal_name: 'Unknown', nationality: 'Unknown' },
-              program: programsMap.get(app.program_id) || { id: app.program_id, name: 'Unknown', level: 'Unknown' },
-            }));
-          }
-        }
-        
-        if (appsData) {
-          setApplications(appsData as any);
-        }
-        
-        // Fetch all programs with details
-        const { data: allProgramsData } = await supabase
-          .from('programs')
-          .select('*')
-          .eq('university_id', uniData.id)
-          .order('name');
-        
-        if (allProgramsData) {
-          setPrograms(allProgramsData);
-        }
-        
-        // Fetch agents with referral counts
-        const { data: agentsData } = await supabase
-          .from('agents')
-          .select(`
-            id,
-            company_name,
-            profile:profiles!inner(full_name, email)
-          `)
-          .eq('tenant_id', profile.tenant_id);
-        
-        if (agentsData) {
-          // Count referrals for each agent
-          const agentsWithCounts = await Promise.all(
-            agentsData.map(async (agent: any) => {
-              const { count } = await supabase
-                .from('applications')
-                .select('id', { count: 'exact', head: true })
-                .eq('agent_id', agent.id);
-              
-              return {
-                ...agent,
-                referral_count: count || 0,
-              };
-            })
-          );
-          
-          setAgents(agentsWithCounts);
-        }
+        .maybeSingle();
+
+      if (uniError) {
+        throw uniError;
       }
+
+      if (!uniData) {
+        setUniversity(null);
+        setPrograms([]);
+        setApplications([]);
+        setAgents([]);
+        return;
+      }
+
+      setUniversity(uniData);
+
+      const { data: programsData, error: programsError } = await supabase
+        .from('programs')
+        .select('*')
+        .eq('university_id', uniData.id)
+        .order('name');
+
+      if (programsError) {
+        throw programsError;
+      }
+
+      const programList = programsData ?? [];
+      setPrograms(programList);
+
+      const programIds = programList.map(program => program.id);
+      let assembledApplications: Application[] = [];
+
+      if (programIds.length > 0) {
+        const { data: rawApplications, error: applicationsError } = await supabase
+          .from('applications')
+          .select('id, app_number, status, created_at, program_id, student_id')
+          .in('program_id', programIds)
+          .order('created_at', { ascending: false });
+
+        if (applicationsError) {
+          throw applicationsError;
+        }
+
+        const applicationRows = rawApplications ?? [];
+        const studentIds = Array.from(new Set(applicationRows.map(app => app.student_id))).filter(Boolean);
+
+        let studentsMap = new Map<string, { id: string; legal_name: string | null; nationality: string | null }>();
+        if (studentIds.length > 0) {
+          const { data: studentsData, error: studentsError } = await supabase
+            .from('students')
+            .select('id, legal_name, nationality')
+            .in('id', studentIds);
+
+          if (studentsError) {
+            throw studentsError;
+          }
+
+          studentsMap = new Map((studentsData ?? []).map(student => [student.id, student]));
+        }
+
+        const programsMap = new Map(
+          programList.map(program => [program.id, { id: program.id, name: program.name, level: program.level }])
+        );
+
+        assembledApplications = applicationRows.map((app) => ({
+          id: app.id,
+          app_number: app.app_number,
+          status: app.status,
+          created_at: app.created_at,
+          student: studentsMap.get(app.student_id) || { legal_name: 'Unknown', nationality: 'Unknown' },
+          program: programsMap.get(app.program_id) || { id: app.program_id, name: 'Unknown', level: 'Unknown' },
+        }));
+      }
+
+      setApplications(assembledApplications);
+
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('agents')
+        .select(`
+          id,
+          company_name,
+          profile:profiles!inner(full_name, email)
+        `)
+        .eq('tenant_id', profile.tenant_id);
+
+      if (agentsError) {
+        throw agentsError;
+      }
+
+      const agentsWithCounts = await Promise.all(
+        (agentsData ?? []).map(async (agent: any) => {
+          const { count, error: countError } = await supabase
+            .from('applications')
+            .select('id', { count: 'exact', head: true })
+            .eq('agent_id', agent.id);
+
+          if (countError) {
+            throw countError;
+          }
+
+          return {
+            ...agent,
+            referral_count: count ?? 0,
+          };
+        })
+      );
+
+      setAgents(agentsWithCounts);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -221,7 +248,11 @@ export default function UniversityDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile, toast]);
+
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
 
   const handleAddProgram = async () => {
     if (!university) return;
@@ -234,29 +265,18 @@ export default function UniversityDashboard() {
           university_id: university.id,
           tenant_id: profile!.tenant_id,
         });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: 'Success',
         description: 'Course added successfully',
       });
-      
+
       setIsAddCourseOpen(false);
-      setNewProgram({
-        name: '',
-        level: 'Bachelor',
-        discipline: '',
-        duration_months: 12,
-        tuition_amount: 0,
-        tuition_currency: 'USD',
-        description: '',
-        ielts_overall: 6.5,
-        toefl_overall: 80,
-        active: true,
-      });
-      
-      fetchData();
+      setNewProgram(createDefaultProgram());
+
+      await fetchData();
     } catch (error) {
       console.error('Error adding program:', error);
       toast({
@@ -273,15 +293,15 @@ export default function UniversityDashboard() {
         .from('programs')
         .update(updates)
         .eq('id', programId);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: 'Success',
         description: 'Course updated successfully',
       });
-      
-      fetchData();
+
+      await fetchData();
     } catch (error) {
       console.error('Error updating program:', error);
       toast({
@@ -300,15 +320,15 @@ export default function UniversityDashboard() {
         .from('programs')
         .delete()
         .eq('id', programId);
-      
+
       if (error) throw error;
-      
+
       toast({
         title: 'Success',
         description: 'Course deleted successfully',
       });
-      
-      fetchData();
+
+      await fetchData();
     } catch (error) {
       console.error('Error deleting program:', error);
       toast({
@@ -316,6 +336,56 @@ export default function UniversityDashboard() {
         description: 'Failed to delete course',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleCreateUniversity = async () => {
+    if (!profile) return;
+
+    const trimmedName = universityForm.name.trim();
+    const trimmedCountry = universityForm.country.trim();
+
+    if (!trimmedName || !trimmedCountry) {
+      return;
+    }
+
+    try {
+      setCreatingUniversity(true);
+      const { data, error } = await supabase
+        .from('universities')
+        .insert({
+          name: trimmedName,
+          country: trimmedCountry,
+          city: universityForm.city.trim() || null,
+          website: universityForm.website.trim() || null,
+          logo_url: universityForm.logo_url.trim() || null,
+          description: universityForm.description.trim() || null,
+          tenant_id: profile.tenant_id,
+          active: true,
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: 'University profile created',
+        description: `${data?.name ?? 'Your university'} is now connected. You can manage courses, applications, and agents.`,
+      });
+
+      setIsSetupModalOpen(false);
+      setUniversityForm(createDefaultUniversityForm());
+
+      await fetchData();
+    } catch (error) {
+      console.error('Error creating university:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create university profile',
+        variant: 'destructive',
+      });
+    } finally {
+      setCreatingUniversity(false);
     }
   };
 
@@ -478,6 +548,9 @@ export default function UniversityDashboard() {
     },
   ];
 
+  const isUniversityFormValid =
+    universityForm.name.trim().length > 0 && universityForm.country.trim().length > 0;
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -495,9 +568,117 @@ export default function UniversityDashboard() {
           <EmptyState 
             icon={<Building2 />}
             title="No University Found"
-            description="Unable to load university information"
+            description="Set up your university profile to unlock the partner dashboard."
+            action={{
+              label: 'Create University Profile',
+              onClick: () => setIsSetupModalOpen(true),
+            }}
           />
         </div>
+
+        <Dialog
+          open={isSetupModalOpen}
+          onOpenChange={(open) => {
+            setIsSetupModalOpen(open);
+            if (!open) {
+              setUniversityForm(createDefaultUniversityForm());
+            }
+          }}
+        >
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Set up your university profile</DialogTitle>
+              <DialogDescription>
+                Provide a few details so agents and staff can recognize your institution.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="university-name">University Name *</Label>
+                <Input
+                  id="university-name"
+                  value={universityForm.name}
+                  onChange={(e) =>
+                    setUniversityForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="e.g. Global Education Gateway University"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="university-country">Country *</Label>
+                  <Input
+                    id="university-country"
+                    value={universityForm.country}
+                    onChange={(e) =>
+                      setUniversityForm((prev) => ({ ...prev, country: e.target.value }))
+                    }
+                    placeholder="e.g. United Kingdom"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="university-city">City</Label>
+                  <Input
+                    id="university-city"
+                    value={universityForm.city}
+                    onChange={(e) =>
+                      setUniversityForm((prev) => ({ ...prev, city: e.target.value }))
+                    }
+                    placeholder="e.g. London"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="university-website">Website</Label>
+                  <Input
+                    id="university-website"
+                    value={universityForm.website}
+                    onChange={(e) =>
+                      setUniversityForm((prev) => ({ ...prev, website: e.target.value }))
+                    }
+                    placeholder="https://example.edu"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="university-logo">Logo URL</Label>
+                  <Input
+                    id="university-logo"
+                    value={universityForm.logo_url}
+                    onChange={(e) =>
+                      setUniversityForm((prev) => ({ ...prev, logo_url: e.target.value }))
+                    }
+                    placeholder="https://cdn.example.edu/logo.png"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="university-description">Description</Label>
+                <Textarea
+                  id="university-description"
+                  value={universityForm.description}
+                  onChange={(e) =>
+                    setUniversityForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  placeholder="Share an overview of your institution, flagship programs, and partnership goals."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsSetupModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateUniversity}
+                disabled={!isUniversityFormValid || creatingUniversity}
+              >
+                {creatingUniversity && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Create Profile
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </DashboardLayout>
     );
   }
