@@ -5,6 +5,7 @@ import {
   FileStack,
   GraduationCap,
   LayoutDashboard,
+  MessageSquare,
   Stamp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -29,6 +30,11 @@ const navItems = [
     label: "Documents",
     to: "/university/documents",
     icon: FileSpreadsheet,
+  },
+  {
+    label: "Messages",
+    to: "/university/messages",
+    icon: MessageSquare,
   },
   {
     label: "Offers & CAS",
