@@ -193,6 +193,100 @@ const es = {
     },
   },
   pages: {
+    index: {
+      aiSearch: {
+        badge: "Búsqueda de universidades y becas con IA",
+        heading: "Encuentra el programa adecuado con inteligencia en tiempo real",
+        description:
+          "Pregunta lo que necesites sobre universidades, programas o financiación en cualquier parte del mundo. Nuestra IA analiza información de admisiones, becas y vías de visado adaptadas a tus objetivos.",
+        subheading:
+          "Regístrate para desbloquear recomendaciones personalizadas con IA sobre admisiones, becas y visados.",
+        ctaLabel: "Comenzar",
+        stats: [
+          { value: "12k+", label: "Ideas generadas con IA para postulantes globales" },
+          { value: "84%", label: "Estudiantes con al menos tres programas idóneos" },
+          { value: "50+", label: "Países con datos de admisión verificados" },
+        ],
+        panel: {
+          title: "Vista previa de Zoe Intelligence",
+          subtitle: "Elige un enfoque y descubre los análisis que obtendrás.",
+          previewLabel: "Ejemplo",
+          highlightsHeading: "Lo que la IA prepara para ti",
+        },
+        focusAreas: [
+          {
+            key: "stem",
+            label: "STEM",
+            headline: "Rutas personalizadas para innovadores técnicos",
+            description:
+              "Destaca programas con laboratorios de investigación, prácticas y financiación diseñados para ciencias e ingeniería.",
+            highlights: [
+              "Becas que priorizan carreras STEM y proyectos de investigación",
+              "Planes de estudio alineados con la industria y periodos de prácticas o co-op",
+              "Orientación de visado para profesiones tecnológicas e ingenieriles en alta demanda",
+            ],
+          },
+          {
+            key: "scholarships",
+            label: "Becas",
+            headline: "Oportunidades de financiación acordes a tu perfil",
+            description:
+              "Identifica subvenciones, becas y assistantships que realmente puedes conseguir.",
+            highlights: [
+              "Listado curado de becas por mérito y necesidad con fechas límite",
+              "Requisitos de elegibilidad vinculados con tu trayectoria académica",
+              "Consejos para fortalecer cartas de motivación y recomendaciones",
+            ],
+          },
+          {
+            key: "visa",
+            label: "Facilidad de visado",
+            headline: "Rutas de estudio con procesos migratorios ágiles",
+            description: "Compara países e instituciones con vías de visado favorables.",
+            highlights: [
+              "Opciones de trabajo posterior y periodos de permanencia resumidos",
+              "Listas de verificación de documentos según tu nacionalidad",
+              "Indicaciones sobre pruebas financieras, seguros y preparación para entrevistas",
+            ],
+          },
+          {
+            key: "undergraduate",
+            label: "Pregrado",
+            headline: "Trayectorias de pregrado para quienes postulan por primera vez",
+            description:
+              "Comprende los requisitos de ingreso, prerrequisitos y servicios de apoyo.",
+            highlights: [
+              "Cronograma paso a paso desde la evaluación de notas hasta la aceptación",
+              "Guía para elegir carreras, minors y años fundacionales",
+              "Recursos de transición sobre alojamiento, inducción y presupuesto",
+            ],
+          },
+          {
+            key: "postgraduate",
+            label: "Posgrado",
+            headline: "Programas de maestría y doctorado adaptados a tus metas",
+            description: "Compara tutores de investigación, tamaño de cohortes y modelos de financiación.",
+            highlights: [
+              "Resumen de docentes y líneas de investigación actuales",
+              "Disponibilidad de assistantships y fellowships con estipendios",
+              "Preparación para entrevistas y requisitos de portafolio por programa",
+            ],
+          },
+          {
+            key: "coop",
+            label: "Co-op e internados",
+            headline: "Aprendizaje integrado al trabajo con empleadores globales",
+            description:
+              "Descubre programas que combinan estudios con experiencia profesional práctica.",
+            highlights: [
+              "Tasas de colocación y alianzas empresariales en diferentes regiones",
+              "Consideraciones de visado para prácticas remuneradas y periodos laborales",
+              "Apoyo de servicios de carrera para CV, entrevistas y networking",
+            ],
+          },
+        ],
+      },
+    },
     contact: {
       heroTitle: "Contáctanos",
       heroSubtitle: "Normalmente respondemos en un día hábil.",

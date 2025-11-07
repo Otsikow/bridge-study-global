@@ -214,6 +214,98 @@ const zh = {
             },
           },
         },
+        aiSearch: {
+          badge: "AI 驱动的大学与奖学金搜索",
+          heading: "利用实时智能找到最合适的项目",
+          description:
+            "针对全球高校、课程或资助提出任何问题。我们的 AI 会分析招生信息、奖学金和签证路径，并结合您的目标给出建议。",
+          subheading:
+            "注册账户，即可解锁基于 AI 的个性化招生、奖学金和签证推荐。",
+          ctaLabel: "立即开始",
+          stats: [
+            { value: "12k+", label: "为全球申请者生成的 AI 洞察" },
+            { value: "84%", label: "匹配到至少三所理想院校的学生" },
+            { value: "50+", label: "覆盖拥有认证招生数据的国家" },
+          ],
+          panel: {
+            title: "Zoe Intelligence 预览",
+            subtitle: "选择关注方向，了解即将获得的洞察。",
+            previewLabel: "示例",
+            highlightsHeading: "AI 为您准备的内容",
+          },
+          focusAreas: [
+            {
+              key: "stem",
+              label: "STEM",
+              headline: "为科技创新者定制的成长路径",
+              description:
+                "聚焦拥有研究实验室、带薪实习与专项资金支持的理工科项目。",
+              highlights: [
+                "优先支持 STEM 专业与科研成果的奖学金",
+                "紧贴行业需求的课程设计与 Co-op 实习安排",
+                "针对热门科技与工程岗位的签证指导",
+              ],
+            },
+            {
+              key: "scholarships",
+              label: "奖学金",
+              headline: "匹配您背景的资助机会",
+              description:
+                "识别真正有机会获得的助学金、奖学金与助教岗位。",
+              highlights: [
+                "精心整理的择优与助学奖学金清单及截止日期",
+                "与您学术背景相匹配的资格说明",
+                "强化申请文书与推荐信的实用建议",
+              ],
+            },
+            {
+              key: "visa",
+              label: "签证友好",
+              headline: "签证流程顺畅的留学路线",
+              description: "比较签证政策友好的国家与院校。",
+              highlights: [
+                "概览毕业后工作机会与停留时长",
+                "根据国籍定制的材料清单",
+                "财力证明、保险与面试准备要点",
+              ],
+            },
+            {
+              key: "undergraduate",
+              label: "本科",
+              headline: "为首次申请者打造的本科旅程",
+              description:
+                "了解入学要求、先修条件与支持服务。",
+              highlights: [
+                "从成绩评估到录取的详细时间表",
+                "专业选择、辅修与预科年的规划建议",
+                "住宿、迎新与预算管理的过渡资源",
+              ],
+            },
+            {
+              key: "postgraduate",
+              label: "研究生",
+              headline: "契合目标的硕博项目推荐",
+              description: "比较导师方向、班级规模与资助模式。",
+              highlights: [
+                "聚焦导师与当前研究主题的亮点",
+                "助研、助教与奖学金的资助信息",
+                "各项目面试及作品集准备要点",
+              ],
+            },
+            {
+              key: "coop",
+              label: "实习 / Co-op",
+              headline: "与全球雇主共建的实践型学习",
+              description:
+                "找到融合课程学习与真实工作体验的项目。",
+              highlights: [
+                "各地区的就业率与企业合作数据",
+                "带薪实习及工作期的签证注意事项",
+                "职业发展中心提供的简历、面试与人脉支持",
+              ],
+            },
+          ],
+        },
         visa: {
           badge: "特色亮点",
           title: "在申请前先评估您的签证通过率",

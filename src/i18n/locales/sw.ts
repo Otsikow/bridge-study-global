@@ -162,6 +162,100 @@ const sw = {
     },
   },
   pages: {
+    index: {
+      aiSearch: {
+        badge: "Utafutaji wa vyuo na ufadhili unaoendeshwa na AI",
+        heading: "Pata programu sahihi kwa akili ya papo hapo",
+        description:
+          "Uliza chochote kuhusu vyuo, kozi au ufadhili popote ulimwenguni. AI yetu huchambua taarifa za udahili, ufadhili na njia za viza zinazolingana na malengo yako.",
+        subheading:
+          "Jisajili ili kufungua mapendekezo ya kibinafsi kuhusu udahili, ufadhili na viza yanayotolewa na AI.",
+        ctaLabel: "Anza",
+        stats: [
+          { value: "12k+", label: "Maarifa ya AI yaliyotolewa kwa waombaji wa kimataifa" },
+          { value: "84%", label: "Wanafunzi waliolinganishwa na angalau programu tatu zinazofaa" },
+          { value: "50+", label: "Nchi zilizo na data ya udahili iliyothibitishwa" },
+        ],
+        panel: {
+          title: "Onyesho la awali la Zoe Intelligence",
+          subtitle: "Chagua eneo la kuzingatia uone maarifa utakayopata.",
+          previewLabel: "Mfano",
+          highlightsHeading: "AI inakuandalia nini",
+        },
+        focusAreas: [
+          {
+            key: "stem",
+            label: "STEM",
+            headline: "Njia maalumu kwa wavumbuzi wa kiufundi",
+            description:
+              "Angazia programu zenye maabara ya utafiti, mafunzo kazini na ufadhili kwa sayansi na uhandisi.",
+            highlights: [
+              "Ufadhili unaopea kipaumbele masomo ya STEM na matokeo ya utafiti",
+              "Mitaala inayolingana na soko yenye mafunzo ya viwandani na programu za co-op",
+              "Mwongozo wa viza kwa kazi za teknolojia na uhandisi zenye uhitaji mkubwa",
+            ],
+          },
+          {
+            key: "scholarships",
+            label: "Ufadhili",
+            headline: "Fursa za ufadhili zinazoendana na wasifu wako",
+            description:
+              "Tambua ruzuku, ufadhili na nafasi za assistantship ambazo unaweza kupata kwa uhalisia.",
+            highlights: [
+              "Orodha teule ya ufadhili wa umahiri na mahitaji yenye tarehe za mwisho",
+              "Maelezo ya kustahiki yanayolingana na historia yako ya masomo",
+              "Vidokezo vya kuimarisha barua za motisha na za marejeo",
+            ],
+          },
+          {
+            key: "visa",
+            label: "Rafiki kwa viza",
+            headline: "Njia za kusoma zenye mchakato rahisi wa uhamiaji",
+            description: "Linganisha nchi na taasisi zenye sera rafiki za viza.",
+            highlights: [
+              "Muhtasari wa fursa za kazi baada ya masomo na muda wa ukaaji",
+              "Orodha za ukaguzi wa stakabadhi kulingana na uraia wako",
+              "Mwongozo wa uthibitisho wa kifedha, bima na maandalizi ya usaili",
+            ],
+          },
+          {
+            key: "undergraduate",
+            label: "Shahada ya kwanza",
+            headline: "Safari ya shahada ya kwanza kwa waombaji wa mara ya kwanza",
+            description:
+              "Elewa mahitaji ya udahili, masharti ya awali na huduma za msaada.",
+            highlights: [
+              "Ratiba ya hatua kwa hatua kuanzia tathmini ya vyeti hadi kupokelewa",
+              "Mwongozo wa kuchagua kozi kuu, ndogo na miaka ya msingi",
+              "Rasilimali za mpito kuhusu makazi, utambulisho na upangaji bajeti",
+            ],
+          },
+          {
+            key: "postgraduate",
+            label: "Shahada ya uzamili",
+            headline: "Programu za uzamili na uzamivu zinazolingana na malengo yako",
+            description: "Linganisha wasimamizi wa utafiti, ukubwa wa vikundi na mifumo ya ufadhili.",
+            highlights: [
+              "Taarifa za wahadhiri na mada za utafiti za sasa",
+              "Upatikanaji wa assistantship na fellowship zenye posho",
+              "Maandalizi ya usaili na mahitaji ya jalada kwa kila programu",
+            ],
+          },
+          {
+            key: "coop",
+            label: "Co-op na mafunzo",
+            headline: "Kujifunza kunakounganishwa na kazi kwa waajiri wa kimataifa",
+            description:
+              "Gundua programu zinazochanganya masomo na uzoefu halisi wa kazi.",
+            highlights: [
+              "Viwango vya ajira na ushirikiano na makampuni katika maeneo mbalimbali",
+              "Mambo ya kuzingatia kuhusu viza kwa mafunzo yanayolipwa na vipindi vya kazi",
+              "Msaada wa huduma za taaluma kwa CV, usaili na ujenzi wa mtandao",
+            ],
+          },
+        ],
+      },
+    },
     contact: {
       heroTitle: "Wasiliana nasi",
       heroSubtitle: "Kwa kawaida tunajibu ndani ya siku moja ya kazi.",

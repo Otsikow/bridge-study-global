@@ -382,6 +382,98 @@ const en = {
             },
           },
         },
+        aiSearch: {
+          badge: "AI-Powered University & Scholarship Search",
+          heading: "Find the right program with real-time intelligence",
+          description:
+            "Ask anything about universities, courses, or funding worldwide. Our AI engine analyses admissions insights, scholarships, and visa pathways tailored to your goals.",
+          subheading:
+            "Sign up to unlock tailored AI recommendations across admissions, scholarships, and visas.",
+          ctaLabel: "Get Started",
+          stats: [
+            { value: "12k+", label: "AI insights generated for global applicants" },
+            { value: "84%", label: "Students matched to at least three best-fit programmes" },
+            { value: "50+", label: "Countries covered with verified admissions data" },
+          ],
+          panel: {
+            title: "Preview Zoe Intelligence",
+            subtitle: "Choose a focus area to explore the insights you'll unlock.",
+            previewLabel: "Sample",
+            highlightsHeading: "What the AI prepares for you",
+          },
+          focusAreas: [
+            {
+              key: "stem",
+              label: "STEM",
+              headline: "Tailored pathways for technical innovators",
+              description:
+                "Spotlight programmes with research labs, co-ops, and funding built for scientists and engineers.",
+              highlights: [
+                "Scholarships that prioritise STEM majors and research output",
+                "Industry-aligned curricula with internships and co-op rotations",
+                "Visa guidance for high-demand technology and engineering roles",
+              ],
+            },
+            {
+              key: "scholarships",
+              label: "Scholarships",
+              headline: "Funding opportunities matched to your profile",
+              description:
+                "Identify grants, bursaries, and assistantships you can realistically secure.",
+              highlights: [
+                "Curated list of merit and need-based awards with deadlines",
+                "Eligibility insights that map to your academic background",
+                "Application tips to strengthen statements and references",
+              ],
+            },
+            {
+              key: "visa",
+              label: "Visa friendly",
+              headline: "Study routes with smooth immigration journeys",
+              description: "Compare countries and institutions with favourable visa pathways.",
+              highlights: [
+                "Post-study work options and stay-back durations summarised",
+                "Documentation checklists tailored to your nationality",
+                "Advisories on financial proof, health cover, and interview prep",
+              ],
+            },
+            {
+              key: "undergraduate",
+              label: "Undergraduate",
+              headline: "Undergraduate journeys built for first-time applicants",
+              description:
+                "Understand entry requirements, prerequisites, and support services.",
+              highlights: [
+                "Step-by-step timeline from transcript evaluation to offer acceptance",
+                "Guidance on choosing majors, minors, and foundation years",
+                "Transition resources covering housing, orientation, and budgeting",
+              ],
+            },
+            {
+              key: "postgraduate",
+              label: "Postgraduate",
+              headline: "Master's and doctoral programmes curated for your goals",
+              description: "Compare research supervisors, cohort sizes, and funding models.",
+              highlights: [
+                "Faculty highlights with current research themes",
+                "Assistantship and fellowship availability with stipends",
+                "Interview preparation and portfolio expectations by programme",
+              ],
+            },
+            {
+              key: "coop",
+              label: "Co-op & Internships",
+              headline: "Work-integrated learning with global employers",
+              description:
+                "Surface programmes that blend study with hands-on professional experience.",
+              highlights: [
+                "Placement rates and employer partnerships across regions",
+                "Visa considerations for paid placements and work terms",
+                "Career services support for resumes, interviews, and networking",
+              ],
+            },
+          ],
+        },
       journeyRibbon: {
         items: {
           discover: {
