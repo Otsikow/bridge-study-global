@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -203,9 +203,6 @@ const PartnerDocumentRequests = lazyWithErrorHandling(
   () => import("./pages/dashboard/DocumentRequests")
 );
 const OffersManagement = lazyWithErrorHandling(() => import("./pages/dashboard/OffersManagement"));
-const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
-const PartnerOffersCAS = lazyWithErrorHandling(() => import("./pages/partner/OffersCAS"));
-
 // ✅ Main App
 const App = () => {
   const { t } = useTranslation();
@@ -246,10 +243,24 @@ const App = () => {
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","admin","agent","partner"]}><DashboardApplications /></ProtectedRoute>} />
                         <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
-                        <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
-                        <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-                        <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
-                        <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
+                          <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
+                          <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                          <Route
+                            path="/partner/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                                <Navigate to="/university/messages" replace />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/partner/offers-cas"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                                <Navigate to="/university/offers-cas" replace />
+                              </ProtectedRoute>
+                            }
+                          />
                         <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
                         <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
                         <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["staff","admin","agent"]}><StaffTasks /></ProtectedRoute>} />

@@ -3,11 +3,10 @@ import { useUserRoles, AppRole } from '@/hooks/useUserRoles';
 import { LoadingState } from '@/components/LoadingState';
 import StudentDashboard from '@/pages/dashboards/StudentDashboard';
 import AgentDashboard from '@/pages/dashboards/AgentDashboard';
-import PartnerDashboard from '@/pages/dashboards/PartnerDashboard';
 import StaffDashboard from '@/pages/dashboards/StaffDashboard';
 import { EmptyState } from '@/components/EmptyState';
 import { LogIn, HelpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 const ROLE_PRIORITY: AppRole[] = ['admin', 'staff', 'partner', 'agent', 'student'];
 
@@ -66,10 +65,10 @@ const Dashboard = () => {
 
   const resolvedRole = ROLE_PRIORITY.find((role) => roles.includes(role));
 
-  if (resolvedRole === 'student') return <StudentDashboard />;
-  if (resolvedRole === 'agent') return <AgentDashboard />;
-  if (resolvedRole === 'partner') return <PartnerDashboard />;
-  if (resolvedRole === 'staff' || resolvedRole === 'admin') return <StaffDashboard />;
+    if (resolvedRole === 'student') return <StudentDashboard />;
+    if (resolvedRole === 'agent') return <AgentDashboard />;
+    if (resolvedRole === 'partner') return <Navigate to="/university" replace />;
+    if (resolvedRole === 'staff' || resolvedRole === 'admin') return <StaffDashboard />;
 
   const fallbackDescription = roles.length === 0
     ? "We couldn't find any roles associated with your account. Please contact support for assistance."

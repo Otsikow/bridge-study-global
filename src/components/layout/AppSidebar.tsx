@@ -66,14 +66,15 @@ const menuItems = {
     { title: "Import", url: "/dashboard/import", icon: Upload },
     { title: "Resources", url: "/dashboard/resources", icon: BookOpen },
   ],
-  partner: [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "Applications", url: "/dashboard/applications", icon: FileText },
-    { title: "Document Requests", url: "/dashboard/requests", icon: Upload },
-    { title: "Offers & CAS", url: "/dashboard/offers", icon: FileText },
-    { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
-    { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-  ],
+    partner: [
+      { title: "Dashboard", url: "/university", icon: Home },
+      { title: "Applications", url: "/university/applications", icon: FileText },
+      { title: "Documents", url: "/university/documents", icon: Upload },
+      { title: "Offers & CAS", url: "/university/offers-cas", icon: FileText },
+      { title: "Messages", url: "/university/messages", icon: MessageSquare },
+      { title: "Analytics", url: "/university/analytics", icon: BarChart3 },
+      { title: "Programs", url: "/university/programs", icon: GraduationCap },
+    ],
   staff: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Applications", url: "/dashboard/applications", icon: FileText },
