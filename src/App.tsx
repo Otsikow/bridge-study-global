@@ -261,6 +261,7 @@ const App = () => {
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
                         <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
                         <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
+                        <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
                         <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
                         <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
