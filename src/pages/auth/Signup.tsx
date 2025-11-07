@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { getSiteUrl } from "@/lib/supabaseClientConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,19 @@ type UserRole = "student" | "agent" | "partner";
 
 const ROLE_OPTIONS: UserRole[] = ["student", "agent", "partner"];
 
+const isUsernameCheckUnsupported = (error: PostgrestError | null) => {
+  if (!error) return false;
+  const unsupportedCodes = new Set(["PGRST202", "PGRST204", "42P01", "42703"]);
+  if (error.code && unsupportedCodes.has(error.code)) {
+    return true;
+  }
+  const message = error.message?.toLowerCase() ?? "";
+  return (
+    message.includes("could not find the function public.is_username_available") ||
+    message.includes("column profiles.username does not exist")
+  );
+};
+
 const BASE_COUNTRY_OPTIONS = [
   "United States", "United Kingdom", "Canada", "Australia", "New Zealand",
   "India", "China", "Japan", "Germany", "France", "Spain", "Italy",
@@ -83,6 +97,8 @@ const Signup = () => {
   const [username, setUsername] = useState("");
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameCheckAvailable, setUsernameCheckAvailable] = useState(true);
+  const [usernameInfo, setUsernameInfo] = useState<string | null>(null);
 
   const [refParam, setRefParam] = useState<string | null>(null);
   const [referrerInfo, setReferrerInfo] = useState<{ id: string; username: string; full_name?: string } | null>(null);
@@ -171,12 +187,19 @@ const Signup = () => {
   useEffect(() => {
     if (!username) {
       setUsernameError(null);
+      setUsernameInfo(null);
       setCheckingUsername(false);
       return;
     }
 
     if (username.length < 3) {
       setUsernameError("Username must be at least 3 characters.");
+      setUsernameInfo(null);
+      setCheckingUsername(false);
+      return;
+    }
+
+    if (!usernameCheckAvailable) {
       setCheckingUsername(false);
       return;
     }
@@ -191,12 +214,29 @@ const Signup = () => {
       if (cancel) return;
 
       if (error) {
-        console.error("Failed to check username availability", error);
-        setUsernameError("Unable to verify username availability. Please try again.");
+        if (isUsernameCheckUnsupported(error)) {
+          if (usernameCheckAvailable) {
+            console.warn(
+              "Username availability check is not supported by the current backend schema.",
+              error,
+            );
+          }
+          setUsernameCheckAvailable(false);
+          setUsernameError(null);
+          setUsernameInfo(
+            "Username availability can't be verified automatically right now. We'll confirm it when creating your account.",
+          );
+        } else {
+          console.error("Failed to check username availability", error);
+          setUsernameError("Unable to verify username availability. Please try again.");
+          setUsernameInfo(null);
+        }
       } else if (data === false) {
         setUsernameError("This username is already taken. Try another one.");
+        setUsernameInfo(null);
       } else {
         setUsernameError(null);
+        setUsernameInfo(null);
       }
 
       setCheckingUsername(false);
@@ -206,7 +246,7 @@ const Signup = () => {
       cancel = true;
       clearTimeout(handler);
     };
-  }, [username]);
+  }, [username, usernameCheckAvailable]);
 
   // OAuth (Google)
   const handleGoogleSignUp = async () => {
@@ -231,7 +271,9 @@ const Signup = () => {
   const validateStep3 = () => {
     if (!username.trim()) return toast({ variant: "destructive", title: "Username required" }), false;
     if (username.length < 3) return toast({ variant: "destructive", title: "Username too short" }), false;
-    if (usernameError) return toast({ variant: "destructive", title: "Username unavailable", description: usernameError }), false;
+    if (usernameError && usernameCheckAvailable) {
+      return toast({ variant: "destructive", title: "Username unavailable", description: usernameError }), false;
+    }
     if (!email.includes("@")) return toast({ variant: "destructive", title: "Invalid email" }), false;
     if (password.length < 6) return toast({ variant: "destructive", title: "Weak password" }), false;
     if (password !== confirmPassword) return toast({ variant: "destructive", title: "Passwords do not match" }), false;
@@ -423,12 +465,15 @@ const Signup = () => {
                   onChange={(e) => setUsername(formatReferralUsername(e.target.value))}
                   placeholder="choose-a-username"
                 />
-                {checkingUsername && (
+                {checkingUsername && usernameCheckAvailable && (
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Loader2 className="h-3 w-3 animate-spin" /> Checking...
                   </p>
                 )}
                 {usernameError && <p className="text-xs text-destructive">{usernameError}</p>}
+                {usernameInfo && !usernameError && (
+                  <p className="text-xs text-muted-foreground">{usernameInfo}</p>
+                )}
 
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" /> Email Address
