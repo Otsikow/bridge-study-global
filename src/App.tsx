@@ -182,7 +182,6 @@ const ZoeIntelligencePage = lazyWithErrorHandling(() => import("./pages/admin/Zo
 const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
 const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
 const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
-const AdminToolsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminTools"));
 const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 

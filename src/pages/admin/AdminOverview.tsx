@@ -390,4 +390,13 @@ const AdminOverview = () => {
                 <span className="text-xs uppercase tracking-wide text-muted-foreground">
                   {t("admin.overview.health.scoreLabel", { defaultValue: "risk score" })}
                 </span>
-              </div
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminOverview;
