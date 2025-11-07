@@ -154,6 +154,7 @@ const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // Student pages
+const StudentLayout = lazyWithErrorHandling(() => import("./components/layout/StudentLayout"));
 const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
 const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
 const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
@@ -276,101 +277,28 @@ const App = () => {
 
                         {/* Student Routes */}
                         <Route
-                          path="/student/onboarding"
+                          path="/student"
                           element={
                             <ProtectedRoute allowedRoles={["student"]}>
-                              <StudentOnboarding />
+                              <StudentLayout />
                             </ProtectedRoute>
                           }
-                        />
-                        <Route
-                          path="/student/profile"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <StudentProfile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/documents"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Documents />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Messages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/applications"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Applications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/applications/new"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <NewApplication />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/applications/:id"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <ApplicationDetails />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/application-tracking"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <ApplicationTracking />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/visa-eligibility"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <VisaEligibility />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/sop-generator"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <SopGenerator />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/notifications"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Notifications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/payments"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Payments />
-                            </ProtectedRoute>
-                          }
-                        />
+                        >
+                          <Route index element={<Navigate to="/dashboard" replace />} />
+                          <Route path="onboarding" element={<StudentOnboarding />} />
+                          <Route path="profile" element={<StudentProfile />} />
+                          <Route path="documents" element={<Documents />} />
+                          <Route path="messages" element={<Messages />} />
+                          <Route path="applications" element={<Applications />} />
+                          <Route path="applications/new" element={<NewApplication />} />
+                          <Route path="applications/:id" element={<ApplicationDetails />} />
+                          <Route path="application-tracking" element={<ApplicationTracking />} />
+                          <Route path="visa-eligibility" element={<VisaEligibility />} />
+                          <Route path="sop-generator" element={<SopGenerator />} />
+                          <Route path="notifications" element={<Notifications />} />
+                          <Route path="payments" element={<Payments />} />
+                          <Route path="*" element={<Navigate to="applications" replace />} />
+                        </Route>
 
                         {/* Partner Routes */}
                         <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
