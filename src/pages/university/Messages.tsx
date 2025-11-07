@@ -271,7 +271,7 @@ const UniversityMessagesPage = () => {
     }
     try {
       const { error } = await supabase.rpc("mark_conversation_read", {
-        p_conversation_id: currentConversation,
+        conversation_uuid: currentConversation,
       });
       if (error) throw error;
       await fetchConversations();
