@@ -58,8 +58,8 @@ const AppNavbar = () => {
 
   return (
     <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6 lg:px-8 lg:py-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
           {showBackButton ? (
             <BackButton
               variant="ghost"
@@ -76,13 +76,13 @@ const AppNavbar = () => {
               <SheetTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-10 w-10 rounded-full p-0 md:hidden"
+                  className="h-10 w-10 rounded-full p-0 lg:hidden"
                   aria-label={t("common.labels.toggleNavigation")}
                 >
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[85vw] sm:max-w-sm p-0">
+              <SheetContent side="left" className="w-[85vw] max-w-sm p-0 sm:max-w-md">
                 <div className="flex h-full flex-col">
                   <div className="flex items-center justify-between gap-3 border-b px-6 py-4">
                     <Link
@@ -171,18 +171,20 @@ const AppNavbar = () => {
 
             <Link
               to="/"
-              className="flex items-center gap-2 transition-transform duration-300 hover:scale-105"
+              className="flex min-w-0 items-center gap-2 transition-transform duration-300 hover:scale-105"
             >
               <img
                 src={gegLogo}
                 alt={t("layout.navbar.brand.short")}
                 className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
               />
-              <span className="text-base font-semibold hidden sm:inline">{t("layout.navbar.brand.full")}</span>
+              <span className="hidden truncate text-base font-semibold sm:inline">
+                {t("layout.navbar.brand.full")}
+              </span>
             </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="order-3 hidden w-full items-center justify-center gap-5 lg:order-2 lg:flex lg:w-auto">
           {navLinks.map((link) => {
             const Icon = link.icon;
             return (
@@ -200,8 +202,8 @@ const AppNavbar = () => {
           })}
         </nav>
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="hidden md:flex items-center gap-2">
+          <div className="order-2 flex flex-1 items-center justify-end gap-2 sm:gap-3 lg:order-3">
+            <div className="hidden items-center gap-2 lg:flex">
               <LanguageSwitcher />
               <ThemeToggle />
             </div>
@@ -246,13 +248,13 @@ const AppNavbar = () => {
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
+                <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
                   <Link to="/auth/login">{t("common.actions.login")}</Link>
                 </Button>
-                <Button size="sm" asChild className="hidden md:inline-flex">
+                <Button size="sm" asChild className="hidden lg:inline-flex">
                   <Link to="/auth/signup">{t("common.actions.signup")}</Link>
                 </Button>
-                <Button variant="ghost" size="sm" asChild className="md:hidden">
+                <Button variant="ghost" size="sm" asChild className="lg:hidden">
                   <Link to="/auth/login" className="px-2" aria-label={t("common.actions.login")}>
                     {t("common.actions.login")}
                   </Link>
@@ -260,7 +262,7 @@ const AppNavbar = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-2 md:hidden">
+            <div className="flex items-center gap-2 lg:hidden">
               <LanguageSwitcher size="sm" />
               <ThemeToggle />
             </div>
