@@ -191,6 +191,9 @@ const UniversityAnalytics = lazyWithErrorHandling(
 const UniversityPrograms = lazyWithErrorHandling(
   () => import("./pages/university/Programs")
 );
+const UniversityMessages = lazyWithErrorHandling(
+  () => import("./pages/university/Messages")
+);
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 const DashboardApplications = lazyWithErrorHandling(
   () => import("./pages/dashboard/ApplicationsRouter")
@@ -400,14 +403,15 @@ const App = () => {
                                 <UniversityDashboardShell />
                               </ProtectedRoute>
                             }
-                          >
-                            <Route index element={<UniversityOverview />} />
-                            <Route path="applications" element={<UniversityApplications />} />
-                            <Route path="documents" element={<UniversityDocuments />} />
-                            <Route path="offers-cas" element={<UniversityOffersCas />} />
-                            <Route path="analytics" element={<UniversityAnalytics />} />
-                            <Route path="programs" element={<UniversityPrograms />} />
-                          </Route>
+                            >
+                              <Route index element={<UniversityOverview />} />
+                              <Route path="applications" element={<UniversityApplications />} />
+                              <Route path="documents" element={<UniversityDocuments />} />
+                              <Route path="messages" element={<UniversityMessages />} />
+                              <Route path="offers-cas" element={<UniversityOffersCas />} />
+                              <Route path="analytics" element={<UniversityAnalytics />} />
+                              <Route path="programs" element={<UniversityPrograms />} />
+                            </Route>
 
                         {/* ✅ 404 Fallback */}
                         <Route
