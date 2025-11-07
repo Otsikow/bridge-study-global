@@ -45,7 +45,7 @@ export function PartnerSidebar() {
           <img
             src={gegLogo}
             alt="Global Education Gateway"
-            className="h-10 w-10 flex-shrink-0 rounded-lg border border-slate-800/70 bg-slate-900 object-contain p-1"
+            className="h-10 w-10 flex-shrink-0 rounded-lg border border-slate-800/70 bg-slate-900 object-contain p-1 dark:brightness-0 dark:invert"
           />
           {state !== "collapsed" && (
             <div className="space-y-1">

@@ -128,7 +128,7 @@ export default function PartnerDashboard() {
           </main>
           <footer className="mt-8 flex items-center justify-between border-t border-slate-800 bg-slate-950/70 px-6 py-4">
             <div className="flex items-center gap-3">
-              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8" />
+              <img src={gegLogo} alt="GEG Logo" className="h-8 w-8 dark:brightness-0 dark:invert" />
               <span className="text-sm text-slate-400">
                 © {new Date().getFullYear()} Global Education Gateway
               </span>

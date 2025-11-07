@@ -35,7 +35,7 @@ export function PartnerHeader() {
           <img
             src={gegLogo}
             alt="GEG Partner"
-            className="hidden h-12 w-12 rounded-xl border border-slate-800 bg-slate-900/70 p-2 md:block"
+            className="hidden h-12 w-12 rounded-xl border border-slate-800 bg-slate-900/70 p-2 md:block dark:brightness-0 dark:invert"
           />
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Global Education Gateway</p>
