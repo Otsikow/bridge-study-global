@@ -124,7 +124,7 @@ export async function getUnreadCount(userId: string): Promise<number> {
       .from('notifications')
       .select('id')
       .eq('user_id', userId)
-      .is('read_at', null);
+      .eq('read', false);
 
     if (error) throw error;
 

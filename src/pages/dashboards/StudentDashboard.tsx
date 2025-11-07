@@ -85,11 +85,11 @@ interface RecommendedProgram {
 
 interface Notification {
   id: string;
-  subject: string;
-  body: string;
+  title: string;
+  content: string;
   created_at: string;
-  read_at: string | null;
-  status: string;
+  read: boolean;
+  type: string;
 }
 
 type StudentProfile = Tables<'students'>;
@@ -219,7 +219,7 @@ export default function StudentDashboard() {
 
       const notificationsPromise = supabase
         .from('notifications')
-        .select('*')
+        .select('id, title, content, type, created_at, read')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
@@ -275,7 +275,7 @@ export default function StudentDashboard() {
 
       if (notificationsResult.status === 'fulfilled') {
         const { data, error } = notificationsResult.value as {
-          data: Notification[] | null;
+          data: (Notification & { metadata?: Record<string, unknown> })[] | null;
           error: unknown;
         };
 
@@ -284,7 +284,15 @@ export default function StudentDashboard() {
           toast(formatErrorForToast(error, 'Failed to load notifications'));
           setNotifications([]);
         } else {
-          setNotifications(data ?? []);
+          const mapped = (data ?? []).map((item) => ({
+            id: item.id,
+            title: item.title || 'Notification',
+            content: item.content || '',
+            created_at: item.created_at,
+            read: !!item.read,
+            type: item.type || 'general',
+          }));
+          setNotifications(mapped);
         }
       } else {
         logError(notificationsResult.reason, 'StudentDashboard.fetchNotifications');
@@ -377,7 +385,7 @@ export default function StudentDashboard() {
     return formatDate(dateString);
   };
 
-  const unreadNotifications = notifications.filter((n) => !n.read_at).length;
+  const unreadNotifications = notifications.filter((n) => !n.read).length;
   const isLoading = studentRecordLoading || dataLoading;
 
   if (isLoading) {
@@ -670,20 +678,20 @@ export default function StudentDashboard() {
                         <div
                           key={notification.id}
                           className={`p-3 rounded-lg border transition-colors ${
-                            notification.read_at ? 'bg-background' : 'bg-muted/50'
+                            notification.read ? 'bg-background' : 'bg-muted/50'
                           }`}
                         >
                           <div className="flex items-start gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">{notification.subject}</p>
+                              <p className="font-medium text-sm">{notification.title}</p>
                               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                {notification.body}
+                                {notification.content}
                               </p>
                               <p className="text-xs text-muted-foreground mt-2">
                                 {getRelativeTime(notification.created_at)}
                               </p>
                             </div>
-                            {!notification.read_at && (
+                            {!notification.read && (
                               <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
                             )}
                           </div>

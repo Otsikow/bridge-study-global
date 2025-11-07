@@ -74,7 +74,7 @@ export default function NotificationCenter() {
       setLoading(true);
       const { data, error } = await supabase
         .from("notifications")
-        .select("*")
+        .select("id, title, content, type, read, created_at, action_url, metadata")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(50);
@@ -83,13 +83,13 @@ export default function NotificationCenter() {
 
       const mapped = (data || []).map((n) => ({
         id: n.id,
-        title: n.subject || "Notification",
-        message: n.body || "",
-        type: (n.template_key as any) || "info",
-        read: !!n.read_at,
+        title: n.title || "Notification",
+        message: n.content || "",
+        type: (n.type as any) || "info",
+        read: !!n.read,
         created_at: n.created_at,
-        action_url: undefined,
-        metadata: (n.payload as Record<string, any>) || {},
+        action_url: n.action_url || undefined,
+        metadata: (n.metadata as Record<string, any>) || {},
       }));
 
       setNotifications(mapped);
@@ -121,10 +121,13 @@ export default function NotificationCenter() {
 
   const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", id);
+      const wasUnread = notifications.find((n) => n.id === id)?.read === false;
+      const { error } = await supabase.from("notifications").update({ read: true }).eq("id", id);
       if (error) throw error;
       setNotifications((p) => p.map((n) => (n.id === id ? { ...n, read: true } : n)));
-      setUnreadCount((c) => Math.max(0, c - 1));
+      if (wasUnread) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+      }
     } catch {
       toast({ title: "Error", description: "Failed to mark as read", variant: "destructive" });
     }
@@ -133,7 +136,11 @@ export default function NotificationCenter() {
   const markAllAsRead = async () => {
     if (!user) return;
     try {
-      const { error } = await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", user.id).is("read_at", null);
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read: true })
+        .eq("user_id", user.id)
+        .eq("read", false);
       if (error) throw error;
       setNotifications((p) => p.map((n) => ({ ...n, read: true })));
       setUnreadCount(0);

@@ -723,30 +723,34 @@ export default function NewApplication() {
         await supabase.from('notifications').insert({
           user_id: assignmentData.counselor_id,
           tenant_id: tenantId,
-          template_key: 'new_application',
-          subject: 'New Application Submitted',
-          body: `A new application has been submitted for ${programData?.name || 'a program'}.`,
-          channel: 'in_app',
-          status: 'pending',
+          type: 'general',
+          title: 'New Application Submitted',
+          content: `A new application has been submitted for ${programData?.name || 'a program'}.`,
+          metadata: {
+            program_id: programData?.id ?? null,
+            program_name: programData?.name ?? null,
+            university_name: programData?.university?.name ?? null,
+          },
+          action_url: '/dashboard/applications',
         });
-        }
+      }
 
-        // Clear stored draft after successful submission
-        try {
-          await supabase
-            .from('application_drafts')
-            .delete()
-            .eq('student_id', studentId);
-          queryClient.removeQueries({ queryKey: draftQueryKey });
-          setLastSavedAt(null);
-          setAutoSaveError(null);
-          skipNextAutoSave.current = true;
-          if (typeof window !== 'undefined') {
-            window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
-          }
-        } catch (draftCleanupError) {
-          logError(draftCleanupError, 'NewApplication.clearDraftAfterSubmit');
+      // Clear stored draft after successful submission
+      try {
+        await supabase
+          .from('application_drafts')
+          .delete()
+          .eq('student_id', studentId);
+        queryClient.removeQueries({ queryKey: draftQueryKey });
+        setLastSavedAt(null);
+        setAutoSaveError(null);
+        skipNextAutoSave.current = true;
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(LEGACY_DRAFT_STORAGE_KEY);
         }
+      } catch (draftCleanupError) {
+        logError(draftCleanupError, 'NewApplication.clearDraftAfterSubmit');
+      }
 
         // Show success modal
         setShowSuccessModal(true);

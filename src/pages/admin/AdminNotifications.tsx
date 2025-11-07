@@ -24,7 +24,6 @@ interface AdminNotification {
   type: string;
   createdAt: string;
   read: boolean;
-  readAt: string | null;
   metadata: NotificationMetadata;
   category: NotificationCategory;
 }
@@ -33,12 +32,12 @@ type SupabaseNotificationRow = {
   id: string;
   tenant_id: string | null;
   user_id: string;
-  template_key: string | null;
-  subject: string | null;
-  body: string | null;
+  type: string | null;
+  title: string | null;
+  content: string | null;
   created_at: string;
-  read_at: string | null;
-  payload: unknown;
+  read: boolean | null;
+  metadata: unknown;
 };
 
 const CATEGORY_CONFIG: Record<NotificationCategory, { label: string; description: string; icon: ComponentType<{ className?: string }>; }>
@@ -118,7 +117,7 @@ const AdminNotifications = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from("notifications")
-        .select("id, tenant_id, user_id, template_key, subject, body, created_at, read_at, payload")
+        .select("id, tenant_id, user_id, type, title, content, created_at, read, metadata")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(150);
@@ -127,21 +126,20 @@ const AdminNotifications = () => {
 
       const rows = (data as SupabaseNotificationRow[] | null) ?? [];
       const mapped: AdminNotification[] = rows.map((row) => {
-        const metadata = parseMetadata(row.payload);
+        const metadata = parseMetadata(row.metadata);
         const metadataType = getMetadataString(metadata, "type");
         const metadataTitle = getMetadataString(metadata, "title") || "Notification";
         const metadataMessage = getMetadataString(metadata, "message");
-        const type = row.template_key && row.template_key.length > 0 ? row.template_key : metadataType || "general";
-        const title = row.subject && row.subject.length > 0 ? row.subject : metadataTitle;
-        const message = row.body && row.body.length > 0 ? row.body : metadataMessage;
+        const type = row.type && row.type.length > 0 ? row.type : metadataType || "general";
+        const title = row.title && row.title.length > 0 ? row.title : metadataTitle;
+        const message = row.content && row.content.length > 0 ? row.content : metadataMessage;
         return {
           id: row.id,
           title,
           message,
           type,
           createdAt: row.created_at,
-          read: !!row.read_at,
-          readAt: row.read_at,
+          read: !!row.read,
           metadata,
           category: resolveCategory({ type, metadata, title, message }),
         };
@@ -173,21 +171,20 @@ const AdminNotifications = () => {
         (payload) => {
           if (payload.eventType === "INSERT") {
             const row = payload.new as SupabaseNotificationRow;
-            const metadata = parseMetadata(row.payload);
+            const metadata = parseMetadata(row.metadata);
             const metadataType = getMetadataString(metadata, "type");
             const metadataTitle = getMetadataString(metadata, "title") || "Notification";
             const metadataMessage = getMetadataString(metadata, "message");
-            const type = row.template_key && row.template_key.length > 0 ? row.template_key : metadataType || "general";
-            const title = row.subject && row.subject.length > 0 ? row.subject : metadataTitle;
-            const message = row.body && row.body.length > 0 ? row.body : metadataMessage;
+            const type = row.type && row.type.length > 0 ? row.type : metadataType || "general";
+            const title = row.title && row.title.length > 0 ? row.title : metadataTitle;
+            const message = row.content && row.content.length > 0 ? row.content : metadataMessage;
             const notification: AdminNotification = {
               id: row.id,
               title,
               message,
               type,
               createdAt: row.created_at,
-              read: !!row.read_at,
-              readAt: row.read_at,
+              read: !!row.read,
               metadata,
               category: resolveCategory({ type, metadata, title, message }),
             };
@@ -210,8 +207,7 @@ const AdminNotifications = () => {
                 notification.id === row.id
                   ? {
                       ...notification,
-                      read: !!row.read_at,
-                      readAt: row.read_at,
+                      read: !!row.read,
                     }
                   : notification
               )
@@ -252,11 +248,10 @@ const AdminNotifications = () => {
   const updateNotificationReadState = useCallback(
     async (notificationId: string, read: boolean) => {
       if (!user?.id) return;
-      const timestamp = new Date().toISOString();
       try {
         const { error } = await supabase
           .from("notifications")
-          .update({ read_at: read ? timestamp : null })
+          .update({ read })
           .eq("id", notificationId)
           .eq("user_id", user.id);
 
@@ -265,7 +260,7 @@ const AdminNotifications = () => {
         setNotifications((prev) =>
           prev.map((notification) =>
             notification.id === notificationId
-              ? { ...notification, read, readAt: read ? timestamp : null }
+              ? { ...notification, read }
               : notification
           )
         );
@@ -285,16 +280,15 @@ const AdminNotifications = () => {
     if (!user?.id) return;
     try {
       setBulkUpdating(true);
-      const timestamp = new Date().toISOString();
       const { error } = await supabase
         .from("notifications")
-        .update({ read_at: timestamp })
+        .update({ read: true })
         .eq("user_id", user.id)
-        .is("read_at", null);
+        .eq("read", false);
 
       if (error) throw error;
 
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true, readAt: timestamp })));
+      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
       toast({ title: "Success", description: "All notifications marked as read" });
     } catch (error) {
       console.error("Failed to mark all as read", error);
