@@ -1,0 +1,642 @@
+import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import type { PostgrestError } from "@supabase/supabase-js";
+import { useAuth } from "@/hooks/useAuth";
+
+export const STAFF_PAGE_SIZE = 25;
+
+type Nullable<T> = T | null;
+
+export interface StaffStudent {
+  id: string;
+  name: string;
+  email: string;
+  country: string | null;
+  updatedAt: string | null;
+  intake: string | null;
+  status: string | null;
+  assignedStaff: string | null;
+  applications: Array<{ id: string; status: string | null; deadline: string | null }>;
+}
+
+export interface StaffAgentSummary {
+  id: string;
+  name: string;
+  region: string | null;
+  totalStudents: number;
+  conversionRate: number | null;
+  updatedAt: string | null;
+}
+
+export interface StaffTaskItem {
+  id: string;
+  title: string;
+  description: string | null;
+  priority: string | null;
+  status: string | null;
+  dueAt: string | null;
+  assigneeId: string | null;
+  assigneeName: string | null;
+  createdAt: string | null;
+  applicationId: string | null;
+}
+
+export interface StaffMessageItem {
+  id: string;
+  body: string;
+  senderName: string | null;
+  createdAt: string | null;
+  applicationId: string | null;
+  messageType: string | null;
+}
+
+export interface StaffPaymentItem {
+  id: string;
+  reference: string;
+  amount: number;
+  currency: string;
+  status: string | null;
+  dueAt: string | null;
+  studentName: string | null;
+}
+
+export interface StaffInsightSummary {
+  riskStudents: Array<{ id: string; name: string; riskReason: string; owner: string | null; escalationLevel: string | null }>;
+  topAgents: Array<{ id: string; name: string; metric: string; delta: number | null }>;
+  deadlineApplications: Array<{ id: string; applicant: string; program: string | null; deadline: string | null; status: string | null }>;
+  recommendations: Array<{ id: string; title: string; description: string; impact: string | null }>;
+}
+
+interface PaginatedResponse<T> {
+  total: number;
+  data: T[];
+}
+
+const mapStudent = (row: any): StaffStudent => {
+  const profile = row.profile as Nullable<{ full_name?: string | null; email?: string | null }>;
+  const assignments = (row.assignments as any[]) ?? [];
+  const owner = assignments[0]?.counselor_profile?.full_name ?? assignments[0]?.counselor_profile?.email ?? null;
+  const applications = ((row.applications as any[]) ?? []).map((application) => ({
+    id: application.id as string,
+    status: application.status ?? null,
+    deadline: application.deadline_at ?? null,
+  }));
+  const primaryApplication = applications[0];
+
+  return {
+    id: row.id,
+    name: row.preferred_name ?? row.legal_name ?? profile?.full_name ?? "Unknown student",
+    email: row.contact_email ?? profile?.email ?? "",
+    country: row.current_country ?? null,
+    updatedAt: row.updated_at ?? row.created_at ?? null,
+    intake: null,
+    status: primaryApplication?.status ?? null,
+    assignedStaff: owner,
+    applications,
+  } satisfies StaffStudent;
+};
+
+const mapAgent = (row: any): StaffAgentSummary => ({
+  id: row.id,
+  name: row.company_name ?? row.profile?.full_name ?? "Unnamed agent",
+  region: row.region ?? row.country ?? null,
+  totalStudents: Array.isArray(row.student_links) ? row.student_links.length : 0,
+  conversionRate: null,
+  updatedAt: row.updated_at ?? row.created_at ?? null,
+});
+
+const mapTask = (row: any): StaffTaskItem => ({
+  id: row.id,
+  title: row.title,
+  description: row.description,
+  priority: row.priority,
+  status: row.status,
+  dueAt: row.due_at,
+  assigneeId: row.assignee_id,
+  assigneeName: row.assignee_profile?.full_name ?? row.assignee_profile?.email ?? null,
+  createdAt: row.created_at,
+  applicationId: row.application_id,
+});
+
+const mapMessage = (row: any): StaffMessageItem => ({
+  id: row.id,
+  body: row.body,
+  senderName: row.sender_profile?.full_name ?? row.sender_profile?.email ?? null,
+  createdAt: row.created_at,
+  applicationId: row.application_id,
+  messageType: row.message_type,
+});
+
+const mapPayment = (row: any): StaffPaymentItem => ({
+  id: row.id,
+  reference: row.reference ?? row.application?.id ?? row.id,
+  amount: typeof row.amount_cents === "number" ? row.amount_cents / 100 : 0,
+  currency: row.currency ?? "USD",
+  status: row.status ?? null,
+  dueAt: row.updated_at ?? row.created_at ?? null,
+  studentName: row.application?.student?.profile?.full_name ?? row.application?.student?.profile?.email ?? null,
+});
+
+const fetchStudents = async (tenantId: string, page: number, search?: string): Promise<PaginatedResponse<StaffStudent>> => {
+  const from = (page - 1) * STAFF_PAGE_SIZE;
+  const to = from + STAFF_PAGE_SIZE - 1;
+
+  let query = supabase
+    .from("students")
+    .select(
+      `
+        id,
+        legal_name,
+        preferred_name,
+        contact_email,
+        current_country,
+        created_at,
+        updated_at,
+        profile:profiles(full_name,email),
+        assignments:student_assignments(
+          counselor_profile:profiles!student_assignments_counselor_id_fkey(full_name,email)
+        ),
+        applications:applications(
+          id,
+          status,
+          deadline_at
+        )
+      `,
+      { count: "exact" },
+    )
+    .eq("tenant_id", tenantId)
+    .order("updated_at", { ascending: false, nullsLast: false })
+    .order("created_at", { ascending: false, nullsLast: false })
+    .range(from, to);
+
+  if (search) {
+    const normalized = `%${search.trim()}%`;
+    query = query.or(
+      `legal_name.ilike.${normalized},preferred_name.ilike.${normalized},contact_email.ilike.${normalized}`,
+    );
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw error satisfies PostgrestError;
+  }
+
+  return {
+    total: count ?? 0,
+    data: (data ?? []).map(mapStudent),
+  };
+};
+
+const fetchAgents = async (tenantId: string, page: number): Promise<PaginatedResponse<StaffAgentSummary>> => {
+  const from = (page - 1) * STAFF_PAGE_SIZE;
+  const to = from + STAFF_PAGE_SIZE - 1;
+
+  const { data, error, count } = await supabase
+    .from("agents")
+    .select(
+      `
+        id,
+        company_name,
+        region,
+        country,
+        created_at,
+        updated_at,
+        profile:profiles(full_name),
+        student_links:agent_student_links(id)
+      `,
+      { count: "exact" },
+    )
+    .eq("tenant_id", tenantId)
+    .order("updated_at", { ascending: false, nullsLast: false })
+    .range(from, to);
+
+  if (error) {
+    throw error satisfies PostgrestError;
+  }
+
+  return {
+    total: count ?? 0,
+    data: (data ?? []).map(mapAgent),
+  };
+};
+
+const fetchTasks = async (
+  tenantId: string,
+  page: number,
+  assigneeId: string,
+  canManageTenant: boolean,
+  filters?: { status?: string; priority?: string; search?: string },
+): Promise<PaginatedResponse<StaffTaskItem>> => {
+  const from = (page - 1) * STAFF_PAGE_SIZE;
+  const to = from + STAFF_PAGE_SIZE - 1;
+
+  let query = supabase
+    .from("tasks")
+    .select(
+      `
+        id,
+        title,
+        description,
+        status,
+        priority,
+        due_at,
+        assignee_id,
+        created_at,
+        application_id,
+        assignee_profile:profiles!tasks_assignee_id_fkey(full_name,email)
+      `,
+      { count: "exact" },
+    )
+    .order("due_at", { ascending: true, nullsFirst: true })
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (canManageTenant) {
+    query = query.eq("tenant_id", tenantId);
+  } else {
+    query = query.eq("assignee_id", assigneeId);
+  }
+
+  if (filters?.status && filters.status !== "all") {
+    query = query.eq("status", filters.status);
+  }
+
+  if (filters?.priority && filters.priority !== "all") {
+    query = query.eq("priority", filters.priority);
+  }
+
+  if (filters?.search) {
+    const normalized = `%${filters.search.trim()}%`;
+    query = query.ilike("title", normalized);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw error satisfies PostgrestError;
+  }
+
+  return {
+    total: count ?? 0,
+    data: (data ?? []).map(mapTask),
+  };
+};
+
+const fetchMessages = async (
+  tenantId: string,
+  page: number,
+  filters?: { search?: string; type?: string },
+): Promise<PaginatedResponse<StaffMessageItem>> => {
+  const from = (page - 1) * STAFF_PAGE_SIZE;
+  const to = from + STAFF_PAGE_SIZE - 1;
+
+  let query = supabase
+    .from("messages")
+    .select(
+      `
+        id,
+        body,
+        message_type,
+        created_at,
+        application_id,
+        sender_profile:profiles!messages_sender_id_fkey(full_name,email),
+        application:applications!messages_application_id_fkey(tenant_id)
+      `,
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  query = query.eq("application.tenant_id", tenantId);
+
+  if (filters?.type && filters.type !== "all") {
+    query = query.eq("message_type", filters.type);
+  }
+
+  if (filters?.search) {
+    const normalized = `%${filters.search.trim()}%`;
+    query = query.ilike("body", normalized);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    throw error satisfies PostgrestError;
+  }
+
+  return {
+    total: count ?? 0,
+    data: (data ?? []).map(mapMessage),
+  };
+};
+
+const fetchPayments = async (tenantId: string, page: number): Promise<PaginatedResponse<StaffPaymentItem>> => {
+  const from = (page - 1) * STAFF_PAGE_SIZE;
+  const to = from + STAFF_PAGE_SIZE - 1;
+
+  const { data, error, count } = await supabase
+    .from("payments")
+    .select(
+      `
+        id,
+        currency,
+        status,
+        amount_cents,
+        created_at,
+        updated_at,
+        application:applications!payments_application_id_fkey(
+          id,
+          student:students(
+            id,
+            profile:profiles(full_name,email)
+          )
+        ),
+        tenant_id
+      `,
+      { count: "exact" },
+    )
+    .eq("tenant_id", tenantId)
+    .order("due_at", { ascending: true, nullsFirst: true })
+    .range(from, to);
+
+  if (error) {
+    throw error satisfies PostgrestError;
+  }
+
+  return {
+    total: count ?? 0,
+    data: (data ?? []).map(mapPayment),
+  };
+};
+
+const fetchInsights = async (tenantId: string): Promise<StaffInsightSummary> => {
+  const { data, error } = await supabase.functions.invoke("zoe-staff-insights", {
+    body: { tenantId },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  const payload = data ?? {};
+
+  return {
+    riskStudents: payload.riskStudents ?? [],
+    topAgents: payload.topAgents ?? [],
+    deadlineApplications: payload.deadlineApplications ?? [],
+    recommendations: payload.recommendations ?? [],
+  } satisfies StaffInsightSummary;
+};
+
+const useRealtimeInvalidate = (
+  filterValue: string | undefined,
+  queryKey: unknown,
+  table: string,
+  filterColumn = "tenant_id",
+) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!filterValue) return;
+
+    const channel = supabase
+      .channel(`staff-${table}-${filterValue}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table,
+          ...(filterColumn
+            ? {
+                filter: `${filterColumn}=eq.${filterValue}`,
+              }
+            : {}),
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: queryKey as any });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [filterValue, queryClient, queryKey, table, filterColumn]);
+};
+
+export const staffStudentsKey = (tenantId?: string | null, page = 1, search?: string) => [
+  "staff",
+  "students",
+  tenantId ?? "anonymous",
+  page,
+  search ?? "",
+];
+
+export const staffAgentsKey = (tenantId?: string | null, page = 1) => [
+  "staff",
+  "agents",
+  tenantId ?? "anonymous",
+  page,
+];
+
+export const staffTasksKey = (
+  tenantId?: string | null,
+  page = 1,
+  assigneeId?: string | null,
+  filters?: { status?: string; priority?: string; search?: string },
+) => [
+  "staff",
+  "tasks",
+  tenantId ?? "anonymous",
+  page,
+  assigneeId ?? "",
+  filters?.status ?? "all",
+  filters?.priority ?? "all",
+  filters?.search ?? "",
+];
+
+export const staffMessagesKey = (tenantId?: string | null, page = 1, filters?: { search?: string; type?: string }) => [
+  "staff",
+  "messages",
+  tenantId ?? "anonymous",
+  page,
+  filters?.search ?? "",
+  filters?.type ?? "all",
+];
+
+export const staffPaymentsKey = (tenantId?: string | null, page = 1) => [
+  "staff",
+  "payments",
+  tenantId ?? "anonymous",
+  page,
+];
+
+export const staffInsightsKey = (tenantId?: string | null) => ["staff", "insights", tenantId ?? "anonymous"];
+
+export const useStaffStudents = (page: number, search?: string) => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const enabled = Boolean(tenantId);
+
+  const query = useQuery({
+    queryKey: staffStudentsKey(tenantId, page, search),
+    queryFn: () => fetchStudents(tenantId!, page, search),
+    enabled,
+    placeholderData: (previous) => previous,
+    keepPreviousData: true,
+  });
+
+  useRealtimeInvalidate(tenantId, staffStudentsKey(tenantId, page, search), "students");
+
+  return query;
+};
+
+export const useStaffAgents = (page: number) => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  const query = useQuery({
+    queryKey: staffAgentsKey(tenantId, page),
+    queryFn: () => fetchAgents(tenantId!, page),
+    enabled: Boolean(tenantId),
+    placeholderData: (previous) => previous,
+    keepPreviousData: true,
+  });
+
+  useRealtimeInvalidate(tenantId, staffAgentsKey(tenantId, page), "agents");
+
+  return query;
+};
+
+export const useStaffTasks = (
+  page: number,
+  options?: { status?: string; priority?: string; search?: string },
+) => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const assigneeId = profile?.id;
+  const canManageTenant = profile?.role === "staff" || profile?.role === "admin";
+
+  const query = useQuery({
+    queryKey: staffTasksKey(tenantId, page, assigneeId, options),
+    queryFn: () => fetchTasks(tenantId!, page, assigneeId!, canManageTenant, options),
+    enabled: Boolean(tenantId && assigneeId),
+    placeholderData: (previous) => previous,
+    keepPreviousData: true,
+  });
+
+  useRealtimeInvalidate(tenantId, staffTasksKey(tenantId, page, assigneeId, options), "tasks");
+
+  return query;
+};
+
+export const useStaffMessages = (
+  page: number,
+  options?: { search?: string; type?: string },
+) => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  const query = useQuery({
+    queryKey: staffMessagesKey(tenantId, page, options),
+    queryFn: () => fetchMessages(tenantId!, page, options),
+    enabled: Boolean(tenantId),
+    placeholderData: (previous) => previous,
+    keepPreviousData: true,
+  });
+
+  useRealtimeInvalidate(tenantId, staffMessagesKey(tenantId, page, options), "messages", "");
+
+  return query;
+};
+
+export const useStaffPayments = (page: number) => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  const query = useQuery({
+    queryKey: staffPaymentsKey(tenantId, page),
+    queryFn: () => fetchPayments(tenantId!, page),
+    enabled: Boolean(tenantId),
+    placeholderData: (previous) => previous,
+    keepPreviousData: true,
+  });
+
+  useRealtimeInvalidate(tenantId, staffPaymentsKey(tenantId, page), "payments");
+
+  return query;
+};
+
+export const useStaffInsights = () => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+
+  return useQuery({
+    queryKey: staffInsightsKey(tenantId),
+    queryFn: () => fetchInsights(tenantId!),
+    enabled: Boolean(tenantId),
+    staleTime: 60_000,
+  });
+};
+
+export const useUpdateTaskStatus = () => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const assigneeId = profile?.id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ status })
+        .eq("id", taskId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffTasksKey(tenantId, 1, assigneeId) });
+    },
+  });
+};
+
+export const useCreateTask = () => {
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (
+      input: {
+        title: string;
+        description?: string;
+        priority?: string;
+        dueAt?: string;
+        assigneeId?: string;
+        applicationId?: string;
+      },
+    ) => {
+      const payload = {
+        title: input.title,
+        description: input.description ?? null,
+        priority: input.priority ?? "medium",
+        due_at: input.dueAt ?? null,
+        assignee_id: input.assigneeId ?? profile?.id ?? null,
+        application_id: input.applicationId ?? null,
+        tenant_id: tenantId,
+        created_by: profile?.id ?? null,
+        status: "open",
+      };
+
+      const { error } = await supabase.from("tasks").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffTasksKey(tenantId, 1, profile?.id) });
+    },
+  });
+};
+
