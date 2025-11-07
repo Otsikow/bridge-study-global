@@ -202,6 +202,7 @@ const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/Staf
 const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
 const MyLeads = lazyWithErrorHandling(() => import("./pages/dashboard/my-leads"));
 const MyRanking = lazyWithErrorHandling(() => import("./pages/dashboard/my-ranking"));
+const AgentStudentsPage = lazyWithErrorHandling(() => import("./pages/dashboard/my-students"));
 const ImportPage = lazyWithErrorHandling(() => import("./pages/dashboard/import"));
 const AgentResources = lazyWithErrorHandling(() => import("./pages/dashboard/resources"));
 
@@ -389,14 +390,22 @@ const App = () => {
                           </ProtectedRoute>
                         }
                       />
-                      <Route
-                        path="/dashboard/my-ranking"
-                        element={
-                          <ProtectedRoute allowedRoles={["agent"]}>
-                            <MyRanking />
-                          </ProtectedRoute>
-                        }
-                      />
+                        <Route
+                          path="/dashboard/my-ranking"
+                          element={
+                            <ProtectedRoute allowedRoles={["agent"]}>
+                              <MyRanking />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard/my-students"
+                          element={
+                            <ProtectedRoute allowedRoles={["agent"]}>
+                              <AgentStudentsPage />
+                            </ProtectedRoute>
+                          }
+                        />
                       <Route
                         path="/dashboard/import"
                         element={
