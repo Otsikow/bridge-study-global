@@ -79,12 +79,12 @@ export default function Blog() {
       tags: ["CRM", "Reporting", "Compliance"],
     },
     {
-      title: "Partner Resource Center",
+      title: "Partner Resource Centre",
       description:
-        "Data-driven insights on student demand, program positioning, and market expansion strategies.",
+        "Data-driven insights on student demand, programme positioning, and market expansion strategies.",
       icon: Globe2,
       cta: { label: "See partner guides", href: "/universities" },
-      tags: ["Market trends", "Programs", "Recruitment"],
+      tags: ["Market trends", "Programmes", "Recruitment"],
     },
   ] as const;
 
@@ -104,7 +104,7 @@ export default function Blog() {
       description: "Navigate essential tools for every stage of the recruitment journey.",
       links: [
         { label: "Search Universities", href: "/search", external: false },
-        { label: "Help Center", href: "/help", external: false },
+        { label: "Help Centre", href: "/help", external: false },
         { label: "Visa Calculator", href: "/visa-calculator", external: false },
       ],
     },

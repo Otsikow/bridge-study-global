@@ -296,7 +296,7 @@ export default function StudentOnboarding() {
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2 mt-3">
                   <Button asChild className="hover-scale flex-1">
-                    <Link to="/search">Browse Programs</Link>
+                    <Link to="/search">Browse Programmes</Link>
                   </Button>
                   <Button asChild variant="outline" className="flex-1">
                     <Link to="/student/applications/new">Create Application</Link>

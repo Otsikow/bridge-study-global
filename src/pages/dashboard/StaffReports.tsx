@@ -291,7 +291,7 @@ export default function StaffReports() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Top Programs</CardTitle>
+                  <CardTitle>Top Programmes</CardTitle>
                   <CardDescription>Most popular programs by applications</CardDescription>
                 </div>
                 <BarChart3 className="h-5 w-5 text-muted-foreground" />

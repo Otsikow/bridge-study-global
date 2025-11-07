@@ -264,7 +264,7 @@ const AdminLayout = () => {
             {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
           </p>
           <p className="text-xs text-muted-foreground">
-            {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Center" })}
+            {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Centre" })}
           </p>
         </div>
       </div>

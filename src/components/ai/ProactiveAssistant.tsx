@@ -112,13 +112,13 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
       {
         id: "5",
         type: "tip",
-        title: "Consider Additional Programs",
+        title: "Consider Additional Programmes",
         description:
-          "Based on your profile, you might also be interested in these similar programs in Canada.",
+          "Based on your profile, you might also be interested in these similar programmes in Canada.",
         priority: "low",
         category: "Recommendation",
         action_url: "/search",
-        action_text: "Explore Programs",
+        action_text: "Explore Programmes",
         created_at: new Date().toISOString(),
       },
       {
@@ -126,7 +126,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
         type: "reminder",
         title: "Visa Application Timeline",
         description:
-          "Start preparing your visa documents 3 months before your program starts. You have 2 months left.",
+          "Start preparing your visa documents 3 months before your programme starts. You have 2 months left.",
         priority: "medium",
         category: "Visa",
         action_url: "/visa-guide",

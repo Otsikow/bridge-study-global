@@ -36,7 +36,7 @@ const APPLICATION_TRENDS_DATA = [
 ];
 
 const TOP_SEGMENTS = [
-  { label: "STEM Programs", growth: "+18.5%", volume: "342 applications" },
+  { label: "STEM Programmes", growth: "+18.5%", volume: "342 applications" },
   { label: "Postgraduate", growth: "+14.3%", volume: "287 applications" },
   { label: "Canada", growth: "+11.2%", volume: "198 enrollments" },
   { label: "Scholarship Track", growth: "+9.8%", volume: "156 applications" },

@@ -189,10 +189,10 @@ export default function ProgramSelectionStep({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5" />
-            Select Your Desired Program
+            Select Your Desired Programme
           </CardTitle>
           <CardDescription>
-            Choose the program you wish to apply for and select your preferred intake.
+            Choose the programme you wish to apply for and select your preferred intake.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -200,30 +200,30 @@ export default function ProgramSelectionStep({
           <div className="space-y-2">
             <Label htmlFor="search" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
-              Search Programs
+              Search Programmes
             </Label>
             <Input
               id="search"
-              placeholder="Search by program name or discipline..."
+              placeholder="Search by programme name or discipline..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          {/* Program Selection */}
+          {/* Programme Selection */}
           <div className="space-y-2">
             <Label htmlFor="program" className="flex items-center gap-2">
               <GraduationCap className="h-4 w-4" />
-              Select Program *
+              Select Programme *
             </Label>
             <Select value={data.programId} onValueChange={handleProgramChange}>
               <SelectTrigger id="program">
-                <SelectValue placeholder="Choose a program" />
+                <SelectValue placeholder="Choose a programme" />
               </SelectTrigger>
               <SelectContent>
                 {programs.length === 0 ? (
                   <div className="p-4 text-center text-sm text-muted-foreground">
-                    No programs found
+                    No programmes found
                   </div>
                 ) : (
                   programs.map((program) => (

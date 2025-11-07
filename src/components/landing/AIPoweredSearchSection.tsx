@@ -347,7 +347,7 @@ export function AIPoweredSearchSection() {
                 {!loading && hasResults && <div className="space-y-6">
                     {universities.length > 0 && <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                          <School className="h-4 w-4" /> Universities & Programs
+                          <School className="h-4 w-4" /> Universities & Programmes
                         </div>
                         <div className="space-y-4">
                           {universities.map(university => <div key={`${university.name}-${university.country ?? ""}`} className="rounded-2xl border border-border bg-card/80 p-6 shadow-sm">

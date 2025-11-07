@@ -10,7 +10,7 @@ export default function AgentTasksPage() {
         <BackButton variant="ghost" size="sm" fallback="/dashboard" />
 
         <div className="space-y-1.5">
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Task Center</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Task Centre</h1>
           <p className="text-sm text-muted-foreground">
             Plan priorities, track follow-ups, and keep your recruiting pipeline moving forward.
           </p>

@@ -661,7 +661,7 @@ export default function ApplicationTracking() {
               </div>
               {applications.length === 0 && (
                 <Button asChild>
-                  <Link to="/search">Browse Programs</Link>
+                  <Link to="/search">Browse Programmes</Link>
                 </Button>
               )}
             </div>

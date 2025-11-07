@@ -103,7 +103,7 @@ export default function MessagesWidget() {
         return {
           applicationId: app.id,
           universityName: app.program?.university?.name || 'University',
-          programName: app.program?.name || 'Program',
+          programName: app.program?.name || 'Programme',
           lastMessage: lastMsg,
           unreadCount: unread,
         };
