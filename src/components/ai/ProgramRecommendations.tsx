@@ -126,9 +126,9 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
             <Brain className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            AI-Powered Program Recommendations
+            AI-Powered Programme Recommendations
           </h2>
-          <p className="text-sm sm:text-base text-muted-foreground">Discover programs that match your profile and goals</p>
+          <p className="text-sm sm:text-base text-muted-foreground">Discover programmes that match your profile and goals</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button
@@ -150,7 +150,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
       {showFilters && (
         <Card>
           <CardHeader>
-            <CardTitle>Filter Programs</CardTitle>
+            <CardTitle>Filter Programmes</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -177,7 +177,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
               </div>
 
               <div className="space-y-2">
-                <Label>Program Level</Label>
+                <Label>Programme Level</Label>
                 <div className="space-y-2">
                   {programLevels.map(level => (
                     <div key={level} className="flex items-center space-x-2">
@@ -270,7 +270,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
           ) : filteredRecommendations.length === 0 ? (
             <div className="text-center py-12">
               <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No matching programs found</h3>
+              <h3 className="text-lg font-semibold mb-2">No matching programmes found</h3>
               <p className="text-muted-foreground">Try adjusting your filters or preferences</p>
             </div>
           ) : (
@@ -314,7 +314,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                         </div>
 
                         <div className="space-y-2">
-                          <h4 className="font-medium text-xs sm:text-sm">Why this program matches you:</h4>
+                          <h4 className="font-medium text-xs sm:text-sm">Why this programme matches you:</h4>
                           <div className="flex flex-wrap gap-1.5 sm:gap-2">
                             {program.match_reasons.map((reason, index) => (
                               <Badge key={index} variant="outline" className="text-xs">

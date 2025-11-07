@@ -341,7 +341,7 @@ export default function StaffApplications() {
                   <TableRow>
                     <TableHead>ID</TableHead>
                     <TableHead>Student</TableHead>
-                    <TableHead>Program</TableHead>
+                    <TableHead>Programme</TableHead>
                     <TableHead>University</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>

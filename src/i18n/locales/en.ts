@@ -42,7 +42,7 @@ const en = {
       contact: "Contact",
       dashboard: "Dashboard",
       settings: "Settings",
-      helpCenter: "Help Center",
+      helpCenter: "Help Centre",
       faq: "FAQ",
       feedback: "Feedback",
       visaCalculator: "Visa Calculator",
@@ -102,7 +102,7 @@ const en = {
         feedback: "Feedback",
       },
       supportLinks: {
-        help: "Help Center",
+        help: "Help Centre",
         contact: "Contact Us",
         faq: "FAQ",
         dashboard: "Dashboard",
@@ -165,7 +165,7 @@ const en = {
       sidebar: {
         logoAlt: "GEG",
         organization: "Global Education Gateway",
-        subtitle: "Admin Control Center",
+        subtitle: "Admin Control Centre",
       },
       navigation: {
         overview: { label: "Overview", description: "Executive summary" },
@@ -219,8 +219,8 @@ const en = {
           selected: "Selected file: {{name}}",
         },
         color: {
-          label: "Primary color",
-          aria: "Primary color hex value",
+          label: "Primary colour",
+          aria: "Primary colour hex value",
           helpText: "Applies to buttons, highlights, and key interface accents.",
         },
         favicon: {
@@ -389,7 +389,7 @@ const en = {
             metricValue: "200+",
             metricLabel: "Partner Universities",
             description:
-              "AI-matched program recommendations surface the best-fit universities the moment you sign up.",
+              "AI-matched programme recommendations surface the best-fit universities the moment you sign up.",
             ctaLabel: "Start Application",
           },
           plan: {
@@ -433,12 +433,12 @@ const en = {
         stepLabel: "Step {{number}}",
         steps: {
           discover: {
-            title: "Discover Your Best-Fit Programs",
+            title: "Discover Your Best-Fit Programmes",
             description:
-              "Tell us your goals and academics, and GEG instantly curates universities, programs, and scholarships that match.",
+              "Tell us your goals and academics, and GEG instantly curates universities, programmes, and scholarships that match.",
             support:
               "Smart filters and AI-powered recommendations remove the guesswork so you can shortlist confident choices in minutes.",
-            imageAlt: "Student reviewing university programs on a campus tour",
+            imageAlt: "Student reviewing university programmes on a campus tour",
           },
           plan: {
             title: "Build a Personalized Application Plan",
@@ -508,7 +508,7 @@ const en = {
           badge: "Feature Spotlight",
           title: "Understand your visa eligibility before you apply",
           description:
-            "Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programs that welcome you the most.",
+            "Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programmes that welcome you the most.",
           cta: "Explore the Visa Calculator",
         },
         testimonials: {
@@ -535,7 +535,7 @@ const en = {
               role: "Engineering Student at Stanford",
               country: "USA",
               quote:
-                "From finding the right program to visa approval, GEG supported me every step of the way. Outstanding service!",
+                "From finding the right programme to visa approval, GEG supported me every step of the way. Outstanding service!",
               rating: 5,
             },
           ],
@@ -615,7 +615,7 @@ const en = {
       universitySearch: {
         hero: {
           title: "Find Your Perfect University",
-          subtitle: "Search through universities, programs, and scholarships worldwide.",
+          subtitle: "Search through universities, programmes, and scholarships worldwide.",
         },
         tabs: {
           search: "Search",
@@ -637,7 +637,7 @@ const en = {
               all: "All Countries",
             },
             programLevel: {
-              label: "Program Level",
+              label: "Programme Level",
               placeholder: "Select level",
               all: "All Levels",
             },
@@ -666,11 +666,11 @@ const en = {
           scholarshipBadge_one: "{{count}} Scholarship",
           scholarshipBadge_other: "{{count}} Scholarships",
           programs: {
-            heading_one: "Programs ({{count}})",
-            heading_other: "Programs ({{count}})",
+            heading_one: "Programmes ({{count}})",
+            heading_other: "Programmes ({{count}})",
             apply: "Apply Now",
-            more_one: "+{{count}} more program",
-            more_other: "+{{count}} more programs",
+            more_one: "+{{count}} more programme",
+            more_other: "+{{count}} more programmes",
           },
           scholarships: {
             heading: "Scholarships",
@@ -751,7 +751,7 @@ const en = {
             {
               question: "What support do agents receive on GEG?",
               answer:
-                "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programs quickly.",
+                "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programmes quickly.",
             },
             {
               question: "How are agent commissions handled?",

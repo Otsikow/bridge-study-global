@@ -102,7 +102,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "ranking-desc", label: "QS Rank: Descending" },
   { value: "name-asc", label: "Name A → Z" },
   { value: "name-desc", label: "Name Z → A" },
-  { value: "programs-desc", label: "Programs: High to Low" },
+  { value: "programs-desc", label: "Programmes: High to Low" },
   { value: "acceptance-desc", label: "Acceptance Rate: High to Low" },
   { value: "international-desc", label: "International Students: High to Low" },
   { value: "tuition-asc", label: "Tuition: Lowest to Highest" },
@@ -316,7 +316,7 @@ export default function UniversityDirectory() {
           />
           <StatItem
             icon={GraduationCap}
-            label="Programs"
+            label="Programmes"
             value={formatNumber(university.programCount)}
           />
           <StatItem
@@ -345,7 +345,7 @@ export default function UniversityDirectory() {
 
           <div className="rounded-lg border bg-background/60 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Signature Programs
+              Signature Programmes
             </p>
             <ul className="mt-2 space-y-1.5 text-sm text-foreground">
               {university.notablePrograms.map((program) => (
@@ -505,7 +505,7 @@ export default function UniversityDirectory() {
             <CardHeader className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <GraduationCap className="h-4 w-4 text-primary" />
-                Program Portfolio
+                Programme Portfolio
               </CardTitle>
               <CardDescription>Active degree pathways globally</CardDescription>
             </CardHeader>

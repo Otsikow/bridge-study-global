@@ -150,7 +150,7 @@ const HelpCenter = () => {
                 <HelpCircle className="h-12 w-12 text-primary" />
               </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Help Center</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">Help Centre</h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Find answers to common questions, submit a support ticket, or chat with our team
             </p>

@@ -222,12 +222,12 @@ export default function ReviewSubmitStep({
         </CardContent>
       </Card>
 
-      {/* Program Selection Section */}
+      {/* Programme Selection Section */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <GraduationCap className="h-5 w-5" />
-            Selected Program
+            Selected Programme
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
@@ -238,9 +238,9 @@ export default function ReviewSubmitStep({
           ) : programDetails ? (
             <>
               <div>
-                <p className="font-medium text-muted-foreground">Program</p>
+                <p className="font-medium text-muted-foreground">Programme</p>
                 <p className="text-base font-semibold">
-                  {programDetails.name ?? 'Program unavailable'}
+                  {programDetails.name ?? 'Programme unavailable'}
                 </p>
                 <p className="text-muted-foreground">
                   {(programDetails.level ?? '—')} • {(programDetails.discipline ?? '—')}
@@ -261,7 +261,7 @@ export default function ReviewSubmitStep({
               </div>
             </>
           ) : (
-            <p className="text-muted-foreground">Program details not available</p>
+            <p className="text-muted-foreground">Programme details not available</p>
           )}
         </CardContent>
       </Card>

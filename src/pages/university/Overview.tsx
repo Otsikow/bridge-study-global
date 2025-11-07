@@ -112,7 +112,7 @@ const OverviewPage = () => {
                     </Badge>
                   )}
                   <Badge variant="outline" className="border-blue-500/40 text-blue-200">
-                    {programs.length} Programs
+                    {programs.length} Programmes
                   </Badge>
                   <Badge variant="outline" className="border-emerald-500/40 text-emerald-200">
                     {agents.length} Partner Agents
@@ -317,7 +317,7 @@ const OverviewPage = () => {
                     <tr>
                       <th className="py-2">Application</th>
                       <th className="py-2">Student</th>
-                      <th className="py-2">Program</th>
+                      <th className="py-2">Programme</th>
                       <th className="py-2">Status</th>
                       <th className="py-2 text-right">Submitted</th>
                     </tr>

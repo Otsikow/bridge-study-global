@@ -88,7 +88,7 @@ const adminUtilities = [
 /* -------------------------------------------------------------------------- */
 const navigationTools = [
   {
-    title: "Broadcast Center",
+    title: "Broadcast Centre",
     description:
       "Send urgent or scheduled announcements to every audience in a single workflow.",
     to: "/admin/tools/broadcast-center",
@@ -131,7 +131,7 @@ const AdminTools = () => {
             variant="outline"
             className="gap-1 text-xs uppercase tracking-wide"
           >
-            <Wrench className="h-3.5 w-3.5" /> Tools Command Center
+            <Wrench className="h-3.5 w-3.5" /> Tools Command Centre
           </Badge>
           <h1 className="text-3xl font-bold tracking-tight">
             Operations Toolkit

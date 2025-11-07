@@ -518,7 +518,7 @@ const AdminAdmissionsOversight = () => {
           <TableCell className="min-w-[140px]">
             <div className="space-y-1">
               <p className="font-medium">{application.program?.university?.name ?? "—"}</p>
-              <p className="text-xs text-muted-foreground">{application.program?.name ?? "Program TBD"}</p>
+              <p className="text-xs text-muted-foreground">{application.program?.name ?? "Programme TBD"}</p>
             </div>
           </TableCell>
           <TableCell className="w-[160px]">
@@ -895,7 +895,7 @@ const AdminAdmissionsOversight = () => {
                   "Unknown student"}
               </p>
               <p className="text-xs text-muted-foreground">
-                {selectedApplication?.program?.university?.name ?? "—"} · {selectedApplication?.program?.name ?? "Program"}
+                {selectedApplication?.program?.university?.name ?? "—"} · {selectedApplication?.program?.name ?? "Programme"}
               </p>
             </div>
             <div className="space-y-2">

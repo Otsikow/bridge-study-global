@@ -346,7 +346,7 @@ export default function Applications() {
               <Button asChild>
                 <Link to="/search">
                   <Plus className="mr-2 h-4 w-4" />
-                  Browse Programs
+                  Browse Programmes
                 </Link>
               </Button>
             </div>

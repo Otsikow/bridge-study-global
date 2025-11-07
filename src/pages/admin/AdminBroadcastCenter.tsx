@@ -13,7 +13,7 @@ const AdminBroadcastCenter = () => {
     <div className="space-y-8">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Broadcast Center</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Broadcast Centre</h1>
           <p className="text-sm text-muted-foreground">
             Deliver coordinated announcements to agents, universities, and students from a single command hub.
           </p>
