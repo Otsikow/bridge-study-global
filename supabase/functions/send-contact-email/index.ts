@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,12 +49,27 @@ function requireAuthenticatedUser(req: Request): Response | null {
   return null;
 }
 
-interface ContactEmailRequest {
-  name: string;
-  email: string;
-  message: string;
-  whatsapp?: string;
-}
+const contactEmailSchema = z.object({
+  name: z
+    .string({ required_error: "Name is required" })
+    .min(1, "Name is required")
+    .max(100, "Name must be at most 100 characters"),
+  email: z
+    .string({ required_error: "Email is required" })
+    .min(1, "Email is required")
+    .max(255, "Email must be at most 255 characters")
+    .email("Email must be a valid email address"),
+  message: z
+    .string({ required_error: "Message is required" })
+    .min(1, "Message is required")
+    .max(2000, "Message must be at most 2000 characters"),
+  whatsapp: z
+    .string()
+    .max(30, "WhatsApp number must be at most 30 characters")
+    .optional(),
+});
+
+type ContactEmailRequest = z.infer<typeof contactEmailSchema>;
 
 const sendEmail = async (to: string[], subject: string, html: string) => {
   const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -96,25 +112,28 @@ const handler = async (req: Request): Promise<Response> => {
   if (authError) return authError;
 
   try {
-    const { name, email, message, whatsapp }: ContactEmailRequest = await req.json();
-    if (
-      typeof name !== 'string' ||
-      typeof email !== 'string' ||
-      typeof message !== 'string' ||
-      (whatsapp !== undefined && typeof whatsapp !== 'string') ||
-      name.length === 0 ||
-      email.length === 0 ||
-      message.length === 0 ||
-      name.length > 100 ||
-      email.length > 255 ||
-      message.length > 2000 ||
-      (whatsapp !== undefined && whatsapp.length > 30)
-    ) {
-      return new Response(JSON.stringify({ error: 'Invalid request body' }), {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON payload" }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const parsedBody = contactEmailSchema.safeParse(body);
+    if (!parsedBody.success) {
+      const errorMessage = parsedBody.error.errors
+        .map((issue) => issue.message)
+        .join("; ");
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { name, email, message, whatsapp }: ContactEmailRequest = parsedBody.data;
 
     console.log("Sending contact email from:", email, "name:", name);
 
