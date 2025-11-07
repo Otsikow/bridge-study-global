@@ -19,7 +19,9 @@ import Messages from "./pages/student/Messages";
 import ZoeChatbot from "@/components/ai/AIChatbot";
 import { useTranslation } from "react-i18next";
 
-// ✅ Lazy loading wrapper with chunk error recovery
+/* -------------------------------------------------------------------------- */
+/* ✅ Chunk Error Handling & Recovery Logic                                   */
+/* -------------------------------------------------------------------------- */
 const CHUNK_ERROR_PATTERNS = [
   "Failed to fetch dynamically imported module",
   "ChunkLoadError",
@@ -31,8 +33,7 @@ const CHUNK_RELOAD_SESSION_KEY = "__app_chunk_reload_ts";
 
 const isChunkLoadError = (error: unknown): error is Error => {
   if (!(error instanceof Error)) return false;
-  const message = error.message ?? "";
-  return CHUNK_ERROR_PATTERNS.some((pattern) => message.includes(pattern));
+  return CHUNK_ERROR_PATTERNS.some((pattern) => error.message.includes(pattern));
 };
 
 const triggerHardReload = async () => {
@@ -96,7 +97,6 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
       const chunkError = isChunkLoadError(error);
       console.error("Error loading component:", error);
       if (chunkError) void triggerHardReload();
-
       return {
         default: (() => (
           <LazyLoadErrorFallback error={error} chunkError={chunkError} />
@@ -105,7 +105,9 @@ const lazyWithErrorHandling = <T extends ComponentType<any>>(
     }
   });
 
-// ✅ React Query setup
+/* -------------------------------------------------------------------------- */
+/* ✅ React Query Client Setup                                                */
+/* -------------------------------------------------------------------------- */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -124,7 +126,10 @@ const queryClient = new QueryClient({
   },
 });
 
-// ✅ Lazy-loaded pages
+/* -------------------------------------------------------------------------- */
+/* ✅ Lazy Imports for All Pages                                              */
+/* -------------------------------------------------------------------------- */
+// Public pages
 const Index = lazyWithErrorHandling(() => import("./pages/Index"));
 const Contact = lazyWithErrorHandling(() => import("./pages/Contact"));
 const FAQ = lazyWithErrorHandling(() => import("./pages/FAQ"));
@@ -142,72 +147,74 @@ const CourseDiscovery = lazyWithErrorHandling(() => import("./pages/CourseDiscov
 const UniversityPartnership = lazyWithErrorHandling(() => import("./pages/UniversityPartnership"));
 const UniversityDirectory = lazyWithErrorHandling(() => import("./pages/UniversityDirectory"));
 const UniversityProfile = lazyWithErrorHandling(() => import("./pages/UniversityProfile"));
-const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
-const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
-const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
-const Applications = lazyWithErrorHandling(() => import("./pages/student/Applications"));
-const ApplicationTracking = lazyWithErrorHandling(
-  () => import("./pages/student/ApplicationTracking")
-);
-const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
-const ApplicationDetails = lazyWithErrorHandling(
-  () => import("./pages/student/ApplicationDetails")
-);
-const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
-const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
 const IntakeForm = lazyWithErrorHandling(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazyWithErrorHandling(() => import("./pages/VisaCalculator"));
 const Blog = lazyWithErrorHandling(() => import("./pages/Blog"));
 const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
-const UserFeedback = lazyWithErrorHandling(() => import("./components/analytics/UserFeedback"));
-const FeedbackAnalytics = lazyWithErrorHandling(() => import("./pages/admin/FeedbackAnalytics"));
-const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
-const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
-  () => import("./pages/admin/FeaturedUniversitiesAdmin")
-);
-const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
-const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
-const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
-const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
-const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
-const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
-
-// ✅ University routes
-const UniversityDashboardShell = lazyWithErrorHandling(
-  () => import("./pages/university/UniversityDashboard")
-);
-const UniversityOverview = lazyWithErrorHandling(() => import("./pages/university/Overview"));
-const UniversityApplications = lazyWithErrorHandling(
-  () => import("./pages/university/Applications")
-);
-const UniversityDocuments = lazyWithErrorHandling(() => import("./pages/university/Documents"));
-const UniversityOffersCAS = lazyWithErrorHandling(() => import("./pages/university/OffersCAS"));
-const UniversityAnalytics = lazyWithErrorHandling(() => import("./pages/university/Analytics"));
-const UniversityPrograms = lazyWithErrorHandling(() => import("./pages/university/Programs"));
-const UniversityMessages = lazyWithErrorHandling(() => import("./pages/university/Messages"));
-
-// ✅ Other dashboards
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
-const DashboardApplications = lazyWithErrorHandling(
-  () => import("./pages/dashboard/ApplicationsRouter")
-);
+
+// Student pages
+const StudentOnboarding = lazyWithErrorHandling(() => import("./pages/student/StudentOnboarding"));
+const StudentProfile = lazyWithErrorHandling(() => import("./pages/student/StudentProfile"));
+const Documents = lazyWithErrorHandling(() => import("./pages/student/Documents"));
+const Applications = lazyWithErrorHandling(() => import("./pages/student/Applications"));
+const ApplicationTracking = lazyWithErrorHandling(() => import("./pages/student/ApplicationTracking"));
+const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
+const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/ApplicationDetails"));
+const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
+const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
+const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+
+// Admin pages
+const AdminLayout = lazyWithErrorHandling(() => import("./components/layout/AdminLayout"));
+const AdminOverview = lazyWithErrorHandling(() => import("./pages/admin/AdminOverview"));
+const AdminUsers = lazyWithErrorHandling(() => import("./pages/admin/AdminUsers"));
+const AdminAdmissions = lazyWithErrorHandling(() => import("./pages/admin/AdminAdmissions"));
+const AdminPaymentsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPayments"));
+const AdminPartnersPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPartners"));
+const AdminResourcesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminResources"));
+const AdminInsightsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminInsights"));
+const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
+const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
+const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
+const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
+const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
+
+// Staff & Agent
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
 const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
 const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
 const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
-const MyLeads = lazyWithErrorHandling(() => import("./pages/dashboard/my-leads"));
-const MyRanking = lazyWithErrorHandling(() => import("./pages/dashboard/my-ranking"));
-const AgentStudentsPage = lazyWithErrorHandling(() => import("./pages/dashboard/my-students"));
-const ImportPage = lazyWithErrorHandling(() => import("./pages/dashboard/import"));
-const AgentResources = lazyWithErrorHandling(() => import("./pages/dashboard/resources"));
-const PartnerDocumentRequests = lazyWithErrorHandling(
-  () => import("./pages/dashboard/DocumentRequests")
-);
+const AgentLeads = lazyWithErrorHandling(() => import("./pages/agent/MyLeads"));
+const AgentRanking = lazyWithErrorHandling(() => import("./pages/agent/Ranking"));
+const AgentImport = lazyWithErrorHandling(() => import("./pages/agent/Import"));
+const AgentResources = lazyWithErrorHandling(() => import("./pages/agent/Resources"));
+const AgentPayments = lazyWithErrorHandling(() => import("./pages/agent/Payments"));
+const AgentCommissions = lazyWithErrorHandling(() => import("./pages/agent/Commissions"));
+const AgentSettings = lazyWithErrorHandling(() => import("./pages/agent/Settings"));
+const PartnerDocumentRequests = lazyWithErrorHandling(() => import("./pages/dashboard/DocumentRequests"));
 const OffersManagement = lazyWithErrorHandling(() => import("./pages/dashboard/OffersManagement"));
+const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
+
+// University routes
+const UniversityDashboardShell = lazyWithErrorHandling(
+  () => import("./pages/university/UniversityDashboard")
+);
+const UniversityOverview = lazyWithErrorHandling(() => import("./pages/university/Overview"));
+const UniversityApplications = lazyWithErrorHandling(() => import("./pages/university/Applications"));
+const UniversityDocuments = lazyWithErrorHandling(() => import("./pages/university/Documents"));
+const UniversityMessages = lazyWithErrorHandling(() => import("./pages/university/Messages"));
+const UniversityOffersCAS = lazyWithErrorHandling(() => import("./pages/university/OffersCAS"));
+const UniversityAnalytics = lazyWithErrorHandling(() => import("./pages/university/Analytics"));
+const UniversityPrograms = lazyWithErrorHandling(() => import("./pages/university/Programs"));
+
+// Partner routes
 const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
 const PartnerOffersCAS = lazyWithErrorHandling(() => import("./pages/partner/OffersCAS"));
 
-// ✅ Main App
+/* -------------------------------------------------------------------------- */
+/* ✅ Main App Component                                                      */
+/* -------------------------------------------------------------------------- */
 const App = () => {
   const { t } = useTranslation();
 
@@ -230,49 +237,41 @@ const App = () => {
                   <div className="min-h-screen flex flex-col">
                     <div className="flex-1">
                       <Routes>
-                        {/* ✅ Public Routes */}
+                        {/* Public Routes */}
                         <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
                         <Route path="/auth/login" element={<PublicLayout><Login /></PublicLayout>} />
                         <Route path="/auth/signup" element={<PublicLayout><Signup /></PublicLayout>} />
                         <Route path="/verify-email" element={<PublicLayout><VerifyEmail /></PublicLayout>} />
                         <Route path="/auth/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
                         <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
-                        <Route path="/search" element={<ProtectedRoute allowedRoles={["student"]}><PublicLayout><UniversitySearch /></PublicLayout></ProtectedRoute>} />
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
-                        <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
                         <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
-                        {/* ✅ Protected Routes */}
+                        <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
+
+                        {/* Protected Routes */}
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                        <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","admin","agent","partner"]}><DashboardApplications /></ProtectedRoute>} />
-                        <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
                         <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
+                        <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
+                        <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentLeads /></ProtectedRoute>} />
+                        <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffTasks /></ProtectedRoute>} />
+                        <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffStudents /></ProtectedRoute>} />
+                        <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
+                        <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
+                        <Route path="/dashboard/ranking" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentRanking /></ProtectedRoute>} />
+                        <Route path="/dashboard/payments" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentPayments /></ProtectedRoute>} />
+                        <Route path="/dashboard/commissions" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentCommissions /></ProtectedRoute>} />
+                        <Route path="/dashboard/import" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentImport /></ProtectedRoute>} />
+                        <Route path="/dashboard/resources" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentResources /></ProtectedRoute>} />
+                        <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentSettings /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-                        <Route
-                          path="/settings"
-                          element={
-                            <ProtectedRoute>
-                              <Navigate to="/profile/settings" replace />
-                            </ProtectedRoute>
-                          }
-                        />
+                        <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
+
+                        {/* Partner Routes */}
                         <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
                         <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
-                        <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
-                        <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
-                        <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["staff","admin","agent"]}><StaffTasks /></ProtectedRoute>} />
-                        <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffStudents /></ProtectedRoute>} />
-                        <Route
-                          path="/dashboard/users"
-                          element={
-                            <ProtectedRoute allowedRoles={["admin"]}>
-                              <UserManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
 
-                        {/* ✅ University Dashboard Nested Routes */}
+                        {/* University Dashboard */}
                         <Route path="/university" element={<ProtectedRoute allowedRoles={["partner","admin"]}><UniversityDashboardShell /></ProtectedRoute>}>
                           <Route index element={<UniversityOverview />} />
                           <Route path="applications" element={<UniversityApplications />} />
@@ -283,7 +282,24 @@ const App = () => {
                           <Route path="programs" element={<UniversityPrograms />} />
                         </Route>
 
-                        {/* ✅ 404 Fallback */}
+                        {/* Admin Dashboard */}
+                        <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
+                          <Route index element={<Navigate to="/admin/overview" replace />} />
+                          <Route path="overview" element={<AdminOverview />} />
+                          <Route path="users" element={<AdminUsers />} />
+                          <Route path="admissions" element={<AdminAdmissions />} />
+                          <Route path="payments" element={<AdminPaymentsPage />} />
+                          <Route path="partners" element={<AdminPartnersPage />} />
+                          <Route path="resources" element={<AdminResourcesPage />} />
+                          <Route path="insights" element={<AdminInsightsPage />} />
+                          <Route path="settings" element={<AdminSettingsPage />} />
+                          <Route path="notifications" element={<AdminNotificationsPage />} />
+                          <Route path="logs" element={<AdminLogsPage />} />
+                          <Route path="analytics" element={<Analytics />} />
+                          <Route path="user-management" element={<UserManagement />} />
+                        </Route>
+
+                        {/* 404 Fallback */}
                         <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
                       </Routes>
                     </div>

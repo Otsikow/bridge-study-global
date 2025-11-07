@@ -41,6 +41,8 @@ const AppNavbar = () => {
       .slice(0, 2);
   };
 
+  const dashboardPath = profile?.role === "partner" ? "/university" : "/dashboard";
+
   return (
     <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -103,7 +105,7 @@ const AppNavbar = () => {
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           <Button asChild variant="outline" size="sm" onClick={() => setMobileOpen(false)}>
-                            <Link to="/dashboard">{t("common.navigation.dashboard")}</Link>
+                            <Link to={dashboardPath}>{t("common.navigation.dashboard")}</Link>
                           </Button>
                           <Button asChild size="sm" onClick={() => setMobileOpen(false)}>
                             <Link to="/profile/settings">{t("common.navigation.settings")}</Link>
@@ -187,7 +189,7 @@ const AppNavbar = () => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer">
+                    <Link to={dashboardPath} className="cursor-pointer">
                       <Home className="mr-2 h-4 w-4" />
                       {t("common.navigation.dashboard")}
                     </Link>
