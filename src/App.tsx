@@ -170,8 +170,26 @@ const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 const ProfileSettings = lazyWithErrorHandling(() => import("./pages/ProfileSettings"));
-const UniversityDashboard = lazyWithErrorHandling(
-  () => import("./pages/dashboards/UniversityDashboard")
+const UniversityDashboardShell = lazyWithErrorHandling(
+  () => import("./pages/university/UniversityDashboard")
+);
+const UniversityOverview = lazyWithErrorHandling(
+  () => import("./pages/university/Overview")
+);
+const UniversityApplications = lazyWithErrorHandling(
+  () => import("./pages/university/Applications")
+);
+const UniversityDocuments = lazyWithErrorHandling(
+  () => import("./pages/university/Documents")
+);
+const UniversityOffersCas = lazyWithErrorHandling(
+  () => import("./pages/university/OffersCas")
+);
+const UniversityAnalytics = lazyWithErrorHandling(
+  () => import("./pages/university/Analytics")
+);
+const UniversityPrograms = lazyWithErrorHandling(
+  () => import("./pages/university/Programs")
 );
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 const DashboardApplications = lazyWithErrorHandling(
@@ -310,71 +328,86 @@ const App = () => {
                           }
                         />
 
-                        {/* ✅ Protected Routes */}
-                        <Route
-                          path="/dashboard"
-                          element={
-                            <ProtectedRoute>
-                              <Dashboard />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/applications"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
-                              <DashboardApplications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/requests"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
-                              <PartnerDocumentRequests />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/offers"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
-                              <OffersManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/partner/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner"]}>
-                              <PartnerMessages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/partner/offers-cas"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner", "admin"]}>
-                              <PartnerOffersCAS />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Messages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["agent", "staff", "admin"]}>
-                              <StaffMessages />
-                            </ProtectedRoute>
-                          }
-                        />
+                          {/* ✅ Protected Routes */}
+                          <Route
+                            path="/dashboard"
+                            element={
+                              <ProtectedRoute>
+                                <Dashboard />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/applications"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
+                                <DashboardApplications />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/requests"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
+                                <PartnerDocumentRequests />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/offers"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
+                                <OffersManagement />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/partner/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner"]}>
+                                <PartnerMessages />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/partner/offers-cas"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                                <PartnerOffersCAS />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/student/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={["student"]}>
+                                <Messages />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={["agent", "staff", "admin"]}>
+                                <StaffMessages />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/university"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                                <UniversityDashboardShell />
+                              </ProtectedRoute>
+                            }
+                          >
+                            <Route index element={<UniversityOverview />} />
+                            <Route path="applications" element={<UniversityApplications />} />
+                            <Route path="documents" element={<UniversityDocuments />} />
+                            <Route path="offers-cas" element={<UniversityOffersCas />} />
+                            <Route path="analytics" element={<UniversityAnalytics />} />
+                            <Route path="programs" element={<UniversityPrograms />} />
+                          </Route>
 
                         {/* ✅ 404 Fallback */}
                         <Route
