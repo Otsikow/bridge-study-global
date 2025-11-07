@@ -50,7 +50,7 @@ export function ChatArea({
   const getConversationName = () => {
     if (!conversation) return '';
     if (conversation.is_group) {
-      return conversation.name || 'Group Chat';
+      return conversation.name || 'Group Message';
     }
     const otherParticipant = conversation.participants?.find(p => p.user_id !== user?.id);
     return otherParticipant?.profile?.full_name || 'Unknown User';
@@ -176,7 +176,7 @@ export function ChatArea({
     return (
       <div className="flex-1 flex items-center justify-center bg-muted/20">
         <div className="text-center text-muted-foreground">
-          <p className="text-lg">Select a conversation to start messaging</p>
+          <p className="text-lg">Select a message thread to start messaging</p>
         </div>
       </div>
     );
@@ -194,12 +194,12 @@ export function ChatArea({
           <Button
             variant="ghost"
             size="icon"
-            onClick={onBack}
-            className="md:hidden"
-            aria-label="Go back to conversations"
+              onClick={onBack}
+              className="md:hidden"
+              aria-label="Go back to messages"
           >
             <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Back to conversations</span>
+              <span className="sr-only">Back to messages</span>
           </Button>
         )}
         <Avatar className="h-10 w-10">

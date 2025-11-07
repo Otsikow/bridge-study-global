@@ -40,11 +40,11 @@ export function ChatList({
 
   const getConversationName = (conversation: Conversation) => {
     if (conversation.is_group) {
-      return conversation.name || 'Group Chat';
+    return conversation.name || 'Group Message';
     }
     
     const otherParticipant = conversation.participants?.find(p => p.user_id !== user?.id);
-    return otherParticipant?.profile?.full_name || 'Unknown User';
+      return otherParticipant?.profile?.full_name || 'Unknown User';
   };
 
   const getConversationAvatar = (conversation: Conversation) => {
@@ -82,7 +82,7 @@ export function ChatList({
     return text.slice(0, maxLength) + '...';
   };
 
-  const getConversationPreview = (conversation: Conversation) => {
+    const getConversationPreview = (conversation: Conversation) => {
     const lastMessage = conversation.lastMessage;
     if (!lastMessage) {
       return 'No messages yet';
@@ -116,13 +116,13 @@ export function ChatList({
       {/* Header */}
       <div className="p-3 sm:p-4 border-b flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg sm:text-xl font-semibold">Conversations</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">Messages</h2>
           {onNewChat && (
             <Button
               variant="ghost"
               size="icon"
-              onClick={onNewChat}
-              title="New Chat"
+                onClick={onNewChat}
+                title="New Message"
               className="h-8 w-8 sm:h-9 sm:w-9"
             >
               <MessageSquarePlus className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -133,8 +133,8 @@ export function ChatList({
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
+            <Input
+              placeholder="Search messages..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-9"
@@ -142,19 +142,19 @@ export function ChatList({
         </div>
       </div>
 
-      {/* Conversations List */}
+        {/* Messages List */}
       <ScrollArea className="flex-1">
         <div className="divide-y">
           {filteredConversations.length === 0 ? (
-            <div className="p-6 sm:p-8 text-center text-muted-foreground">
-              <p className="text-sm">No conversations yet</p>
+              <div className="p-6 sm:p-8 text-center text-muted-foreground">
+                <p className="text-sm">No messages yet</p>
               {onNewChat && (
                 <Button
                   variant="link"
                   onClick={onNewChat}
                   className="mt-2 text-sm"
                 >
-                  Start a new chat
+                    Start a new message
                 </Button>
               )}
             </div>
