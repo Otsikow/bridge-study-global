@@ -173,7 +173,12 @@ const AdminAdmissions = lazyWithErrorHandling(() => import("./pages/admin/AdminA
 const AdminPaymentsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPayments"));
 const AdminPartnersPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPartners"));
 const AdminResourcesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminResources"));
+const AdminToolsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminTools"));
+const AdminBroadcastCenterPage = lazyWithErrorHandling(() => import("./pages/admin/AdminBroadcastCenter"));
+const AdminChatConsolePage = lazyWithErrorHandling(() => import("./pages/admin/AdminChatConsole"));
+const AdminPerformanceReportsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPerformanceReports"));
 const AdminInsightsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminInsights"));
+const ZoeIntelligencePage = lazyWithErrorHandling(() => import("./pages/admin/ZoeIntelligence"));
 const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
 const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
 const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
@@ -292,7 +297,12 @@ const App = () => {
                           <Route path="payments" element={<AdminPaymentsPage />} />
                           <Route path="partners" element={<AdminPartnersPage />} />
                           <Route path="resources" element={<AdminResourcesPage />} />
+                          <Route path="tools" element={<AdminToolsPage />} />
+                          <Route path="tools/broadcast-center" element={<AdminBroadcastCenterPage />} />
+                          <Route path="tools/chat-console" element={<AdminChatConsolePage />} />
+                          <Route path="tools/performance-reports" element={<AdminPerformanceReportsPage />} />
                           <Route path="insights" element={<AdminInsightsPage />} />
+                          <Route path="intelligence" element={<ZoeIntelligencePage />} />
                           <Route path="settings" element={<AdminSettingsPage />} />
                           <Route path="notifications" element={<AdminNotificationsPage />} />
                           <Route path="logs" element={<AdminLogsPage />} />
