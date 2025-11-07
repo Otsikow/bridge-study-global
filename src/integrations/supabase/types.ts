@@ -330,6 +330,76 @@ export type Database = {
             ]
           }
 
+          document_requests: {
+            Row: {
+              id: string
+              tenant_id: string
+              student_id: string | null
+              request_type: string | null
+              status: string | null
+              created_at: string | null
+              requested_at: string | null
+              updated_at: string | null
+              document_url: string | null
+              uploaded_file_url: string | null
+              file_url: string | null
+              file_path: string | null
+              storage_path: string | null
+              notes: string | null
+              metadata: Json | null
+            }
+            Insert: {
+              id?: string
+              tenant_id: string
+              student_id?: string | null
+              request_type?: string | null
+              status?: string | null
+              created_at?: string | null
+              requested_at?: string | null
+              updated_at?: string | null
+              document_url?: string | null
+              uploaded_file_url?: string | null
+              file_url?: string | null
+              file_path?: string | null
+              storage_path?: string | null
+              notes?: string | null
+              metadata?: Json | null
+            }
+            Update: {
+              id?: string
+              tenant_id?: string
+              student_id?: string | null
+              request_type?: string | null
+              status?: string | null
+              created_at?: string | null
+              requested_at?: string | null
+              updated_at?: string | null
+              document_url?: string | null
+              uploaded_file_url?: string | null
+              file_url?: string | null
+              file_path?: string | null
+              storage_path?: string | null
+              notes?: string | null
+              metadata?: Json | null
+            }
+            Relationships: [
+              {
+                foreignKeyName: "document_requests_student_id_fkey"
+                columns: ["student_id"]
+                isOneToOne: false
+                referencedRelation: "students"
+                referencedColumns: ["id"]
+              },
+              {
+                foreignKeyName: "document_requests_tenant_id_fkey"
+                columns: ["tenant_id"]
+                isOneToOne: false
+                referencedRelation: "tenants"
+                referencedColumns: ["id"]
+              }
+            ]
+          }
+
         /* --- (Remaining tables are unchanged from the generated schema) --- */
 
       typing_indicators: {
