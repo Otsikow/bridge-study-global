@@ -6,6 +6,15 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const parts = token.split('.');
@@ -109,17 +118,22 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending contact email from:", email, "name:", name);
 
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeWhatsapp = whatsapp ? escapeHtml(whatsapp) : "Not provided";
+    const safeMessage = escapeHtml(message).replace(/\n/g, "<br>");
+
     // Send notification to admin
     const adminEmailResponse = await sendEmail(
       ["info@globaleducationgateway.com"],
       `New Contact Form Submission from ${name}`,
       `
         <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>WhatsApp:</strong> ${whatsapp ? whatsapp : 'Not provided'}</p>
+        <p><strong>Name:</strong> ${safeName}</p>
+        <p><strong>Email:</strong> ${safeEmail}</p>
+        <p><strong>WhatsApp:</strong> ${safeWhatsapp}</p>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage}</p>
       `
     );
 
@@ -128,11 +142,11 @@ const handler = async (req: Request): Promise<Response> => {
       [email],
       "Thank you for contacting Global Education Gateway",
       `
-        <h1>Thank you for reaching out, ${name}!</h1>
+        <h1>Thank you for reaching out, ${safeName}!</h1>
         <p>We have received your message and will get back to you as soon as possible.</p>
-        <p><strong>Your WhatsApp:</strong> ${whatsapp ? whatsapp : 'Not provided'}</p>
+        <p><strong>Your WhatsApp:</strong> ${safeWhatsapp}</p>
         <p><strong>Your message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
+        <p>${safeMessage}</p>
         <br>
         <p>Best regards,<br>Global Education Gateway Team</p>
       `
