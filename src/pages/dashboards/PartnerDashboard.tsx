@@ -67,6 +67,7 @@ import gegLogo from "@/assets/geg-logo.png";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import PartnerOverviewPage from "@/pages/partner/dashboard/Overview";
 
 // --- Sidebar Views ---
 const partnerDashboardViews = [
@@ -150,20 +151,7 @@ export default function PartnerDashboard() {
 
 // --- Dashboard Sections (Views) ---
 function OverviewView() {
-  return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-semibold text-slate-100">Dashboard Overview</h2>
-      <p className="text-sm text-slate-400">
-        Monitor applications, documents, and conversion rates in real time.
-      </p>
-      <Card className="border border-slate-800 bg-slate-900/70 p-4">
-        <CardTitle className="text-slate-100">Active Overview</CardTitle>
-        <CardContent className="text-slate-400">
-          Coming soon: Real data from Supabase and analytics.
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <PartnerOverviewPage />;
 }
 
 function ApplicationsView() {
