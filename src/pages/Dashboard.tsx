@@ -3,18 +3,39 @@ import { useUserRoles, AppRole } from '@/hooks/useUserRoles';
 import { LoadingState } from '@/components/LoadingState';
 import StudentDashboard from '@/pages/dashboards/StudentDashboard';
 import AgentDashboard from '@/pages/dashboards/AgentDashboard';
-import PartnerDashboard from '@/pages/dashboards/PartnerDashboard';
 import StaffDashboard from '@/pages/dashboards/StaffDashboard';
 import { EmptyState } from '@/components/EmptyState';
 import { LogIn, HelpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 const ROLE_PRIORITY: AppRole[] = ['admin', 'staff', 'partner', 'agent', 'student'];
+
+const getUniversityRouteForPartnerView = (viewParam: string | null) => {
+  switch (viewParam) {
+    case 'applications':
+      return '/university/applications';
+    case 'documents':
+      return '/university/documents';
+    case 'offers':
+      return '/university/offers-cas';
+    case 'messages':
+      return '/university/messages';
+    case 'analytics':
+      return '/university/analytics';
+    case 'programs':
+      return '/university/programs';
+    case 'overview':
+    case null:
+    default:
+      return '/university';
+  }
+};
 
 const Dashboard = () => {
   const { user, profile, loading: authLoading } = useAuth();
   const { roles, loading: rolesLoading, error: rolesError } = useUserRoles();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const loading = authLoading || rolesLoading;
 
@@ -68,7 +89,11 @@ const Dashboard = () => {
 
   if (resolvedRole === 'student') return <StudentDashboard />;
   if (resolvedRole === 'agent') return <AgentDashboard />;
-  if (resolvedRole === 'partner') return <PartnerDashboard />;
+  if (resolvedRole === 'partner') {
+    const params = new URLSearchParams(location.search);
+    const target = getUniversityRouteForPartnerView(params.get('view'));
+    return <Navigate to={target} replace />;
+  }
   if (resolvedRole === 'staff' || resolvedRole === 'admin') return <StaffDashboard />;
 
   const fallbackDescription = roles.length === 0
