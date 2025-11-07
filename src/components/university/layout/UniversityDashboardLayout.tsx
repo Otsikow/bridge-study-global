@@ -39,6 +39,13 @@ export interface UniversityProgram {
   duration_months: number | null;
   tuition_amount: number | null;
   tuition_currency: string | null;
+  intake_months: number[] | null;
+  entry_requirements: string[] | null;
+  ielts_overall: number | null;
+  toefl_overall: number | null;
+  seats_available: number | null;
+  description: string | null;
+  app_fee: number | null;
   active: boolean | null;
 }
 
@@ -251,7 +258,23 @@ const fetchUniversityDashboardData = async (
     supabase
       .from("programs")
       .select(
-        "id, name, level, discipline, duration_months, tuition_amount, tuition_currency, active",
+        [
+          "id",
+          "name",
+          "level",
+          "discipline",
+          "duration_months",
+          "tuition_amount",
+          "tuition_currency",
+          "intake_months",
+          "entry_requirements",
+          "ielts_overall",
+          "toefl_overall",
+          "seats_available",
+          "description",
+          "app_fee",
+          "active",
+        ].join(", "),
       )
       .eq("university_id", uniData.id)
       .order("name"),
