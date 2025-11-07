@@ -3,6 +3,7 @@ import type { PostgrestError, RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from './use-toast';
+import { toast as sonnerToast } from '@/components/ui/sonner';
 
 export interface Conversation {
   id: string;
@@ -422,14 +423,89 @@ export function useMessages() {
   const messagesChannelRef = useRef<RealtimeChannel | null>(null);
   const typingChannelRef = useRef<RealtimeChannel | null>(null);
   const messageReceiptsChannelRef = useRef<RealtimeChannel | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const currentConversationRef = useRef<string | null>(null);
   const initialConversationIdRef = useRef<string | null>(
     typeof window !== 'undefined' ? localStorage.getItem('messages:lastConversation') : null
   );
   const conversationsRef = useRef<Conversation[]>([]);
 
-    const conversationIdsKey = useMemo(() => {
-      return conversations.map(conv => conv.id).sort().join(',');
-    }, [conversations]);
+  const conversationIdsKey = useMemo(() => {
+    return conversations.map(conv => conv.id).sort().join(',');
+  }, [conversations]);
+
+  const playNotificationSound = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+
+    try {
+      let ctx = audioContextRef.current;
+      if (!ctx) {
+        ctx = new AudioCtx();
+        audioContextRef.current = ctx;
+      }
+
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      const oscillator = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.setValueAtTime(760, ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.09, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+
+      oscillator.connect(gain);
+      gain.connect(ctx.destination);
+      oscillator.start();
+      oscillator.stop(ctx.currentTime + 0.32);
+    } catch (error) {
+      console.warn('Unable to play notification sound', error);
+    }
+  }, []);
+
+  const showNewMessageToast = useCallback(
+    (conversationId: string, message: Message) => {
+      const conversation = conversationsRef.current.find((conv) => conv.id === conversationId);
+      const otherParticipant = conversation?.participants?.find(
+        (participant) => participant.user_id !== user?.id
+      );
+      const title =
+        conversation?.name ||
+        conversation?.title ||
+        otherParticipant?.profile?.full_name ||
+        'New message';
+
+      const hasAttachments = message.attachments.length > 0;
+      let description = message.content?.trim();
+
+      if (!description && hasAttachments) {
+        description =
+          message.attachments.length === 1
+            ? 'Sent an attachment'
+            : `Sent ${message.attachments.length} attachments`;
+      }
+
+      sonnerToast(title, {
+        description: description || 'You have a new message',
+        duration: 6000,
+        action: {
+          label: 'Open',
+          onClick: () => {
+            setCurrentConversation(conversationId);
+          },
+        },
+      });
+
+      void playNotificationSound();
+    },
+    [playNotificationSound, setCurrentConversation, user?.id]
+  );
 
     useEffect(() => {
       if (typeof window === 'undefined') {
@@ -1485,6 +1561,10 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
     conversationsRef.current = conversations;
   }, [conversations]);
 
+  useEffect(() => {
+    currentConversationRef.current = currentConversation;
+  }, [currentConversation]);
+
 
     useEffect(() => {
       if (!user?.id || conversations.length === 0) {
@@ -1767,6 +1847,15 @@ type RawReceipt = {
               markConversationAsRead(conversationId);
             }
           }
+
+          const shouldNotify =
+            !isOwnMessage &&
+            (currentConversationRef.current !== conversationId ||
+              (typeof document !== 'undefined' && document.visibilityState === 'hidden'));
+
+          if (shouldNotify) {
+            showNewMessageToast(conversationId, messageWithProfile);
+          }
         } else if (payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
           const payloadConversationId =
             (payload.new as Partial<RawMessage> | null)?.conversation_id ||
@@ -1787,7 +1876,16 @@ type RawReceipt = {
         messagesChannelRef.current = null;
       }
     };
-  }, [conversationIdsKey, currentConversation, fetchConversations, fetchMessages, markConversationAsRead, transformMessage, user?.id]);
+  }, [
+    conversationIdsKey,
+    currentConversation,
+    fetchConversations,
+    fetchMessages,
+    markConversationAsRead,
+    showNewMessageToast,
+    transformMessage,
+    user?.id,
+  ]);
 
   useEffect(() => {
     if (!currentConversation) {
@@ -1869,6 +1967,10 @@ type RawReceipt = {
       supabase.removeChannel(messageReceiptsChannelRef.current);
       messageReceiptsChannelRef.current = null;
     }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(() => undefined);
+        audioContextRef.current = null;
+      }
     };
   }, []);
 
