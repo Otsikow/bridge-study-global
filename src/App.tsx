@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -165,6 +165,17 @@ const BlogAdmin = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"))
 const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
   () => import("./pages/admin/FeaturedUniversitiesAdmin")
 );
+const AdminLayout = lazyWithErrorHandling(() => import("./components/layout/AdminLayout"));
+const AdminOverview = lazyWithErrorHandling(() => import("./pages/admin/AdminOverview"));
+const AdminUsers = lazyWithErrorHandling(() => import("./pages/admin/AdminUsers"));
+const AdminAdmissions = lazyWithErrorHandling(() => import("./pages/admin/AdminAdmissions"));
+const AdminPaymentsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPayments"));
+const AdminPartnersPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPartners"));
+const AdminResourcesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminResources"));
+const AdminInsightsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminInsights"));
+const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
+const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
+const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
 const AdminDashboard = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
@@ -265,6 +276,27 @@ const App = () => {
                           <Route path="offers-cas" element={<UniversityOffersCAS />} />
                           <Route path="analytics" element={<UniversityAnalytics />} />
                           <Route path="programs" element={<UniversityPrograms />} />
+                        </Route>
+
+                        <Route
+                          path="/admin"
+                          element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                              <AdminLayout />
+                            </ProtectedRoute>
+                          }
+                        >
+                          <Route index element={<Navigate to="/admin/overview" replace />} />
+                          <Route path="overview" element={<AdminOverview />} />
+                          <Route path="users" element={<AdminUsers />} />
+                          <Route path="admissions" element={<AdminAdmissions />} />
+                          <Route path="payments" element={<AdminPaymentsPage />} />
+                          <Route path="partners" element={<AdminPartnersPage />} />
+                          <Route path="resources" element={<AdminResourcesPage />} />
+                          <Route path="insights" element={<AdminInsightsPage />} />
+                          <Route path="settings" element={<AdminSettingsPage />} />
+                          <Route path="notifications" element={<AdminNotificationsPage />} />
+                          <Route path="logs" element={<AdminLogsPage />} />
                         </Route>
 
                         {/* ✅ 404 Fallback */}
