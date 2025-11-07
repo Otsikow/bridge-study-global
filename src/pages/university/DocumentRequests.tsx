@@ -160,16 +160,13 @@ const UniversityDocumentRequestsPage = () => {
       }
 
       try {
-        const { data: rows, error } = await (supabase
-          .from("document_requests" as any)
+        const { data: rows, error } = await supabase
+          .from<DocumentRequestRow>("document_requests")
           .select(
             "id, student_id, request_type, status, requested_at, created_at, document_url, uploaded_file_url, file_url, storage_path, file_path",
           )
           .eq("university_id", universityId)
-          .order("requested_at", { ascending: false })) as unknown as {
-          data: DocumentRequestRow[] | null;
-          error: Error | null;
-        };
+          .order("requested_at", { ascending: false });
 
         if (error) {
           throw error;
@@ -296,10 +293,10 @@ const UniversityDocumentRequestsPage = () => {
         updates.storage_path = storagePath;
       }
 
-      const { error: updateError } = await (supabase
-        .from("document_requests" as any)
+      const { error: updateError } = await supabase
+        .from('document_requests')
         .update(updates)
-        .eq("id", requestId));
+        .eq('id', requestId);
 
       if (updateError) {
         throw updateError;

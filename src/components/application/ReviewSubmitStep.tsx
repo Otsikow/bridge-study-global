@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 import {
   User,
   GraduationCap,
@@ -24,15 +25,26 @@ interface ReviewSubmitStepProps {
   onNotesChange: (notes: string) => void;
 }
 
-interface ProgramDetails {
-  name: string;
-  level: string;
-  discipline: string;
+type ProgramDetailsRow = Pick<
+  Tables<'programs'>,
+  'name' | 'level' | 'discipline'
+> & {
   university: {
-    name: string;
-    city: string;
-    country: string;
-  };
+    name: string | null;
+    city: string | null;
+    country: string | null;
+  } | null;
+};
+
+interface ProgramDetails {
+  name: string | null;
+  level: string | null;
+  discipline: string | null;
+  university: {
+    name: string | null;
+    city: string | null;
+    country: string | null;
+  } | null;
 }
 
 export default function ReviewSubmitStep({
@@ -55,7 +67,7 @@ export default function ReviewSubmitStep({
 
       try {
         const { data, error } = await supabase
-          .from('programs')
+          .from<ProgramDetailsRow>('programs')
           .select(
             `
             name,
@@ -72,7 +84,16 @@ export default function ReviewSubmitStep({
           .single();
 
         if (error) throw error;
-        setProgramDetails(data as any);
+        if (data) {
+          setProgramDetails({
+            name: data.name ?? null,
+            level: data.level ?? null,
+            discipline: data.discipline ?? null,
+            university: data.university ?? null,
+          });
+        } else {
+          setProgramDetails(null);
+        }
       } catch (error) {
         console.error('Error fetching program details:', error);
       } finally {
@@ -218,16 +239,17 @@ export default function ReviewSubmitStep({
             <>
               <div>
                 <p className="font-medium text-muted-foreground">Program</p>
-                <p className="text-base font-semibold">{programDetails.name}</p>
+                <p className="text-base font-semibold">
+                  {programDetails.name ?? 'Program unavailable'}
+                </p>
                 <p className="text-muted-foreground">
-                  {programDetails.level} • {programDetails.discipline}
+                  {(programDetails.level ?? '—')} • {(programDetails.discipline ?? '—')}
                 </p>
               </div>
               <div>
                 <p className="font-medium text-muted-foreground">University</p>
                 <p>
-                  {programDetails.university.name}, {programDetails.university.city},{' '}
-                  {programDetails.university.country}
+                  {programDetails.university?.name ?? '—'}, {programDetails.university?.city ?? '—'}, {programDetails.university?.country ?? '—'}
                 </p>
               </div>
               <div>

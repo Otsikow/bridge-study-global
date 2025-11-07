@@ -176,7 +176,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
 
   const fetchCasLetters = async (): Promise<CasRecord[]> => {
     const casLettersResponse = await supabase
-      .from("cas_letters" as any)
+      .from<CasRecord>("cas_letters")
       .select(casSelect)
       .order("issue_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false, nullsFirst: false });
@@ -188,7 +188,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
         casLettersResponse.error.message?.toLowerCase().includes("cas_letters")
       ) {
         const fallbackResponse = await supabase
-          .from("cas_loa" as any)
+          .from<CasRecord>("cas_loa")
           .select(casSelect)
           .order("issue_date", { ascending: false, nullsFirst: false })
           .order("created_at", { ascending: false, nullsFirst: false });
@@ -207,7 +207,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
   };
 
   const [offersResponse, casLetters] = await Promise.all([
-    supabase.from("offers" as any).select(offerSelect).order("created_at", {
+    supabase.from<OfferRecord>("offers").select(offerSelect).order("created_at", {
       ascending: false,
       nullsFirst: false,
     }),

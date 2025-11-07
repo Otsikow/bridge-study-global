@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { Search, ArrowUpDown, ExternalLink, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
@@ -147,11 +148,14 @@ export default function ApplicationsTab() {
     setFilteredApplications(filtered);
   };
 
-  const handleStatusUpdate = async (applicationId: string, newStatus: string) => {
+  const handleStatusUpdate = async (
+    applicationId: string,
+    newStatus: Database['public']['Enums']['application_status'],
+  ) => {
     try {
       const { error } = await supabase
         .from('applications')
-        .update({ status: newStatus as any })
+        .update({ status: newStatus })
         .eq('id', applicationId);
 
       if (error) throw error;
@@ -306,8 +310,13 @@ export default function ApplicationsTab() {
                     <TableCell>{app.programs?.universities?.name || 'N/A'}</TableCell>
                     <TableCell>
                       <Select
-                        value={app.status}
-                        onValueChange={(value) => handleStatusUpdate(app.id, value)}
+                        value={app.status ?? 'draft'}
+                        onValueChange={(value) =>
+                          handleStatusUpdate(
+                            app.id,
+                            value as Database['public']['Enums']['application_status'],
+                          )
+                        }
                       >
                         <SelectTrigger className="w-[160px]">
                           <Badge variant={getStatusBadgeColor(app.status)}>

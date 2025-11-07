@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
 import { GraduationCap, MapPin, DollarSign, Calendar, Search, Loader2 } from 'lucide-react';
 
@@ -21,6 +22,14 @@ interface ProgramSelectionStepProps {
   onNext: () => void;
   onBack: () => void;
 }
+
+type ProgramQueryRow = Tables<'programs'> & {
+  university: {
+    name: string | null;
+    city: string | null;
+    country: string | null;
+  } | null;
+};
 
 interface Program {
   id: string;
@@ -62,7 +71,7 @@ export default function ProgramSelectionStep({
   const fetchPrograms = useCallback(async () => {
     try {
       let query = supabase
-        .from('programs')
+        .from<ProgramQueryRow>('programs')
         .select(`
           id,
           name,
@@ -87,11 +96,26 @@ export default function ProgramSelectionStep({
       const { data: programsData, error } = await query.limit(50);
 
       if (error) throw error;
-      setPrograms((programsData as any) || []);
+      const mappedPrograms: Program[] = (programsData ?? []).map((program) => ({
+        id: program.id,
+        name: program.name,
+        level: program.level,
+        discipline: program.discipline,
+        tuition_amount: program.tuition_amount,
+        tuition_currency: program.tuition_currency ?? '',
+        duration_months: program.duration_months,
+        university: {
+          name: program.university?.name ?? 'Unknown University',
+          city: program.university?.city ?? 'Unknown City',
+          country: program.university?.country ?? 'Unknown Country',
+        },
+      }));
+
+      setPrograms(mappedPrograms);
 
       // If programId is already set, find and set the selected program
       if (data.programId) {
-        const found = (programsData as any)?.find((p: Program) => p.id === data.programId);
+        const found = mappedPrograms.find((p) => p.id === data.programId);
         if (found) {
           setSelectedProgram(found);
           fetchIntakes(found.id);
