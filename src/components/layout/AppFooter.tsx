@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import gegLogo from "@/assets/geg-logo.png";
 import {
@@ -6,6 +7,7 @@ import {
   Calculator,
   MessageSquare,
   LogIn,
+  LogOut,
   UserPlus,
   LayoutDashboard,
   Shield,
@@ -14,10 +16,44 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export function AppFooter() {
   const year = new Date().getFullYear();
   const { t } = useTranslation();
+  const { user, loading, signOut } = useAuth();
+  const { toast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOut({ redirectTo: "/" });
+      toast({
+        title: t("common.notifications.success"),
+        description: t("auth.messages.logoutSuccess", {
+          defaultValue: "You have been signed out.",
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+      const description =
+        error instanceof Error
+          ? error.message
+          : t("auth.messages.logoutError", {
+              defaultValue: "Something went wrong while signing you out. Please try again.",
+            });
+      toast({
+        title: t("common.notifications.error"),
+        description,
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <footer className="border-t bg-background">
@@ -111,10 +147,23 @@ export function AppFooter() {
             </h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/auth/login" className="inline-flex items-center gap-2 hover:underline">
-                  <LogIn className="h-4 w-4 text-muted-foreground" />
-                  {t("layout.footer.accountLinks.login")}
-                </Link>
+                {user ? (
+                  <Button
+                    variant="ghost"
+                    className="inline-flex items-center gap-2 px-0 text-muted-foreground hover:text-primary"
+                    onClick={handleLogout}
+                    disabled={loading || isLoggingOut}
+                    type="button"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t("common.actions.logout")}
+                  </Button>
+                ) : (
+                  <Link to="/auth/login" className="inline-flex items-center gap-2 hover:underline">
+                    <LogIn className="h-4 w-4 text-muted-foreground" />
+                    {t("layout.footer.accountLinks.login")}
+                  </Link>
+                )}
               </li>
               <li>
                 <Link to="/auth/signup" className="inline-flex items-center gap-2 hover:underline">

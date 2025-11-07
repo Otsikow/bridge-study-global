@@ -43,32 +43,32 @@ export default function AgentDashboard() {
     "resources",
   ] as const;
 
-  const tabToPath: Record<(typeof validTabs)[number], string> = {
-    overview: "/dashboard",
-    applications: "/dashboard/applications",
-    leads: "/dashboard/my-leads",
-    students: "/dashboard/my-students",
-    tasks: "/dashboard/tasks",
-    ranking: "/dashboard/my-ranking",
-    commissions: "/dashboard/commissions",
-    import: "/dashboard/import",
-    resources: "/dashboard/resources",
-  };
+    const tabToPath: Record<(typeof validTabs)[number], string> = {
+      overview: "/dashboard",
+      applications: "/dashboard/applications",
+      leads: "/dashboard/leads",
+      students: "/dashboard/students",
+      tasks: "/dashboard/tasks",
+      ranking: "/dashboard/ranking",
+      commissions: "/dashboard/commissions",
+      import: "/dashboard/import",
+      resources: "/dashboard/resources",
+    };
 
-  const pathToTab: Record<string, (typeof validTabs)[number]> = {
-    overview: "overview",
-    applications: "applications",
-    leads: "leads",
-    "my-leads": "leads",
-    students: "students",
-    "my-students": "students",
-    tasks: "tasks",
-    ranking: "ranking",
-    "my-ranking": "ranking",
-    commissions: "commissions",
-    import: "import",
-    resources: "resources",
-  };
+    const pathToTab: Record<string, (typeof validTabs)[number]> = {
+      overview: "overview",
+      applications: "applications",
+      leads: "leads",
+      "my-leads": "leads",
+      students: "students",
+      "my-students": "students",
+      tasks: "tasks",
+      ranking: "ranking",
+      "my-ranking": "ranking",
+      commissions: "commissions",
+      import: "import",
+      resources: "resources",
+    };
 
   const pathSegment = location.pathname.split("/")[2] || "overview";
   const currentTab = pathToTab[pathSegment] ?? "overview";

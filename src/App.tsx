@@ -194,11 +194,15 @@ const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/Staf
 const StaffTasks = lazyWithErrorHandling(() => import("./pages/dashboard/StaffTasks"));
 const StaffMessages = lazyWithErrorHandling(() => import("./pages/dashboard/StaffMessages"));
 const StaffReports = lazyWithErrorHandling(() => import("./pages/dashboard/StaffReports"));
-const MyLeads = lazyWithErrorHandling(() => import("./pages/dashboard/my-leads"));
-const MyRanking = lazyWithErrorHandling(() => import("./pages/dashboard/my-ranking"));
-const AgentStudentsPage = lazyWithErrorHandling(() => import("./pages/dashboard/my-students"));
-const ImportPage = lazyWithErrorHandling(() => import("./pages/dashboard/import"));
-const AgentResources = lazyWithErrorHandling(() => import("./pages/dashboard/resources"));
+const AgentLeads = lazyWithErrorHandling(() => import("./pages/agent/MyLeads"));
+const AgentRanking = lazyWithErrorHandling(() => import("./pages/agent/Ranking"));
+const AgentImport = lazyWithErrorHandling(() => import("./pages/agent/Import"));
+const AgentResources = lazyWithErrorHandling(() => import("./pages/agent/Resources"));
+const AgentPayments = lazyWithErrorHandling(() => import("./pages/agent/Payments"));
+const AgentCommissions = lazyWithErrorHandling(() => import("./pages/agent/Commissions"));
+const AgentSettings = lazyWithErrorHandling(() => import("./pages/agent/Settings"));
+const TasksRouter = lazyWithErrorHandling(() => import("./pages/dashboard/TasksRouter"));
+const StudentsRouter = lazyWithErrorHandling(() => import("./pages/dashboard/StudentsRouter"));
 const PartnerDocumentRequests = lazyWithErrorHandling(
   () => import("./pages/dashboard/DocumentRequests")
 );
@@ -246,14 +250,21 @@ const App = () => {
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                         <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","admin","agent","partner"]}><DashboardApplications /></ProtectedRoute>} />
                         <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
-                        <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
-                        <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
-                        <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
-                        <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
-                        <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
-                        <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
-                        <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["staff","admin","agent"]}><StaffTasks /></ProtectedRoute>} />
-                        <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffStudents /></ProtectedRoute>} />
+                          <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
+                          <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                          <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
+                          <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
+                          <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
+                          <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
+                          <Route path="/dashboard/leads" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentLeads /></ProtectedRoute>} />
+                          <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StudentsRouter /></ProtectedRoute>} />
+                          <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><TasksRouter /></ProtectedRoute>} />
+                          <Route path="/dashboard/ranking" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentRanking /></ProtectedRoute>} />
+                          <Route path="/dashboard/payments" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentPayments /></ProtectedRoute>} />
+                          <Route path="/dashboard/commissions" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentCommissions /></ProtectedRoute>} />
+                          <Route path="/dashboard/import" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentImport /></ProtectedRoute>} />
+                          <Route path="/dashboard/resources" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentResources /></ProtectedRoute>} />
+                          <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentSettings /></ProtectedRoute>} />
                         <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
 
                         {/* ✅ University Dashboard Nested Routes */}

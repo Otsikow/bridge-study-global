@@ -51,7 +51,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: unknown }>;
   signUp: (params: SignUpParams) => Promise<{ error: unknown }>;
-  signOut: () => Promise<void>;
+  signOut: (options?: { redirectTo?: string }) => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -393,12 +393,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signOut = async () => {
+  const signOut = async (options?: { redirectTo?: string }) => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
-    navigate('/auth/login');
+    const redirectTarget = options?.redirectTo ?? '/auth/login';
+    navigate(redirectTarget);
   };
 
   const refreshProfile = async () => {

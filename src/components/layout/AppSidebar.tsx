@@ -18,6 +18,7 @@ import {
   Search,
   Sparkles,
   GraduationCap,
+  Coins,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,12 +58,13 @@ const menuItems = {
   ],
   agent: [
     { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "My Leads", url: "/dashboard/my-leads", icon: Users },
-    { title: "Students", url: "/dashboard/my-students", icon: GraduationCap },
+    { title: "My Leads", url: "/dashboard/leads", icon: Users },
+    { title: "Students", url: "/dashboard/students", icon: GraduationCap },
     { title: "Applications", url: "/dashboard/applications", icon: FileText },
     { title: "Tasks", url: "/dashboard/tasks", icon: CheckSquare },
-    { title: "Ranking", url: "/dashboard/my-ranking", icon: TrendingUp },
-    { title: "Payments & Commissions", url: "/agent/payments", icon: DollarSign },
+    { title: "Ranking", url: "/dashboard/ranking", icon: TrendingUp },
+    { title: "Payments", url: "/dashboard/payments", icon: DollarSign },
+    { title: "Commissions", url: "/dashboard/commissions", icon: Coins },
     { title: "Import", url: "/dashboard/import", icon: Upload },
     { title: "Resources", url: "/dashboard/resources", icon: BookOpen },
   ],
