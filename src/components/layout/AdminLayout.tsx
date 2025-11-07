@@ -29,23 +29,102 @@ import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   to: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
+  labelDefault: string;
+  descriptionDefault: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/admin/overview", label: "Overview", description: "Executive summary", icon: LayoutDashboard },
-  { to: "/admin/users", label: "Users", description: "Administrators & roles", icon: Users },
-  { to: "/admin/admissions", label: "Admissions Oversight", description: "Pipeline ownership", icon: GraduationCap },
-  { to: "/admin/payments", label: "Payments", description: "Stripe & payouts", icon: CreditCard },
-  { to: "/admin/partners", label: "Partners", description: "Agencies & universities", icon: Building },
-  { to: "/admin/resources", label: "Resources", description: "Content & assets", icon: Library },
-  { to: "/admin/insights", label: "Insights", description: "AI & analytics", icon: Brain },
-  { to: "/admin/intelligence", label: "Zoe Intelligence", description: "AI insights console", icon: Sparkles },
-  { to: "/admin/settings", label: "Settings", description: "Tenant configuration", icon: Settings },
-  { to: "/admin/notifications", label: "Notifications", description: "System alerts", icon: Bell },
-  { to: "/admin/logs", label: "Logs", description: "Audit trails", icon: ShieldCheck },
+  {
+    to: "/admin/overview",
+    labelKey: "admin.layout.navigation.overview.label",
+    descriptionKey: "admin.layout.navigation.overview.description",
+    labelDefault: "Overview",
+    descriptionDefault: "Executive summary",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/admin/users",
+    labelKey: "admin.layout.navigation.users.label",
+    descriptionKey: "admin.layout.navigation.users.description",
+    labelDefault: "Users",
+    descriptionDefault: "Administrators & roles",
+    icon: Users,
+  },
+  {
+    to: "/admin/admissions",
+    labelKey: "admin.layout.navigation.admissions.label",
+    descriptionKey: "admin.layout.navigation.admissions.description",
+    labelDefault: "Admissions Oversight",
+    descriptionDefault: "Pipeline ownership",
+    icon: GraduationCap,
+  },
+  {
+    to: "/admin/payments",
+    labelKey: "admin.layout.navigation.payments.label",
+    descriptionKey: "admin.layout.navigation.payments.description",
+    labelDefault: "Payments",
+    descriptionDefault: "Stripe & payouts",
+    icon: CreditCard,
+  },
+  {
+    to: "/admin/partners",
+    labelKey: "admin.layout.navigation.partners.label",
+    descriptionKey: "admin.layout.navigation.partners.description",
+    labelDefault: "Partners",
+    descriptionDefault: "Agencies & universities",
+    icon: Building,
+  },
+  {
+    to: "/admin/resources",
+    labelKey: "admin.layout.navigation.resources.label",
+    descriptionKey: "admin.layout.navigation.resources.description",
+    labelDefault: "Resources",
+    descriptionDefault: "Content & assets",
+    icon: Library,
+  },
+  {
+    to: "/admin/insights",
+    labelKey: "admin.layout.navigation.insights.label",
+    descriptionKey: "admin.layout.navigation.insights.description",
+    labelDefault: "Insights",
+    descriptionDefault: "AI & analytics",
+    icon: Brain,
+  },
+  {
+    to: "/admin/intelligence",
+    labelKey: "admin.layout.navigation.intelligence.label",
+    descriptionKey: "admin.layout.navigation.intelligence.description",
+    labelDefault: "Zoe Intelligence",
+    descriptionDefault: "AI insights console",
+    icon: Sparkles,
+  },
+  {
+    to: "/admin/settings",
+    labelKey: "admin.layout.navigation.settings.label",
+    descriptionKey: "admin.layout.navigation.settings.description",
+    labelDefault: "Settings",
+    descriptionDefault: "Tenant configuration",
+    icon: Settings,
+  },
+  {
+    to: "/admin/notifications",
+    labelKey: "admin.layout.navigation.notifications.label",
+    descriptionKey: "admin.layout.navigation.notifications.description",
+    labelDefault: "Notifications",
+    descriptionDefault: "System alerts",
+    icon: Bell,
+  },
+  {
+    to: "/admin/logs",
+    labelKey: "admin.layout.navigation.logs.label",
+    descriptionKey: "admin.layout.navigation.logs.description",
+    labelDefault: "Logs",
+    descriptionDefault: "Audit trails",
+    icon: ShieldCheck,
+  },
 ];
 
 const getInitials = (value: string) =>
@@ -66,10 +145,18 @@ const AdminLayout = () => {
   const sidebar = (
     <div className="flex h-full w-72 flex-col border-r bg-card">
       <div className="flex h-16 items-center gap-3 border-b px-6">
-        <img src={gegLogo} alt="GEG" className="h-9 w-9 rounded-lg bg-white object-contain p-1" />
+        <img
+          src={gegLogo}
+          alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "GEG" })}
+          className="h-9 w-9 rounded-lg bg-white object-contain p-1"
+        />
         <div>
-          <p className="text-sm font-semibold">Global Education Gateway</p>
-          <p className="text-xs text-muted-foreground">Admin Control Center</p>
+          <p className="text-sm font-semibold">
+            {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Center" })}
+          </p>
         </div>
       </div>
       <ScrollArea className="flex-1">
@@ -78,13 +165,15 @@ const AdminLayout = () => {
             const isActive = location.pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
-              <NavLink key={item.to} to={item.to} className={cn("group block rounded-lg p-3 transition", isActive ? "bg-primary/10 text-primary" : "hover:bg-muted")}> 
+              <NavLink key={item.to} to={item.to} className={cn("group block rounded-lg p-3 transition", isActive ? "bg-primary/10 text-primary" : "hover:bg-muted")}>
                 <div className="flex items-center gap-3">
                   <Icon className="h-5 w-5" />
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">
+                      {t(item.labelKey, { defaultValue: item.labelDefault })}
+                    </span>
                     <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80">
-                      {item.description}
+                      {t(item.descriptionKey, { defaultValue: item.descriptionDefault })}
                     </span>
                   </div>
                 </div>
@@ -96,11 +185,16 @@ const AdminLayout = () => {
       <div className="border-t p-4">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.full_name ?? "Admin"} />
+            <AvatarImage
+              src={profile?.avatar_url ?? undefined}
+              alt={profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
+            />
             <AvatarFallback>{profile?.full_name ? getInitials(profile.full_name) : "AD"}</AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{profile?.full_name ?? "Admin"}</p>
+            <p className="truncate text-sm font-semibold">
+              {profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
+            </p>
             <p className="truncate text-xs text-muted-foreground">{profile?.email}</p>
           </div>
         </div>
@@ -120,7 +214,9 @@ const AdminLayout = () => {
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Open navigation</span>
+                <span className="sr-only">
+                  {t("admin.layout.header.openNavigation", { defaultValue: "Open navigation" })}
+                </span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
@@ -129,10 +225,16 @@ const AdminLayout = () => {
           </Sheet>
         ) : null}
         <div className="hidden md:flex flex-col">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">Global Education Gateway</span>
-          <span className="text-lg font-semibold">Administrator Workspace</span>
+          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            {t("admin.layout.header.organization", { defaultValue: "Global Education Gateway" })}
+          </span>
+          <span className="text-lg font-semibold">
+            {t("admin.layout.header.workspace", { defaultValue: "Administrator Workspace" })}
+          </span>
         </div>
-        <Badge variant="outline" className="md:ml-3">Privileged access</Badge>
+        <Badge variant="outline" className="md:ml-3">
+          {t("admin.layout.header.privilegedAccess", { defaultValue: "Privileged access" })}
+        </Badge>
       </div>
       <div className="flex items-center gap-3">
         <LanguageSwitcher size="sm" />
@@ -143,12 +245,18 @@ const AdminLayout = () => {
           size="sm"
           onClick={() =>
             window.dispatchEvent(
-              new CustomEvent("zoe:open-chat", { detail: { prompt: "Provide a governance summary for today" } }),
+              new CustomEvent("zoe:open-chat", {
+                detail: {
+                  prompt: t("admin.layout.header.askZoePrompt", {
+                    defaultValue: "Provide a governance summary for today",
+                  }),
+                },
+              }),
             )
           }
         >
           <Sparkles className="h-4 w-4" />
-          Ask Zoe
+          {t("admin.layout.header.askZoe", { defaultValue: "Ask Zoe" })}
         </Button>
       </div>
     </header>

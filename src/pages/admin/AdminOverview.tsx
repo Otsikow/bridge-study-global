@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,57 +28,84 @@ import {
   Bar,
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
 const KPI_CONFIG = [
-  { key: "totalStudents", label: "Total Students" },
-  { key: "totalAgents", label: "Total Agents" },
-  { key: "totalUniversities", label: "Total Universities" },
-  { key: "activeApplications", label: "Active Applications" },
-  { key: "totalCommissionPaid", label: "Total Commission Paid", format: "currency" },
-  { key: "pendingVerifications", label: "Pending Verifications" },
+  {
+    key: "totalStudents",
+    labelKey: "admin.overview.kpis.totalStudents",
+    defaultLabel: "Total Students",
+  },
+  {
+    key: "totalAgents",
+    labelKey: "admin.overview.kpis.totalAgents",
+    defaultLabel: "Total Agents",
+  },
+  {
+    key: "totalUniversities",
+    labelKey: "admin.overview.kpis.totalUniversities",
+    defaultLabel: "Total Universities",
+  },
+  {
+    key: "activeApplications",
+    labelKey: "admin.overview.kpis.activeApplications",
+    defaultLabel: "Active Applications",
+  },
+  {
+    key: "totalCommissionPaid",
+    labelKey: "admin.overview.kpis.totalCommissionPaid",
+    defaultLabel: "Total Commission Paid",
+    format: "currency",
+  },
+  {
+    key: "pendingVerifications",
+    labelKey: "admin.overview.kpis.pendingVerifications",
+    defaultLabel: "Pending Verifications",
+  },
 ] as const;
 
-const formatValue = (value: number, format?: "currency", currency = "USD") => {
+const formatValue = (value: number, format?: "currency", currency = "USD", locale = "en") => {
   if (format === "currency") {
-    return new Intl.NumberFormat("en", {
+    return new Intl.NumberFormat(locale, {
       style: "currency",
       currency,
       maximumFractionDigits: 0,
     }).format(value);
   }
 
-  return new Intl.NumberFormat("en", { maximumFractionDigits: 0 }).format(value);
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value);
 };
 
-const getHealthStyles = (status: string) => {
+const getHealthStyles = (status: string, t: TFunction) => {
   switch (status) {
     case "operational":
       return {
-        label: "Operational",
+        label: t("admin.overview.health.operational", { defaultValue: "Operational" }),
         badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
         accent: "text-emerald-500",
       };
     case "monitoring":
       return {
-        label: "Monitoring",
+        label: t("admin.overview.health.monitoring", { defaultValue: "Monitoring" }),
         badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200",
         accent: "text-amber-500",
       };
     case "degraded":
       return {
-        label: "Degraded",
+        label: t("admin.overview.health.degraded", { defaultValue: "Degraded" }),
         badge: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-200",
         accent: "text-orange-500",
       };
     case "critical":
       return {
-        label: "Critical",
+        label: t("admin.overview.health.critical", { defaultValue: "Critical" }),
         badge: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-200",
         accent: "text-red-500",
       };
     default:
       return {
-        label: "Unknown",
+        label: t("admin.overview.health.unknown", { defaultValue: "Unknown" }),
         badge: "bg-muted text-muted-foreground",
         accent: "text-muted-foreground",
       };
@@ -88,6 +115,12 @@ const getHealthStyles = (status: string) => {
 const AdminOverview = () => {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
+  const { t, i18n } = useTranslation();
+  const translate = useCallback(
+    (key: string, defaultValue: string, options?: Record<string, unknown>) =>
+      t(key, { defaultValue, ...options }),
+    [t],
+  );
 
   const openZoe = (prompt: string) => {
     if (typeof window === "undefined") return;
@@ -104,11 +137,22 @@ const AdminOverview = () => {
 
   const chartContent = useMemo(() => {
     if (trendsQuery.isLoading) {
-      return <LoadingState message="Loading admissions trends" size="sm" />;
+      return (
+        <LoadingState
+          message={t("admin.overview.loading.trends", { defaultValue: "Loading admissions trends" })}
+          size="sm"
+        />
+      );
     }
 
     if (!trendsQuery.data || trendsQuery.data.length === 0) {
-      return <p className="text-sm text-muted-foreground">No admissions activity recorded for the selected period.</p>;
+      return (
+        <p className="text-sm text-muted-foreground">
+          {t("admin.overview.emptyStates.noAdmissions", {
+            defaultValue: "No admissions activity recorded for the selected period.",
+          })}
+        </p>
+      );
     }
 
     return (
@@ -118,20 +162,43 @@ const AdminOverview = () => {
           <XAxis dataKey="month" stroke="currentColor" className="text-xs text-muted-foreground" />
           <YAxis stroke="currentColor" className="text-xs text-muted-foreground" allowDecimals={false} />
           <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-          <Line type="monotone" dataKey="submitted" strokeWidth={2} stroke="hsl(var(--chart-1))" name="Submitted" />
-          <Line type="monotone" dataKey="enrolled" strokeWidth={2} stroke="hsl(var(--chart-2))" name="Enrolled" />
+          <Line
+            type="monotone"
+            dataKey="submitted"
+            strokeWidth={2}
+            stroke="hsl(var(--chart-1))"
+            name={t("admin.overview.trends.submitted", { defaultValue: "Submitted" })}
+          />
+          <Line
+            type="monotone"
+            dataKey="enrolled"
+            strokeWidth={2}
+            stroke="hsl(var(--chart-2))"
+            name={t("admin.overview.trends.enrolled", { defaultValue: "Enrolled" })}
+          />
         </LineChart>
       </ResponsiveContainer>
     );
-  }, [trendsQuery.data, trendsQuery.isLoading]);
+  }, [t, trendsQuery.data, trendsQuery.isLoading]);
 
   const barChart = useMemo(() => {
     if (geographyQuery.isLoading) {
-      return <LoadingState message="Loading geographic mix" size="sm" />;
+      return (
+        <LoadingState
+          message={t("admin.overview.loading.geography", { defaultValue: "Loading geographic mix" })}
+          size="sm"
+        />
+      );
     }
 
     if (!geographyQuery.data || geographyQuery.data.length === 0) {
-      return <p className="text-sm text-muted-foreground">No in-flight applications available.</p>;
+      return (
+        <p className="text-sm text-muted-foreground">
+          {t("admin.overview.emptyStates.noApplications", {
+            defaultValue: "No in-flight applications available.",
+          })}
+        </p>
+      );
     }
 
     return (
@@ -145,7 +212,7 @@ const AdminOverview = () => {
         </BarChart>
       </ResponsiveContainer>
     );
-  }, [geographyQuery.data, geographyQuery.isLoading]);
+  }, [geographyQuery.data, geographyQuery.isLoading, t]);
 
   const kpiCards = (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -153,15 +220,17 @@ const AdminOverview = () => {
         const value = metricsQuery.data?.[item.key] ?? 0;
         const display =
           item.format === "currency"
-            ? formatValue(value, "currency", metricsQuery.data?.currency)
-            : formatValue(value);
+            ? formatValue(value, "currency", metricsQuery.data?.currency, i18n.language)
+            : formatValue(value, undefined, undefined, i18n.language);
         return (
           <Card key={item.key}>
             <CardHeader className="flex items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{item.label}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t(item.labelKey, { defaultValue: item.defaultLabel })}
+              </CardTitle>
               {item.key === "pendingVerifications" && value > 0 ? (
                 <Badge variant="outline" className="text-[10px] uppercase tracking-wide text-amber-600">
-                  Action Required
+                  {t("admin.overview.badges.actionRequired", { defaultValue: "Action Required" })}
                 </Badge>
               ) : null}
             </CardHeader>
@@ -171,7 +240,14 @@ const AdminOverview = () => {
               ) : (
                 <p className="text-2xl font-semibold tracking-tight">{display}</p>
               )}
-              <p className="mt-1 text-xs text-muted-foreground">Updated {metricsQuery.data?.lastUpdated ? formatDistanceToNow(new Date(metricsQuery.data.lastUpdated), { addSuffix: true }) : "moments ago"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("admin.overview.kpis.lastUpdated", {
+                  defaultValue: "Updated {{time}}",
+                  time: metricsQuery.data?.lastUpdated
+                    ? formatDistanceToNow(new Date(metricsQuery.data.lastUpdated), { addSuffix: true })
+                    : t("admin.overview.kpis.justNow", { defaultValue: "moments ago" }),
+                })}
+              </p>
             </CardContent>
           </Card>
         );
@@ -183,20 +259,39 @@ const AdminOverview = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="text-base font-semibold">Recent activity</CardTitle>
-          <p className="text-sm text-muted-foreground">Latest tenant-wide audit events</p>
+          <CardTitle className="text-base font-semibold">
+            {t("admin.overview.recentActivity.title", { defaultValue: "Recent activity" })}
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {t("admin.overview.recentActivity.subtitle", { defaultValue: "Latest tenant-wide audit events" })}
+          </p>
         </div>
-        <Button size="sm" variant="outline" onClick={() => openZoe("Summarize today’s critical audit events") }>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            openZoe(
+              translate("admin.overview.recentActivity.prompt", "Summarize today’s critical audit events"),
+            )
+          }
+        >
           <ArrowUpRight className="h-4 w-4" />
-          Escalate with Zoe
+          {t("admin.overview.recentActivity.cta", { defaultValue: "Escalate with Zoe" })}
         </Button>
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="max-h-80">
           <div className="divide-y">
-            {activityQuery.isLoading && <LoadingState message="Loading activity" size="sm" />}
+            {activityQuery.isLoading && (
+              <LoadingState
+                message={t("admin.overview.loading.activity", { defaultValue: "Loading activity" })}
+                size="sm"
+              />
+            )}
             {!activityQuery.isLoading && (!activityQuery.data || activityQuery.data.length === 0) ? (
-              <p className="p-4 text-sm text-muted-foreground">No recent activity recorded.</p>
+              <p className="p-4 text-sm text-muted-foreground">
+                {t("admin.overview.recentActivity.empty", { defaultValue: "No recent activity recorded." })}
+              </p>
             ) : null}
             {activityQuery.data?.map((item) => (
               <div key={item.id} className="flex items-start justify-between gap-3 p-4">
@@ -204,7 +299,12 @@ const AdminOverview = () => {
                   <p className="text-sm font-medium">{item.action}</p>
                   <p className="text-xs text-muted-foreground">{item.entity}</p>
                   {item.user?.full_name ? (
-                    <p className="text-xs text-muted-foreground">by {item.user.full_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("admin.overview.recentActivity.byUser", {
+                        defaultValue: "by {{name}}",
+                        name: item.user.full_name,
+                      })}
+                    </p>
                   ) : null}
                 </div>
                 <span className="text-xs text-muted-foreground">
@@ -218,7 +318,7 @@ const AdminOverview = () => {
     </Card>
   );
 
-  const healthStyles = getHealthStyles(healthQuery.data?.status ?? "unknown");
+  const healthStyles = getHealthStyles(healthQuery.data?.status ?? "unknown", t);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -227,15 +327,27 @@ const AdminOverview = () => {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Admissions trends</CardTitle>
-              <p className="text-sm text-muted-foreground">Rolling six-month submission and enrollment cadence</p>
+              <CardTitle className="text-base font-semibold">
+                {t("admin.overview.trends.title", { defaultValue: "Admissions trends" })}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {t("admin.overview.trends.subtitle", {
+                  defaultValue: "Rolling six-month submission and enrollment cadence",
+                })}
+              </p>
             </CardHeader>
             <CardContent className="pt-2">{chartContent}</CardContent>
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Applications by country</CardTitle>
-              <p className="text-sm text-muted-foreground">Current pipeline distribution by destination</p>
+              <CardTitle className="text-base font-semibold">
+                {t("admin.overview.geography.title", { defaultValue: "Applications by country" })}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {t("admin.overview.geography.subtitle", {
+                  defaultValue: "Current pipeline distribution by destination",
+                })}
+              </p>
             </CardHeader>
             <CardContent className="pt-2">{barChart}</CardContent>
           </Card>
@@ -251,60 +363,105 @@ const AdminOverview = () => {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold">Quick actions</CardTitle>
-            <p className="text-sm text-muted-foreground">Resolve high-impact workflow blockers</p>
+            <CardTitle className="text-base font-semibold">
+              {t("admin.overview.quickActions.title", { defaultValue: "Quick actions" })}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {t("admin.overview.quickActions.subtitle", { defaultValue: "Resolve high-impact workflow blockers" })}
+            </p>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <Button
               variant="default"
               className="justify-start gap-3"
-              onClick={() => openZoe("List agents awaiting approval and potential risks")}
+              onClick={() =>
+                openZoe(
+                  translate(
+                    "admin.overview.quickActions.agentsPrompt",
+                    "List agents awaiting approval and potential risks",
+                  ),
+                )
+              }
             >
               <Activity className="h-4 w-4" />
-              Approve New Agents
+              {t("admin.overview.quickActions.agents", { defaultValue: "Approve New Agents" })}
             </Button>
             <Button
               variant="outline"
               className="justify-start gap-3"
-              onClick={() => openZoe("Which universities are pending onboarding tasks?")}
+              onClick={() =>
+                openZoe(
+                  translate(
+                    "admin.overview.quickActions.universitiesPrompt",
+                    "Which universities are pending onboarding tasks?",
+                  ),
+                )
+              }
             >
               <ArrowUpRight className="h-4 w-4" />
-              Approve Universities
+              {t("admin.overview.quickActions.universities", { defaultValue: "Approve Universities" })}
             </Button>
             <Button
               variant="ghost"
               className="justify-start gap-3"
-              onClick={() => openZoe("Show profiles flagged for compliance review")}
+              onClick={() =>
+                openZoe(
+                  translate(
+                    "admin.overview.quickActions.compliancePrompt",
+                    "Show profiles flagged for compliance review",
+                  ),
+                )
+              }
             >
               <AlertTriangle className="h-4 w-4 text-amber-500" />
-              Review Flagged Profiles
+              {t("admin.overview.quickActions.compliance", { defaultValue: "Review Flagged Profiles" })}
             </Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-2">
             <div>
-              <CardTitle className="text-base font-semibold">System health</CardTitle>
-              <p className="text-sm text-muted-foreground">Security signals aggregated from the last 30 days</p>
+              <CardTitle className="text-base font-semibold">
+                {t("admin.overview.health.title", { defaultValue: "System health" })}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {t("admin.overview.health.subtitle", {
+                  defaultValue: "Security signals aggregated from the last 30 days",
+                })}
+              </p>
             </div>
             <Badge className={healthStyles.badge}>{healthStyles.label}</Badge>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-baseline gap-2">
               <p className={`text-3xl font-semibold ${healthStyles.accent}`}>{healthQuery.data?.score ?? 0}</p>
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">risk score</span>
+              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                {t("admin.overview.health.scoreLabel", { defaultValue: "risk score" })}
+              </span>
             </div>
             <Separator />
             <div className="space-y-3 text-sm text-muted-foreground">
               {healthQuery.isLoading && <Skeleton className="h-20 w-full" />}
               {!healthQuery.isLoading &&
-                (healthQuery.data?.recommendations ?? ["No active recommendations—continue monitoring."]).map((item, index) => (
+                (healthQuery.data?.recommendations ?? [
+                  t("admin.overview.health.noRecommendations", {
+                    defaultValue: "No active recommendations—continue monitoring.",
+                  }),
+                ]).map((item, index) => (
                   <p key={index}>{item}</p>
                 ))}
             </div>
-            <Button size="sm" variant="outline" onClick={() => openZoe("Provide a security triage summary for admin") }>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                openZoe(
+                  translate("admin.overview.health.prompt", "Provide a security triage summary for admin"),
+                )
+              }
+            >
               <ArrowDownRight className="mr-2 h-4 w-4" />
-              Triage with Zoe
+              {t("admin.overview.health.cta", { defaultValue: "Triage with Zoe" })}
             </Button>
           </CardContent>
         </Card>
