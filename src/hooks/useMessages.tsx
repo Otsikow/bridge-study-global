@@ -561,7 +561,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
   try {
     const { error } = await supabase.rpc('mark_conversation_read', {
-      p_conversation_id: conversationId,
+      conversation_uuid: conversationId,
     });
 
     if (error) throw error;
