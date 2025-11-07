@@ -12,7 +12,7 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "app.language";
-const RTL_LANGUAGES: SupportedLanguage[] = ["ar"];
+const RTL_LANGUAGES: SupportedLanguage[] = [];
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<SupportedLanguage>(() => {
