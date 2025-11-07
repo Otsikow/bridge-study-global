@@ -217,7 +217,7 @@ const mapMessageRow = (row: MessageRow): Message => {
 export function useAgentMessages() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const isAgent = profile?.role === 'agent';
+  const isAgent = profile?.role === 'agent' || profile?.role === 'partner';
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);

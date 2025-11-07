@@ -193,6 +193,7 @@ const PartnerDocumentRequests = lazyWithErrorHandling(
 const OffersManagement = lazyWithErrorHandling(
   () => import("./pages/dashboard/OffersManagement")
 );
+const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
 
 // ✅ Main App
 const App = () => {
@@ -334,14 +335,22 @@ const App = () => {
                             </ProtectedRoute>
                           }
                         />
-                        <Route
-                          path="/dashboard/offers"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
-                              <OffersManagement />
-                            </ProtectedRoute>
-                          }
-                        />
+                          <Route
+                            path="/dashboard/offers"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
+                                <OffersManagement />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/partner/messages"
+                            element={
+                              <ProtectedRoute allowedRoles={["partner"]}>
+                                <PartnerMessages />
+                              </ProtectedRoute>
+                            }
+                          />
 
                         {/* ✅ Student, Staff, Admin routes (etc) go here... */}
                         {/* (shortened for brevity but complete in your original code) */}
