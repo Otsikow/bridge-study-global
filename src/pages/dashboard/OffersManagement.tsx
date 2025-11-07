@@ -254,7 +254,7 @@ export default function OffersManagement() {
 
       const fetchCasLetters = async (): Promise<CasRecord[]> => {
         const casLettersResponse = await supabase
-          .from("cas_letters" as any)
+          .from<CasRecord>("cas_letters")
           .select(casSelect)
           .order("issue_date", { ascending: false, nullsFirst: false })
           .order("created_at", { ascending: false, nullsFirst: false });
@@ -267,7 +267,7 @@ export default function OffersManagement() {
             casLettersResponse.error.message?.includes("cas_letters")
           ) {
             const fallbackResponse = await supabase
-              .from("cas_loa" as any)
+              .from<CasRecord>("cas_loa")
               .select(casSelect)
               .order("issue_date", { ascending: false, nullsFirst: false })
               .order("created_at", { ascending: false, nullsFirst: false });
@@ -284,7 +284,7 @@ export default function OffersManagement() {
 
       const [offersResponse, casLetters] = await Promise.all([
         supabase
-          .from("offers" as any)
+          .from<OfferRecord>("offers")
           .select(offerSelect)
           .order("created_at", { ascending: false }),
         fetchCasLetters(),

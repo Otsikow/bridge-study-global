@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { logError, formatErrorForToast } from '@/lib/errorUtils';
 import {
   Dialog,
@@ -40,13 +41,15 @@ const DOCUMENT_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+type DocumentType = Database['public']['Enums']['document_type'];
+
 export function DocumentUploadDialog({
   applicationId,
   onUploadComplete,
   trigger,
 }: DocumentUploadDialogProps) {
   const [open, setOpen] = useState(false);
-  const [documentType, setDocumentType] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
@@ -89,7 +92,7 @@ export function DocumentUploadDialog({
         .from('application_documents')
         .insert({
           application_id: applicationId,
-          document_type: documentType as any,
+          document_type: documentType,
           storage_path: filePath,
           mime_type: file.type,
           file_size: file.size,
@@ -135,7 +138,10 @@ export function DocumentUploadDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="document-type">Document Type</Label>
-            <Select value={documentType} onValueChange={setDocumentType}>
+            <Select
+              value={documentType}
+              onValueChange={(value) => setDocumentType(value as DocumentType)}
+            >
               <SelectTrigger id="document-type">
                 <SelectValue placeholder="Select document type" />
               </SelectTrigger>
