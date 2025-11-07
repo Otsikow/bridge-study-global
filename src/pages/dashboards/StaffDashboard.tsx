@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlarmClock,
   Bot,
@@ -20,8 +20,9 @@ import {
   Target,
   TrendingUp,
   Users,
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
-
 import {
   Bar,
   BarChart,
@@ -38,26 +39,22 @@ import {
 import BackButton from "@/components/BackButton";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { StatusBadge } from "@/components/StatusBadge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { format, isSameMonth, isValid } from "date-fns";
+import { formatErrorForToast, logError } from "@/lib/errorUtils";
 import StaffStudentsTable from "@/components/staff/StaffStudentsTable";
 import StaffAgentsLeaderboard from "@/components/staff/StaffAgentsLeaderboard";
 import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
-import StaffPaymentsTable from "@/components/staff/StaffPaymentsTable";
 import StaffTasksBoard from "@/components/staff/StaffTasksBoard";
 import StaffZoeInsightsTab from "@/components/staff/StaffZoeInsightsTab";
 
@@ -116,65 +113,99 @@ const dailyActivityTrendData = [
 ];
 
 const quickLinks = [
-  {
-    label: "My Students",
-    description: "Review assigned cases and next actions",
-    to: "/dashboard/students",
-    icon: Users,
-  },
-  {
-    label: "My Tasks",
-    description: "Update task progress and workflows",
-    to: "/dashboard/tasks",
-    icon: CheckSquare,
-  },
-  {
-    label: "My Agents",
-    description: "Coordinate with partner agents",
-    to: "/dashboard/agents",
-    icon: Building2,
-  },
+  { label: "My Students", description: "Review assigned cases", to: "/dashboard/students", icon: Users },
+  { label: "My Tasks", description: "Update progress", to: "/dashboard/tasks", icon: CheckSquare },
+  { label: "My Agents", description: "Coordinate with partners", to: "/dashboard/agents", icon: Building2 },
 ];
 
-const zoeSuggestions = [
-  {
-    id: "tip-1",
-    message: "3 students need document verification before Friday.",
-  },
-  {
-    id: "tip-2",
-    message:
-      "Follow up with Bridge Lagos about two new applicants waiting for screening.",
-  },
-  {
-    id: "tip-3",
-    message: "Schedule a payment approval review for commissions logged today.",
-  },
-];
+type CommissionWithRelations = Tables<"commissions"> & {
+  agents?: { profiles?: { full_name: string | null } | null } | null;
+  applications?: { students?: { profiles?: { full_name: string | null } | null } | null } | null;
+};
+
+type CommissionPayment = Tables<"payments"> & { metadata: Record<string, unknown> | null };
 
 export default function StaffDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [payoutStatusFilter, setPayoutStatusFilter] = useState<"all" | "pending" | "paid">("all");
+  const [updatingCommissionId, setUpdatingCommissionId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const { data: overviewNotifications } = useQuery({
-    queryKey: ["staff", "dashboard", "notifications"],
-    queryFn: async () => zoeSuggestions,
-    initialData: zoeSuggestions,
-    staleTime: 60_000,
+  const financeQuery = useQuery({
+    queryKey: ["staff-dashboard", "finance"],
+    queryFn: async (): Promise<{ commissions: CommissionWithRelations[]; payments: CommissionPayment[] }> => {
+      const [commissionsResult, paymentsResult] = await Promise.all([
+        supabase.from("commissions").select(`*, agents:agents ( profiles:profiles ( full_name ) ), applications:applications ( students:students ( profiles:profiles ( full_name ) ) )`).order("created_at", { ascending: false }),
+        supabase.from("payments").select("id, amount_cents, currency, status, created_at, metadata, purpose, application_id").eq("purpose", "commission_payout").order("created_at", { ascending: false }),
+      ]);
+
+      if (commissionsResult.error) throw commissionsResult.error;
+      if (paymentsResult.error) throw paymentsResult.error;
+
+      return {
+        commissions: (commissionsResult.data ?? []) as CommissionWithRelations[],
+        payments: (paymentsResult.data ?? []) as CommissionPayment[],
+      };
+    },
+    staleTime: 1000 * 60 * 5,
   });
+
+  const allCommissionRows = useMemo(() => {
+    if (!financeQuery.data) return [];
+    const paymentByCommissionId = new Map<string, CommissionPayment>();
+
+    financeQuery.data.payments.forEach((payment) => {
+      const metadata = payment.metadata as Record<string, unknown> | null;
+      const commissionId = metadata?.commission_id as string | null;
+      if (commissionId) paymentByCommissionId.set(commissionId, payment);
+    });
+
+    return financeQuery.data.commissions.map((c) => {
+      const p = paymentByCommissionId.get(c.id);
+      const payoutStatus = c.status === "paid" || p?.status === "succeeded" ? "paid" : "pending";
+      return {
+        id: c.id,
+        agentName: c.agents?.profiles?.full_name ?? "Unassigned",
+        studentName: c.applications?.students?.profiles?.full_name ?? "Student",
+        ratePercent: c.rate_percent,
+        amountCents: c.amount_cents,
+        currency: c.currency ?? p?.currency ?? "USD",
+        payoutStatus,
+        createdAt: p?.created_at ?? c.created_at ?? null,
+      };
+    });
+  }, [financeQuery.data]);
+
+  const filteredCommissions =
+    payoutStatusFilter === "all" ? allCommissionRows : allCommissionRows.filter((r) => r.payoutStatus === payoutStatusFilter);
+
+  const handleMarkReviewed = async (id: string) => {
+    try {
+      setUpdatingCommissionId(id);
+      const { error } = await supabase.from("commissions").update({ approved_at: new Date().toISOString(), status: "approved" }).eq("id", id);
+      if (error) throw error;
+      toast({ title: "Commission reviewed successfully" });
+      queryClient.invalidateQueries({ queryKey: ["staff-dashboard", "finance"] });
+    } catch (e) {
+      logError(e, "markReviewed");
+      toast(formatErrorForToast(e, "Failed to mark commission as reviewed"));
+    } finally {
+      setUpdatingCommissionId(null);
+    }
+  };
+
+  const formatCurrency = (cents: number, currency: string) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency }).format(cents / 100);
 
   return (
     <DashboardLayout>
       <div className="space-y-8 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-2">
-            <BackButton to="/dashboard" label="Back to dashboard selector" />
-            <h1 className="text-3xl font-bold tracking-tight">
-              Staff Command Center
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Operate admissions, tasks, and partner workflows with Zoe’s live
-              insights layered on top of Supabase data.
-            </p>
+          <div>
+            <BackButton to="/dashboard" label="Back" />
+            <h1 className="text-3xl font-bold tracking-tight">Staff Command Center</h1>
+            <p className="text-sm text-muted-foreground">Manage operations and monitor commissions.</p>
           </div>
           <Button asChild size="lg" className="gap-2">
             <Link to="/dashboard/ai-insights">
@@ -185,35 +216,15 @@ export default function StaffDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="w-full justify-start overflow-x-auto rounded-lg border bg-background p-1">
-            <TabsTrigger value="overview" className="px-4">
-              🏠 Overview
-            </TabsTrigger>
-            <TabsTrigger value="students" className="px-4">
-              🎓 Students
-            </TabsTrigger>
-            <TabsTrigger value="agents" className="px-4">
-              🤝 Agents
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="px-4">
-              📁 Tasks & Workflows
-            </TabsTrigger>
-            <TabsTrigger value="messages" className="px-4">
-              💬 Messages
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="px-4">
-              💸 Payments
-            </TabsTrigger>
-            <TabsTrigger value="resources" className="px-4">
-              📑 Resources
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="px-4">
-              🧠 Zoe
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="px-4">
-              ⚙️ Settings
-            </TabsTrigger>
+            <TabsTrigger value="overview">🏠 Overview</TabsTrigger>
+            <TabsTrigger value="students">🎓 Students</TabsTrigger>
+            <TabsTrigger value="agents">🤝 Agents</TabsTrigger>
+            <TabsTrigger value="tasks">📁 Tasks</TabsTrigger>
+            <TabsTrigger value="payments">💸 Payments</TabsTrigger>
+            <TabsTrigger value="ai">🧠 Zoe</TabsTrigger>
           </TabsList>
 
+          {/* === Overview Tab === */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
@@ -224,163 +235,163 @@ export default function StaffDashboard() {
 
               <div className="space-y-4">
                 <Card>
-                  <CardHeader className="pb-2">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
-                      <LineChart className="h-5 w-5 text-primary" /> Application progress
+                      <LineChart className="h-5 w-5 text-primary" /> Application Progress
                     </CardTitle>
-                    <CardDescription>
-                      Status mix across your assigned students.
-                    </CardDescription>
+                    <CardDescription>Status mix across assigned students.</CardDescription>
                   </CardHeader>
-                  <CardContent className="h-[280px]">
+                  <CardContent className="h-[260px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={applicationProgressData} barSize={28}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                        <XAxis dataKey="status" tickLine={false} axisLine={false} className="text-xs" />
-                        <YAxis allowDecimals={false} tickLine={false} axisLine={false} className="text-xs" />
-                        <RechartsTooltip cursor={{ fill: "hsl(var(--muted))" }} />
-                        <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[8, 8, 0, 0]} />
+                      <BarChart data={applicationProgressData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="status" />
+                        <YAxis allowDecimals={false} />
+                        <RechartsTooltip />
+                        <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Quick links</CardTitle>
-                    <CardDescription>
-                      Jump straight into your most-used views.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {quickLinks.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.label}
-                          to={item.to}
-                          className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon className="h-5 w-5 text-primary" />
-                            <div className="space-y-1">
-                              <p className="text-sm font-medium">{item.label}</p>
-                              <p className="text-xs text-muted-foreground">{item.description}</p>
-                            </div>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </Link>
-                      );
-                    })}
                   </CardContent>
                 </Card>
               </div>
 
               <div className="space-y-4">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
-                    <div>
-                      <CardTitle className="text-lg">Daily activity trend</CardTitle>
-                      <CardDescription>Track throughput and approvals over the last 7 days.</CardDescription>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
-                      Last 7 days
-                    </Badge>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Daily Activity</CardTitle>
+                    <CardDescription>Tasks & Approvals (last 7 days)</CardDescription>
                   </CardHeader>
-                  <CardContent className="h-[280px]">
+                  <CardContent className="h-[260px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <RechartsLineChart data={dailyActivityTrendData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
-                        <XAxis dataKey="day" axisLine={false} tickLine={false} className="text-xs" />
-                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} className="text-xs" />
-                        <RechartsTooltip cursor={{ strokeDasharray: "3 3" }} />
-                        <Legend verticalAlign="top" align="left" iconType="circle" wrapperStyle={{ paddingTop: 12 }} />
-                        <Line
-                          type="monotone"
-                          dataKey="tasks"
-                          name="Tasks completed"
-                          stroke="hsl(var(--chart-1))"
-                          strokeWidth={2}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 5 }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="approvals"
-                          name="Approvals"
-                          stroke="hsl(var(--chart-2))"
-                          strokeWidth={2}
-                          dot={{ r: 3 }}
-                          activeDot={{ r: 5 }}
-                        />
+                      <RechartsLineChart data={dailyActivityTrendData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="day" />
+                        <YAxis allowDecimals={false} />
+                        <RechartsTooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="tasks" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                        <Line type="monotone" dataKey="approvals" stroke="hsl(var(--chart-2))" strokeWidth={2} />
                       </RechartsLineChart>
                     </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Sparkles className="h-5 w-5 text-primary" /> Zoe’s AI tips
-                    </CardTitle>
-                    <CardDescription>
-                      Smart nudges tailored to today’s workload.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {zoeSuggestions.map((tip) => (
-                      <div
-                        key={tip.id}
-                        className="rounded-lg border p-3 text-sm leading-relaxed text-muted-foreground"
-                      >
-                        {tip.message}
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => setActiveTab("ai")}
-                    >
-                      <Bot className="h-4 w-4" /> Ask Zoe for more
-                    </Button>
                   </CardContent>
                 </Card>
               </div>
             </div>
           </TabsContent>
 
+          {/* === Students === */}
           <TabsContent value="students">
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
               <StaffStudentsTable />
             </Suspense>
           </TabsContent>
 
+          {/* === Agents === */}
           <TabsContent value="agents">
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
               <StaffAgentsLeaderboard />
             </Suspense>
           </TabsContent>
 
+          {/* === Tasks === */}
           <TabsContent value="tasks">
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
               <StaffTasksBoard />
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="messages">
-            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
-              <StaffMessagesTable />
-            </Suspense>
-          </TabsContent>
-
+          {/* === Payments === */}
           <TabsContent value="payments">
-            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
-              <StaffPaymentsTable />
-            </Suspense>
+            <Card>
+              <CardHeader className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" /> Payments & Commissions
+                  </CardTitle>
+                  <CardDescription>Monitor payouts and monthly totals.</CardDescription>
+                </div>
+                <Select value={payoutStatusFilter} onValueChange={(v) => setPayoutStatusFilter(v as any)}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="Filter status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All payouts</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardHeader>
+
+              <CardContent>
+                <div className="rounded-lg border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Agent</TableHead>
+                        <TableHead>Student</TableHead>
+                        <TableHead>Rate %</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {financeQuery.isPending ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center py-4">
+                            <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredCommissions.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-4">
+                            No commissions found.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredCommissions.map((row) => (
+                          <TableRow key={row.id}>
+                            <TableCell>{row.agentName}</TableCell>
+                            <TableCell>{row.studentName}</TableCell>
+                            <TableCell>{row.ratePercent}%</TableCell>
+                            <TableCell>{formatCurrency(row.amountCents, row.currency)}</TableCell>
+                            <TableCell>
+                              <Badge variant={row.payoutStatus === "paid" ? "secondary" : "outline"}>
+                                {row.payoutStatus}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{row.createdAt ? format(new Date(row.createdAt), "MMM d, yyyy") : "—"}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={updatingCommissionId === row.id}
+                                onClick={() => handleMarkReviewed(row.id)}
+                                className="gap-2"
+                              >
+                                {updatingCommissionId === row.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Updating…
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle2 className="h-4 w-4" /> Mark reviewed
+                                  </>
+                                )}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
+          {/* === Zoe === */}
           <TabsContent value="ai">
             <StaffZoeInsightsTab />
           </TabsContent>
