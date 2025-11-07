@@ -323,7 +323,7 @@ export function AIPoweredSearchSection() {
                       AI Insights
                     </CardTitle>
                     <CardDescription>
-                      Curated matches powered by OpenAI
+                      Curated matches powered by AI
                     </CardDescription>
                   </div>
                 </div>
