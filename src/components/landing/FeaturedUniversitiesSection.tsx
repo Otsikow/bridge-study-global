@@ -68,21 +68,20 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
       "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    id: "fallback-singapore",
-    name: "National University of Singapore",
-    country: "Singapore",
-    city: "Singapore",
-    logo_url:
-      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4c/National_University_of_Singapore_coat_of_arms.svg/1024px-National_University_of_Singapore_coat_of_arms.svg.png",
-    website: "https://www.nus.edu.sg",
-    ranking: { "QS Asia": "Top 1", Innovation: "Award-winning" },
+    id: "fallback-mit",
+    name: "Massachusetts Institute of Technology",
+    country: "United States",
+    city: "Cambridge, MA",
+    logo_url: "https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_logo.svg",
+    website: "https://www.mit.edu",
+    ranking: { "QS Global": "Top 1", Innovation: "Breakthrough research" },
     featured: true,
     featured_priority: 2,
     featured_summary:
-      "Innovative campus with a focus on AI, sustainability, and entrepreneurship programs.",
-    featured_highlight: "Accelerators and launchpads for student founders",
+      "World-leading hub for engineering, computing, and science with deep industry partnerships.",
+    featured_highlight: "Hands-on labs advancing AI, robotics, and climate tech",
     featured_image_url:
-      "https://images.unsplash.com/photo-1523905330026-b8bd1f5f320e?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "fallback-melbourne",
