@@ -12,6 +12,7 @@ import type {
   SendMessagePayload,
 } from './useMessages';
 import type { Tables } from '@/integrations/supabase/types';
+import { toast as sonnerToast } from '@/components/ui/sonner';
 
 type MessageRow = Tables<'messages'> & {
   sender?: {
@@ -335,6 +336,43 @@ export function useAgentMessages() {
       console.warn('Unable to play notification sound', error);
     }
   }, []);
+
+  const showNewMessageToast = useCallback(
+    (conversationId: string, message: Message) => {
+      if (!isAgent) return;
+
+      const conversation = conversationsRef.current.find((conv) => conv.id === conversationId);
+      const metadata = (conversation?.metadata ?? {}) as Record<string, unknown>;
+      const studentName = typeof metadata.studentName === 'string' ? metadata.studentName : undefined;
+      const title =
+        conversation?.name ||
+        conversation?.title ||
+        studentName ||
+        'New partner message';
+
+      let description = message.content?.trim();
+      if (!description && message.attachments.length > 0) {
+        description =
+          message.attachments.length === 1
+            ? 'Sent an attachment'
+            : `Sent ${message.attachments.length} attachments`;
+      }
+
+      sonnerToast(title, {
+        description: description || 'You received a new partner message.',
+        duration: 6000,
+        action: {
+          label: 'Open',
+          onClick: () => {
+            setCurrentConversation(conversationId);
+          },
+        },
+      });
+
+      void playNotificationSound();
+    },
+    [isAgent, playNotificationSound, setCurrentConversation]
+  );
 
   const markThreadRead = useCallback(
     (conversationId: string, threadMessages?: Message[]) => {
@@ -815,7 +853,7 @@ export function useAgentMessages() {
             (currentConversationRef.current !== conversationId ||
               (typeof document !== 'undefined' && document.visibilityState === 'hidden'))
           ) {
-            void playNotificationSound();
+            showNewMessageToast(conversationId, formatted);
           }
         }
       )
@@ -827,7 +865,15 @@ export function useAgentMessages() {
       supabase.removeChannel(channel);
       messagesChannelRef.current = null;
     };
-  }, [conversationIdsKey, isAgent, loadConversations, markThreadRead, playNotificationSound, supabase, user?.id]);
+  }, [
+    conversationIdsKey,
+    isAgent,
+    loadConversations,
+    markThreadRead,
+    showNewMessageToast,
+    supabase,
+    user?.id,
+  ]);
 
   const syncTypingState = useCallback(
     (state: Record<string, ZoePresenceState[]>, conversationId: string) => {
