@@ -259,6 +259,8 @@ const App = () => {
                         <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
                         <Route path="/search" element={<PublicLayout><UniversitySearch /></PublicLayout>} />
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
+                        <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
+                        <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
                         <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
                         <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
