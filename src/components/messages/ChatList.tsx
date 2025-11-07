@@ -158,54 +158,65 @@ export function ChatList({
                 </Button>
               )}
             </div>
-          ) : (
-            filteredConversations.map((conversation) => {
-              const name = getConversationName(conversation);
-              const avatarUrl = getConversationAvatar(conversation);
-              const isActive = currentConversation === conversation.id;
+            ) : (
+              filteredConversations.map((conversation) => {
+                const name = getConversationName(conversation);
+                const avatarUrl = getConversationAvatar(conversation);
+                const isActive = currentConversation === conversation.id;
+                const metadataSubtitle =
+                  conversation.metadata && typeof conversation.metadata === 'object'
+                    ? (conversation.metadata as { subtitle?: string }).subtitle
+                    : undefined;
 
-              return (
-                <button
-                  key={conversation.id}
-                  onClick={() => onSelectConversation(conversation.id)}
-                  className={cn(
-                    'w-full p-3 sm:p-4 flex items-start gap-2 sm:gap-3 hover:bg-accent transition-colors text-left',
-                    isActive && 'bg-accent'
-                  )}
-                >
-                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                    <AvatarImage src={avatarUrl || undefined} alt={name} />
-                    <AvatarFallback className="text-xs sm:text-sm">{getInitials(name)}</AvatarFallback>
-                  </Avatar>
+                return (
+                  <button
+                    key={conversation.id}
+                    onClick={() => onSelectConversation(conversation.id)}
+                    className={cn(
+                      'w-full p-3 sm:p-4 flex items-start gap-2 sm:gap-3 hover:bg-accent transition-colors text-left',
+                      isActive && 'bg-accent'
+                    )}
+                  >
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                      <AvatarImage src={avatarUrl || undefined} alt={name} />
+                      <AvatarFallback className="text-xs sm:text-sm">{getInitials(name)}</AvatarFallback>
+                    </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-sm sm:text-base truncate">{name}</h3>
-                      {conversation.lastMessage && (
-                        <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0 ml-2">
-                          {formatMessageTime(conversation.lastMessage.created_at)}
-                        </span>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{name}</h3>
+                        {conversation.lastMessage && (
+                          <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0 ml-2">
+                            {formatMessageTime(conversation.lastMessage.created_at)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-0.5">
+                        {metadataSubtitle && (
+                          <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                            {metadataSubtitle}
+                          </p>
+                        )}
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate flex-1">
+                            {getConversationPreview(conversation)}
+                          </p>
+                          {(conversation.unreadCount || 0) > 0 && (
+                            <Badge
+                              variant="default"
+                              className="flex-shrink-0 rounded-full px-1.5 sm:px-2 min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs"
+                            >
+                              {conversation.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate flex-1">
-                        {getConversationPreview(conversation)}
-                      </p>
-                      {(conversation.unreadCount || 0) > 0 && (
-                        <Badge
-                          variant="default"
-                          className="flex-shrink-0 rounded-full px-1.5 sm:px-2 min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs"
-                        >
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })
-          )}
+                  </button>
+                );
+              })
+            )}
         </div>
       </ScrollArea>
     </div>

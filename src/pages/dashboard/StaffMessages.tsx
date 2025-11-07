@@ -4,6 +4,7 @@ import BackButton from '@/components/BackButton';
 import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
 import { useMessages, type SendMessagePayload } from '@/hooks/useMessages';
+import { useAgentMessages } from '@/hooks/useAgentMessages';
 import { usePresence } from '@/hooks/usePresence';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -17,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,21 +35,41 @@ interface AgentContact {
 export default function StaffMessages() {
   const { profile } = useAuth();
   const { toast } = useToast();
-  const {
-    conversations,
-    currentConversation,
-    setCurrentConversation,
-    messages,
-    typingUsers,
-    loading,
-    sendMessage,
-    startTyping,
-    stopTyping,
-    getOrCreateConversation,
-  } = useMessages();
+  const agentMessaging = useAgentMessages();
+  const defaultMessaging = useMessages();
 
   const { getUserPresence, isUserOnline } = usePresence();
-  const isAgent = profile?.role === 'agent';
+  const usingAgentMessaging = agentMessaging.enabled;
+
+  const conversations = usingAgentMessaging
+    ? agentMessaging.conversations
+    : defaultMessaging.conversations;
+  const currentConversation = usingAgentMessaging
+    ? agentMessaging.currentConversation
+    : defaultMessaging.currentConversation;
+  const setCurrentConversation = usingAgentMessaging
+    ? agentMessaging.setCurrentConversation
+    : defaultMessaging.setCurrentConversation;
+  const messages = usingAgentMessaging ? agentMessaging.messages : defaultMessaging.messages;
+  const typingUsers = usingAgentMessaging
+    ? agentMessaging.typingUsers
+    : defaultMessaging.typingUsers;
+  const loading = usingAgentMessaging ? agentMessaging.loading : defaultMessaging.loading;
+  const sendMessageImpl = usingAgentMessaging
+    ? agentMessaging.sendMessage
+    : defaultMessaging.sendMessage;
+  const startTypingImpl = usingAgentMessaging
+    ? agentMessaging.startTyping
+    : defaultMessaging.startTyping;
+  const stopTypingImpl = usingAgentMessaging
+    ? agentMessaging.stopTyping
+    : defaultMessaging.stopTyping;
+  const getOrCreateConversationImpl = usingAgentMessaging
+    ? agentMessaging.getOrCreateConversation
+    : defaultMessaging.getOrCreateConversation;
+
+  const isAgentProfile = profile?.role === 'agent';
+  const canStartNewChat = !usingAgentMessaging && isAgentProfile;
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [contacts, setContacts] = useState<AgentContact[]>([]);
@@ -64,31 +85,27 @@ export default function StaffMessages() {
 
   const handleSendMessage = (payload: SendMessagePayload) => {
     if (currentConversation) {
-      sendMessage(currentConversation, payload);
+      sendMessageImpl(currentConversation, payload);
     }
   };
 
   const handleStartTyping = () => {
-    if (currentConversation) {
-      startTyping(currentConversation);
-    }
+    startTypingImpl(currentConversation ?? undefined);
   };
 
   const handleStopTyping = () => {
-    if (currentConversation) {
-      stopTyping(currentConversation);
-    }
+    stopTypingImpl(currentConversation ?? undefined);
   };
 
   const handleNewChat = () => {
-    if (isAgent) {
+    if (canStartNewChat) {
       setShowNewChatDialog(true);
     }
   };
 
   const fetchContacts = useCallback(
     async (query: string) => {
-      if (!isAgent) {
+      if (!canStartNewChat) {
         return;
       }
 
@@ -113,7 +130,7 @@ export default function StaffMessages() {
         setLoadingContacts(false);
       }
     },
-    [isAgent, toast]
+    [canStartNewChat, toast]
   );
 
   const handleNewChatDialogChange = (open: boolean) => {
@@ -126,7 +143,7 @@ export default function StaffMessages() {
   };
 
   const handleSelectContact = async (contact: AgentContact) => {
-    const conversationId = await getOrCreateConversation(contact.profile_id);
+    const conversationId = await getOrCreateConversationImpl(contact.profile_id);
     if (conversationId) {
       setCurrentConversation(conversationId);
       setShowNewChatDialog(false);
@@ -154,6 +171,15 @@ export default function StaffMessages() {
 
   const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
 
+  const handleAskZoe = () => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(
+      new CustomEvent('zoe:open-chat', {
+        detail: { prompt: 'Help me respond to this conversation.' },
+      })
+    );
+  };
+
   return (
     <DashboardLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
@@ -172,11 +198,24 @@ export default function StaffMessages() {
                 Communicate with students and partners
               </p>
             </div>
-            {totalUnread > 0 && (
-              <Badge variant="destructive" className="text-sm px-3 py-1">
-                {totalUnread} unread
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              {usingAgentMessaging && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={handleAskZoe}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Ask Zoe
+                </Button>
+              )}
+              {totalUnread > 0 && (
+                <Badge variant="destructive" className="text-sm px-3 py-1">
+                  {totalUnread} unread
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 
@@ -188,7 +227,7 @@ export default function StaffMessages() {
               conversations={conversations}
               currentConversation={currentConversation}
               onSelectConversation={handleSelectConversation}
-              onNewChat={isAgent ? handleNewChat : undefined}
+              onNewChat={canStartNewChat ? handleNewChat : undefined}
             />
           </div>
 
@@ -226,15 +265,15 @@ export default function StaffMessages() {
               />
             </div>
           )}
-          {isAgent && (
+          {canStartNewChat && (
             <Dialog open={showNewChatDialog} onOpenChange={handleNewChatDialogChange}>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>New Message</DialogTitle>
-                    <DialogDescription>
-                      Message your assigned students or reach out to the staff team.
-                    </DialogDescription>
-                  </DialogHeader>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>New Message</DialogTitle>
+                  <DialogDescription>
+                    Message your assigned students or reach out to the staff team.
+                  </DialogDescription>
+                </DialogHeader>
 
                 <div className="space-y-4">
                   <div className="relative">
