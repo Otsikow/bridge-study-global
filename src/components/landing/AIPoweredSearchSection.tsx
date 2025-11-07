@@ -472,14 +472,22 @@ export function AIPoweredSearchSection() {
                     </CardDescription>
                   </div>
                 </div>
-                {isSample && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-primary/10 text-primary"
-                  >
-                    Preview
-                  </Badge>
-                )}
+                <div className="flex items-center gap-3">
+                  {isSample && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-primary/10 text-primary"
+                    >
+                      Preview
+                    </Badge>
+                  )}
+                  <Button asChild size="sm" className="rounded-lg px-4">
+                    <Link to="/auth/signup?feature=ai-search">
+                      Get Started
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 {loading && (
