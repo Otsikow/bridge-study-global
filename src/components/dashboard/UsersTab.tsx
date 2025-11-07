@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Search, Filter, UserPlus, ShieldCheck, Activity, Clock, Users as UsersIcon } from 'lucide-react';
 import { differenceInDays, formatDistanceToNow } from 'date-fns';
 
@@ -129,6 +130,7 @@ const mapStaffProfile = (record: RawStaffProfile): StaffProfile => ({
 });
 
 export default function UsersTab() {
+  const { profile } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -292,7 +294,7 @@ export default function UsersTab() {
           full_name: payload.full_name,
           email: payload.email,
           role: 'staff',
-          tenant_id: tenantId,
+          tenant_id: profile?.tenant_id,
         })
         .select()
         .single();

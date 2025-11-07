@@ -159,7 +159,7 @@ serve(async (req) => {
 
     const cleanBase64 = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
     const bytes = base64ToUint8Array(cleanBase64);
-    const blob = new Blob([bytes], { type: mimeType });
+    const blob = new Blob([bytes as BlobPart], { type: mimeType });
 
     const fileBase = universityId ?? crypto.randomUUID();
     const timestamp = new Date().toISOString().replace(/[-:]/g, "").split(".")[0];

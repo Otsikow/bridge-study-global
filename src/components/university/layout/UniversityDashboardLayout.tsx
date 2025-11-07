@@ -3,6 +3,7 @@ import {
   useContext,
   useMemo,
   useState,
+  useEffect,
   ReactNode,
 } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -656,21 +657,25 @@ export const UniversityDashboardLayout = ({
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 1,
-    onError: (err) => {
-      console.error("Failed to load university dashboard", err);
+  });
+
+  // Handle errors separately
+  useEffect(() => {
+    if (error) {
+      console.error("Failed to load university dashboard", error);
       toast({
         title: "Unable to load dashboard",
         description:
-          (err as Error)?.message ??
+          (error as Error)?.message ??
           "Something went wrong while loading your dashboard.",
         variant: "destructive",
       });
-    },
-  });
+    }
+  }, [error, toast]);
 
   const contextValue = useMemo<UniversityDashboardContextValue>(
     () => ({
-      data: data ?? null,
+      data: data ?? buildEmptyDashboardData(),
       isLoading,
       isRefetching: isFetching,
       error: error ? (error as Error).message : null,

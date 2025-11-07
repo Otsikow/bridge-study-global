@@ -253,6 +253,13 @@ serve(async (req) => {
       });
     }
 
+    if (!context) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const profile = await fetchProfile(context.userId);
     const audienceFilter = sanitizeAudience(body.audience ?? profile?.role ?? null);
     const preferredLocale = normalizeLocale(body.locale ?? profile?.locale ?? navigatorLocale(req.headers));
@@ -359,7 +366,7 @@ serve(async (req) => {
       temperature: 0.2,
       max_tokens: 900,
       stream: true,
-      messages: structuredMessages,
+      messages: structuredMessages as any,
     });
 
     const stream = new ReadableStream({

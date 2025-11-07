@@ -333,7 +333,6 @@ const App = () => {
                           <Route path="settings" element={<AdminSettingsPage />} />
                           <Route path="notifications" element={<AdminNotificationsPage />} />
                           <Route path="logs" element={<AdminLogsPage />} />
-                          <Route path="tools" element={<AdminToolsPage />} />
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
                         </Route>
