@@ -205,6 +205,7 @@ const MyRanking = lazyWithErrorHandling(() => import("./pages/dashboard/my-ranki
 const AgentStudentsPage = lazyWithErrorHandling(() => import("./pages/dashboard/my-students"));
 const ImportPage = lazyWithErrorHandling(() => import("./pages/dashboard/import"));
 const AgentResources = lazyWithErrorHandling(() => import("./pages/dashboard/resources"));
+const OffersManagement = lazyWithErrorHandling(() => import("./pages/dashboard/OffersManagement"));
 
 // ✅ Main App component
 const App = () => {
@@ -395,6 +396,14 @@ const App = () => {
                           element={
                             <ProtectedRoute allowedRoles={["agent"]}>
                               <MyRanking />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/dashboard/offers"
+                          element={
+                            <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
+                              <OffersManagement />
                             </ProtectedRoute>
                           }
                         />
