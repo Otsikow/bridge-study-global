@@ -219,16 +219,20 @@ const isWithinLastDays = (dateISO: string | null, days: number) => {
 const fetchUniversityDashboardData = async (
   tenantId: string,
 ): Promise<UniversityDashboardData> => {
-  const { data: uniData, error: uniError } = await supabase
+  const { data: uniRows, error: uniError } = await supabase
     .from("universities")
     .select("*")
     .eq("tenant_id", tenantId)
     .eq("active", true)
-    .maybeSingle();
+    .order("updated_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1);
 
   if (uniError) {
     throw uniError;
   }
+
+  const uniData = (uniRows?.[0] ?? null) as Nullable<UniversityRecord>;
 
   if (!uniData) {
     return buildEmptyDashboardData();
