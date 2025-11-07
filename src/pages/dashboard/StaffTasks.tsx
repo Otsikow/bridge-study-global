@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { format, endOfDay, endOfWeek, isWithinInterval, startOfDay, startOfWeek } from 'date-fns';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,18 +26,18 @@ import {
 import { Label } from '@/components/ui/label';
 import {
   Search,
-  Filter,
-  CheckSquare,
   Plus,
   Calendar,
   User,
   FileText,
   Loader2,
+  BarChart3,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatErrorForToast, logError } from '@/lib/errorUtils';
+import { Progress } from '@/components/ui/progress';
 
 type TaskPriority = 'high' | 'medium' | 'low';
 type UiTaskStatus = 'todo' | 'in_progress' | 'completed' | 'blocked';
@@ -54,6 +55,8 @@ interface Task {
   relatedTo?: string;
   applicationId?: string | null;
   createdAt: string;
+  updatedAt: string | null;
+  isBlocked?: boolean;
 }
 
 interface NewTaskForm {
@@ -71,6 +74,7 @@ interface AssigneeOption {
 
 type StatusFilter = 'all' | UiTaskStatus;
 type PriorityFilter = 'all' | TaskPriority;
+type DeadlineFilter = 'all' | 'overdue' | 'due_today' | 'due_this_week' | 'no_due';
 
 const dbStatusToUi = (status: string | null): UiTaskStatus => {
   switch (status) {
@@ -125,6 +129,15 @@ export default function StaffTasks() {
   const [creatingTask, setCreatingTask] = useState(false);
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
   const [newTask, setNewTask] = useState<NewTaskForm>(() => getInitialNewTask(null));
+  const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>('all');
+  const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [columnOrder, setColumnOrder] = useState<Record<UiTaskStatus, string[]>>({
+    todo: [],
+    in_progress: [],
+    completed: [],
+    blocked: [],
+  });
 
   const canManageTasks = profile?.role === 'staff' || profile?.role === 'admin';
 
@@ -165,13 +178,18 @@ export default function StaffTasks() {
         options.push({ id: member.id, label: member.full_name ?? 'Unnamed User' });
       });
 
+      options.push({ id: 'unassigned', label: 'Unassigned' });
+
       setAssignees(options);
     } catch (error) {
       logError(error, 'StaffTasks.loadAssignees');
       toast(formatErrorForToast(error, 'Failed to load team members'));
       if (profile) {
         const fallback = profile.full_name ? `${profile.full_name} (You)` : 'You';
-        setAssignees([{ id: profile.id, label: fallback }]);
+        setAssignees([
+          { id: profile.id, label: fallback },
+          { id: 'unassigned', label: 'Unassigned' },
+        ]);
       }
     }
   }, [profile, canManageTasks, toast]);
@@ -183,7 +201,9 @@ export default function StaffTasks() {
     try {
       let query = supabase
         .from('tasks')
-        .select('id, title, description, status, priority, due_at, assignee_id, application_id, created_at, tenant_id')
+        .select(
+          'id, title, description, status, priority, due_at, assignee_id, application_id, created_at, updated_at, tenant_id',
+        )
         .order('due_at', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: false });
 
@@ -243,21 +263,43 @@ export default function StaffTasks() {
             ? assigneeMap.get(task.assignee_id) ?? 'Unassigned'
             : 'Unassigned';
 
+        const uiStatus = dbStatusToUi(task.status);
+        const isBlocked = uiStatus === 'blocked';
+        const normalizedStatus: UiTaskStatus = isBlocked ? 'todo' : uiStatus;
+
         return {
           id: task.id,
           title: task.title,
           description: task.description ?? '',
           priority: normalizePriority(task.priority),
-          status: dbStatusToUi(task.status),
+          status: normalizedStatus,
           dueDate: task.due_at ?? null,
           assignedTo: assignedName,
           assigneeId: task.assignee_id,
           relatedTo: task.application_id ? relatedMap.get(task.application_id) : undefined,
           applicationId: task.application_id,
           createdAt: task.created_at,
+          updatedAt: task.updated_at ?? null,
+          isBlocked,
         };
       });
 
+      const nextOrder: Record<UiTaskStatus, string[]> = {
+        todo: [],
+        in_progress: [],
+        completed: [],
+        blocked: [],
+      };
+
+      mappedTasks.forEach((task) => {
+        if (task.isBlocked) {
+          nextOrder.blocked.push(task.id);
+        } else {
+          nextOrder[task.status]?.push(task.id);
+        }
+      });
+
+      setColumnOrder(nextOrder);
       setTasks(mappedTasks);
     } catch (error) {
       logError(error, 'StaffTasks.loadTasks');
@@ -306,6 +348,8 @@ export default function StaffTasks() {
 
     setCreatingTask(true);
     try {
+      const assigneeValue = newTask.assigneeId === 'unassigned' ? null : newTask.assigneeId || null;
+
       const payload = {
         tenant_id: profile.tenant_id,
         title: newTask.title.trim(),
@@ -313,7 +357,7 @@ export default function StaffTasks() {
         priority: newTask.priority,
         status: 'open' as DbTaskStatus,
         due_at: newTask.dueDate ? new Date(newTask.dueDate).toISOString() : null,
-        assignee_id: newTask.assigneeId || null,
+        assignee_id: assigneeValue,
         created_by: profile.id,
       };
 
@@ -340,37 +384,153 @@ export default function StaffTasks() {
     [profile, canManageTasks],
   );
 
+  const persistTaskStatus = useCallback(
+    async (taskId: string, nextStatus: UiTaskStatus) => {
+      setUpdatingTaskId(taskId);
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .update({ status: uiStatusToDb(nextStatus) })
+          .eq('id', taskId);
+
+        if (error) throw error;
+
+        setTasks((prev) =>
+          prev.map((item) =>
+            item.id === taskId
+              ? { ...item, status: nextStatus, isBlocked: false, updatedAt: new Date().toISOString() }
+              : item,
+          ),
+        );
+        toast({ title: 'Task updated', description: 'Task status has been updated.' });
+      } catch (error) {
+        logError(error, 'StaffTasks.persistTaskStatus');
+        toast(formatErrorForToast(error, 'Failed to update task'));
+        await loadTasks();
+      } finally {
+        setUpdatingTaskId(null);
+      }
+    },
+    [toast, loadTasks],
+  );
+
+  const reorderTask = useCallback((taskId: string, targetStatus: UiTaskStatus, beforeTaskId: string | null) => {
+    setColumnOrder((prev) => {
+      const next: Record<UiTaskStatus, string[]> = {
+        todo: [...prev.todo],
+        in_progress: [...prev.in_progress],
+        completed: [...prev.completed],
+        blocked: [...prev.blocked],
+      };
+
+      (Object.keys(next) as UiTaskStatus[]).forEach((status) => {
+        next[status] = next[status].filter((id) => id !== taskId);
+      });
+
+      const list = [...next[targetStatus]];
+      if (beforeTaskId) {
+        const insertIndex = list.indexOf(beforeTaskId);
+        if (insertIndex === -1) {
+          list.push(taskId);
+        } else {
+          list.splice(insertIndex, 0, taskId);
+        }
+      } else {
+        list.push(taskId);
+      }
+
+      next[targetStatus] = list;
+      return next;
+    });
+  }, []);
+
   const handleStatusChange = useCallback(
     async (task: Task, nextStatus: UiTaskStatus) => {
       if (!profile) return;
       if (!canUpdateTask(task)) return;
       if (task.status === nextStatus) return;
 
-      setUpdatingTaskId(task.id);
-      try {
-        const { error } = await supabase
-          .from('tasks')
-          .update({ status: uiStatusToDb(nextStatus) })
-          .eq('id', task.id);
+      reorderTask(task.id, nextStatus, null);
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === task.id ? { ...item, status: nextStatus, isBlocked: false } : item,
+        ),
+      );
+      await persistTaskStatus(task.id, nextStatus);
+    },
+    [profile, canUpdateTask, reorderTask, persistTaskStatus],
+  );
 
-        if (error) throw error;
+  const handleDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, taskId: string) => {
+    if (!event.dataTransfer) return;
+    event.dataTransfer.setData('text/plain', taskId);
+    event.dataTransfer.effectAllowed = 'move';
+    setDraggingTaskId(taskId);
+  }, []);
 
+  const handleDragEnd = useCallback(() => {
+    setDraggingTaskId(null);
+  }, []);
+
+  const taskMap = useMemo(() => {
+    const map = new Map<string, Task>();
+    tasks.forEach((task) => map.set(task.id, task));
+    return map;
+  }, [tasks]);
+
+  const handleDropOnColumn = useCallback(
+    (event: React.DragEvent<HTMLDivElement>, status: UiTaskStatus) => {
+      event.preventDefault();
+      const taskId = event.dataTransfer?.getData('text/plain');
+      if (!taskId) return;
+
+      setDraggingTaskId(null);
+      const task = taskMap.get(taskId);
+      if (!task) return;
+
+      reorderTask(taskId, status, null);
+      if (task.status !== status || task.isBlocked) {
         setTasks((prev) =>
-          prev.map((item) => (item.id === task.id ? { ...item, status: nextStatus } : item))
+          prev.map((item) =>
+            item.id === taskId ? { ...item, status, isBlocked: false } : item,
+          ),
         );
-        toast({ title: 'Task updated', description: 'Task status has been updated.' });
-      } catch (error) {
-        logError(error, 'StaffTasks.handleStatusChange');
-        toast(formatErrorForToast(error, 'Failed to update task'));
-      } finally {
-        setUpdatingTaskId(null);
+        void persistTaskStatus(taskId, status);
       }
     },
-    [profile, canUpdateTask, toast],
+    [taskMap, reorderTask, persistTaskStatus],
+  );
+
+  const handleDropOnTask = useCallback(
+    (event: React.DragEvent<HTMLDivElement>, status: UiTaskStatus, beforeTaskId: string) => {
+      event.preventDefault();
+      const taskId = event.dataTransfer?.getData('text/plain');
+      if (!taskId || taskId === beforeTaskId) return;
+
+      setDraggingTaskId(null);
+      const task = taskMap.get(taskId);
+      if (!task) return;
+
+      reorderTask(taskId, status, beforeTaskId);
+      if (task.status !== status || task.isBlocked) {
+        setTasks((prev) =>
+          prev.map((item) =>
+            item.id === taskId ? { ...item, status, isBlocked: false } : item,
+          ),
+        );
+        void persistTaskStatus(taskId, status);
+      }
+    },
+    [taskMap, reorderTask, persistTaskStatus],
   );
 
   const filteredTasks = useMemo(() => {
     const search = searchQuery.trim().toLowerCase();
+    const now = new Date();
+    const startWeek = startOfWeek(now, { weekStartsOn: 1 });
+    const endWeek = endOfWeek(now, { weekStartsOn: 1 });
+    const todayStart = startOfDay(now);
+    const todayEnd = endOfDay(now);
 
     return tasks.filter((task) => {
       const matchesSearch =
@@ -379,22 +539,89 @@ export default function StaffTasks() {
           .map((value) => value.toLowerCase())
           .some((value) => value.includes(search));
 
-      const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+      const matchesStatus =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'blocked'
+          ? Boolean(task.isBlocked)
+          : task.status === statusFilter;
       const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
 
-      return matchesSearch && matchesStatus && matchesPriority;
-    });
-  }, [tasks, searchQuery, statusFilter, priorityFilter]);
+      const matchesAssignee =
+        assigneeFilter === 'all'
+          ? true
+          : assigneeFilter === 'unassigned'
+          ? task.assigneeId === null
+          : task.assigneeId === assigneeFilter;
 
-  const totals = useMemo(
-    () => ({
+      const matchesDeadline = (() => {
+        if (deadlineFilter === 'all') return true;
+        if (!task.dueDate) {
+          return deadlineFilter === 'no_due';
+        }
+
+        const due = new Date(task.dueDate);
+        if (Number.isNaN(due.getTime())) {
+          return deadlineFilter === 'no_due';
+        }
+
+        switch (deadlineFilter) {
+          case 'overdue':
+            return due < todayStart;
+          case 'due_today':
+            return isWithinInterval(due, { start: todayStart, end: todayEnd });
+          case 'due_this_week':
+            return isWithinInterval(due, { start: startWeek, end: endWeek });
+          case 'no_due':
+            return false;
+          default:
+            return true;
+        }
+      })();
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesDeadline && matchesAssignee;
+    });
+  }, [tasks, searchQuery, statusFilter, priorityFilter, deadlineFilter, assigneeFilter]);
+
+  const totals = useMemo(() => {
+    const completed = tasks.filter((task) => task.status === 'completed');
+    const now = new Date();
+    const startWeek = startOfWeek(now, { weekStartsOn: 1 });
+    const endWeek = endOfWeek(now, { weekStartsOn: 1 });
+
+    const completedThisWeek = completed.filter((task) => {
+      if (!task.updatedAt) return false;
+      const updated = new Date(task.updatedAt);
+      if (Number.isNaN(updated.getTime())) return false;
+      return isWithinInterval(updated, { start: startWeek, end: endWeek });
+    }).length;
+
+    const completionRate = tasks.length ? Math.round((completed.length / tasks.length) * 100) : 0;
+
+    return {
       total: tasks.length,
       todo: tasks.filter((task) => task.status === 'todo').length,
       inProgress: tasks.filter((task) => task.status === 'in_progress').length,
-      completed: tasks.filter((task) => task.status === 'completed').length,
-    }),
-    [tasks],
-  );
+      completed: completed.length,
+      completedThisWeek,
+      completionRate,
+    };
+  }, [tasks]);
+
+  const filteredTaskSet = useMemo(() => new Set(filteredTasks.map((task) => task.id)), [filteredTasks]);
+
+  const boardColumns = useMemo(() => {
+    const selectTasks = (ids: string[]) =>
+      ids
+        .map((id) => taskMap.get(id))
+        .filter((task): task is Task => Boolean(task && filteredTaskSet.has(task.id)));
+
+    return {
+      todo: [...selectTasks(columnOrder.todo), ...selectTasks(columnOrder.blocked)],
+      in_progress: selectTasks(columnOrder.in_progress),
+      completed: selectTasks(columnOrder.completed),
+    };
+  }, [columnOrder, taskMap, filteredTaskSet]);
 
   const getPriorityBadge = (priority: string) => {
     const colors = {
@@ -565,243 +792,296 @@ export default function StaffTasks() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Tasks
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Tasks</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{totals.total}</div>
+              <div className="text-3xl font-semibold">{totals.total}</div>
+              <p className="mt-1 text-sm text-muted-foreground">Across all boards</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                To Do
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">To-Do</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                  {totals.todo}
+              <div className="text-3xl font-semibold">{totals.todo}</div>
+              <p className="mt-1 text-sm text-muted-foreground">Awaiting kickoff</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">In Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-semibold text-blue-600">{totals.inProgress}</div>
+              <p className="mt-1 text-sm text-muted-foreground">Actively moving forward</p>
+            </CardContent>
+          </Card>
+          <Card className="md:col-span-2 xl:col-span-1">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Progress</CardTitle>
+                <CardDescription>Completed this week vs total</CardDescription>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                In Progress
-              </CardTitle>
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                  {totals.inProgress}
+            <CardContent className="space-y-3">
+              <div className="text-3xl font-semibold text-success">{totals.completed}</div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{totals.completedThisWeek} completed this week</span>
+                <span>{totals.completionRate}% overall</span>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Completed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="text-2xl font-bold text-success">
-                  {totals.completed}
-                </div>
+              <Progress value={totals.completionRate} className="h-2" />
             </CardContent>
           </Card>
         </div>
 
         {/* Filters and Search */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Filter Tasks</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => setStatusFilter(value as StatusFilter)}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="todo">To Do</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="blocked">Blocked</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={priorityFilter}
-                  onValueChange={(value) => setPriorityFilter(value as PriorityFilter)}
-                >
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priority</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-        {/* Tasks List */}
         <Card>
           <CardHeader>
-            <CardTitle>Tasks List</CardTitle>
-              <CardDescription>
-                {loading ? 'Loading tasks...' : `${filteredTasks.length} task(s) found`}
-              </CardDescription>
+            <CardTitle>Filter Tasks</CardTitle>
+            <CardDescription>Refine the board by assignee, deadline, and priority.</CardDescription>
           </CardHeader>
           <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  Loading tasks...
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-4">
-                    {filteredTasks.map((task) => {
-                      const overdue = isOverdue(task.dueDate) && task.status !== 'completed';
-                      const dueToday = isDueToday(task.dueDate) && task.status !== 'completed';
-                      const dueLabel = task.dueDate
-                        ? new Date(task.dueDate).toLocaleDateString()
-                        : 'No due date';
-                      const allowStart = task.status === 'todo' && canUpdateTask(task);
-                      const allowComplete = task.status === 'in_progress' && canUpdateTask(task);
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="todo">To-Do</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="blocked">Blocked</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as PriorityFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priority</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={deadlineFilter} onValueChange={(value) => setDeadlineFilter(value as DeadlineFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Deadline" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any deadline</SelectItem>
+                  <SelectItem value="overdue">Overdue</SelectItem>
+                  <SelectItem value="due_today">Due today</SelectItem>
+                  <SelectItem value="due_this_week">Due this week</SelectItem>
+                  <SelectItem value="no_due">No deadline</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={assigneeFilter} onValueChange={(value) => setAssigneeFilter(value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Assigned to" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All assignees</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {assignees
+                    .filter((option) => option.id !== 'unassigned')
+                    .map((assignee) => (
+                      <SelectItem key={assignee.id} value={assignee.id}>
+                        {assignee.label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
 
-                      return (
-                        <Card key={task.id} className="hover:bg-muted/50 transition-colors">
-                          <CardContent className="pt-6">
-                            <div className="flex items-start gap-4">
-                              <div className="flex-shrink-0 mt-1">
-                                <CheckSquare
-                                  className={`h-5 w-5 ${
-                                    task.status === 'completed'
-                                      ? 'text-success'
-                                      : 'text-muted-foreground'
-                                  }`}
-                                />
-                              </div>
-                              <div className="flex-1 space-y-3">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <h3 className="font-semibold text-base">{task.title}</h3>
-                                      <Badge
-                                        variant="outline"
-                                        className={getPriorityBadge(task.priority)}
-                                      >
-                                        {task.priority}
-                                      </Badge>
-                                      <Badge
-                                        variant="outline"
-                                        className={getStatusBadge(task.status)}
-                                      >
-                                        {getStatusLabel(task.status)}
-                                      </Badge>
-                                    </div>
-                                    {task.description && (
-                                      <p className="text-sm text-muted-foreground mb-2">
-                                        {task.description}
-                                      </p>
-                                    )}
-                                    {task.relatedTo && (
-                                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <FileText className="h-3 w-3" />
-                                        Related to: {task.relatedTo}
+        {/* Tasks Board */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Kanban Board</CardTitle>
+            <CardDescription>
+              {loading
+                ? 'Loading tasks from Supabase...'
+                : `${filteredTasks.length} task${filteredTasks.length === 1 ? '' : 's'} in view`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Fetching latest tasks...
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-3">
+                {(['todo', 'in_progress', 'completed'] as UiTaskStatus[]).map((status) => {
+                  const columnTitle =
+                    status === 'todo' ? 'To-Do' : status === 'in_progress' ? 'In Progress' : 'Completed';
+                  const columnTasks = boardColumns[status];
+                  const columnDescription =
+                    status === 'todo'
+                      ? 'Tasks waiting to be started'
+                      : status === 'in_progress'
+                      ? 'Work that is currently active'
+                      : 'Recently finished work';
+
+                  return (
+                    <div key={status} className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold">{columnTitle}</h3>
+                          <p className="text-xs text-muted-foreground">{columnDescription}</p>
+                        </div>
+                        <Badge variant="outline" className={getStatusBadge(status)}>
+                          {columnTasks.length}
+                        </Badge>
+                      </div>
+                      <div
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={(event) => handleDropOnColumn(event, status)}
+                        className="min-h-[260px] rounded-xl border border-dashed border-border/60 bg-muted/30 p-3 shadow-sm"
+                      >
+                        <div className="space-y-3">
+                          {columnTasks.map((task) => {
+                            const overdue = isOverdue(task.dueDate) && task.status !== 'completed';
+                            const dueToday = isDueToday(task.dueDate) && task.status !== 'completed';
+                            const dueDateValue = task.dueDate ? new Date(task.dueDate) : null;
+                            const dueLabel =
+                              dueDateValue && !Number.isNaN(dueDateValue.getTime())
+                                ? format(dueDateValue, 'MMM d, yyyy')
+                                : 'No deadline';
+                            const allowStart = task.status === 'todo' && canUpdateTask(task);
+                            const allowComplete = task.status === 'in_progress' && canUpdateTask(task);
+
+                            return (
+                              <div
+                                key={task.id}
+                                onDragOver={(event) => event.preventDefault()}
+                                onDrop={(event) => handleDropOnTask(event, status, task.id)}
+                              >
+                                <Card
+                                  draggable={canUpdateTask(task)}
+                                  onDragStart={(event) => handleDragStart(event, task.id)}
+                                  onDragEnd={handleDragEnd}
+                                  className={`transition-all ${
+                                    draggingTaskId === task.id ? 'ring-2 ring-primary shadow-lg' : ''
+                                  } ${!canUpdateTask(task) ? 'opacity-60 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+                                >
+                                  <CardContent className="space-y-3 pt-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                      <div className="space-y-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <h4 className="font-semibold leading-tight">{task.title}</h4>
+                                          <Badge variant="outline" className={getPriorityBadge(task.priority)}>
+                                            {task.priority}
+                                          </Badge>
+                                          {task.isBlocked && (
+                                            <Badge variant="outline" className="border-destructive/40 text-destructive">
+                                              Blocked
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        {task.description && (
+                                          <p className="text-sm text-muted-foreground line-clamp-3">
+                                            {task.description}
+                                          </p>
+                                        )}
+                                        {task.relatedTo && (
+                                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <FileText className="h-3 w-3" />
+                                            {task.relatedTo}
+                                          </div>
+                                        )}
                                       </div>
-                                    )}
-                                  </div>
-                                  <div className="text-right space-y-2">
-                                    <div className="flex items-center justify-end gap-1 text-sm">
-                                      <Calendar className="h-3 w-3" />
-                                      <span
-                                        className={
-                                          overdue
-                                            ? 'text-destructive font-medium'
-                                            : dueToday
-                                            ? 'text-warning font-medium'
-                                            : ''
-                                        }
-                                      >
-                                        {dueLabel}
-                                      </span>
+                                      <div className="text-right text-xs text-muted-foreground space-y-2">
+                                        <div className="flex items-center justify-end gap-1 text-sm">
+                                          <Calendar className="h-3 w-3" />
+                                          <span
+                                            className={
+                                              overdue
+                                                ? 'text-destructive font-medium'
+                                                : dueToday
+                                                ? 'text-warning font-medium'
+                                                : ''
+                                            }
+                                          >
+                                            {dueLabel}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center justify-end gap-1">
+                                          <User className="h-3 w-3" />
+                                          <span>{task.assignedTo}</span>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground">
-                                      <User className="h-3 w-3" />
-                                      {task.assignedTo}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {task.status !== 'completed' ? (
+                                        <>
+                                          {task.status === 'todo' && (
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              onClick={() => void handleStatusChange(task, 'in_progress')}
+                                              disabled={!allowStart || updatingTaskId === task.id}
+                                            >
+                                              {updatingTaskId === task.id && (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              )}
+                                              Start Task
+                                            </Button>
+                                          )}
+                                          {task.status === 'in_progress' && (
+                                            <Button
+                                              size="sm"
+                                              variant="secondary"
+                                              onClick={() => void handleStatusChange(task, 'completed')}
+                                              disabled={!allowComplete || updatingTaskId === task.id}
+                                            >
+                                              {updatingTaskId === task.id && (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              )}
+                                              Mark Complete
+                                            </Button>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <Badge variant="outline" className={getStatusBadge('completed')}>
+                                          Completed
+                                        </Badge>
+                                      )}
                                     </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Button variant="outline" size="sm" disabled>
-                                    View Details
-                                  </Button>
-                                  {task.status !== 'completed' && (
-                                    <>
-                                      {task.status === 'todo' && (
-                                        <Button
-                                          size="sm"
-                                          onClick={() => void handleStatusChange(task, 'in_progress')}
-                                          disabled={!allowStart || updatingTaskId === task.id}
-                                        >
-                                          {updatingTaskId === task.id && (
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                          )}
-                                          Start Task
-                                        </Button>
-                                      )}
-                                      {task.status === 'in_progress' && (
-                                        <Button
-                                          size="sm"
-                                          onClick={() => void handleStatusChange(task, 'completed')}
-                                          disabled={!allowComplete || updatingTaskId === task.id}
-                                        >
-                                          {updatingTaskId === task.id && (
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                          )}
-                                          Mark Complete
-                                        </Button>
-                                      )}
-                                    </>
-                                  )}
-                                </div>
+                                  </CardContent>
+                                </Card>
                               </div>
+                            );
+                          })}
+                          {!columnTasks.length && (
+                            <div className="rounded-lg border border-dashed border-border/60 bg-background/40 p-6 text-center text-sm text-muted-foreground">
+                              No tasks here yet.
                             </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                  {!filteredTasks.length && (
-                    <div className="text-center py-12 text-muted-foreground">
-                      No tasks found matching your criteria
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </>
-              )}
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
