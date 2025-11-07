@@ -394,6 +394,30 @@ const App = () => {
                             }
                           />
                           <Route
+                            path="/dashboard/tasks"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
+                                <StaffTasks />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/students"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <StaffStudents />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="/dashboard/reports"
+                            element={
+                              <ProtectedRoute allowedRoles={["staff", "admin"]}>
+                                <StaffReports />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
                             path="/university"
                             element={
                               <ProtectedRoute allowedRoles={["partner", "admin"]}>
