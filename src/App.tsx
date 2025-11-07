@@ -164,6 +164,7 @@ const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/A
 const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
 const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 
 // Admin pages
 const AdminLayout = lazyWithErrorHandling(() => import("./components/layout/AdminLayout"));
@@ -271,6 +272,104 @@ const App = () => {
                         <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentSettings /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
                         <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
+
+                        {/* Student Routes */}
+                        <Route
+                          path="/student/onboarding"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <StudentOnboarding />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/profile"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <StudentProfile />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/documents"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Documents />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/messages"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Messages />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/applications"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Applications />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/applications/new"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <NewApplication />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/applications/:id"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <ApplicationDetails />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/application-tracking"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <ApplicationTracking />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/visa-eligibility"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <VisaEligibility />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/sop-generator"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <SopGenerator />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/notifications"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Notifications />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="/student/payments"
+                          element={
+                            <ProtectedRoute allowedRoles={["student"]}>
+                              <Payments />
+                            </ProtectedRoute>
+                          }
+                        />
 
                         {/* Partner Routes */}
                         <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
