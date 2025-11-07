@@ -18,6 +18,7 @@ import gegLogo from "@/assets/geg-logo.png";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
+import BackButton from "@/components/BackButton";
 
 const navLinks = [
   { id: "home", to: "/" },
@@ -46,7 +47,17 @@ const AppNavbar = () => {
   return (
     <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <BackButton
+            variant="ghost"
+            size="sm"
+            fallback="/"
+            showHistoryMenu={false}
+            className="h-10 px-2 sm:px-3"
+            labelClassName="hidden sm:inline"
+            wrapperClassName="hidden xs:inline-flex"
+            aria-label={t("common.actions.goBack")}
+          />
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
