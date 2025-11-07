@@ -16,6 +16,7 @@ import AccountTab from '@/components/settings/AccountTab';
 import { calculateProfileCompletion } from '@/lib/profileCompletion';
 import { generateReferralLink } from '@/lib/referrals';
 import { useSearchParams } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 
 const SETTINGS_TAB_VALUES = ['profile', 'documents', 'notifications', 'security', 'account'] as const;
 type SettingsTab = (typeof SETTINGS_TAB_VALUES)[number];
@@ -33,6 +34,7 @@ export default function ProfileSettings() {
   });
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const referralLink = profile ? generateReferralLink(profile.username) : '';
+  const fallbackRoute = profile ? '/dashboard' : '/';
 
   // Fetch additional profile data based on role
   const { data: roleData, isLoading: roleDataLoading } = useQuery({
@@ -176,11 +178,20 @@ export default function ProfileSettings() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Profile & Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
+        <div className="mb-8 space-y-3">
+          <BackButton
+            variant="ghost"
+            size="sm"
+            fallback={fallbackRoute}
+            showHistoryMenu={false}
+            wrapperClassName="inline-flex"
+          />
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Profile & Settings</h1>
+            <p className="text-muted-foreground">
+              Manage your account settings and preferences
+            </p>
+          </div>
         </div>
 
         {/* Profile Completion Card */}

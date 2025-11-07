@@ -18,6 +18,8 @@ export interface BackButtonProps extends React.ComponentProps<typeof Button> {
   fallback?: string;
   label?: string;
   wrapperClassName?: string;
+  labelClassName?: string;
+  showHistoryMenu?: boolean;
 }
 
 export default function BackButton({
@@ -25,6 +27,8 @@ export default function BackButton({
   label,
   className,
   wrapperClassName,
+  labelClassName,
+  showHistoryMenu = true,
   onClick,
   variant,
   size,
@@ -104,31 +108,32 @@ export default function BackButton({
         disabled={disabled}
         className={cn(
           "flex items-center gap-2",
-          hasHistory && "rounded-r-none",
+          showHistoryMenu && hasHistory && "rounded-r-none",
           className,
         )}
         onClick={handlePrimaryClick}
       >
         <ArrowLeft className="h-4 w-4" />
-        <span>{label ?? t("common.actions.goBack")}</span>
+        <span className={labelClassName}>{label ?? t("common.actions.goBack")}</span>
       </Button>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant={historyButtonVariant}
-            size={historyButtonSize}
-            disabled={!hasHistory || disabled}
-            className={cn(
-              "px-2 shadow-none",
-              hasHistory ? "rounded-l-none border-l border-border/50" : "hidden",
-              size === "sm" ? "px-1" : null,
-            )}
-            aria-label={t("common.labels.showRecentPages")}
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
-          </Button>
-        </DropdownMenuTrigger>
+      {showHistoryMenu ? (
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant={historyButtonVariant}
+              size={historyButtonSize}
+              disabled={!hasHistory || disabled}
+              className={cn(
+                "px-2 shadow-none",
+                hasHistory ? "rounded-l-none border-l border-border/50" : "hidden",
+                size === "sm" ? "px-1" : null,
+              )}
+              aria-label={t("common.labels.showRecentPages")}
+            >
+              <ChevronDown className="h-3.5 w-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
             sideOffset={8}
@@ -145,40 +150,40 @@ export default function BackButton({
                 <span className="text-xs text-muted-foreground break-all">{currentFullPath}</span>
               ) : null}
             </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {hasHistory ? (
-            previousEntries.map((entry) => {
-              const fullPath = `${entry.pathname ?? ""}${entry.search ?? ""}${entry.hash ?? ""}`;
+            <DropdownMenuSeparator />
+            {hasHistory ? (
+              previousEntries.map((entry) => {
+                const fullPath = `${entry.pathname ?? ""}${entry.search ?? ""}${entry.hash ?? ""}`;
 
-              return (
-                <DropdownMenuItem
-                  key={entry.id}
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    handleNavigateToEntry(entry);
-                  }}
-                  className="flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left leading-snug hover:translate-x-0 focus:translate-x-0 sm:px-3"
-                >
-                  <div className="flex w-full items-start gap-2">
-                    <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <div className="flex flex-1 flex-col gap-1">
-                      <span className="text-sm font-medium leading-snug text-pretty" title={entry.label}>
-                        {entry.label}
-                      </span>
-                      <span className="text-xs text-muted-foreground break-all" title={fullPath}>
-                        {fullPath || "/"}
-                      </span>
+                return (
+                  <DropdownMenuItem
+                    key={entry.id}
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      handleNavigateToEntry(entry);
+                    }}
+                    className="flex w-full flex-col gap-1 rounded-md px-2 py-2 text-left leading-snug hover:translate-x-0 focus:translate-x-0 sm:px-3"
+                  >
+                    <div className="flex w-full items-start gap-2">
+                      <Clock className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <div className="flex flex-1 flex-col gap-1">
+                        <span className="text-sm font-medium leading-snug text-pretty" title={entry.label}>
+                          {entry.label}
+                        </span>
+                        <span className="text-xs text-muted-foreground break-all" title={fullPath}>
+                          {fullPath || "/"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </DropdownMenuItem>
-              );
-            })
+                  </DropdownMenuItem>
+                );
+              })
             ) : (
               <DropdownMenuItem disabled className="px-2 py-2 text-sm text-muted-foreground hover:translate-x-0 focus:translate-x-0">
                 {t("components.emptyState.noRecentPages")}
               </DropdownMenuItem>
             )}
-          <DropdownMenuSeparator />
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onSelect={(event) => {
                 event.preventDefault();
@@ -190,15 +195,16 @@ export default function BackButton({
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t("components.emptyState.goToFallback")}
             </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={handleClearHistory}
-            className="flex items-center gap-2 px-2 py-2 text-sm text-destructive hover:translate-x-0 focus:text-destructive focus:translate-x-0 sm:px-3"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <DropdownMenuItem
+              onSelect={handleClearHistory}
+              className="flex items-center gap-2 px-2 py-2 text-sm text-destructive hover:translate-x-0 focus:text-destructive focus:translate-x-0 sm:px-3"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
               {t("components.emptyState.clearHistory")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
     </div>
   );
 }
