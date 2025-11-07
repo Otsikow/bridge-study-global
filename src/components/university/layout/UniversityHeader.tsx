@@ -1,5 +1,7 @@
 import { Menu, RefreshCcw, Bell } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,6 +18,8 @@ import {
 } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UniversityHeaderProps {
   onRefresh?: () => void;
@@ -41,17 +45,94 @@ export const UniversityHeader = ({
 }: UniversityHeaderProps) => {
   const location = useLocation();
   const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const initials = profile?.full_name
-    ? profile.full_name
-        .split(" ")
-        .map((namePart) => namePart.charAt(0))
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "GE";
+  const partnerProfileQuery = useQuery({
+    queryKey: ["university-partner-profile", profile?.id, profile?.tenant_id],
+    enabled: Boolean(profile?.id),
+    staleTime: 1000 * 60 * 10,
+    queryFn: async () => {
+      if (!profile?.id) {
+        throw new Error("Cannot load partner profile without an authenticated user");
+      }
+
+      const { data: profileRow, error: profileError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url, tenant_id")
+        .eq("id", profile.id)
+        .single();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      let displayName =
+        profileRow?.full_name?.trim() ||
+        profile?.full_name?.trim() ||
+        "University Partner";
+      let avatarUrl = profileRow?.avatar_url ?? profile?.avatar_url ?? null;
+
+      if (profileRow?.tenant_id) {
+        const { data: universityRow, error: universityError } = await supabase
+          .from("universities")
+          .select("name, logo_url")
+          .eq("tenant_id", profileRow.tenant_id)
+          .eq("active", true)
+          .maybeSingle();
+
+        if (!universityError && universityRow) {
+          displayName = universityRow.name ?? displayName;
+          avatarUrl = universityRow.logo_url ?? avatarUrl;
+        } else if (universityError) {
+          console.warn(
+            "Unable to load university details for header menu",
+            universityError,
+          );
+        }
+      }
+
+      return {
+        displayName,
+        avatarUrl,
+        contactEmail: profileRow?.email ?? profile?.email ?? null,
+        contactName: profileRow?.full_name ?? profile?.full_name ?? null,
+        roleLabel: "University Partner" as const,
+      };
+    },
+  });
+
+  const partnerProfile = partnerProfileQuery.data ?? {
+    displayName: profile?.full_name ?? "University Partner",
+    avatarUrl: profile?.avatar_url ?? null,
+    contactEmail: profile?.email ?? null,
+    contactName: profile?.full_name ?? null,
+    roleLabel: "University Partner" as const,
+  };
+
+  const initials = useMemo(() => {
+    const basis =
+      partnerProfile.displayName ||
+      partnerProfile.contactName ||
+      profile?.full_name ||
+      "UP";
+    const derived = basis
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((namePart) => namePart.charAt(0).toUpperCase())
+      .join("");
+    return derived || "UP";
+  }, [partnerProfile.displayName, partnerProfile.contactName, profile?.full_name]);
 
   const title = resolveSectionTitle(location.pathname);
+
+  const handleViewProfile = () => {
+    navigate("/profile/settings?tab=profile");
+  };
+
+  const handleAccountSettings = () => {
+    navigate("/profile/settings?tab=account");
+  };
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-800 bg-[#0C1528]/95 px-4 backdrop-blur lg:px-8">
@@ -100,23 +181,34 @@ export const UniversityHeader = ({
               variant="ghost"
               className="flex items-center gap-2 rounded-xl bg-slate-900/60 px-2 py-1 text-sm text-slate-100 hover:bg-slate-800/80"
             >
-              <Avatar className="h-8 w-8 border border-blue-500/30 bg-slate-800">
-                {profile?.avatar_url ? (
-                  <AvatarImage
-                    src={profile.avatar_url}
-                    alt={profile.full_name}
-                  />
-                ) : null}
-                <AvatarFallback className="bg-blue-600/70 text-white">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              <div className="hidden text-left leading-tight md:block">
-                <span className="text-sm font-medium">
-                  {profile?.full_name || "GEG Partner"}
-                </span>
-                <p className="text-xs text-slate-400">{profile?.email}</p>
-              </div>
+                <Avatar className="h-8 w-8 border border-blue-500/30 bg-slate-800">
+                  {partnerProfile.avatarUrl ? (
+                    <AvatarImage
+                      src={partnerProfile.avatarUrl}
+                      alt={partnerProfile.displayName ?? "University Partner"}
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-blue-600/70 text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden text-left leading-tight md:block">
+                  {partnerProfileQuery.isLoading ? (
+                    <div className="flex flex-col gap-1">
+                      <Skeleton className="h-3 w-24 bg-slate-800/80" />
+                      <Skeleton className="h-2.5 w-20 bg-slate-800/70" />
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-sm font-medium">
+                        {partnerProfile.displayName}
+                      </span>
+                      <p className="text-xs text-slate-400">
+                        {partnerProfile.roleLabel}
+                      </p>
+                    </>
+                  )}
+                </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -124,29 +216,48 @@ export const UniversityHeader = ({
             align="end"
             className="w-56 border-slate-800 bg-slate-900/95 text-slate-200"
           >
-            <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">
-                  {profile?.full_name || "GEG Partner"}
-                </span>
-                <span className="text-xs text-slate-400">
-                  {profile?.email || "partner@geg.global"}
-                </span>
-              </div>
+              <DropdownMenuLabel>
+                <div className="flex flex-col gap-1">
+                  <span className="text-sm font-semibold text-slate-100">
+                    {partnerProfile.displayName}
+                  </span>
+                  <span className="text-xs font-medium text-blue-300">
+                    {partnerProfile.roleLabel}
+                  </span>
+                  {partnerProfile.contactName &&
+                    partnerProfile.contactName !== partnerProfile.displayName && (
+                      <span className="text-xs text-slate-400">
+                        Contact: {partnerProfile.contactName}
+                      </span>
+                    )}
+                  {partnerProfile.contactEmail && (
+                    <span className="text-xs text-slate-500">
+                      {partnerProfile.contactEmail}
+                    </span>
+                  )}
+                </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-slate-800" />
-            <DropdownMenuItem className="focus:bg-slate-800 focus:text-slate-50">
-              View profile
+              <DropdownMenuItem
+                onSelect={handleViewProfile}
+                className="focus:bg-slate-800 focus:text-slate-50"
+              >
+                View Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="focus:bg-slate-800 focus:text-slate-50">
-              Account settings
+              <DropdownMenuItem
+                onSelect={handleAccountSettings}
+                className="focus:bg-slate-800 focus:text-slate-50"
+              >
+                Account Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-slate-800" />
             <DropdownMenuItem
               className="focus:bg-red-600/70 focus:text-white"
-              onClick={() => void signOut()}
+                onSelect={() => {
+                  void signOut();
+                }}
             >
-              Sign out
+                Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -15,10 +15,22 @@ import PasswordSecurityTab from '@/components/settings/PasswordSecurityTab';
 import AccountTab from '@/components/settings/AccountTab';
 import { calculateProfileCompletion } from '@/lib/profileCompletion';
 import { generateReferralLink } from '@/lib/referrals';
+import { useSearchParams } from 'react-router-dom';
+
+const SETTINGS_TAB_VALUES = ['profile', 'documents', 'notifications', 'security', 'account'] as const;
+type SettingsTab = (typeof SETTINGS_TAB_VALUES)[number];
+const SETTINGS_TAB_SET = new Set<string>(SETTINGS_TAB_VALUES);
 
 export default function ProfileSettings() {
   const { profile, user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() => {
+    const initialTab = searchParams.get('tab');
+    if (initialTab && SETTINGS_TAB_SET.has(initialTab)) {
+      return initialTab as SettingsTab;
+    }
+    return 'profile';
+  });
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const referralLink = profile ? generateReferralLink(profile.username) : '';
 
@@ -104,6 +116,34 @@ export default function ProfileSettings() {
       }).format(referralSummary.totalEarnings),
     [referralSummary.totalEarnings]
   );
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && SETTINGS_TAB_SET.has(tabParam)) {
+      const normalized = tabParam as SettingsTab;
+      if (normalized !== activeTab) {
+        setActiveTab(normalized);
+      }
+      return;
+    }
+    if (!tabParam && activeTab !== 'profile') {
+      setActiveTab('profile');
+    }
+  }, [searchParams, activeTab]);
+
+  const handleTabChange = (value: string) => {
+    if (!SETTINGS_TAB_SET.has(value)) return;
+    const normalizedValue = value as SettingsTab;
+    setActiveTab(normalizedValue);
+
+    const nextParams = new URLSearchParams(searchParams);
+    if (normalizedValue === 'profile') {
+      nextParams.delete('tab');
+    } else {
+      nextParams.set('tab', normalizedValue);
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
 
   // Calculate profile completion percentage
   useEffect(() => {
@@ -214,7 +254,7 @@ export default function ProfileSettings() {
         </Card>
 
         {/* Settings Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />

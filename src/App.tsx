@@ -230,196 +230,34 @@ const App = () => {
                     <div className="flex-1">
                       <Routes>
                         {/* ✅ Public Routes */}
-                        <Route
-                          path="/"
-                          element={
-                            <PublicLayout>
-                              <Index />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/auth/login"
-                          element={
-                            <PublicLayout>
-                              <Login />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/auth/signup"
-                          element={
-                            <PublicLayout>
-                              <Signup />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/verify-email"
-                          element={
-                            <PublicLayout>
-                              <VerifyEmail />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/auth/forgot-password"
-                          element={
-                            <PublicLayout>
-                              <ForgotPassword />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/auth/reset-password"
-                          element={
-                            <PublicLayout>
-                              <ResetPassword />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/search"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <PublicLayout>
-                                <UniversitySearch />
-                              </PublicLayout>
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/courses"
-                          element={
-                            <PublicLayout>
-                              <CourseDiscovery />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/partnership"
-                          element={
-                            <PublicLayout>
-                              <UniversityPartnership />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/universities"
-                          element={
-                            <PublicLayout>
-                              <UniversityDirectory />
-                            </PublicLayout>
-                          }
-                        />
-                        <Route
-                          path="/universities/:id"
-                          element={
-                            <PublicLayout>
-                              <UniversityProfile />
-                            </PublicLayout>
-                          }
-                        />
+                        <Route path="/" element={<PublicLayout><Index /></PublicLayout>} />
+                        <Route path="/auth/login" element={<PublicLayout><Login /></PublicLayout>} />
+                        <Route path="/auth/signup" element={<PublicLayout><Signup /></PublicLayout>} />
+                        <Route path="/verify-email" element={<PublicLayout><VerifyEmail /></PublicLayout>} />
+                        <Route path="/auth/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
+                        <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
+                        <Route path="/search" element={<ProtectedRoute allowedRoles={["student"]}><PublicLayout><UniversitySearch /></PublicLayout></ProtectedRoute>} />
+                        <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
+                        <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
+                        <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
+                        <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
 
                         {/* ✅ Protected Routes */}
-                        <Route
-                          path="/dashboard"
-                          element={
-                            <ProtectedRoute>
-                              <Dashboard />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/applications"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "admin", "agent", "partner"]}>
-                              <DashboardApplications />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/requests"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner", "admin", "staff"]}>
-                              <PartnerDocumentRequests />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/offers"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "partner", "admin"]}>
-                              <OffersManagement />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/partner/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner"]}>
-                              <PartnerMessages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/partner/offers-cas"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner", "admin"]}>
-                              <PartnerOffersCAS />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/student/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["student"]}>
-                              <Messages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/messages"
-                          element={
-                            <ProtectedRoute allowedRoles={["agent", "staff", "admin"]}>
-                              <StaffMessages />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/tasks"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "admin", "agent"]}>
-                              <StaffTasks />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/students"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                              <StaffStudents />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/dashboard/reports"
-                          element={
-                            <ProtectedRoute allowedRoles={["staff", "admin"]}>
-                              <StaffReports />
-                            </ProtectedRoute>
-                          }
-                        />
+                        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                        <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","admin","agent","partner"]}><DashboardApplications /></ProtectedRoute>} />
+                        <Route path="/dashboard/requests" element={<ProtectedRoute allowedRoles={["partner","admin","staff"]}><PartnerDocumentRequests /></ProtectedRoute>} />
+                        <Route path="/dashboard/offers" element={<ProtectedRoute allowedRoles={["staff","partner","admin"]}><OffersManagement /></ProtectedRoute>} />
+                        <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
+                        <Route path="/partner/messages" element={<ProtectedRoute allowedRoles={["partner"]}><PartnerMessages /></ProtectedRoute>} />
+                        <Route path="/partner/offers-cas" element={<ProtectedRoute allowedRoles={["partner","admin"]}><PartnerOffersCAS /></ProtectedRoute>} />
+                        <Route path="/student/messages" element={<ProtectedRoute allowedRoles={["student"]}><Messages /></ProtectedRoute>} />
+                        <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
+                        <Route path="/dashboard/tasks" element={<ProtectedRoute allowedRoles={["staff","admin","agent"]}><StaffTasks /></ProtectedRoute>} />
+                        <Route path="/dashboard/students" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffStudents /></ProtectedRoute>} />
+                        <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
 
                         {/* ✅ University Dashboard Nested Routes */}
-                        <Route
-                          path="/university"
-                          element={
-                            <ProtectedRoute allowedRoles={["partner", "admin"]}>
-                              <UniversityDashboardShell />
-                            </ProtectedRoute>
-                          }
-                        >
+                        <Route path="/university" element={<ProtectedRoute allowedRoles={["partner","admin"]}><UniversityDashboardShell /></ProtectedRoute>}>
                           <Route index element={<UniversityOverview />} />
                           <Route path="applications" element={<UniversityApplications />} />
                           <Route path="documents" element={<UniversityDocuments />} />
@@ -430,14 +268,7 @@ const App = () => {
                         </Route>
 
                         {/* ✅ 404 Fallback */}
-                        <Route
-                          path="*"
-                          element={
-                            <PublicLayout>
-                              <NotFound />
-                            </PublicLayout>
-                          }
-                        />
+                        <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
                       </Routes>
                     </div>
                     <ZoeChatbot />
