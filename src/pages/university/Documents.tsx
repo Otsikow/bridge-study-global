@@ -104,20 +104,20 @@ const DocumentsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Document requests</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-foreground">Document requests</h1>
+        <p className="text-sm text-muted-foreground">
           Track outstanding document requests and update their status as files are
           received.
         </p>
       </div>
 
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Requests queue
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {filteredRequests.length} of {documentRequests.length} requests
               displayed
             </CardDescription>
@@ -159,7 +159,7 @@ const DocumentsPage = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-blue-900/50 text-xs uppercase tracking-wide text-slate-400">
+                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="py-2">Student</th>
                     <th className="py-2">Request</th>
@@ -168,14 +168,14 @@ const DocumentsPage = () => {
                     <th className="py-2 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {filteredRequests.map((request) => (
-                    <tr key={request.id} className="text-slate-300">
-                      <td className="py-3 font-medium text-white">
+                    <tr key={request.id} className="text-muted-foreground">
+                      <td className="py-3 font-medium text-foreground">
                         {request.studentName}
                       </td>
                       <td className="py-3">{request.requestType}</td>
-                      <td className="py-3 text-sm text-slate-500">
+                      <td className="py-3 text-sm text-muted-foreground">
                         {formatDate(request.requestedAt)}
                       </td>
                       <td className="py-3">
@@ -183,8 +183,8 @@ const DocumentsPage = () => {
                           variant="outline"
                           className={
                             request.status === "received"
-                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
-                              : "border-amber-500/50 bg-amber-500/10 text-amber-100"
+                              ? "border-success/30 bg-success/10 text-success"
+                              : "border-amber-500/50 bg-warning/10 text-warning"
                           }
                         >
                           {formatStatus(request.status)}
@@ -196,7 +196,7 @@ const DocumentsPage = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="gap-2 text-blue-300 hover:text-white"
+                              className="gap-2 text-primary hover:text-foreground"
                               asChild
                             >
                               <a
@@ -213,7 +213,7 @@ const DocumentsPage = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="border-emerald-500/40 text-emerald-200 hover:bg-emerald-500/10"
+                              className="border-success/30 text-success hover:bg-success/10"
                               onClick={() => void handleMarkReceived(request.id)}
                               disabled={updatingId === request.id}
                             >

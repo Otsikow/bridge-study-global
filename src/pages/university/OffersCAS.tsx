@@ -103,14 +103,14 @@ interface ProcessedRecord {
 
 const offerTypeBadgeClasses: Record<OfferType, string> = {
   conditional:
-    "border-amber-500/50 bg-amber-500/15 text-amber-100",
+    "border-amber-500/50 bg-amber-500/15 text-warning",
   unconditional:
-    "border-emerald-500/50 bg-emerald-500/15 text-emerald-100",
+    "border-success/30 bg-success/10 text-success",
 };
 
 const statusBadgeClasses: Record<RecordStatus, string> = {
-  issued: "border-emerald-500/40 bg-emerald-500/10 text-emerald-100",
-  pending: "border-blue-900/50 bg-blue-950/60 text-blue-200",
+  issued: "border-success/30 bg-success/10 text-success",
+  pending: "border-border bg-muted/60 text-primary",
 };
 
 const formatDate = (value?: string | null) => {
@@ -410,8 +410,8 @@ const OffersCASPage = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Offers &amp; CAS</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-foreground">Offers &amp; CAS</h1>
+        <p className="text-sm text-muted-foreground">
           Track offers issued to your applicants and monitor CAS letter progress for
           upcoming intakes.
         </p>
@@ -441,13 +441,13 @@ const OffersCASPage = () => {
         />
       </section>
 
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Offers and CAS letters
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               Search across students or courses to review offer status and CAS issuance.
             </CardDescription>
           </div>
@@ -460,7 +460,7 @@ const OffersCASPage = () => {
             />
             <Button
               variant="outline"
-              className="gap-2 text-slate-100"
+              className="gap-2 text-card-foreground"
               onClick={() => void refetch()}
               disabled={isFetching}
             >
@@ -485,20 +485,20 @@ const OffersCASPage = () => {
               <img
                 src={emptyStateIllustration}
                 alt="No offers yet"
-                className={withUniversitySurfaceTint("h-40 w-40 rounded-2xl object-cover p-4 bg-blue-950/60")}
+                className={withUniversitySurfaceTint("h-40 w-40 rounded-2xl object-cover p-4 bg-muted/60")}
               />
               <div className="space-y-2 text-center">
-                <h3 className="text-lg font-semibold text-slate-100">
+                <h3 className="text-lg font-semibold text-card-foreground">
                   No offers issued yet
                 </h3>
-                <p className="max-w-md text-sm text-slate-400">
+                <p className="max-w-md text-sm text-muted-foreground">
                   When your team issues offers and CAS letters, they will appear here for
                   tracking and follow-up.
                 </p>
               </div>
               <Button
                 variant="outline"
-                className="gap-2 text-slate-100"
+                className="gap-2 text-card-foreground"
                 onClick={() => void refetch()}
               >
                 <RefreshCw className="h-4 w-4" />
@@ -515,25 +515,25 @@ const OffersCASPage = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-blue-900/50 bg-blue-950/30">
-                    <TableHead className="text-slate-300">Student</TableHead>
-                    <TableHead className="text-slate-300">Offer Type</TableHead>
-                    <TableHead className="text-slate-300">CAS Number</TableHead>
-                    <TableHead className="text-slate-300">Date Issued</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-right text-slate-300">Actions</TableHead>
+                  <TableRow className="border-border bg-muted/30">
+                    <TableHead className="text-muted-foreground">Student</TableHead>
+                    <TableHead className="text-muted-foreground">Offer Type</TableHead>
+                    <TableHead className="text-muted-foreground">CAS Number</TableHead>
+                    <TableHead className="text-muted-foreground">Date Issued</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRecords.map((record) => (
                     <TableRow
                       key={record.id}
-                      className="border-blue-900/40 bg-blue-950/40 transition hover:bg-blue-900/40"
+                      className="border-border bg-muted/40 transition hover:bg-muted/40"
                     >
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium text-white">{record.studentName}</span>
-                          <span className="text-xs text-slate-400">{record.courseName}</span>
+                          <span className="font-medium text-foreground">{record.studentName}</span>
+                          <span className="text-xs text-muted-foreground">{record.courseName}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -545,13 +545,13 @@ const OffersCASPage = () => {
                             {record.offerType === "conditional" ? "Conditional" : "Unconditional"}
                           </Badge>
                         ) : (
-                          <span className="text-slate-500">—</span>
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-slate-200">
+                      <TableCell className="text-foreground">
                         {record.casNumber ?? "—"}
                       </TableCell>
-                      <TableCell className="text-slate-200">
+                      <TableCell className="text-foreground">
                         {formatDate(record.dateIssued)}
                       </TableCell>
                       <TableCell>
@@ -564,7 +564,7 @@ const OffersCASPage = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="gap-2 text-blue-200 hover:text-blue-100"
+                            className="gap-2 text-primary hover:text-primary-foreground"
                             onClick={() =>
                               handleOpenLink(record.offerLetterUrl, "Offer letter unavailable")
                             }
@@ -575,7 +575,7 @@ const OffersCASPage = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="gap-2 text-emerald-200 hover:text-emerald-100"
+                            className="gap-2 text-success hover:text-success"
                             onClick={() =>
                               handleOpenLink(record.casLetterUrl, "CAS letter unavailable")
                             }

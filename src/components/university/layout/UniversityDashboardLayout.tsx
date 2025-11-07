@@ -141,10 +141,10 @@ const UniversityDashboardContext =
   createContext<UniversityDashboardContextValue | null>(null);
 
 const statusColors: Record<string, string> = {
-  accepted: "#10b981",
-  offers: "#3b82f6",
-  pending: "#f59e0b",
-  other: "#6b7280",
+  accepted: "hsl(var(--success))",
+  offers: "hsl(var(--info))",
+  pending: "hsl(var(--warning))",
+  other: "hsl(var(--muted-foreground))",
 };
 
 const pipelineStageDefinitions = [
@@ -732,7 +732,7 @@ export const UniversityDashboardLayout = ({
 
   if (authLoading || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#060b16]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <LoadingState message="Preparing your university dashboard..." size="lg" />
       </div>
     );
@@ -741,7 +741,7 @@ export const UniversityDashboardLayout = ({
   if (!profile) {
     console.log("No profile found");
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#060b16]">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <EmptyState
           icon={<Building2 className="h-10 w-10" />}
           title="No partner profile found"
@@ -754,7 +754,7 @@ export const UniversityDashboardLayout = ({
   if (error) {
     console.log("Rendering error state");
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <StatePlaceholder
           icon={<AlertCircle className="h-12 w-12 text-red-400" />}
           title="We couldn't load your dashboard"
@@ -773,9 +773,9 @@ export const UniversityDashboardLayout = ({
   if (!data || !data.university) {
     console.log("No university data available", { data, tenantId });
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <StatePlaceholder
-          icon={<Building2 className="h-12 w-12 text-blue-400" />}
+          icon={<Building2 className="h-12 w-12 text-primary" />}
           title="No university profile found"
           description={`No active university is linked to your account (Tenant ID: ${tenantId?.slice(0, 8)}...). Please contact GEG Support to set up your university profile.`}
           action={
@@ -796,13 +796,13 @@ export const UniversityDashboardLayout = ({
 
   return (
     <UniversityDashboardContext.Provider value={contextValue}>
-      <div className="flex min-h-screen bg-[#060b16] text-slate-100">
+      <div className="flex min-h-screen bg-background text-foreground">
         <UniversitySidebar className="hidden lg:flex" />
 
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
           <SheetContent
             side="left"
-            className="w-72 overflow-y-auto border-r border-slate-800 bg-[#0A1120] p-0 text-slate-200"
+            className="w-72 overflow-y-auto border-r border-border bg-background p-0 text-foreground"
           >
             <UniversitySidebar
               onNavigate={() => setMobileNavOpen(false)}
@@ -817,7 +817,7 @@ export const UniversityDashboardLayout = ({
             refreshing={isFetching}
             onToggleMobileNav={() => setMobileNavOpen(true)}
           />
-          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-[#050B16] via-[#0B1426] to-[#050B16] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-subtle px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
               {children}
             </div>

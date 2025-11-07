@@ -19,14 +19,14 @@ export const StatePlaceholder = ({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-slate-800 bg-slate-900/60 px-8 py-12 text-center shadow-inner shadow-slate-900/40",
+        "flex flex-col items-center justify-center rounded-2xl border border-border bg-muted/40 px-8 py-12 text-center shadow-inner shadow-primary/10",
         className,
       )}
     >
-      {icon ? <div className="mb-4 text-slate-400">{icon}</div> : null}
-      <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
+      {icon ? <div className="mb-4 text-muted-foreground">{icon}</div> : null}
+      <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
       {description ? (
-        <p className="mt-2 max-w-md text-sm text-slate-400">{description}</p>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
       ) : null}
       {action ? <div className="mt-6">{action}</div> : null}
     </div>

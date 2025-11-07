@@ -1,13 +1,13 @@
 import { cn } from "@/lib/utils";
 
 export const UNIVERSITY_CARD_GRADIENT =
-  "border border-blue-900/60 bg-gradient-to-br from-slate-950 via-blue-950/70 to-slate-900/70 text-slate-100 shadow-[0_28px_60px_-32px_rgba(15,23,42,0.85)] backdrop-blur-md transition hover:border-blue-800/60 hover:shadow-[0_32px_72px_-30px_rgba(37,99,235,0.55)]";
+  "border border-border bg-card text-card-foreground shadow-sm transition-shadow duration-200 hover:border-primary/30 hover:shadow-md";
 
 export const UNIVERSITY_SURFACE_TINT =
-  "border border-blue-900/40 bg-blue-950/40 text-slate-200/90 backdrop-blur-md";
+  "border border-border bg-muted/60 text-foreground";
 
 export const UNIVERSITY_SURFACE_SUBTLE =
-  "border border-blue-900/30 bg-blue-950/20 backdrop-blur";
+  "border border-border/80 bg-muted/30";
 
 export const withUniversityCardStyles = (
   ...classes: Array<string | false | null | undefined>

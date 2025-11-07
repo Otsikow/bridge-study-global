@@ -550,20 +550,20 @@ const ApplicationsPage = () => {
         {items.map((item, index) => (
           <div key={`${item.title ?? "timeline"}-${index}`} className="flex gap-3">
             <div className="relative">
-              <div className="mt-2 h-2 w-2 rounded-full bg-blue-400" />
+              <div className="mt-2 h-2 w-2 rounded-full bg-primary" />
               {index !== items.length - 1 && (
-                <div className="ml-[3px] h-full w-px bg-blue-900/60" />
+                <div className="ml-[3px] h-full w-px bg-primary/20" />
               )}
             </div>
             <div className="space-y-1 text-sm">
-              <p className="font-medium text-slate-100">
+              <p className="font-medium text-card-foreground">
                 {item.title ?? "Update"}
               </p>
               {item.description && (
-                <p className="text-xs text-slate-400">{item.description}</p>
+                <p className="text-xs text-muted-foreground">{item.description}</p>
               )}
               {item.date && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {formatDateTime(item.date)}
                 </p>
               )}
@@ -594,7 +594,7 @@ const ApplicationsPage = () => {
             className={withUniversitySurfaceTint("flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start sm:justify-between")}
           >
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-100">
+              <p className="text-sm font-semibold text-card-foreground">
                 {formatDocumentType(document.document_type)}
               </p>
               <p className="text-xs text-muted-foreground">
@@ -648,7 +648,7 @@ const ApplicationsPage = () => {
             <p className="text-xs uppercase text-muted-foreground">
               Agent notes
             </p>
-            <p className="whitespace-pre-line text-slate-100">
+            <p className="whitespace-pre-line text-card-foreground">
               {application.notes}
             </p>
           </div>
@@ -658,7 +658,7 @@ const ApplicationsPage = () => {
             <p className="text-xs uppercase text-muted-foreground">
               Internal notes
             </p>
-            <p className="whitespace-pre-line text-slate-100">
+            <p className="whitespace-pre-line text-card-foreground">
               {application.internal_notes}
             </p>
           </div>
@@ -670,20 +670,20 @@ const ApplicationsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Applications</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-foreground">Applications</h1>
+        <p className="text-sm text-muted-foreground">
           Monitor applications submitted by agents, review documentation, and
           stay on top of decisions.
         </p>
       </div>
 
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Applications library
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {totalCount === 0
                 ? "No applications to display yet"
                 : `Showing ${showingRangeStart}-${showingRangeEnd} of ${totalCount} applications`}
@@ -691,7 +691,7 @@ const ApplicationsPage = () => {
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search by student, agent, or course"
                 value={searchTerm}
@@ -730,7 +730,7 @@ const ApplicationsPage = () => {
           )}
 
           {loading && (
-            <div className={withUniversitySurfaceTint("rounded-xl py-6 bg-blue-950/50")}>
+            <div className={withUniversitySurfaceTint("rounded-xl py-6 bg-muted/50")}>
               <LoadingState
                 message={
                   applications.length === 0
@@ -773,15 +773,15 @@ const ApplicationsPage = () => {
                   {applications.map((application) => (
                     <TableRow
                       key={application.id}
-                      className="cursor-pointer transition hover:bg-blue-900/40"
+                      className="cursor-pointer transition hover:bg-muted/40"
                       onClick={() => handleViewApplication(application)}
                     >
                       <TableCell className="space-y-1">
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-foreground">
                           {getStudentName(application)}
                         </p>
                         {getStudentEmail(application) && (
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-muted-foreground">
                             {getStudentEmail(application)}
                           </p>
                         )}
@@ -789,7 +789,7 @@ const ApplicationsPage = () => {
                       <TableCell className="space-y-1">
                         <p>{getAgentName(application)}</p>
                         {getAgentEmail(application) && (
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-muted-foreground">
                             {getAgentEmail(application)}
                           </p>
                         )}
@@ -797,7 +797,7 @@ const ApplicationsPage = () => {
                       <TableCell className="space-y-1">
                         <p>{getProgramName(application)}</p>
                         {getProgramLevel(application) && (
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-muted-foreground">
                             {getProgramLevel(application)}
                           </p>
                         )}
@@ -827,10 +827,10 @@ const ApplicationsPage = () => {
                           </Button>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-slate-400">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDate(application.submitted_at ?? application.created_at)}
                       </TableCell>
-                      <TableCell className="text-sm text-slate-400">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatDateTime(application.updated_at)}
                       </TableCell>
                     </TableRow>
@@ -841,7 +841,7 @@ const ApplicationsPage = () => {
           )}
 
           {applications.length > 0 && (
-            <div className="flex flex-col gap-3 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4" />
                 <span>
@@ -904,20 +904,20 @@ const ApplicationsPage = () => {
               <div className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <GraduationCap className="h-4 w-4" />
                       Course
                     </div>
                     <div className="mt-3 space-y-1 text-sm">
-                      <p className="text-base font-semibold text-white">
+                      <p className="text-base font-semibold text-foreground">
                         {getProgramName(selectedApplication)}
                       </p>
                       {getProgramLevel(selectedApplication) && (
-                        <p className="text-slate-400">
+                        <p className="text-muted-foreground">
                           {getProgramLevel(selectedApplication)}
                         </p>
                       )}
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5" />
                         Submitted{" "}
                         {formatDate(
@@ -925,7 +925,7 @@ const ApplicationsPage = () => {
                             selectedApplication.created_at,
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         Last updated {formatDateTime(selectedApplication.updated_at)}
                       </div>
@@ -933,7 +933,7 @@ const ApplicationsPage = () => {
                   </div>
 
                   <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <ClipboardList className="h-4 w-4" />
                       Application
                     </div>
@@ -955,15 +955,15 @@ const ApplicationsPage = () => {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <User className="h-4 w-4" />
                       Student
                     </div>
                     <div className="mt-3 space-y-2 text-sm">
-                      <p className="text-base font-semibold text-white">
+                      <p className="text-base font-semibold text-foreground">
                         {getStudentName(selectedApplication)}
                       </p>
-                      <div className="flex flex-col gap-1 text-xs text-slate-400">
+                      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
                         {getStudentEmail(selectedApplication) && (
                           <span className="flex items-center gap-2">
                             <Mail className="h-3.5 w-3.5" />
@@ -981,21 +981,21 @@ const ApplicationsPage = () => {
                   </div>
 
                   <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <Building2 className="h-4 w-4" />
                       Agent
                     </div>
                     <div className="mt-3 space-y-2 text-sm">
-                      <p className="text-base font-semibold text-white">
+                      <p className="text-base font-semibold text-foreground">
                         {getAgentName(selectedApplication)}
                       </p>
                       {getAgentEmail(selectedApplication) ? (
-                        <p className="flex items-center gap-2 text-xs text-slate-400">
+                        <p className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Mail className="h-3.5 w-3.5" />
                           {getAgentEmail(selectedApplication)}
                         </p>
                       ) : (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted-foreground">
                           No agent email on record.
                         </p>
                       )}
@@ -1005,7 +1005,7 @@ const ApplicationsPage = () => {
 
                 <div className="grid gap-4 lg:grid-cols-2">
                   <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <FileText className="h-4 w-4" />
                       Documents
                     </div>
@@ -1013,7 +1013,7 @@ const ApplicationsPage = () => {
                   </div>
 
                   <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                       <FileText className="h-4 w-4" />
                       Notes
                     </div>
@@ -1022,7 +1022,7 @@ const ApplicationsPage = () => {
                 </div>
 
                 <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     Timeline
                   </div>

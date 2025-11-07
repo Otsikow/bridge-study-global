@@ -61,39 +61,39 @@ const OFFER_STATUSES = ["conditional_offer", "unconditional_offer"] as const;
 const CAS_STATUSES = ["cas_loa", "visa"] as const;
 
 const STATUS_COLOR_MAP: Record<string, string> = {
-  submitted: "#38bdf8",
-  draft: "#60a5fa",
-  screening: "#818cf8",
-  conditional_offer: "#22d3ee",
-  unconditional_offer: "#0ea5e9",
-  cas_loa: "#0ea5e9",
-  visa: "#22c55e",
-  enrolled: "#10b981",
-  withdrawn: "#f97316",
-  rejected: "#f97316",
-  deferred: "#facc15",
-  other: "#94a3b8",
-  unknown: "#64748b",
+  submitted: "hsl(var(--info))",
+  draft: "hsl(var(--info))",
+  screening: "hsl(var(--primary))",
+  conditional_offer: "hsl(var(--primary))",
+  unconditional_offer: "hsl(var(--primary))",
+  cas_loa: "hsl(var(--info))",
+  visa: "hsl(var(--success))",
+  enrolled: "hsl(var(--success))",
+  withdrawn: "hsl(var(--destructive))",
+  rejected: "hsl(var(--destructive))",
+  deferred: "hsl(var(--warning))",
+  other: "hsl(var(--muted-foreground))",
+  unknown: "hsl(var(--muted-foreground))",
 };
 
 const DEFAULT_STATUS_COLORS = [
-  "#38bdf8",
-  "#818cf8",
-  "#22d3ee",
-  "#0ea5e9",
-  "#22c55e",
-  "#f97316",
-  "#facc15",
-  "#a855f7",
+  "hsl(var(--primary))",
+  "hsl(var(--info))",
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--accent-foreground))",
+  "hsl(var(--destructive))",
+  "hsl(var(--muted-foreground))",
+  "hsl(var(--primary))",
 ];
 
 const COUNTRY_COLORS = [
-  "#38bdf8",
-  "#0ea5e9",
-  "#818cf8",
-  "#a855f7",
-  "#f97316",
-  "#facc15",
+  "hsl(var(--primary))",
+  "hsl(var(--info))",
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--accent-foreground))",
+  "hsl(var(--destructive))",
 ];
 
 const normalizeStatus = (status: string | null | undefined) =>
@@ -350,28 +350,28 @@ const AnalyticsPage = () => {
       label: "Total Applicants",
       value: formatNumber(rangeMetrics.totalApplicants),
       icon: Users,
-      accent: "border-blue-500/40 bg-blue-500/10 text-blue-200",
+      accent: "border-primary/30 bg-primary/10 text-primary",
     },
     {
       id: "offers",
       label: "Offers Sent",
       value: formatNumber(rangeMetrics.offersSent),
       icon: MailCheck,
-      accent: "border-sky-500/40 bg-sky-500/10 text-sky-200",
+      accent: "border-info/30 bg-info/10 text-info",
     },
     {
       id: "cas",
       label: "CAS Letters Issued",
       value: formatNumber(rangeMetrics.casIssued),
       icon: Stamp,
-      accent: "border-teal-500/40 bg-teal-500/10 text-teal-200",
+      accent: "border-success/30 bg-success/10 text-success",
     },
     {
       id: "conversion",
       label: "Conversion Rate",
       value: `${rangeMetrics.conversionRate}%`,
       icon: TrendingUp,
-      accent: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+      accent: "border-warning/30 bg-warning/10 text-warning",
     },
   ];
 
@@ -379,10 +379,10 @@ const AnalyticsPage = () => {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-white lg:text-3xl">
+          <h1 className="text-2xl font-semibold text-foreground lg:text-3xl">
             Analytics
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Visualise performance metrics, student engagement, and offer activity
             in one place.
           </p>
@@ -400,10 +400,10 @@ const AnalyticsPage = () => {
                 variant="ghost"
                 onClick={() => setSelectedRange(option.id)}
                 className={cn(
-                  "rounded-full px-3 text-xs font-medium tracking-wide text-slate-300 transition focus-visible:ring-0",
+                  "rounded-full px-3 text-xs font-medium tracking-wide text-muted-foreground transition focus-visible:ring-0",
                   selectedRange === option.id
-                    ? "bg-blue-500/20 text-blue-100 shadow-sm"
-                    : "hover:bg-blue-900/40",
+                    ? "bg-primary/20 text-primary-foreground shadow-sm"
+                    : "hover:bg-muted/40",
                 )}
               >
                 {option.label}
@@ -414,7 +414,7 @@ const AnalyticsPage = () => {
             variant="outline"
             size="sm"
             onClick={handleExport}
-            className="gap-2 border-blue-900/50 bg-blue-950/40 text-slate-100 hover:bg-blue-900/40"
+            className="gap-2 border-border bg-muted/40 text-card-foreground hover:bg-muted/40"
           >
             <Download className="h-4 w-4" />
             Export CSV
@@ -430,13 +430,13 @@ const AnalyticsPage = () => {
           >
             <CardContent className="flex items-start justify-between gap-4 p-6">
               <div className="space-y-2">
-                <p className="text-xs uppercase tracking-wide text-slate-400">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
                   {card.label}
                 </p>
-                <p className="text-3xl font-semibold text-white">
+                <p className="text-3xl font-semibold text-foreground">
                   {card.value}
                 </p>
-                <p className="text-xs text-slate-500">{currentRangeLabel} snapshot</p>
+                <p className="text-xs text-muted-foreground">{currentRangeLabel} snapshot</p>
               </div>
               <span
                 className={cn(
@@ -452,19 +452,19 @@ const AnalyticsPage = () => {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+        <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Applications Over Time
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {currentRangeLabel} of submissions.
             </CardDescription>
           </CardHeader>
           <CardContent className="h-80">
             {applicationsOverTime.length === 0 ? (
               <StatePlaceholder
-                icon={<TrendingUp className="h-8 w-8 text-slate-500" />}
+                icon={<TrendingUp className="h-8 w-8 text-muted-foreground" />}
                 title="Waiting for activity"
                 description="Application submission trends will appear once students start applying in this period."
                 className="h-full bg-transparent"
@@ -475,16 +475,16 @@ const AnalyticsPage = () => {
                   data={applicationsOverTime}
                   margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="4 4" stroke="#1f2937" />
+                  <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="period"
-                    stroke="#64748b"
+                    stroke="hsl(var(--muted-foreground))"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={12}
                   />
                   <YAxis
-                    stroke="#64748b"
+                    stroke="hsl(var(--muted-foreground))"
                     tickLine={false}
                     axisLine={false}
                     allowDecimals={false}
@@ -492,16 +492,16 @@ const AnalyticsPage = () => {
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "#0f172a",
-                      borderColor: "#1f2937",
+                      background: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border))",
                       borderRadius: 12,
-                      color: "#e2e8f0",
+                      color: "hsl(var(--card-foreground))",
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="applications"
-                    stroke="#60a5fa"
+                    stroke="hsl(var(--info))"
                     strokeWidth={2.5}
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
@@ -512,19 +512,19 @@ const AnalyticsPage = () => {
           </CardContent>
         </Card>
 
-        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+        <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Offers by Country
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               Top source markets for issued offers in the selected period.
             </CardDescription>
           </CardHeader>
           <CardContent className="h-80">
             {offersByCountry.length === 0 ? (
               <StatePlaceholder
-                icon={<Globe2 className="h-8 w-8 text-slate-500" />}
+                icon={<Globe2 className="h-8 w-8 text-muted-foreground" />}
                 title="No offers issued yet"
                 description="When offers go out, this view will highlight where successful applicants are located."
                 className="h-full bg-transparent"
@@ -535,16 +535,16 @@ const AnalyticsPage = () => {
                   data={offersByCountry}
                   margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
                 >
-                  <CartesianGrid strokeDasharray="4 4" stroke="#1f2937" />
+                  <CartesianGrid strokeDasharray="4 4" stroke="hsl(var(--border))" />
                   <XAxis
                     dataKey="name"
-                    stroke="#64748b"
+                    stroke="hsl(var(--muted-foreground))"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={12}
                   />
                   <YAxis
-                    stroke="#64748b"
+                    stroke="hsl(var(--muted-foreground))"
                     tickLine={false}
                     axisLine={false}
                     allowDecimals={false}
@@ -553,10 +553,10 @@ const AnalyticsPage = () => {
                   <Tooltip
                     cursor={{ fill: "rgba(59, 130, 246, 0.08)" }}
                     contentStyle={{
-                      background: "#0f172a",
-                      borderColor: "#1f2937",
+                      background: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border))",
                       borderRadius: 12,
-                      color: "#e2e8f0",
+                      color: "hsl(var(--card-foreground))",
                     }}
                   />
                   <Bar dataKey="value" radius={[6, 6, 0, 0]}>
@@ -572,19 +572,19 @@ const AnalyticsPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+        <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
           <CardHeader>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Application Status Distribution
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               Breakdown of application statuses for {currentRangeLabel.toLowerCase()}.
             </CardDescription>
           </CardHeader>
           <CardContent className="h-80">
             {statusDistribution.length === 0 ? (
               <StatePlaceholder
-                icon={<PieChartIcon className="h-8 w-8 text-slate-500" />}
+                icon={<PieChartIcon className="h-8 w-8 text-muted-foreground" />}
                 title="No status data yet"
                 description="Once applications progress through each stage, their distribution will be displayed here."
                 className="h-full bg-transparent"
@@ -608,10 +608,10 @@ const AnalyticsPage = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      background: "#0f172a",
-                      borderColor: "#1f2937",
+                      background: "hsl(var(--card))",
+                      borderColor: "hsl(var(--border))",
                       borderRadius: 12,
-                      color: "#e2e8f0",
+                      color: "hsl(var(--card-foreground))",
                     }}
                     formatter={(value: number, name: string) => [
                       `${value} applications`,
@@ -621,7 +621,7 @@ const AnalyticsPage = () => {
                   <Legend
                     verticalAlign="bottom"
                     iconType="circle"
-                    wrapperStyle={{ color: "#94a3b8" }}
+                    wrapperStyle={{ color: "hsl(var(--muted-foreground))" }}
                   />
                 </PieChart>
               </ResponsiveContainer>

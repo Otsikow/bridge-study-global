@@ -82,12 +82,12 @@ const formatDate = (value: string | null) => {
 const getStatusBadgeClasses = (status: string) => {
   switch (status) {
     case "received":
-      return "border-emerald-500/40 bg-emerald-500/10 text-emerald-100";
+      return "border-success/30 bg-success/10 text-success";
     case "overdue":
       return "border-red-500/40 bg-red-500/10 text-red-200";
     case "pending":
     default:
-      return "border-amber-500/40 bg-amber-500/10 text-amber-100";
+      return "border-warning/30 bg-warning/10 text-warning";
   }
 };
 
@@ -334,7 +334,7 @@ const UniversityDocumentRequestsPage = () => {
 
   if (dashboardLoading) {
     return (
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardContent className="py-16">
           <LoadingState message="Loading document requests..." />
         </CardContent>
@@ -355,28 +355,28 @@ const UniversityDocumentRequestsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-white">Document Requests</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-semibold text-foreground">Document Requests</h1>
+        <p className="text-sm text-muted-foreground">
           Track document requests sent to agents or students and upload files as you receive them.
         </p>
       </div>
 
-      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
+      <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 md:flex md:items-center md:justify-between md:space-y-0">
           <div>
-            <CardTitle className="text-base font-semibold text-slate-100">
+            <CardTitle className="text-base font-semibold text-card-foreground">
               Requests queue
             </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+            <CardDescription className="text-xs text-muted-foreground">
               {filteredRequests.length} of {documentRequests.length} requests displayed
             </CardDescription>
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full border-blue-900/50 bg-blue-950/60 text-slate-100 sm:w-52">
+              <SelectTrigger className="w-full border-border bg-muted/60 text-card-foreground sm:w-52">
                 <SelectValue placeholder="Document type" />
               </SelectTrigger>
-              <SelectContent className="border-blue-900/50 bg-blue-950/80 text-slate-100">
+              <SelectContent className="border-border bg-background text-card-foreground">
                 {documentTypeOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -385,10 +385,10 @@ const UniversityDocumentRequestsPage = () => {
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilterValue)}>
-              <SelectTrigger className="w-full border-blue-900/50 bg-blue-950/60 text-slate-100 sm:w-48">
+              <SelectTrigger className="w-full border-border bg-muted/60 text-card-foreground sm:w-48">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="border-blue-900/50 bg-blue-950/80 text-slate-100">
+              <SelectContent className="border-border bg-background text-card-foreground">
                 {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -400,7 +400,7 @@ const UniversityDocumentRequestsPage = () => {
               variant="outline"
               onClick={() => void handleRefresh()}
               disabled={loading || refreshing}
-              className="border-blue-900/50 bg-blue-950/60 text-slate-100 hover:bg-blue-900/40"
+              className="border-border bg-muted/60 text-card-foreground hover:bg-muted/40"
             >
               {refreshing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -429,30 +429,30 @@ const UniversityDocumentRequestsPage = () => {
               className="bg-transparent"
             />
           ) : (
-            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-blue-950/40")}>
+            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-muted/40")}>
               <Table>
-                <TableHeader className="bg-blue-950/50">
-                  <TableRow className="border-blue-900/50">
-                    <TableHead className="text-slate-300">Student</TableHead>
-                    <TableHead className="text-slate-300">Document Type</TableHead>
-                    <TableHead className="text-slate-300">Requested Date</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-right text-slate-300">Actions</TableHead>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="border-border">
+                    <TableHead className="text-muted-foreground">Student</TableHead>
+                    <TableHead className="text-muted-foreground">Document Type</TableHead>
+                    <TableHead className="text-muted-foreground">Requested Date</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRequests.map((request) => (
                     <TableRow
                       key={request.id}
-                      className="border-blue-900/40 bg-blue-950/30 transition-colors hover:bg-blue-900/40"
+                      className="border-border bg-muted/30 transition-colors hover:bg-muted/40"
                     >
-                      <TableCell className="font-medium text-white">
+                      <TableCell className="font-medium text-foreground">
                         {request.studentName}
                       </TableCell>
-                      <TableCell className="text-slate-300">
+                      <TableCell className="text-muted-foreground">
                         {request.requestType}
                       </TableCell>
-                      <TableCell className="text-slate-400">
+                      <TableCell className="text-muted-foreground">
                         {formatDate(request.requestedAt)}
                       </TableCell>
                       <TableCell>
@@ -470,7 +470,7 @@ const UniversityDocumentRequestsPage = () => {
                               variant="ghost"
                               size="sm"
                               asChild
-                              className="text-blue-300 hover:text-blue-200"
+                              className="text-primary hover:text-primary"
                             >
                               <a
                                 href={request.documentUrl}
@@ -495,7 +495,7 @@ const UniversityDocumentRequestsPage = () => {
                             variant="outline"
                             onClick={() => handleUploadClick(request.id)}
                             disabled={uploadingId === request.id}
-                            className="gap-2 border-blue-900/50 text-slate-100 hover:bg-blue-900/40"
+                            className="gap-2 border-border text-card-foreground hover:bg-muted/40"
                           >
                             {uploadingId === request.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />

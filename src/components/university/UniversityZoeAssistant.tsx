@@ -76,7 +76,7 @@ const formatTextWithLinks = (text: string): ReactNode => {
         href={href}
         target="_blank"
         rel="noreferrer"
-        className="font-medium text-blue-300 underline-offset-2 transition-colors hover:text-blue-200 hover:underline"
+        className="font-medium text-primary underline-offset-2 transition-colors hover:text-primary hover:underline"
       >
         {url}
       </a>,
@@ -282,74 +282,74 @@ export function UniversityZoeAssistant() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-none border-slate-800/60 bg-slate-900/50 text-slate-100 shadow-lg shadow-slate-950/40">
-      <CardHeader className="border-b border-slate-800/60 pb-4">
+    <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-none border-border bg-muted/50 text-card-foreground shadow-lg shadow-primary/10">
+      <CardHeader className="border-b border-border pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <Badge variant="outline" className="border-blue-500/40 text-blue-200">
+            <Badge variant="outline" className="border-primary/30 text-primary">
               Zoe
             </Badge>
-            <CardTitle className="mt-2 text-lg font-semibold text-white">
+            <CardTitle className="mt-2 text-lg font-semibold text-foreground">
               Partner Intelligence Assistant
             </CardTitle>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Tap into Zoe for quick answers on agent engagement, admissions blockers, and program updates.
             </p>
           </div>
-          <Sparkles className="h-5 w-5 text-blue-300" />
+          <Sparkles className="h-5 w-5 text-primary" />
         </div>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col p-0">
         <div className="space-y-4 p-4 sm:p-6">
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-400">Suggested prompts</p>
+            <p className="text-xs font-semibold uppercase text-muted-foreground">Suggested prompts</p>
             <div className="mt-3 grid gap-2">
               {SUGGESTIONS.map((suggestion) => (
                 <button
                   key={suggestion.label}
                   onClick={() => handleSuggestion(suggestion.prompt)}
-                  className="flex items-start gap-3 rounded-xl border border-slate-800/70 bg-slate-900/70 p-3 text-left transition hover:border-blue-600/50 hover:bg-slate-900/90"
+                  className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3 text-left transition hover:border-primary/30 hover:bg-muted"
                 >
-                  <MessageSquareQuote className="mt-0.5 h-4 w-4 text-blue-300" />
+                  <MessageSquareQuote className="mt-0.5 h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-xs font-semibold text-slate-200">{suggestion.label}</p>
-                    <p className="mt-1 text-xs text-slate-400">{suggestion.prompt}</p>
+                    <p className="text-xs font-semibold text-foreground">{suggestion.label}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{suggestion.prompt}</p>
                   </div>
                 </button>
               ))}
             </div>
           </div>
-          <Separator className="bg-slate-800/60" />
-          <div className="flex items-center gap-3 rounded-xl border border-slate-800/70 bg-slate-900/70 p-3">
-            <Bot className="h-5 w-5 text-blue-300" />
-            <div className="text-xs text-slate-300">
+          <Separator className="bg-border" />
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/60 p-3">
+            <Bot className="h-5 w-5 text-primary" />
+            <div className="text-xs text-muted-foreground">
               Zoe uses your university context to surface insights securely. No sensitive data is shared externally.
             </div>
           </div>
         </div>
-        <Separator className="bg-slate-800/60" />
+        <Separator className="bg-border" />
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <ScrollArea ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 pb-6 sm:px-6">
             <div className="space-y-4 py-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className="flex items-start gap-3 rounded-xl border border-slate-800/60 bg-slate-900/70 p-3"
+                  className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3"
                 >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800/70">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/60">
                     {message.role === "assistant" ? (
-                      <Bot className="h-4 w-4 text-blue-300" />
+                      <Bot className="h-4 w-4 text-primary" />
                     ) : (
-                      <User className="h-4 w-4 text-slate-300" />
+                      <User className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
-                  <p className="break-words text-sm leading-relaxed text-slate-200">
+                  <p className="break-words text-sm leading-relaxed text-foreground">
                     {renderMessageContent(message.content)}
                   </p>
                 </div>
               ))}
               {isLoading && (
-                <div className="flex items-center gap-2 text-xs text-slate-400">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   Zoe is composing a reply…
                 </div>
@@ -357,7 +357,7 @@ export function UniversityZoeAssistant() {
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
-          <div className="border-t border-slate-800/60 bg-slate-950/50 p-4 sm:p-6">
+          <div className="border-t border-border bg-muted/50 p-4 sm:p-6">
             <label htmlFor="zoe-input" className="sr-only">
               Message Zoe
             </label>
@@ -370,7 +370,7 @@ export function UniversityZoeAssistant() {
                   ? "Press Enter to send your prompt to Zoe…"
                   : "Type a question about your partnerships or admissions..."
               }
-              className="min-h-[120px] resize-none border-slate-800/60 bg-slate-900/70 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500/60"
+              className="min-h-[120px] resize-none border-border bg-muted/60 text-sm text-card-foreground placeholder:text-muted-foreground focus-visible:ring-ring"
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
@@ -379,12 +379,12 @@ export function UniversityZoeAssistant() {
               }}
             />
             <div className="mt-3 flex items-center justify-between gap-2">
-              <p className="text-[10px] uppercase tracking-wide text-slate-500">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 Zoe references secure programme and agent data in your tenant.
               </p>
               <Button
                 size="sm"
-                className="gap-2 rounded-full bg-blue-600 px-4 py-2 text-blue-50 shadow-lg hover:bg-blue-500"
+                className="gap-2 rounded-full bg-primary px-4 py-2 text-primary-foreground shadow-lg hover:bg-primary/90"
                 onClick={() => void sendMessage()}
                 disabled={isLoading || inputValue.trim().length === 0}
               >
