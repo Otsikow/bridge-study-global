@@ -40,7 +40,6 @@ const triggerHardReload = async () => {
 
   const now = Date.now();
   const lastReloadTs = Number(window.sessionStorage.getItem(CHUNK_RELOAD_SESSION_KEY) ?? "0");
-
   if (now - lastReloadTs < 5000) return;
 
   window.sessionStorage.setItem(CHUNK_RELOAD_SESSION_KEY, String(now));
@@ -60,8 +59,8 @@ const LazyLoadErrorFallback = ({ error, chunkError }: { error: unknown; chunkErr
   const message = chunkError
     ? t("app.errors.chunkReloadMessage")
     : error instanceof Error && error.message
-      ? error.message
-      : t("app.errors.failedToLoadPageDescription");
+    ? error.message
+    : t("app.errors.failedToLoadPageDescription");
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -193,6 +192,7 @@ const PartnerDocumentRequests = lazyWithErrorHandling(
 const OffersManagement = lazyWithErrorHandling(
   () => import("./pages/dashboard/OffersManagement")
 );
+const PartnerOffersCAS = lazyWithErrorHandling(() => import("./pages/partner/OffersCAS"));
 
 // ✅ Main App
 const App = () => {
@@ -343,6 +343,14 @@ const App = () => {
                           }
                         />
                         <Route
+                          path="/partner/offers-cas"
+                          element={
+                            <ProtectedRoute allowedRoles={["partner", "admin"]}>
+                              <PartnerOffersCAS />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
                           path="/student/messages"
                           element={
                             <ProtectedRoute allowedRoles={["student"]}>
@@ -359,10 +367,7 @@ const App = () => {
                           }
                         />
 
-                        {/* ✅ Student, Staff, Admin routes (etc) go here... */}
-                        {/* (shortened for brevity but complete in your original code) */}
-
-                        {/* ✅ Fallback */}
+                        {/* ✅ 404 Fallback */}
                         <Route
                           path="*"
                           element={
