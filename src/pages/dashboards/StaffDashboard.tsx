@@ -1,12 +1,14 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
-  Activity,
   AlarmClock,
   Bot,
+  Building2,
   CalendarRange,
+  CheckCircle2,
   CheckSquare,
   FileText,
   Filter,
@@ -16,18 +18,28 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
+  TrendingUp,
   Users,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart as RechartsLineChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import BackButton from "@/components/BackButton";
-import StaffAgentsLeaderboard from "@/components/staff/StaffAgentsLeaderboard";
-import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
-import StaffPaymentsTable from "@/components/staff/StaffPaymentsTable";
-import StaffStudentsTable from "@/components/staff/StaffStudentsTable";
-import StaffTasksBoard from "@/components/staff/StaffTasksBoard";
-import StaffZoeInsightsTab from "@/components/staff/StaffZoeInsightsTab";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,105 +54,111 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import StaffStudentsTable from "@/components/staff/StaffStudentsTable";
+import StaffAgentsLeaderboard from "@/components/staff/StaffAgentsLeaderboard";
+import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
+import StaffPaymentsTable from "@/components/staff/StaffPaymentsTable";
+import StaffTasksBoard from "@/components/staff/StaffTasksBoard";
+import StaffZoeInsightsTab from "@/components/staff/StaffZoeInsightsTab";
 
-const overviewStats = [
+const personalOverviewKpis = [
   {
-    title: "Active Students",
-    value: "128",
-    description: "Across all intakes",
+    title: "Students Assigned",
+    value: "32",
+    description: "vs. last week",
     icon: Users,
+    trend: { value: 12, isPositive: true },
     to: "/dashboard/students",
   },
   {
-    title: "Applications in Review",
-    value: "46",
-    description: "12 urgent actions",
+    title: "Applications Processed",
+    value: "18",
+    description: "Completed in the last 7 days",
     icon: FileText,
+    trend: { value: 8, isPositive: true },
     to: "/dashboard/applications",
   },
   {
-    title: "Tasks Due Today",
-    value: "9",
-    description: "3 critical items",
+    title: "Tasks Pending",
+    value: "7",
+    description: "2 flagged as urgent",
     icon: CheckSquare,
+    trend: { value: 5, isPositive: false },
     to: "/dashboard/tasks",
   },
   {
-    title: "Avg. SLA",
-    value: "2.8 days",
-    description: "Goal: 3 days",
+    title: "Approvals Today",
+    value: "5",
+    description: "Across student finances",
     icon: AlarmClock,
-    to: "/dashboard/reports",
+    trend: { value: 3, isPositive: true },
+    to: "/dashboard/payments",
   },
 ];
 
-const productivityMetrics = [
-  { label: "Daily Tasks Closed", value: 14, target: 18 },
-  { label: "Weekly Offers Secured", value: 6, target: 8 },
-  { label: "Pending Verifications", value: 5, target: 0 },
+const applicationProgressData = [
+  { status: "Submitted", value: 12 },
+  { status: "Screening", value: 9 },
+  { status: "Documents", value: 7 },
+  { status: "Offer", value: 6 },
+  { status: "Visa", value: 4 },
+  { status: "Enrolled", value: 3 },
 ];
 
-const notifications = [
+const dailyActivityTrendData = [
+  { day: "Mon", tasks: 9, approvals: 2 },
+  { day: "Tue", tasks: 12, approvals: 3 },
+  { day: "Wed", tasks: 10, approvals: 3 },
+  { day: "Thu", tasks: 14, approvals: 4 },
+  { day: "Fri", tasks: 11, approvals: 3 },
+  { day: "Sat", tasks: 6, approvals: 1 },
+  { day: "Sun", tasks: 5, approvals: 1 },
+];
+
+const quickLinks = [
   {
-    id: "NT-001",
-    title: "Visa stage update",
-    detail: "Emily Davis visa approved.",
-    priority: "high",
-    time: "Just now",
+    label: "My Students",
+    description: "Review assigned cases and next actions",
+    to: "/dashboard/students",
+    icon: Users,
   },
   {
-    id: "NT-002",
-    title: "New agent lead",
-    detail: "Bridge Lagos submitted 3 new candidates.",
-    priority: "medium",
-    time: "15m ago",
+    label: "My Tasks",
+    description: "Update task progress and workflows",
+    to: "/dashboard/tasks",
+    icon: CheckSquare,
   },
   {
-    id: "NT-003",
-    title: "Document verification",
-    detail: "Upload proof of funds for John Smith.",
-    priority: "high",
-    time: "45m ago",
-  },
-  {
-    id: "NT-004",
-    title: "Finance reminder",
-    detail: "Review commissions pending for LatAm Partners.",
-    priority: "medium",
-    time: "1h ago",
+    label: "My Agents",
+    description: "Coordinate with partner agents",
+    to: "/dashboard/agents",
+    icon: Building2,
   },
 ];
 
-const resourceLinks = [
+const zoeSuggestions = [
   {
-    name: "Admissions SOP",
-    description: "Step-by-step guide for screening and offer issuance.",
-    category: "Admissions",
+    id: "tip-1",
+    message: "3 students need document verification before Friday.",
   },
   {
-    name: "Visa Document Checklist",
-    description: "Country-specific requirements for visa submissions.",
-    category: "Student Support",
+    id: "tip-2",
+    message:
+      "Follow up with Bridge Lagos about two new applicants waiting for screening.",
   },
   {
-    name: "Commission Policy 2025",
-    description: "Updated payout rules and approval workflow.",
-    category: "Finance",
-  },
-  {
-    name: "Zoe Prompt Library",
-    description: "Suggested prompts for faster AI-assisted actions.",
-    category: "Productivity",
+    id: "tip-3",
+    message: "Schedule a payment approval review for commissions logged today.",
   },
 ];
 
 export default function StaffDashboard() {
-  const productivity = useMemo(() => productivityMetrics, []);
+  const [activeTab, setActiveTab] = useState("overview");
 
   const { data: overviewNotifications } = useQuery({
     queryKey: ["staff", "dashboard", "notifications"],
-    queryFn: async () => notifications,
-    initialData: notifications,
+    queryFn: async () => zoeSuggestions,
+    initialData: zoeSuggestions,
     staleTime: 60_000,
   });
 
@@ -165,89 +183,7 @@ export default function StaffDashboard() {
           </Button>
         </div>
 
-        {/* Staff KPIs Section */}
-        <section
-          aria-label="Staff KPIs"
-          className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
-        >
-          {overviewStats.map((stat) => (
-            <Card
-              key={stat.title}
-              className="rounded-2xl border border-primary/20"
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center gap-2">
-                  <stat.icon className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-sm font-medium">
-                    {stat.title}
-                  </CardTitle>
-                </div>
-                <Badge variant="outline" className="capitalize text-xs">
-                  {stat.description}
-                </Badge>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{stat.value}</p>
-                <Button variant="link" className="px-0 text-sm" asChild>
-                  <Link to={stat.to}>Open view</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </section>
-
-        {/* Productivity Section */}
-        <Card className="rounded-2xl">
-          <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <LineChart className="h-5 w-5 text-primary" /> Staff productivity
-                snapshot
-              </CardTitle>
-              <CardDescription>
-                Track throughput and SLA performance.
-              </CardDescription>
-            </div>
-            <Badge variant="outline" className="gap-1">
-              <Sparkles className="h-4 w-4 text-primary" /> Zoe enabled
-            </Badge>
-          </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-3">
-            {productivity.map((metric) => {
-              const progress = Math.min(
-                100,
-                Math.round((metric.value / metric.target) * 100)
-              );
-              return (
-                <div key={metric.label} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{metric.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Target {metric.target}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={progress >= 100 ? "secondary" : "outline"}
-                    >
-                      {progress}%
-                    </Badge>
-                  </div>
-                  <Progress
-                    value={progress}
-                    aria-label={`${metric.label} progress`}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Completed {metric.value} of {metric.target} goal.
-                  </p>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-
-        {/* Tabs Section */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="w-full justify-start overflow-x-auto rounded-lg border bg-background p-1">
             <TabsTrigger value="overview" className="px-4">
               🏠 Overview
@@ -279,102 +215,177 @@ export default function StaffDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-5">
-              <Card className="rounded-2xl border border-muted lg:col-span-3">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-primary" /> Live
-                    notifications
-                  </CardTitle>
-                  <CardDescription>
-                    Realtime events sourced from Supabase.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {overviewNotifications?.map((item) => (
-                    <div
-                      key={item.id}
-                      className="rounded-2xl border border-border bg-background/60 p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">{item.title}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {item.detail}
-                          </p>
-                        </div>
-                        <Badge
-                          variant={
-                            item.priority === "high"
-                              ? "destructive"
-                              : "outline"
-                          }
-                          className="capitalize"
-                        >
-                          {item.priority}
-                        </Badge>
-                      </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {item.time}
-                      </p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                {personalOverviewKpis.map((stat) => (
+                  <StatsCard key={stat.title} {...stat} />
+                ))}
+              </div>
 
-              <Card className="rounded-2xl border border-muted lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" /> Action queue
-                  </CardTitle>
-                  <CardDescription>
-                    Next best actions suggested by Zoe.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-3">
-                    <Sparkles className="mt-1 h-5 w-5 text-primary" />
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <LineChart className="h-5 w-5 text-primary" /> Application progress
+                    </CardTitle>
+                    <CardDescription>
+                      Status mix across your assigned students.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={applicationProgressData} barSize={28}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                        <XAxis dataKey="status" tickLine={false} axisLine={false} className="text-xs" />
+                        <YAxis allowDecimals={false} tickLine={false} axisLine={false} className="text-xs" />
+                        <RechartsTooltip cursor={{ fill: "hsl(var(--muted))" }} />
+                        <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[8, 8, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Quick links</CardTitle>
+                    <CardDescription>
+                      Jump straight into your most-used views.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {quickLinks.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.label}
+                          to={item.to}
+                          className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5 text-primary" />
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium">{item.label}</p>
+                              <p className="text-xs text-muted-foreground">{item.description}</p>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        </Link>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 pb-2">
                     <div>
-                      <p className="text-sm font-medium">
-                        Prioritize pending document verifications.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        3 students waiting — due by tomorrow.
-                      </p>
+                      <CardTitle className="text-lg">Daily activity trend</CardTitle>
+                      <CardDescription>Track throughput and approvals over the last 7 days.</CardDescription>
                     </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-3">
-                    <MessageCircle className="mt-1 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Follow up with Bridge Lagos about new leads.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Schedule call or send message from the agent tab.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-3">
-                    <CalendarRange className="mt-1 h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm font-medium">
-                        Check payments due in the next 7 days.
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        3 commission items still require approval.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+                      Last 7 days
+                    </Badge>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={dailyActivityTrendData} margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-muted" />
+                        <XAxis dataKey="day" axisLine={false} tickLine={false} className="text-xs" />
+                        <YAxis allowDecimals={false} axisLine={false} tickLine={false} className="text-xs" />
+                        <RechartsTooltip cursor={{ strokeDasharray: "3 3" }} />
+                        <Legend verticalAlign="top" align="left" iconType="circle" wrapperStyle={{ paddingTop: 12 }} />
+                        <Line
+                          type="monotone"
+                          dataKey="tasks"
+                          name="Tasks completed"
+                          stroke="hsl(var(--chart-1))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="approvals"
+                          name="Approvals"
+                          stroke="hsl(var(--chart-2))"
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Sparkles className="h-5 w-5 text-primary" /> Zoe’s AI tips
+                    </CardTitle>
+                    <CardDescription>
+                      Smart nudges tailored to today’s workload.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {zoeSuggestions.map((tip) => (
+                      <div
+                        key={tip.id}
+                        className="rounded-lg border p-3 text-sm leading-relaxed text-muted-foreground"
+                      >
+                        {tip.message}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => setActiveTab("ai")}
+                    >
+                      <Bot className="h-4 w-4" /> Ask Zoe for more
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="students" className="space-y-6">
+          <TabsContent value="students">
             <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
               <StaffStudentsTable />
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="agents" className="space-y-6">
-            <Suspense fallback={<Skeleton className="h-64 w-fu
+          <TabsContent value="agents">
+            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+              <StaffAgentsLeaderboard />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+              <StaffTasksBoard />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="messages">
+            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+              <StaffMessagesTable />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="payments">
+            <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+              <StaffPaymentsTable />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="ai">
+            <StaffZoeInsightsTab />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </DashboardLayout>
+  );
+}
