@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import {
   Activity,
@@ -23,6 +23,7 @@ import {
   Users,
   Settings,
 } from 'lucide-react';
+import { format, isSameMonth, isValid } from 'date-fns';
 
 import BackButton from '@/components/BackButton';
 import { StatsCard } from '@/components/dashboard/StatsCard';
@@ -63,6 +64,10 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+import { useToast } from '@/hooks/use-toast';
+import { formatErrorForToast, logError } from '@/lib/errorUtils';
 
 const overviewStats = [
   { title: 'Active Students', value: '128', description: 'Across all intakes', icon: Users, to: '/dashboard/students' },
@@ -219,56 +224,6 @@ const channelMessages = [
   },
 ];
 
-const paymentRows = [
-  {
-    id: 'PAY-001',
-    student: 'Emily Davis',
-    agent: 'Bridge Accra',
-    amount: '$1,200',
-    status: 'pending',
-    dueDate: 'Jan 24',
-  },
-  {
-    id: 'PAY-002',
-    student: 'Luis Martinez',
-    agent: 'LatAm Partners',
-    amount: '$2,450',
-    status: 'approved',
-    dueDate: 'Jan 18',
-  },
-  {
-    id: 'PAY-003',
-    student: 'John Smith',
-    agent: 'Bridge Lagos',
-    amount: '$980',
-    status: 'review',
-    dueDate: 'Jan 23',
-  },
-  {
-    id: 'PAY-004',
-    student: 'Amina Hassan',
-    agent: 'Bridge Lagos',
-    amount: '$1,150',
-    status: 'pending',
-    dueDate: 'Jan 26',
-  },
-  {
-    id: 'PAY-005',
-    student: 'Sarah Johnson',
-    agent: 'Bridge Nairobi',
-    amount: '$1,800',
-    status: 'paid',
-    dueDate: 'Jan 10',
-  },
-  {
-    id: 'PAY-006',
-    student: 'Michael Chen',
-    agent: 'Global Pathways',
-    amount: '$2,200',
-    status: 'pending',
-    dueDate: 'Jan 29',
-  },
-];
 
 const resourceLinks = [
   {
@@ -300,6 +255,41 @@ const notifications = [
   { id: 'NT-004', title: 'Finance reminder', detail: 'Review commissions pending for LatAm Partners.', priority: 'medium', time: '1h ago' },
 ];
 
+type CommissionWithRelations = Tables<'commissions'> & {
+  agents?: {
+    profiles?: {
+      full_name: string | null;
+    } | null;
+  } | null;
+  applications?: {
+    students?: {
+      profiles?: {
+        full_name: string | null;
+      } | null;
+    } | null;
+  } | null;
+};
+
+type CommissionPayment = Tables<'payments'> & {
+  metadata: Record<string, unknown> | null;
+};
+
+type StaffCommissionRow = {
+  id: string;
+  agentName: string;
+  studentName: string;
+  ratePercent: number;
+  amountCents: number;
+  currency: string;
+  payoutStatus: 'pending' | 'paid';
+  createdAt: string | null;
+  approvedAt: string | null;
+  paidAt: string | null;
+  reviewed: boolean;
+  commissionStatus: Tables<'commissions'>['status'];
+  paymentStatus: Tables<'payments'>['status'];
+};
+
 export default function StaffDashboard() {
   const [studentSearch, setStudentSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -308,8 +298,12 @@ export default function StaffDashboard() {
   const [agentFilter, setAgentFilter] = useState('assigned');
   const [studentPage, setStudentPage] = useState(1);
   const [paymentPage, setPaymentPage] = useState(1);
+  const [payoutStatusFilter, setPayoutStatusFilter] = useState<'all' | 'pending' | 'paid'>('all');
+  const [updatingCommissionId, setUpdatingCommissionId] = useState<string | null>(null);
   const [zoeQuestion, setZoeQuestion] = useState('');
   const [zoeResponse, setZoeResponse] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const studentsQuery = useQuery({
     queryKey: ['staff-dashboard', 'students'],
@@ -320,14 +314,63 @@ export default function StaffDashboard() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const paymentsQuery = useQuery({
-    queryKey: ['staff-dashboard', 'payments'],
-    queryFn: async () => {
-      return paymentRows;
+  const financeQuery = useQuery({
+    queryKey: ['staff-dashboard', 'finance'],
+    queryFn: async (): Promise<{
+      commissions: CommissionWithRelations[];
+      payments: CommissionPayment[];
+    }> => {
+      const [commissionsResult, paymentsResult] = await Promise.all([
+        supabase
+          .from('commissions')
+          .select(
+            `
+              *,
+              agents:agents (
+                profiles:profiles (
+                  full_name
+                )
+              ),
+              applications:applications (
+                students:students (
+                  profiles:profiles (
+                    full_name
+                  )
+                )
+              )
+            `,
+          )
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('payments')
+          .select('id, amount_cents, currency, status, created_at, metadata, purpose, application_id')
+          .eq('purpose', 'commission_payout')
+          .order('created_at', { ascending: false }),
+      ]);
+
+      if (commissionsResult.error) {
+        logError(commissionsResult.error, 'StaffDashboard.fetchCommissions');
+        throw commissionsResult.error;
+      }
+
+      if (paymentsResult.error) {
+        logError(paymentsResult.error, 'StaffDashboard.fetchCommissionPayments');
+        throw paymentsResult.error;
+      }
+
+      return {
+        commissions: (commissionsResult.data ?? []) as CommissionWithRelations[],
+        payments: (paymentsResult.data ?? []) as CommissionPayment[],
+      };
     },
-    initialData: paymentRows,
     staleTime: 1000 * 60 * 5,
   });
+
+  useEffect(() => {
+    if (financeQuery.error) {
+      toast(formatErrorForToast(financeQuery.error, 'Failed to load commission payouts'));
+    }
+  }, [financeQuery.error, toast]);
 
   const filteredStudents = useMemo(() => {
     const normalizedSearch = studentSearch.trim().toLowerCase();
@@ -353,10 +396,152 @@ export default function StaffDashboard() {
   const studentOffset = (studentPage - 1) * studentPageSize;
   const paginatedStudents = filteredStudents.slice(studentOffset, studentOffset + studentPageSize);
 
+  const allCommissionRows = useMemo<StaffCommissionRow[]>(() => {
+    if (!financeQuery.data) return [];
+
+    const paymentByCommissionId = new Map<string, CommissionPayment>();
+    const paymentByApplicationId = new Map<string, CommissionPayment>();
+
+    financeQuery.data.payments.forEach((payment) => {
+      const metadata = (payment.metadata ?? null) as Record<string, unknown> | null;
+      const commissionId =
+        (typeof metadata?.commission_id === 'string' && (metadata?.commission_id as string)) ||
+        (typeof metadata?.commissionId === 'string' && (metadata?.commissionId as string)) ||
+        null;
+
+      if (commissionId) {
+        paymentByCommissionId.set(commissionId, payment);
+      }
+
+      if (payment.application_id && !paymentByApplicationId.has(payment.application_id)) {
+        paymentByApplicationId.set(payment.application_id, payment);
+      }
+    });
+
+    return financeQuery.data.commissions
+      .map<StaffCommissionRow>((commission) => {
+        const payment =
+          paymentByCommissionId.get(commission.id) ||
+          (commission.application_id ? paymentByApplicationId.get(commission.application_id) : undefined);
+
+        const payoutStatus: 'pending' | 'paid' =
+          commission.status === 'paid' || payment?.status === 'succeeded' ? 'paid' : 'pending';
+
+        return {
+          id: commission.id,
+          agentName: commission.agents?.profiles?.full_name ?? 'Unassigned agent',
+          studentName: commission.applications?.students?.profiles?.full_name ?? 'Student record',
+          ratePercent: commission.rate_percent,
+          amountCents: commission.amount_cents,
+          currency: commission.currency ?? payment?.currency ?? 'USD',
+          payoutStatus,
+          createdAt: payment?.created_at ?? commission.created_at ?? null,
+          approvedAt: commission.approved_at,
+          paidAt: commission.paid_at,
+          reviewed: Boolean(commission.approved_at),
+          commissionStatus: commission.status,
+          paymentStatus: payment?.status ?? null,
+        };
+      })
+      .sort((first, second) => {
+        const firstDate = first.createdAt ? new Date(first.createdAt).getTime() : 0;
+        const secondDate = second.createdAt ? new Date(second.createdAt).getTime() : 0;
+        return secondDate - firstDate;
+      });
+  }, [financeQuery.data]);
+
+  const filteredCommissionRows = useMemo(() => {
+    if (payoutStatusFilter === 'all') {
+      return allCommissionRows;
+    }
+
+    return allCommissionRows.filter((row) => row.payoutStatus === payoutStatusFilter);
+  }, [allCommissionRows, payoutStatusFilter]);
+
   const paymentPageSize = 4;
-  const paymentTotalPages = Math.max(1, Math.ceil((paymentsQuery.data ?? []).length / paymentPageSize));
+  const paymentTotalPages = Math.max(1, Math.ceil(filteredCommissionRows.length / paymentPageSize));
   const paymentOffset = (paymentPage - 1) * paymentPageSize;
-  const paginatedPayments = (paymentsQuery.data ?? []).slice(paymentOffset, paymentOffset + paymentPageSize);
+  const paginatedCommissionRows = filteredCommissionRows.slice(paymentOffset, paymentOffset + paymentPageSize);
+
+  const commissionSummary = useMemo(() => {
+    if (allCommissionRows.length === 0) {
+      return {
+        pendingCents: 0,
+        paidCents: 0,
+        thisMonthCents: 0,
+        currency: 'USD',
+      };
+    }
+
+    const baseCurrency = allCommissionRows[0].currency || 'USD';
+    let pendingCents = 0;
+    let paidCents = 0;
+    let thisMonthCents = 0;
+    const now = new Date();
+
+    allCommissionRows.forEach((row) => {
+      if (row.payoutStatus === 'paid') {
+        paidCents += row.amountCents;
+      } else {
+        pendingCents += row.amountCents;
+      }
+
+      if (row.createdAt) {
+        const createdDate = new Date(row.createdAt);
+        if (isValid(createdDate) && isSameMonth(createdDate, now)) {
+          thisMonthCents += row.amountCents;
+        }
+      }
+    });
+
+    return {
+      pendingCents,
+      paidCents,
+      thisMonthCents,
+      currency: baseCurrency,
+    };
+  }, [allCommissionRows]);
+
+  const formatCurrencyAmount = (amountCents: number, currency: string) => {
+    const amount = amountCents / 100;
+
+    try {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    } catch {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    }
+  };
+
+  const formatCommissionRate = (value: number) => {
+    const decimals = Number.isInteger(value) ? 0 : 2;
+    return `${value.toLocaleString(undefined, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: 2,
+    })}%`;
+  };
+
+  const formatCommissionDate = (dateString: string | null) => {
+    if (!dateString) {
+      return '—';
+    }
+
+    const parsed = new Date(dateString);
+    if (!isValid(parsed)) {
+      return '—';
+    }
+
+    return format(parsed, 'MMM d, yyyy');
+  };
+
+  useEffect(() => {
+    setPaymentPage(1);
+  }, [payoutStatusFilter]);
+
+  useEffect(() => {
+    if (paymentPage > paymentTotalPages) {
+      setPaymentPage(paymentTotalPages);
+    }
+  }, [paymentPage, paymentTotalPages]);
 
   const handleStudentPageChange = (nextPage: number) => {
     setStudentPage(Math.min(Math.max(1, nextPage), studentTotalPages));
@@ -364,6 +549,39 @@ export default function StaffDashboard() {
 
   const handlePaymentPageChange = (nextPage: number) => {
     setPaymentPage(Math.min(Math.max(1, nextPage), paymentTotalPages));
+  };
+
+  const handleMarkCommissionReviewed = async (row: StaffCommissionRow) => {
+    if (row.reviewed) return;
+
+    try {
+      setUpdatingCommissionId(row.id);
+
+      const nextStatus: Tables<'commissions'>['status'] = row.commissionStatus === 'paid' ? 'paid' : 'approved';
+      const { error } = await supabase
+        .from('commissions')
+        .update({
+          approved_at: new Date().toISOString(),
+          status: nextStatus,
+        })
+        .eq('id', row.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Commission reviewed',
+        description: `Marked ${row.agentName} / ${row.studentName} as reviewed.`,
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['staff-dashboard', 'finance'] });
+    } catch (error) {
+      logError(error, 'StaffDashboard.handleMarkCommissionReviewed');
+      toast(formatErrorForToast(error, 'Failed to mark commission as reviewed'));
+    } finally {
+      setUpdatingCommissionId(null);
+    }
   };
 
   const handleResetFilters = () => {
@@ -917,78 +1135,168 @@ export default function StaffDashboard() {
 
           <TabsContent value="payments" className="space-y-6">
             <Card>
-              <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" /> Payments & commissions
                   </CardTitle>
-                  <CardDescription>Track payouts and approval status per agent.</CardDescription>
+                  <CardDescription>Monitor payouts, approval reviews, and monthly totals.</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" className="gap-2" asChild>
-                  <Link to="/dashboard/payments">
-                    <FileText className="h-4 w-4" /> Export CSV
-                  </Link>
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <Select
+                    value={payoutStatusFilter}
+                    onValueChange={(value) => setPayoutStatusFilter(value as 'all' | 'pending' | 'paid')}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All payouts</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="paid">Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" className="gap-2" asChild>
+                    <Link to="/dashboard/payments">
+                      <FileText className="h-4 w-4" /> Export CSV
+                    </Link>
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="rounded-lg border bg-muted/40 p-4">
+                    <p className="text-sm font-medium text-muted-foreground">Total Pending</p>
+                    {financeQuery.isPending && allCommissionRows.length === 0 ? (
+                      <Skeleton className="mt-2 h-6 w-24" />
+                    ) : (
+                      <p className="mt-2 text-2xl font-semibold">
+                        {formatCurrencyAmount(commissionSummary.pendingCents, commissionSummary.currency)}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">Awaiting payout confirmation</p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/40 p-4">
+                    <p className="text-sm font-medium text-muted-foreground">Total Paid</p>
+                    {financeQuery.isPending && allCommissionRows.length === 0 ? (
+                      <Skeleton className="mt-2 h-6 w-24" />
+                    ) : (
+                      <p className="mt-2 text-2xl font-semibold">
+                        {formatCurrencyAmount(commissionSummary.paidCents, commissionSummary.currency)}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">Completed payouts</p>
+                  </div>
+                  <div className="rounded-lg border bg-muted/40 p-4">
+                    <p className="text-sm font-medium text-muted-foreground">This Month</p>
+                    {financeQuery.isPending && allCommissionRows.length === 0 ? (
+                      <Skeleton className="mt-2 h-6 w-24" />
+                    ) : (
+                      <p className="mt-2 text-2xl font-semibold">
+                        {formatCurrencyAmount(commissionSummary.thisMonthCents, commissionSummary.currency)}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">Generated commissions in {format(new Date(), 'MMM')}</p>
+                  </div>
+                </div>
+
                 <div className="rounded-lg border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Reference</TableHead>
+                        <TableHead>Agent Name</TableHead>
                         <TableHead>Student</TableHead>
-                        <TableHead>Agent</TableHead>
+                        <TableHead>Commission %</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Due date</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paymentsQuery.isPending ? (
+                      {financeQuery.isPending && allCommissionRows.length === 0 ? (
                         Array.from({ length: paymentPageSize }).map((_, index) => (
-                          <TableRow key={`payment-skeleton-${index}`}>
-                            <TableCell colSpan={6}>
-                              <Skeleton className="h-10 w-full" />
+                          <TableRow key={`commission-skeleton-${index}`}>
+                            <TableCell>
+                              <Skeleton className="h-5 w-[140px]" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-[140px]" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-16" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-20" />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton className="h-5 w-24" />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Skeleton className="ml-auto h-5 w-24" />
                             </TableCell>
                           </TableRow>
                         ))
-                      ) : paginatedPayments.length === 0 ? (
+                      ) : paginatedCommissionRows.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-6">
-                            No payment data available.
+                          <TableCell colSpan={7} className="py-6 text-center text-sm text-muted-foreground">
+                            No commission records match the selected filters.
                           </TableCell>
                         </TableRow>
                       ) : (
-                        paginatedPayments.map((payment) => (
-                          <TableRow key={payment.id} className="hover:bg-muted/50">
-                            <TableCell className="text-sm font-medium">{payment.id}</TableCell>
-                            <TableCell className="text-sm">{payment.student}</TableCell>
-                            <TableCell className="text-sm">{payment.agent}</TableCell>
-                            <TableCell className="text-sm">{payment.amount}</TableCell>
+                        paginatedCommissionRows.map((row) => (
+                          <TableRow key={row.id} className="hover:bg-muted/50">
+                            <TableCell className="text-sm font-medium">{row.agentName}</TableCell>
+                            <TableCell className="text-sm">{row.studentName}</TableCell>
+                            <TableCell className="text-sm">{formatCommissionRate(row.ratePercent)}</TableCell>
+                            <TableCell className="text-sm">
+                              {formatCurrencyAmount(row.amountCents, row.currency)}
+                            </TableCell>
                             <TableCell>
                               <Badge
-                                variant={
-                                  payment.status === 'paid'
-                                    ? 'secondary'
-                                    : payment.status === 'approved'
-                                    ? 'outline'
-                                    : payment.status === 'pending'
-                                    ? 'default'
-                                    : 'destructive'
-                                }
+                                variant={row.payoutStatus === 'paid' ? 'secondary' : 'outline'}
                                 className="capitalize"
                               >
-                                {payment.status}
+                                {row.payoutStatus === 'paid' ? 'Paid' : 'Pending'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-right text-xs text-muted-foreground">{payment.dueDate}</TableCell>
+                            <TableCell className="text-sm">{formatCommissionDate(row.createdAt)}</TableCell>
+                            <TableCell className="text-right">
+                              {row.reviewed ? (
+                                <Badge variant="outline" className="ml-auto flex w-fit items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3 text-primary" /> Reviewed
+                                </Badge>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="ml-auto gap-2"
+                                  onClick={() => handleMarkCommissionReviewed(row)}
+                                  disabled={updatingCommissionId === row.id}
+                                >
+                                  {updatingCommissionId === row.id ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" /> Marking…
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle2 className="h-4 w-4" /> Mark reviewed
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))
                       )}
                     </TableBody>
                   </Table>
                 </div>
-                {renderPagination(paymentPage, paymentTotalPages, handlePaymentPageChange, 'payments')}
+
+                {renderPagination(paymentPage, paymentTotalPages, handlePaymentPageChange, 'commissions')}
               </CardContent>
             </Card>
           </TabsContent>
