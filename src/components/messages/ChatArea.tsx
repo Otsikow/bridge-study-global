@@ -185,6 +185,10 @@ export function ChatArea({
   const conversationName = getConversationName();
   const avatarUrl = getConversationAvatar();
   const presenceDetails = getPresenceDetails();
+  const conversationSubtitle =
+    conversation && conversation.metadata && typeof conversation.metadata === 'object'
+      ? (conversation.metadata as { subtitle?: string }).subtitle
+      : undefined;
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -208,7 +212,15 @@ export function ChatArea({
         </Avatar>
         <div className="flex-1">
           <h2 className="font-semibold">{conversationName}</h2>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
+          {conversationSubtitle && (
+            <p className="text-xs text-muted-foreground">{conversationSubtitle}</p>
+          )}
+          <p
+            className={cn(
+              'text-xs text-muted-foreground flex items-center gap-1',
+              conversationSubtitle && 'mt-0.5'
+            )}
+          >
             <span
               className={cn('inline-block w-2 h-2 rounded-full', presenceDetails.indicator)}
             />

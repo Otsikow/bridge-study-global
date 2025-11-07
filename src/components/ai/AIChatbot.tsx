@@ -257,6 +257,23 @@ export default function ZoeChatbot() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handler = (event: Event) => {
+      const customEvent = event as CustomEvent<{ prompt?: string }>;
+      setIsOpen(true);
+      if (customEvent.detail?.prompt) {
+        setInput(customEvent.detail.prompt);
+      }
+    };
+
+    window.addEventListener("zoe:open-chat", handler as EventListener);
+    return () => {
+      window.removeEventListener("zoe:open-chat", handler as EventListener);
+    };
+  }, []);
+
+  useEffect(() => {
     const viewport = scrollRef.current?.querySelector(
       "[data-radix-scroll-area-viewport]",
     ) as HTMLDivElement | null;
