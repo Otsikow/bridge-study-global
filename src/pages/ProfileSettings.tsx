@@ -255,28 +255,30 @@ export default function ProfileSettings() {
 
         {/* Settings Tabs */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Documents</span>
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Lock className="h-4 w-4" />
-              <span className="hidden sm:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger value="account" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Account</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto">
+            <TabsList className="inline-flex w-full min-w-max justify-start gap-2">
+              <TabsTrigger value="profile" className="flex items-center gap-2 flex-shrink-0">
+                <User className="h-4 w-4" />
+                <span>Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-2 flex-shrink-0">
+                <FileText className="h-4 w-4" />
+                <span>Documents</span>
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="flex items-center gap-2 flex-shrink-0">
+                <Bell className="h-4 w-4" />
+                <span>Notifications</span>
+              </TabsTrigger>
+              <TabsTrigger value="security" className="flex items-center gap-2 flex-shrink-0">
+                <Lock className="h-4 w-4" />
+                <span>Security</span>
+              </TabsTrigger>
+              <TabsTrigger value="account" className="flex items-center gap-2 flex-shrink-0">
+                <Settings className="h-4 w-4" />
+                <span>Account</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="profile">
             <ProfileInfoTab profile={profile} roleData={roleData} />
