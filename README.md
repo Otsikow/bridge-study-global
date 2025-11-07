@@ -71,3 +71,15 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Final Integration Checklist
+
+At the end of your prompt sessions, instruct your AI builder:
+
+“Verify:
+
+- All pages use consistent layout and typography.
+- Admin navigation is protected by role check.
+- Supabase tables are properly connected (profiles, agents, universities, applications, audit_logs, notifications).
+- Dark mode, language switching, and data export work globally.
+- Zoe AI insights render dynamically using cached analytics.”
