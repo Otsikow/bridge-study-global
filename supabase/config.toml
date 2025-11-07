@@ -14,3 +14,14 @@ verify_jwt = true
 
 [functions.generate-blog-image]
 verify_jwt = true
+
+[auth.rate_limit]
+enabled = true
+# Limit repeated authentication attempts to mitigate brute-force attacks
+attempts = 5
+interval_seconds = 60
+
+[auth.security.breached_passwords]
+enabled = true
+# Reject passwords that appear in Have I Been Pwned with at least a medium confidence score
+threshold = 1
