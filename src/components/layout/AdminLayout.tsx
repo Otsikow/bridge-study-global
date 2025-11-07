@@ -42,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin/partners", label: "Partners", description: "Agencies & universities", icon: Building },
   { to: "/admin/resources", label: "Resources", description: "Content & assets", icon: Library },
   { to: "/admin/insights", label: "Insights", description: "AI & analytics", icon: Brain },
+  { to: "/admin/intelligence", label: "Zoe Intelligence", description: "AI insights console", icon: Sparkles },
   { to: "/admin/settings", label: "Settings", description: "Tenant configuration", icon: Settings },
   { to: "/admin/notifications", label: "Notifications", description: "System alerts", icon: Bell },
   { to: "/admin/logs", label: "Logs", description: "Audit trails", icon: ShieldCheck },

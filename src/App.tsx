@@ -174,6 +174,7 @@ const AdminPaymentsPage = lazyWithErrorHandling(() => import("./pages/admin/Admi
 const AdminPartnersPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPartners"));
 const AdminResourcesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminResources"));
 const AdminInsightsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminInsights"));
+const ZoeIntelligencePage = lazyWithErrorHandling(() => import("./pages/admin/ZoeIntelligence"));
 const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
 const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
 const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
@@ -292,6 +293,7 @@ const App = () => {
                           <Route path="partners" element={<AdminPartnersPage />} />
                           <Route path="resources" element={<AdminResourcesPage />} />
                           <Route path="insights" element={<AdminInsightsPage />} />
+                          <Route path="intelligence" element={<ZoeIntelligencePage />} />
                           <Route path="settings" element={<AdminSettingsPage />} />
                           <Route path="notifications" element={<AdminNotificationsPage />} />
                           <Route path="logs" element={<AdminLogsPage />} />
