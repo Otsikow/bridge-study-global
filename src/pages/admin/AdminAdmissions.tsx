@@ -44,6 +44,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import AdminReportExportButton from "@/components/admin/AdminReportExportButton";
 import { format } from "date-fns";
 import {
   Bar,
@@ -608,6 +609,11 @@ const AdminAdmissionsOversight = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <AdminReportExportButton
+            tenantId={tenantId}
+            defaultReportType="admissions"
+            className="whitespace-nowrap"
+          />
           <Button
             variant="outline"
             className="gap-2"
