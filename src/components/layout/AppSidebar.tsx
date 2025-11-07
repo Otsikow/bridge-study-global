@@ -99,7 +99,7 @@ const menuItems = {
     { title: "Agents", url: "/dashboard/agents", icon: Share2 },
     { title: "Commissions", url: "/dashboard/commissions", icon: DollarSign },
     { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-    { title: "Settings", url: "/dashboard/settings", icon: Settings },
+    { title: "Settings", url: "/profile/settings", icon: Settings },
     { title: "Blog", url: "/admin/blog", icon: FileText },
   ],
 };
@@ -222,7 +222,7 @@ export function AppSidebar() {
             variant="ghost"
             size={state === "collapsed" ? "icon" : "sm"}
             className="w-full justify-start"
-            onClick={() => navigate("/settings")}
+            onClick={() => navigate("/profile/settings")}
           >
             <Settings className="h-4 w-4 flex-shrink-0" />
             {state !== "collapsed" && <span className="ml-2 text-sm">Settings</span>}
