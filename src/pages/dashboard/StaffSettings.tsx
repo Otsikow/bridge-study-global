@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Palette, ShieldCheck, Bell, BookOpen, Languages } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import BackButton from "@/components/BackButton";
@@ -16,30 +17,47 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/hooks/useAuth";
+import { useLanguage } from "@/providers/LanguageProvider";
+import type { SupportedLanguage } from "@/i18n/resources";
 
 const previewThemes = [
   { id: "light", label: "Light" },
   { id: "dark", label: "Dark" },
 ];
 
-const availableLanguages = [
-  { code: "en", label: "English" },
-  { code: "fr", label: "Français" },
-  { code: "de", label: "Deutsch" },
-  { code: "pt", label: "Português" },
-];
-
 export default function StaffSettings() {
   const { profile } = useAuth();
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
+  const { resolvedTheme, theme, setTheme } = useTheme();
+  const { language, setLanguage, availableLanguages } = useLanguage();
   const [previewTheme, setPreviewTheme] = useState("light");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [digestEnabled, setDigestEnabled] = useState(false);
-  const [language, setLanguage] = useState(i18n.language || "en");
 
-  const changeLanguage = async (code: string) => {
-    setLanguage(code);
-    await i18n.changeLanguage(code);
+  useEffect(() => {
+    const resolved = (theme === "system" ? resolvedTheme : theme) ?? "light";
+    const normalized = resolved === "dark" ? "dark" : "light";
+    if (normalized !== previewTheme) {
+      setPreviewTheme(normalized);
+    }
+  }, [resolvedTheme, theme, previewTheme]);
+
+  const changeLanguage = (code: string) => {
+    setLanguage(code as SupportedLanguage);
+  };
+
+  const languageOptions = useMemo(
+    () =>
+      availableLanguages.map((code) => ({
+        code,
+        label: t(`common.languageNames.${code}`),
+      })),
+    [availableLanguages, t],
+  );
+
+  const handleThemePreview = (themeId: "light" | "dark") => {
+    setPreviewTheme(themeId);
+    setTheme(themeId);
   };
 
   return (
@@ -159,7 +177,7 @@ export default function StaffSettings() {
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableLanguages.map((lang) => (
+                      {languageOptions.map((lang) => (
                         <SelectItem key={lang.code} value={lang.code}>
                           {lang.label}
                         </SelectItem>
@@ -179,7 +197,11 @@ export default function StaffSettings() {
                         <CardTitle className="text-sm flex items-center gap-2">
                           <Palette className="h-4 w-4" /> {theme.label}
                         </CardTitle>
-                        <Button variant={previewTheme === theme.id ? "default" : "outline"} size="sm" onClick={() => setPreviewTheme(theme.id)}>
+                        <Button
+                          variant={previewTheme === theme.id ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleThemePreview(theme.id)}
+                        >
                           Preview
                         </Button>
                       </CardHeader>
