@@ -56,6 +56,10 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { StatusBadge } from "@/components/StatusBadge";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 import { LoadingState } from "@/components/LoadingState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 import { useToast } from "@/hooks/use-toast";
@@ -548,7 +552,7 @@ const ApplicationsPage = () => {
             <div className="relative">
               <div className="mt-2 h-2 w-2 rounded-full bg-blue-400" />
               {index !== items.length - 1 && (
-                <div className="ml-[3px] h-full w-px bg-slate-700" />
+                <div className="ml-[3px] h-full w-px bg-blue-900/60" />
               )}
             </div>
             <div className="space-y-1 text-sm">
@@ -587,7 +591,7 @@ const ApplicationsPage = () => {
         {documents.map((document) => (
           <div
             key={document.id}
-            className="flex flex-col gap-3 rounded-xl border border-slate-800/60 bg-slate-900/40 p-4 sm:flex-row sm:items-start sm:justify-between"
+            className={withUniversitySurfaceTint("flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-start sm:justify-between")}
           >
             <div className="space-y-2">
               <p className="text-sm font-semibold text-slate-100">
@@ -673,7 +677,7 @@ const ApplicationsPage = () => {
         </p>
       </div>
 
-      <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
             <CardTitle className="text-base font-semibold text-slate-100">
@@ -726,7 +730,7 @@ const ApplicationsPage = () => {
           )}
 
           {loading && (
-            <div className="rounded-xl border border-slate-800/60 bg-slate-900/30 py-6">
+            <div className={withUniversitySurfaceTint("rounded-xl py-6 bg-blue-950/50")}>
               <LoadingState
                 message={
                   applications.length === 0
@@ -769,7 +773,7 @@ const ApplicationsPage = () => {
                   {applications.map((application) => (
                     <TableRow
                       key={application.id}
-                      className="cursor-pointer transition hover:bg-slate-800/40"
+                      className="cursor-pointer transition hover:bg-blue-900/40"
                       onClick={() => handleViewApplication(application)}
                     >
                       <TableCell className="space-y-1">
@@ -899,7 +903,7 @@ const ApplicationsPage = () => {
             <ScrollArea className="max-h-[70vh] pr-3">
               <div className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <GraduationCap className="h-4 w-4" />
                       Course
@@ -928,7 +932,7 @@ const ApplicationsPage = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <ClipboardList className="h-4 w-4" />
                       Application
@@ -950,7 +954,7 @@ const ApplicationsPage = () => {
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <User className="h-4 w-4" />
                       Student
@@ -976,7 +980,7 @@ const ApplicationsPage = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <Building2 className="h-4 w-4" />
                       Agent
@@ -1000,7 +1004,7 @@ const ApplicationsPage = () => {
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-3 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <FileText className="h-4 w-4" />
                       Documents
@@ -1008,7 +1012,7 @@ const ApplicationsPage = () => {
                     {renderDocuments(detailedApplication?.documents)}
                   </div>
 
-                  <div className="space-y-3 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                  <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                       <FileText className="h-4 w-4" />
                       Notes
@@ -1017,7 +1021,7 @@ const ApplicationsPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-400">
                     <Clock className="h-4 w-4" />
                     Timeline

@@ -21,6 +21,10 @@ import {
 import { MetricCard } from "@/components/university/panels/MetricCard";
 import { LoadingState } from "@/components/LoadingState";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -106,7 +110,7 @@ const offerTypeBadgeClasses: Record<OfferType, string> = {
 
 const statusBadgeClasses: Record<RecordStatus, string> = {
   issued: "border-emerald-500/40 bg-emerald-500/10 text-emerald-100",
-  pending: "border-slate-600/40 bg-slate-800/70 text-slate-200",
+  pending: "border-blue-900/50 bg-blue-950/60 text-blue-200",
 };
 
 const formatDate = (value?: string | null) => {
@@ -437,7 +441,7 @@ const OffersCASPage = () => {
         />
       </section>
 
-      <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
           <div>
             <CardTitle className="text-base font-semibold text-slate-100">
@@ -481,7 +485,7 @@ const OffersCASPage = () => {
               <img
                 src={emptyStateIllustration}
                 alt="No offers yet"
-                className="h-40 w-40 rounded-2xl border border-slate-800/60 bg-slate-900/40 object-cover p-4"
+                className={withUniversitySurfaceTint("h-40 w-40 rounded-2xl object-cover p-4 bg-blue-950/60")}
               />
               <div className="space-y-2 text-center">
                 <h3 className="text-lg font-semibold text-slate-100">
@@ -511,7 +515,7 @@ const OffersCASPage = () => {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-slate-800/60">
+                  <TableRow className="border-blue-900/50 bg-blue-950/30">
                     <TableHead className="text-slate-300">Student</TableHead>
                     <TableHead className="text-slate-300">Offer Type</TableHead>
                     <TableHead className="text-slate-300">CAS Number</TableHead>
@@ -524,7 +528,7 @@ const OffersCASPage = () => {
                   {filteredRecords.map((record) => (
                     <TableRow
                       key={record.id}
-                      className="border-slate-800/50 bg-slate-950/40 transition hover:bg-slate-900/50"
+                      className="border-blue-900/40 bg-blue-950/40 transition hover:bg-blue-900/40"
                     >
                       <TableCell>
                         <div className="flex flex-col">

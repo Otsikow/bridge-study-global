@@ -27,6 +27,11 @@ import { MetricCard } from "@/components/university/panels/MetricCard";
 import { ApplicationSourcesChart } from "@/components/university/panels/ApplicationSourcesChart";
 import { ApplicationStatusChart } from "@/components/university/panels/ApplicationStatusChart";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceSubtle,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 
 const formatNumber = (value: number) =>
@@ -77,7 +82,7 @@ const OverviewPage = () => {
 
   return (
     <div className="space-y-8">
-      <Card className="overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/40 text-slate-100 shadow-lg shadow-slate-950/40">
+      <Card className={withUniversityCardStyles("overflow-hidden rounded-3xl text-slate-100 shadow-[0_28px_72px_-36px_rgba(30,64,175,0.5)]")}>
         <CardContent className="p-6 lg:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 items-start gap-5">
@@ -98,11 +103,11 @@ const OverviewPage = () => {
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
                   {university.city ? (
-                    <Badge variant="outline" className="border-slate-700 bg-slate-900/60">
+                    <Badge variant="outline" className="border-blue-900/50 bg-blue-950/60">
                       {university.city}, {university.country}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-slate-700 bg-slate-900/60">
+                    <Badge variant="outline" className="border-blue-900/50 bg-blue-950/60">
                       {university.country}
                     </Badge>
                   )}
@@ -132,7 +137,7 @@ const OverviewPage = () => {
                 ) : null}
               </div>
             </div>
-            <div className="flex flex-col gap-4 rounded-2xl border border-slate-800/60 bg-slate-900/60 p-6 text-sm text-slate-300">
+            <div className={withUniversitySurfaceTint("flex flex-col gap-4 rounded-2xl p-6 text-sm text-slate-300 bg-blue-950/60")}>
               <div className="flex items-center justify-between">
                 <span>Total Applications</span>
                 <span className="text-lg font-semibold text-white">
@@ -201,7 +206,7 @@ const OverviewPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3 rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("lg:col-span-3 rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-slate-300">
               Applicant Pipeline
@@ -216,11 +221,11 @@ const OverviewPage = () => {
               return (
                 <div
                   key={stage.key}
-                  className="rounded-xl border border-slate-800/60 bg-slate-900/40 p-4"
+                  className={withUniversitySurfaceTint("rounded-xl p-4")}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-700/70 bg-slate-900/60">
+                      <span className={withUniversitySurfaceSubtle("inline-flex h-9 w-9 items-center justify-center rounded-xl")}>
                         <Icon className="h-4 w-4 text-blue-300" />
                       </span>
                       <div>
@@ -237,14 +242,14 @@ const OverviewPage = () => {
                       <p className="text-xs text-slate-400">{stage.percentage}% of total</p>
                     </div>
                   </div>
-                  <Progress value={stage.percentage} className="mt-3 h-2 bg-slate-800" />
+                  <Progress value={stage.percentage} className="mt-3 h-2 bg-blue-900/60" />
                 </div>
               );
             })}
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("lg:col-span-2 rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-slate-300">
               Conversion Health
@@ -257,7 +262,7 @@ const OverviewPage = () => {
             {conversion.map((metric) => (
               <div
                 key={metric.key}
-                className="rounded-xl border border-slate-800/60 bg-slate-900/50 p-4"
+                className={withUniversitySurfaceTint("rounded-xl p-4 bg-blue-950/50")}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -268,7 +273,7 @@ const OverviewPage = () => {
                     {metric.value}%
                   </p>
                 </div>
-                <Progress value={metric.value} className="mt-3 h-2 bg-slate-800" />
+                <Progress value={metric.value} className="mt-3 h-2 bg-blue-900/60" />
               </div>
             ))}
           </CardContent>
@@ -281,7 +286,7 @@ const OverviewPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3 rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("lg:col-span-3 rounded-2xl text-slate-100")}>
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -308,7 +313,7 @@ const OverviewPage = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">
+                  <thead className="border-b border-blue-900/50 text-xs uppercase tracking-wide text-slate-400">
                     <tr>
                       <th className="py-2">Application</th>
                       <th className="py-2">Student</th>
@@ -354,7 +359,7 @@ const OverviewPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+        <Card className={withUniversityCardStyles("lg:col-span-2 rounded-2xl text-slate-100")}>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-slate-300">
               Document Requests Snapshot
@@ -364,7 +369,7 @@ const OverviewPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border border-slate-800/50 bg-slate-900/50 p-4">
+            <div className={withUniversitySurfaceTint("flex items-center justify-between rounded-xl p-4 bg-blue-950/50")}>
               <div>
                 <p className="text-sm font-semibold text-white">Pending requests</p>
                 <p className="text-xs text-slate-400">
@@ -378,7 +383,7 @@ const OverviewPage = () => {
                 {formatNumber(metrics.pendingDocuments)}
               </Badge>
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-slate-800/50 bg-slate-900/50 p-4">
+            <div className={withUniversitySurfaceTint("flex items-center justify-between rounded-xl p-4 bg-blue-950/50")}>
               <div>
                 <p className="text-sm font-semibold text-white">Documents received</p>
                 <p className="text-xs text-slate-400">
@@ -392,7 +397,7 @@ const OverviewPage = () => {
                 {formatNumber(metrics.receivedDocuments)}
               </Badge>
             </div>
-            <div className="rounded-xl border border-slate-800/60 bg-slate-900/50 p-4">
+            <div className={withUniversitySurfaceTint("rounded-xl p-4 bg-blue-950/50")}>
               <p className="text-xs uppercase tracking-wide text-slate-400">
                 Latest requests
               </p>
@@ -417,7 +422,7 @@ const OverviewPage = () => {
                       </div>
                       <Badge
                         variant="outline"
-                        className="border-slate-700/70 bg-slate-900/60 text-xs"
+                        className="border-blue-900/50 bg-blue-950/60 text-xs"
                       >
                         {request.status.toUpperCase()}
                       </Badge>

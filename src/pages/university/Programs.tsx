@@ -69,6 +69,11 @@ import {
 import { LoadingState } from "@/components/LoadingState";
 import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
 import {
+  withUniversityCardStyles,
+  withUniversitySurfaceSubtle,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
+import {
   useUniversityDashboard,
   UniversityProgram,
 } from "@/components/university/layout/UniversityDashboardLayout";
@@ -214,7 +219,7 @@ const ProgramForm = ({
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-slate-900/95 text-slate-100">
+                  <SelectContent className="bg-blue-950/90 text-slate-100">
                     {levelOptions.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -272,7 +277,7 @@ const ProgramForm = ({
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent className="bg-slate-900/95 text-slate-100">
+                  <SelectContent className="bg-blue-950/90 text-slate-100">
                     {CURRENCY_OPTIONS.map((option) => (
                       <SelectItem key={option} value={option}>
                         {option}
@@ -407,7 +412,7 @@ const ProgramForm = ({
                 {INTAKE_MONTH_OPTIONS.map((option) => (
                   <label
                     key={option.value}
-                    className="flex items-center gap-2 rounded-lg border border-slate-800/60 bg-slate-900/40 px-3 py-2 text-sm text-slate-200"
+                    className={withUniversitySurfaceTint("flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-200")}
                   >
                     <Checkbox
                       checked={field.value.includes(option.value)}
@@ -474,7 +479,7 @@ const ProgramForm = ({
           control={form.control}
           name="active"
           render={({ field }) => (
-            <FormItem className="flex items-center justify-between rounded-xl border border-slate-800/60 bg-slate-900/40 px-4 py-3">
+            <FormItem className={withUniversitySurfaceTint("flex items-center justify-between rounded-xl px-4 py-3")}>
               <div>
                 <FormLabel>Visibility</FormLabel>
                 <FormDescription>
@@ -828,7 +833,7 @@ const ProgramsPage = () => {
         </p>
       </div>
 
-      <Card className="rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
+      <Card className={withUniversityCardStyles("rounded-2xl text-slate-100")}>
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <CardTitle className="text-base font-semibold text-slate-100">
@@ -858,7 +863,7 @@ const ProgramsPage = () => {
                 <SelectTrigger className="sm:w-[180px]">
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900/95 text-slate-100">
+                <SelectContent className="bg-blue-950/90 text-slate-100">
                   {levelFilterOptions.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option === "all" ? "All levels" : option}
@@ -870,7 +875,7 @@ const ProgramsPage = () => {
                 <SelectTrigger className="sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900/95 text-slate-100">
+                <SelectContent className="bg-blue-950/90 text-slate-100">
                   {STATUS_FILTER_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -906,9 +911,9 @@ const ProgramsPage = () => {
               />
             )
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-800/60">
+            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-blue-950/30")}>
               <table className="w-full min-w-[920px] text-left text-sm">
-                <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">
+                <thead className="border-b border-blue-900/50 text-xs uppercase tracking-wide text-slate-400">
                   <tr>
                     <th className="px-4 py-3 font-medium">Programme</th>
                     <th className="px-4 py-3 font-medium">Level</th>
@@ -935,7 +940,7 @@ const ProgramsPage = () => {
                         </div>
                       </td>
                       <td className="px-4 py-4 align-top">
-                        <Badge variant="outline" className="border-slate-700/70 bg-slate-900/70 text-slate-200">
+                        <Badge variant="outline" className="border-blue-900/50 bg-blue-950/60 text-slate-200">
                           {program.level}
                         </Badge>
                       </td>
@@ -954,7 +959,7 @@ const ProgramsPage = () => {
                                 <Badge
                                   key={`${program.id}-${month}`}
                                   variant="secondary"
-                                  className="border-slate-800/60 bg-slate-800/50 text-slate-200"
+                                  className="border-blue-900/50 bg-blue-950/50 text-slate-200"
                                 >
                                   {monthFormatter.format(new Date(2000, month - 1, 1))}
                                 </Badge>
@@ -976,7 +981,7 @@ const ProgramsPage = () => {
                             className={
                               program.active
                                 ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
-                                : "border-slate-700/70 bg-slate-900/70 text-slate-400"
+                                : "border-blue-900/50 bg-blue-950/50 text-slate-400"
                             }
                           >
                             {program.active ? "Active" : "Inactive"}
@@ -1008,7 +1013,7 @@ const ProgramsPage = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
-                              className="w-48 border border-slate-800/60 bg-slate-900/95 text-slate-100"
+                              className="w-48 border border-blue-900/50 bg-blue-950/90 text-slate-100"
                             >
                               <DropdownMenuItem onClick={() => setViewingProgram(program)}>
                                 <Eye className="mr-2 h-4 w-4" /> View details
@@ -1037,7 +1042,7 @@ const ProgramsPage = () => {
       </Card>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border border-slate-800/60 bg-slate-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add a new programme</DialogTitle>
             <DialogDescription>
@@ -1056,7 +1061,7 @@ const ProgramsPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(editingProgram)} onOpenChange={(open) => !open && setEditingProgram(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto border border-slate-800/60 bg-slate-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit programme</DialogTitle>
             <DialogDescription>
@@ -1077,7 +1082,7 @@ const ProgramsPage = () => {
       </Dialog>
 
       <Dialog open={Boolean(viewingProgram)} onOpenChange={(open) => !open && setViewingProgram(null)}>
-        <DialogContent className="max-h-[90vh] overflow-hidden border border-slate-800/60 bg-slate-950/95 text-slate-100 sm:max-w-2xl">
+        <DialogContent className="max-h-[90vh] overflow-hidden border border-blue-900/50 bg-blue-950/95 text-slate-100 sm:max-w-2xl">
           {viewingProgram ? (
             <>
               <DialogHeader className="pb-2">
@@ -1157,7 +1162,7 @@ const ProgramsPage = () => {
                             <Badge
                               key={`${viewingProgram.id}-detail-${month}`}
                               variant="secondary"
-                              className="border-slate-800/60 bg-slate-800/50 text-slate-200"
+                              className="border-blue-900/50 bg-blue-950/50 text-slate-200"
                             >
                               {monthFormatter.format(new Date(2000, month - 1, 1))}
                             </Badge>
@@ -1205,7 +1210,7 @@ const ProgramsPage = () => {
       </Dialog>
 
       <AlertDialog open={Boolean(deletingId)} onOpenChange={(open) => !open && setDeletingId(null)}>
-        <AlertDialogContent className="border border-slate-800/60 bg-slate-950/95 text-slate-100">
+        <AlertDialogContent className="border border-blue-900/50 bg-blue-950/95 text-slate-100">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete programme</AlertDialogTitle>
             <AlertDialogDescription>

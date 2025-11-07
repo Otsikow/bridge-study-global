@@ -34,6 +34,11 @@ import { supabase } from "@/integrations/supabase/client";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { getErrorMessage, logError } from "@/lib/errorUtils";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceSubtle,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 
 type DocumentsRow = {
   id: string;
@@ -292,7 +297,7 @@ const SummaryCard = ({
   icon: LucideIcon;
   loading?: boolean;
 }) => (
-  <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition hover:border-slate-700 hover:shadow-slate-900/30">
+  <Card className={withUniversityCardStyles()}>
     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
       <div>
         <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
@@ -327,7 +332,9 @@ const RecentApplicationsTable = ({
         {Array.from({ length: 3 }).map((_, index) => (
           <div
             key={index}
-            className="grid grid-cols-1 gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-5 md:items-center"
+            className={withUniversitySurfaceTint(
+              "grid grid-cols-1 gap-4 rounded-lg p-4 md:grid-cols-5 md:items-center",
+            )}
           >
             <Skeleton lines={1} className="h-5" />
             <Skeleton lines={1} className="h-5" />
@@ -342,7 +349,11 @@ const RecentApplicationsTable = ({
 
   if (applications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
+      <div
+        className={withUniversitySurfaceSubtle(
+          "flex flex-col items-center justify-center space-y-3 rounded-lg border-dashed p-8 text-center",
+        )}
+      >
         <p className="text-sm font-medium text-slate-200">No recent applications</p>
         <p className="text-sm text-slate-400">
           As new student applications arrive, you&apos;ll see them listed here.
@@ -355,7 +366,7 @@ const RecentApplicationsTable = ({
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-slate-800 bg-slate-900/40 hover:bg-slate-900/40">
+          <TableRow className="border-b border-blue-900/50 bg-blue-950/40">
             <TableHead className="text-slate-300">Student</TableHead>
             <TableHead className="text-slate-300">Course</TableHead>
             <TableHead className="text-slate-300">Agent</TableHead>
@@ -378,7 +389,7 @@ const RecentApplicationsTable = ({
             return (
               <TableRow
                 key={application.id}
-                className="border-b border-slate-800/60 bg-slate-900/20 hover:bg-slate-900/40"
+                className="border-b border-blue-900/40 bg-blue-950/30 hover:bg-blue-900/40"
               >
                 <TableCell className="text-slate-100">{studentName}</TableCell>
                 <TableCell className="text-slate-300">{courseName}</TableCell>
@@ -407,7 +418,7 @@ const UniversityInfoPanel = ({
 }) => {
   if (loading) {
     return (
-      <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition">
+      <Card className={withUniversityCardStyles()}>
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-slate-100">
             University Information
@@ -433,7 +444,7 @@ const UniversityInfoPanel = ({
 
   if (!university) {
     return (
-      <Card className="border border-dashed border-slate-800 bg-slate-900/30 text-center shadow-none">
+      <Card className={withUniversitySurfaceSubtle("text-center shadow-none rounded-3xl border-dashed")}>
         <CardContent className="flex flex-col items-center gap-3 py-12">
           <AlertTriangle className="h-10 w-10 text-slate-500" />
           <CardTitle className="text-base font-semibold text-slate-200">
@@ -462,10 +473,10 @@ const UniversityInfoPanel = ({
     "Accreditation information not available.";
 
   return (
-    <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition">
+    <Card className={withUniversityCardStyles()}>
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-slate-800 bg-slate-950">
+          <div className={withUniversitySurfaceTint("flex h-16 w-16 items-center justify-center rounded-lg bg-blue-950/60")}>
             {university.logo_url ? (
               <img
                 src={university.logo_url}
@@ -539,7 +550,8 @@ const UniversityOverviewPage = () => {
 
   return (
     <div className="space-y-10 text-slate-100">
-      <header className="space-y-3 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8 shadow-lg shadow-slate-950/30">
+      <header className={withUniversityCardStyles("space-y-3 rounded-3xl p-8 shadow-[0_28px_72px_-36px_rgba(30,64,175,0.55)]")}
+      >
         <p className="text-sm text-blue-300">Welcome back</p>
         <h1 className="text-3xl font-semibold tracking-tight text-white">University Dashboard</h1>
         <p className="max-w-2xl text-sm text-slate-400">
@@ -609,7 +621,7 @@ const UniversityOverviewPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition hover:border-slate-700 hover:shadow-slate-900/30">
+        <Card className={withUniversityCardStyles("hover:border-blue-800/60 hover:shadow-[0_32px_72px_-30px_rgba(37,99,235,0.55)]")}>
           <CardHeader className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <CardTitle className="text-lg font-semibold text-slate-100">Recent Applications</CardTitle>
@@ -632,7 +644,11 @@ const UniversityOverviewPage = () => {
         <UniversityInfoPanel university={data?.university ?? null} loading={isLoading && !data} />
       </section>
 
-      <footer className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 shadow-inner shadow-slate-950/20">
+      <footer
+        className={withUniversitySurfaceTint(
+          "rounded-3xl p-6 shadow-inner shadow-[inset_0_12px_24px_-18px_rgba(37,99,235,0.35)]",
+        )}
+      >
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1 text-sm text-slate-400">
             <p className="font-medium text-slate-200">Need assistance?</p>

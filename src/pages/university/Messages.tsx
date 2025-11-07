@@ -36,6 +36,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import UniversityZoeAssistant from "@/components/university/UniversityZoeAssistant";
 import { MessageCircle, Search, Loader2, MoreVertical, CheckCheck, Trash2, Sparkles } from "lucide-react";
+import {
+  withUniversityCardStyles,
+  withUniversitySurfaceTint,
+} from "@/components/university/common/cardStyles";
 
 interface ContactRecord {
   id: string;
@@ -320,7 +324,7 @@ const UniversityMessagesPage = () => {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col gap-6">
-      <header className="flex flex-col gap-4 rounded-3xl border border-slate-800/60 bg-slate-900/40 px-6 py-6 text-slate-100 shadow-lg shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
+      <header className={withUniversityCardStyles("flex flex-col gap-4 rounded-3xl px-6 py-6 text-slate-100 shadow-[0_28px_72px_-36px_rgba(37,99,235,0.5)] md:flex-row md:items-center md:justify-between")}>
           <div>
             <h1 className="text-2xl font-semibold text-white md:text-3xl">University Messages</h1>
             <p className="text-sm text-slate-400">
@@ -358,7 +362,7 @@ const UniversityMessagesPage = () => {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full border-slate-700/70">
+              <Button variant="outline" size="icon" className="rounded-full border-blue-900/50">
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">Conversation actions</span>
               </Button>
@@ -382,7 +386,7 @@ const UniversityMessagesPage = () => {
       </header>
 
       <div className="flex flex-1 gap-4 lg:gap-6">
-        <section className="flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 text-slate-100 shadow-lg shadow-slate-950/40 md:w-[360px] lg:w-[380px]">
+        <section className={withUniversityCardStyles("flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl text-slate-100 md:w-[360px] lg:w-[380px]")}>
           <ChatList
             conversations={conversations}
             currentConversation={currentConversation}
@@ -391,7 +395,7 @@ const UniversityMessagesPage = () => {
           />
         </section>
 
-        <section className="hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 text-slate-100 shadow-lg shadow-slate-950/40 md:flex">
+        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl text-slate-100 md:flex")}>
           <ChatArea
             conversation={currentConversationData}
             messages={messages}
@@ -406,13 +410,13 @@ const UniversityMessagesPage = () => {
           />
         </section>
 
-        <section className="hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 text-slate-100 shadow-lg shadow-slate-950/40 xl:flex">
+        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-slate-100 xl:flex")}>
           <UniversityZoeAssistant />
         </section>
       </div>
 
       {currentConversation && (
-        <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-slate-950">
+        <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-blue-950">
           <ChatArea
             conversation={currentConversationData}
             messages={messages}
@@ -475,7 +479,7 @@ const UniversityMessagesPage = () => {
                     <button
                       key={contact.id}
                       onClick={() => void handleSelectContact(contact)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-slate-950/60 p-3 text-left transition hover:border-blue-900/60 hover:bg-slate-900/80"
+                      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-blue-950/60 p-3 text-left transition hover:border-blue-900/60 hover:bg-blue-900/50"
                     >
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={contact.avatar_url ?? undefined} alt={contact.full_name} />
