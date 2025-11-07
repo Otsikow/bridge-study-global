@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ApplicationSourcesChart } from "@/components/university/panels/ApplicationSourcesChart";
 import { ApplicationStatusChart } from "@/components/university/panels/ApplicationStatusChart";
-import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 
 const AnalyticsPage = () => {
@@ -76,10 +76,12 @@ const AnalyticsPage = () => {
           </CardHeader>
           <CardContent>
             {topPrograms.length === 0 ? (
-              <StatePlaceholder
+              <EmptyState
                 title="No programme analytics yet"
                 description="As soon as applications arrive for your programmes, performance data will appear here."
-                className="bg-transparent"
+                variant="plain"
+                className="bg-transparent justify-center"
+                fullHeight
               />
             ) : (
               <div className="overflow-x-auto">
@@ -133,14 +135,16 @@ const AnalyticsPage = () => {
               Leading partner agents and the number of applications referred.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {topAgents.length === 0 ? (
-              <StatePlaceholder
-                title="No agent data yet"
-                description="Connect with GEG partner agents to start receiving referred applications."
-                className="bg-transparent"
-              />
-            ) : (
+            <CardContent>
+              {topAgents.length === 0 ? (
+                <EmptyState
+                  title="No agent data yet"
+                  description="Connect with GEG partner agents to start receiving referred applications."
+                  variant="plain"
+                  className="bg-transparent justify-center"
+                  fullHeight
+                />
+              ) : (
               <div className="space-y-3">
                 {topAgents.map((agent) => (
                   <div

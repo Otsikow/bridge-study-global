@@ -9,7 +9,7 @@ import {
   Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatePlaceholder } from "../common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { CheckCircle } from "lucide-react";
 import type { ChartDatum } from "../layout/UniversityDashboardLayout";
 
@@ -29,11 +29,13 @@ export const ApplicationStatusChart = ({
       </CardHeader>
       <CardContent className="h-72">
         {data.every((item) => item.value === 0) ? (
-          <StatePlaceholder
-            icon={<CheckCircle className="h-8 w-8 text-slate-500" />}
+          <EmptyState
+            icon={<CheckCircle className="h-5 w-5 text-slate-400" />}
             title="No outcome data yet"
             description="Outcome data will populate once applications progress through offers and enrolment."
-            className="h-full bg-transparent"
+            variant="plain"
+            className="h-full justify-center"
+            fullHeight
           />
         ) : (
           <ResponsiveContainer width="100%" height="100%">

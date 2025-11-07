@@ -11,12 +11,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UniversitySidebar } from "./UniversitySidebar";
 import { UniversityHeader } from "./UniversityHeader";
-import { StatePlaceholder } from "../common/StatePlaceholder";
-import { LoadingState } from "@/components/LoadingState";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyState } from "@/components/common/EmptyState";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { ErrorBoundary, ErrorFallback } from "@/components/common/ErrorBoundary";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Building2, AlertCircle, ArrowUpRight } from "lucide-react";
+import { Building2, AlertCircle } from "lucide-react";
 
 type Nullable<T> = T | null;
 
@@ -680,7 +680,11 @@ export const UniversityDashboardLayout = ({
   if (authLoading || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16]">
-        <LoadingState message="Preparing your university dashboard..." size="lg" />
+        <LoadingSpinner
+          message="Preparing your university dashboard..."
+          size="lg"
+          fullHeight
+        />
       </div>
     );
   }
@@ -689,9 +693,11 @@ export const UniversityDashboardLayout = ({
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16]">
         <EmptyState
-          icon={<Building2 className="h-10 w-10" />}
+          icon={<Building2 className="h-6 w-6 text-blue-200" />}
           title="No partner profile found"
           description="Sign in with your university partner credentials to access the Global Education Gateway dashboard."
+          variant="subtle"
+          fullHeight
         />
       </div>
     );
@@ -700,16 +706,13 @@ export const UniversityDashboardLayout = ({
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
-        <StatePlaceholder
-          icon={<AlertCircle className="h-12 w-12 text-red-400" />}
+        <ErrorFallback
           title="We couldn't load your dashboard"
-          description="Please refresh the page. If the issue continues, contact your GEG partnership manager."
-          action={
-            <Button onClick={() => void queryRefetch()} className="gap-2">
-              Try again
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
-          }
+          description="Please refresh the page and try again."
+          helperText="If the issue continues, contact your GEG partnership manager."
+          icon={<AlertCircle className="h-6 w-6 text-red-400" />}
+          onRetry={() => void queryRefetch()}
+          variant="subtle"
         />
       </div>
     );
@@ -718,8 +721,8 @@ export const UniversityDashboardLayout = ({
   if (!data || !data.university) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#060b16] p-6">
-        <StatePlaceholder
-          icon={<Building2 className="h-12 w-12 text-blue-400" />}
+        <EmptyState
+          icon={<Building2 className="h-6 w-6 text-blue-200" />}
           title="Connect your university profile"
           description="No university profile is linked to your tenant yet. Complete your onboarding to unlock the dashboard experience."
           action={
@@ -730,6 +733,8 @@ export const UniversityDashboardLayout = ({
               Contact GEG Support
             </Button>
           }
+          variant="subtle"
+          fullHeight
         />
       </div>
     );
@@ -752,18 +757,25 @@ export const UniversityDashboardLayout = ({
           </SheetContent>
         </Sheet>
 
-        <div className="flex min-h-screen flex-1 flex-col">
-          <UniversityHeader
-            onRefresh={() => void queryRefetch()}
-            refreshing={isFetching}
-            onToggleMobileNav={() => setMobileNavOpen(true)}
-          />
-          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-[#050B16] via-[#0B1426] to-[#050B16] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
-              {children}
-            </div>
-          </main>
-        </div>
+          <div className="flex min-h-screen flex-1 flex-col">
+            <UniversityHeader
+              onRefresh={() => void queryRefetch()}
+              refreshing={isFetching}
+              onToggleMobileNav={() => setMobileNavOpen(true)}
+            />
+            <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-[#050B16] via-[#0B1426] to-[#050B16] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+              <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+                <ErrorBoundary
+                  title="Something went wrong"
+                  description="We ran into an issue while rendering your university dashboard section."
+                  onRetry={() => void queryRefetch()}
+                  resetKeys={[data, isFetching]}
+                >
+                  {children}
+                </ErrorBoundary>
+              </div>
+            </main>
+          </div>
       </div>
     </UniversityDashboardContext.Provider>
   );

@@ -6,7 +6,7 @@ import {
   Tooltip,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatePlaceholder } from "../common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { Globe2 } from "lucide-react";
 import type { ChartDatum } from "../layout/UniversityDashboardLayout";
 
@@ -36,11 +36,13 @@ export const ApplicationSourcesChart = ({
       </CardHeader>
       <CardContent className="h-72">
         {data.length === 0 ? (
-          <StatePlaceholder
-            icon={<Globe2 className="h-8 w-8 text-slate-500" />}
+          <EmptyState
+            icon={<Globe2 className="h-5 w-5 text-slate-400" />}
             title="No application data yet"
             description="As soon as applications are submitted, we will visualise source markets here."
-            className="h-full bg-transparent"
+            variant="plain"
+            className="h-full justify-center"
+            fullHeight
           />
         ) : (
           <ResponsiveContainer width="100%" height="100%">

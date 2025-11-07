@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 
 const statusOptions = [
@@ -126,19 +126,23 @@ const ApplicationsPage = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {applications.length === 0 ? (
-            <StatePlaceholder
-              title="No applications yet"
-              description="Once agents submit applications to your programmes, they will populate here."
-              className="bg-transparent"
-            />
-          ) : filteredApplications.length === 0 ? (
-            <StatePlaceholder
-              title="No applications match your filters"
-              description="Adjust the filters or search term to view more results."
-              className="bg-transparent"
-            />
-          ) : (
+        {applications.length === 0 ? (
+          <EmptyState
+            title="No applications yet"
+            description="Once agents submit applications to your programmes, they will populate here."
+            variant="plain"
+            className="bg-transparent justify-center"
+            fullHeight
+          />
+        ) : filteredApplications.length === 0 ? (
+          <EmptyState
+            title="No applications match your filters"
+            description="Adjust the filters or search term to view more results."
+            variant="plain"
+            className="bg-transparent justify-center"
+            fullHeight
+          />
+        ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">

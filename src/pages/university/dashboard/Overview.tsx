@@ -28,7 +28,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/StatusBadge";
-import { LoadingState, Skeleton } from "@/components/LoadingState";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { Skeleton } from "@/components/LoadingState";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -520,7 +521,7 @@ const UniversityOverviewPage = () => {
   if (authLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <LoadingState message="Loading your university overview..." size="lg" />
+        <LoadingSpinner message="Loading your university overview..." size="lg" fullHeight />
       </div>
     );
   }

@@ -26,7 +26,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { MetricCard } from "@/components/university/panels/MetricCard";
 import { ApplicationSourcesChart } from "@/components/university/panels/ApplicationSourcesChart";
 import { ApplicationStatusChart } from "@/components/university/panels/ApplicationStatusChart";
-import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 
 const formatNumber = (value: number) =>
@@ -54,10 +54,12 @@ const OverviewPage = () => {
 
   if (!data?.university) {
     return (
-      <StatePlaceholder
-        icon={<Building2 className="h-10 w-10 text-blue-400" />}
+      <EmptyState
+        icon={<Building2 className="h-6 w-6 text-blue-200" />}
         title="No university profile connected"
         description="Connect your institution to unlock the Global Education Gateway dashboard experience."
+        variant="subtle"
+        fullHeight
       />
     );
   }
@@ -297,62 +299,64 @@ const OverviewPage = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            {recentApplications.length === 0 ? (
-              <StatePlaceholder
-                icon={<CalendarPlus className="h-8 w-8 text-slate-500" />}
-                title="No applications yet"
-                description="Your most recent applications will appear here once agents or students submit them."
-                className="bg-transparent"
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">
-                    <tr>
-                      <th className="py-2">Application</th>
-                      <th className="py-2">Student</th>
-                      <th className="py-2">Program</th>
-                      <th className="py-2">Status</th>
-                      <th className="py-2 text-right">Submitted</th>
+        <CardContent>
+          {recentApplications.length === 0 ? (
+            <EmptyState
+              icon={<CalendarPlus className="h-5 w-5 text-slate-400" />}
+              title="No applications yet"
+              description="Your most recent applications will appear here once agents or students submit them."
+              variant="plain"
+              className="bg-transparent justify-center"
+              fullHeight
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">
+                  <tr>
+                    <th className="py-2">Application</th>
+                    <th className="py-2">Student</th>
+                    <th className="py-2">Program</th>
+                    <th className="py-2">Status</th>
+                    <th className="py-2 text-right">Submitted</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {recentApplications.map((application) => (
+                    <tr key={application.id} className="text-slate-300">
+                      <td className="py-3 font-medium text-white">
+                        {application.appNumber}
+                      </td>
+                      <td className="py-3">
+                        <div className="flex flex-col">
+                          <span>{application.studentName}</span>
+                          <span className="text-xs text-slate-500">
+                            {application.studentNationality}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <div className="flex flex-col">
+                          <span>{application.programName}</span>
+                          <span className="text-xs text-slate-500">
+                            {application.programLevel}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <StatusBadge status={application.status} />
+                      </td>
+                      <td className="py-3 text-right text-sm text-slate-400">
+                        {formatDate(application.createdAt)}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {recentApplications.map((application) => (
-                      <tr key={application.id} className="text-slate-300">
-                        <td className="py-3 font-medium text-white">
-                          {application.appNumber}
-                        </td>
-                        <td className="py-3">
-                          <div className="flex flex-col">
-                            <span>{application.studentName}</span>
-                            <span className="text-xs text-slate-500">
-                              {application.studentNationality}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <div className="flex flex-col">
-                            <span>{application.programName}</span>
-                            <span className="text-xs text-slate-500">
-                              {application.programLevel}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="py-3">
-                          <StatusBadge status={application.status} />
-                        </td>
-                        <td className="py-3 text-right text-sm text-slate-400">
-                          {formatDate(application.createdAt)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
         <Card className="lg:col-span-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 text-slate-100">
           <CardHeader>

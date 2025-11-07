@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -69,13 +69,15 @@ const ProgramsPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {programs.length === 0 ? (
-            <StatePlaceholder
-              title="No programmes found"
-              description="Add programmes in Supabase or the partner administration portal to populate your catalogue."
-              className="bg-transparent"
-            />
-          ) : (
+        {programs.length === 0 ? (
+          <EmptyState
+            title="No programmes found"
+            description="Add programmes in Supabase or the partner administration portal to populate your catalogue."
+            variant="plain"
+            className="bg-transparent justify-center"
+            fullHeight
+          />
+        ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-slate-800/60 text-xs uppercase tracking-wide text-slate-400">

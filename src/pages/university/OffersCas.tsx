@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/StatusBadge";
 import { MetricCard } from "@/components/university/panels/MetricCard";
-import { StatePlaceholder } from "@/components/university/common/StatePlaceholder";
+import { EmptyState } from "@/components/common/EmptyState";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
 import { GraduationCap, Stamp, CheckCircle2 } from "lucide-react";
 
@@ -83,10 +83,13 @@ const OffersCasPage = () => {
         </CardHeader>
         <CardContent>
           {offerPipeline.length === 0 ? (
-            <StatePlaceholder
+            <EmptyState
+              icon={<CheckCircle2 className="h-5 w-5 text-slate-400" />}
               title="No offers issued yet"
               description="Once offers are issued to students, they will appear here for tracking."
-              className="bg-transparent"
+              variant="plain"
+              className="bg-transparent justify-center"
+              fullHeight
             />
           ) : (
             <div className="overflow-x-auto">
@@ -158,10 +161,13 @@ const OffersCasPage = () => {
         </CardHeader>
         <CardContent>
           {casPipeline.length === 0 ? (
-            <StatePlaceholder
+            <EmptyState
+              icon={<Stamp className="h-5 w-5 text-slate-400" />}
               title="No CAS or visa cases in progress"
               description="As soon as students move into the CAS or visa stage, they will appear here for monitoring."
-              className="bg-transparent"
+              variant="plain"
+              className="bg-transparent justify-center"
+              fullHeight
             />
           ) : (
             <div className="overflow-x-auto">
@@ -230,10 +236,13 @@ const OffersCasPage = () => {
         </CardHeader>
         <CardContent>
           {enrolledStudents.length === 0 ? (
-            <StatePlaceholder
+            <EmptyState
+              icon={<GraduationCap className="h-5 w-5 text-slate-400" />}
               title="No confirmed enrolments yet"
               description="Keep tracking your offer conversions to move students into confirmed enrolment."
-              className="bg-transparent"
+              variant="plain"
+              className="bg-transparent justify-center"
+              fullHeight
             />
           ) : (
             <div className="overflow-x-auto">
