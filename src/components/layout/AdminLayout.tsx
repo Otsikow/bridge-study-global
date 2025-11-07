@@ -1,3 +1,4 @@
+import { Fragment, useCallback, useMemo, type ComponentType, type SVGProps } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +8,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+import { useUserRoles } from "@/hooks/useUserRoles";
+import { LoadingState } from "@/components/LoadingState";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +31,7 @@ import {
   ShieldCheck,
   LogOut,
   Sparkles,
+  Wrench,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
@@ -31,7 +43,7 @@ interface NavItem {
   to: string;
   label: string;
   description: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -45,6 +57,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/admin/settings", label: "Settings", description: "Tenant configuration", icon: Settings },
   { to: "/admin/notifications", label: "Notifications", description: "System alerts", icon: Bell },
   { to: "/admin/logs", label: "Logs", description: "Audit trails", icon: ShieldCheck },
+  { to: "/admin/tools", label: "Tools", description: "Automation & QA", icon: Wrench },
 ];
 
 const getInitials = (value: string) =>
@@ -61,6 +74,78 @@ const AdminLayout = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const { loading: rolesLoading, hasRole } = useUserRoles();
+
+  const openZoe = useCallback(() => {
+    window.dispatchEvent(
+      new CustomEvent("zoe:open-chat", {
+        detail: { prompt: "Summarize key admin workspace updates for leadership." },
+      }),
+    );
+  }, []);
+
+  const breadcrumbs = useMemo(() => {
+    const path = location.pathname.replace(/\/+$/, "");
+    if (!path.startsWith("/admin")) {
+      return [] as { label: string; to: string; isCurrent: boolean }[];
+    }
+
+    const segments = path.replace(/^\/admin\/?/, "").split("/").filter(Boolean);
+    const items: { label: string; to: string; isCurrent: boolean }[] = [];
+
+    items.push({ label: "Admin", to: "/admin/overview", isCurrent: segments.length === 0 });
+
+    let accumulated = "/admin";
+    segments.forEach((segment, index) => {
+      accumulated += `/${segment}`;
+      const navMatch = NAV_ITEMS.find((item) => item.to === accumulated);
+      const fallbackLabel = segment
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+
+      items.push({
+        label: navMatch?.label ?? fallbackLabel,
+        to: accumulated,
+        isCurrent: index === segments.length - 1,
+      });
+    });
+
+    if (items.length > 1) {
+      items.forEach((item, index) => {
+        if (index < items.length - 1) {
+          item.isCurrent = false;
+        }
+      });
+      items[items.length - 1]!.isCurrent = true;
+    }
+
+    return items;
+  }, [location.pathname]);
+
+  if (rolesLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/20">
+        <LoadingState message="Validating admin permissions" size="md" />
+      </div>
+    );
+  }
+
+  if (!hasRole("admin")) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-muted/20 p-6 text-center">
+        <Badge variant="destructive" className="uppercase tracking-wide">Access Restricted</Badge>
+        <h1 className="text-2xl font-semibold">Administrator role required</h1>
+        <p className="max-w-md text-sm text-muted-foreground">
+          Your account does not have the necessary permissions to access the Admin Dashboard. Please contact a system
+          administrator if you believe this is an error.
+        </p>
+        <Button asChild>
+          <NavLink to="/dashboard">Return to dashboard</NavLink>
+        </Button>
+      </div>
+    );
+  }
 
   const sidebar = (
     <div className="flex h-full w-72 flex-col border-r bg-card">
@@ -112,43 +197,68 @@ const AdminLayout = () => {
   );
 
   const header = (
-    <header className="flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-8">
-      <div className="flex items-center gap-3">
-        {isMobile ? (
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open navigation</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
-              {sidebar}
-            </SheetContent>
-          </Sheet>
-        ) : null}
-        <div className="hidden md:flex flex-col">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">Global Education Gateway</span>
-          <span className="text-lg font-semibold">Administrator Workspace</span>
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center justify-between px-4 md:px-8">
+        <div className="flex items-center gap-3">
+          {isMobile ? (
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open navigation</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-0">
+                {sidebar}
+              </SheetContent>
+            </Sheet>
+          ) : null}
+          <div className="hidden md:flex flex-col">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground">Global Education Gateway</span>
+            <span className="text-lg font-semibold">Administrator Workspace</span>
+          </div>
+          <Badge variant="outline" className="md:ml-3">Privileged access</Badge>
         </div>
-        <Badge variant="outline" className="md:ml-3">Privileged access</Badge>
+        <div className="flex items-center gap-2 md:gap-3">
+          <LanguageSwitcher size="sm" />
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            className="group gap-3 rounded-full px-3 py-1.5"
+            onClick={openZoe}
+            aria-label="Chat with Zoe"
+          >
+            <Avatar className="h-8 w-8">
+              <AvatarImage src="/placeholder.svg" alt="Zoe" />
+              <AvatarFallback>Z</AvatarFallback>
+            </Avatar>
+            <div className="hidden text-left sm:flex flex-col leading-tight">
+              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">AI Assistant</span>
+              <span className="text-sm font-semibold text-foreground">Zoe</span>
+            </div>
+            <Sparkles className="h-4 w-4 text-primary transition-transform duration-200 group-hover:scale-110" />
+          </Button>
+        </div>
       </div>
-      <div className="flex items-center gap-3">
-        <LanguageSwitcher size="sm" />
-        <ThemeToggle />
-        <Button
-          variant="outline"
-          className="gap-2"
-          size="sm"
-          onClick={() =>
-            window.dispatchEvent(
-              new CustomEvent("zoe:open-chat", { detail: { prompt: "Provide a governance summary for today" } }),
-            )
-          }
-        >
-          <Sparkles className="h-4 w-4" />
-          Ask Zoe
-        </Button>
+      <div className="border-t px-4 py-2 md:px-8">
+        <Breadcrumb>
+          <BreadcrumbList>
+            {breadcrumbs.map((crumb, index) => (
+              <Fragment key={`${crumb.to}-${index}`}>
+                <BreadcrumbItem>
+                  {crumb.isCurrent ? (
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <NavLink to={crumb.to}>{crumb.label}</NavLink>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+                {index < breadcrumbs.length - 1 ? <BreadcrumbSeparator /> : null}
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
     </header>
   );

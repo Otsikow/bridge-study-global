@@ -177,6 +177,7 @@ const AdminInsightsPage = lazyWithErrorHandling(() => import("./pages/admin/Admi
 const AdminSettingsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminSettings"));
 const AdminNotificationsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminNotifications"));
 const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLogs"));
+const AdminToolsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminTools"));
 const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 
@@ -295,6 +296,7 @@ const App = () => {
                           <Route path="settings" element={<AdminSettingsPage />} />
                           <Route path="notifications" element={<AdminNotificationsPage />} />
                           <Route path="logs" element={<AdminLogsPage />} />
+                          <Route path="tools" element={<AdminToolsPage />} />
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
                         </Route>
