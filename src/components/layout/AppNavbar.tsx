@@ -1,10 +1,20 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { Menu, LogOut, Settings, Home } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  Menu,
+  LogOut,
+  Settings,
+  Home as HomeIcon,
+  Search,
+  GraduationCap,
+  Newspaper,
+  MessageCircle,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,18 +30,20 @@ import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
 import BackButton from "@/components/BackButton";
 
-const navLinks = [
-  { id: "home", to: "/" },
-  { id: "search", to: "/search" },
-  { id: "courses", to: "/courses" },
-  { id: "blog", to: "/blog" },
-  { id: "contact", to: "/contact" },
-] as const;
+const navLinks: Array<{ id: "home" | "search" | "courses" | "blog" | "contact"; to: string; icon: LucideIcon }> = [
+  { id: "home", to: "/", icon: HomeIcon },
+  { id: "search", to: "/search", icon: Search },
+  { id: "courses", to: "/courses", icon: GraduationCap },
+  { id: "blog", to: "/blog", icon: Newspaper },
+  { id: "contact", to: "/contact", icon: MessageCircle },
+];
 
 const AppNavbar = () => {
   const { profile, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
+  const location = useLocation();
+  const showBackButton = location.pathname !== "/";
 
   const getInitials = (name: string) => {
     return name
@@ -48,17 +60,19 @@ const AppNavbar = () => {
     <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 animate-slide-in-down">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 sm:gap-3">
-          <BackButton
-            variant="ghost"
-            size="sm"
-            fallback="/"
-            showHistoryMenu={false}
-            className="h-10 px-2 sm:px-3"
-            labelClassName="hidden sm:inline"
-            wrapperClassName="hidden xs:inline-flex"
-            aria-label={t("common.actions.goBack")}
-          />
-            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          {showBackButton ? (
+            <BackButton
+              variant="ghost"
+              size="sm"
+              fallback="/"
+              showHistoryMenu={false}
+              className="h-10 px-2 sm:px-3"
+              labelClassName="hidden sm:inline"
+              wrapperClassName="hidden xs:inline-flex"
+              aria-label={t("common.actions.goBack")}
+            />
+          ) : null}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <Button
                   variant="outline"
@@ -89,16 +103,22 @@ const AppNavbar = () => {
                     </div>
                   </div>
                   <nav className="flex-1 overflow-y-auto px-6 py-4 space-y-1">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.to}
-                        to={link.to}
-                        className="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
-                        onClick={() => setMobileOpen(false)}
-                      >
-                        {t(`layout.navbar.links.${link.id}`)}
-                      </Link>
-                    ))}
+                    {navLinks.map((link) => {
+                      const Icon = link.icon;
+                      return (
+                        <Link
+                          key={link.to}
+                          to={link.to}
+                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-semibold text-foreground transition hover:bg-accent"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <Icon className="h-5 w-5" />
+                          </span>
+                          <span className="flex-1">{t(`layout.navbar.links.${link.id}`)}</span>
+                        </Link>
+                      );
+                    })}
                   </nav>
                   <Separator />
                   <div className="px-6 py-4 space-y-3">
@@ -163,15 +183,21 @@ const AppNavbar = () => {
         </div>
 
         <nav className="hidden md:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className="text-sm font-medium transition-all duration-300 hover:text-primary hover:-translate-y-0.5"
-            >
-                {t(`layout.navbar.links.${link.id}`)}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="group flex flex-col items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground transition-all duration-300 hover:text-primary"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all duration-300 group-hover:-translate-y-1 group-hover:bg-primary group-hover:text-primary-foreground">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="text-sm font-semibold normal-case tracking-normal">{t(`layout.navbar.links.${link.id}`)}</span>
+              </Link>
+            );
+          })}
         </nav>
 
           <div className="flex items-center gap-3 sm:gap-4">
@@ -201,7 +227,7 @@ const AppNavbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to={dashboardPath} className="cursor-pointer">
-                      <Home className="mr-2 h-4 w-4" />
+                      <HomeIcon className="mr-2 h-4 w-4" />
                       {t("common.navigation.dashboard")}
                     </Link>
                   </DropdownMenuItem>
