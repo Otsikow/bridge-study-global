@@ -496,17 +496,264 @@ export function AIPoweredSearchSection() {
 
                 {/* Results Section */}
                 {!loading && hasResults && (
-                  <div className="space-y-6">
-                    {/* Universities */}
+                  <div className="space-y-8">
                     {universities.length > 0 && (
                       <div className="space-y-4">
                         <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                           <School className="h-4 w-4" /> Universities & Programmes
                         </div>
                         <div className="space-y-4">
-                          {universities.map((university) => (
+                          {universities.map((university) => {
+                            const universityScholarships = university.scholarships ?? [];
+                            const standoutPrograms = university.standoutPrograms ?? [];
+
+                            return (
+                              <div
+                                key={`${university.name}-${university.country ?? ""}`}
+                                className="space-y-5 rounded-2xl border border-border bg-card/80 p-6 shadow-sm"
+                              >
+                                <div className="flex flex-wrap items-start justify-between gap-4">
+                                  <div className="space-y-1">
+                                    <h3 className="text-lg font-semibold text-foreground">{university.name}</h3>
+                                    {(university.city || university.country) && (
+                                      <p className="text-sm text-muted-foreground">
+                                        {[university.city, university.country].filter(Boolean).join(", ")}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {university.website && (
+                                    <Button asChild size="sm" variant="outline" className="h-9 rounded-lg px-3">
+                                      <a href={university.website} target="_blank" rel="noreferrer">
+                                        Visit site <ExternalLink className="ml-2 h-4 w-4" />
+                                      </a>
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                                  {university.globalRanking && (
+                                    <div>
+                                      <span className="font-medium text-foreground">Ranking:</span>{" "}
+                                      {university.globalRanking}
+                                    </div>
+                                  )}
+                                  {university.tuitionRange && (
+                                    <div>
+                                      <span className="font-medium text-foreground">Tuition:</span>{" "}
+                                      {university.tuitionRange}
+                                    </div>
+                                  )}
+                                  {university.acceptanceRate && (
+                                    <div>
+                                      <span className="font-medium text-foreground">Acceptance:</span>{" "}
+                                      {university.acceptanceRate}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {university.notes?.length ? (
+                                  <ul className="space-y-2 text-sm text-muted-foreground">
+                                    {university.notes.map((note, index) => (
+                                      <li key={`${university.name}-note-${index}`} className="flex items-start gap-2">
+                                        <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-primary/70" />
+                                        <span>{note}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+
+                                {standoutPrograms.length > 0 && (
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                                      <Award className="h-4 w-4" /> Standout Programmes
+                                    </div>
+                                    <div className="space-y-3">
+                                      {standoutPrograms.map((program, index) => (
+                                        <div
+                                          key={`${university.name}-program-${index}`}
+                                          className="space-y-3 rounded-xl border border-dashed border-muted-foreground/30 bg-background/60 p-4"
+                                        >
+                                          <div className="flex flex-wrap justify-between gap-3">
+                                            <div className="space-y-2">
+                                              <p className="text-base font-medium text-foreground">{program.name}</p>
+                                              {program.overview && (
+                                                <p className="text-sm leading-relaxed text-muted-foreground">
+                                                  {program.overview}
+                                                </p>
+                                              )}
+                                            </div>
+                                            <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                                              {program.level && <span>Level: {program.level}</span>}
+                                              {program.duration && <span>Duration: {program.duration}</span>}
+                                            </div>
+                                          </div>
+                                          <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
+                                            {program.admissionsInsight && (
+                                              <div>
+                                                <span className="font-medium text-foreground">Admissions:</span>{" "}
+                                                {program.admissionsInsight}
+                                              </div>
+                                            )}
+                                            {program.careerOutlook && (
+                                              <div>
+                                                <span className="font-medium text-foreground">Career outlook:</span>{" "}
+                                                {program.careerOutlook}
+                                              </div>
+                                            )}
+                                            {program.scholarshipHighlight && (
+                                              <div>
+                                                <span className="font-medium text-foreground">Funding:</span>{" "}
+                                                {program.scholarshipHighlight}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {universityScholarships.length > 0 && (
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                                      <Award className="h-4 w-4" /> Scholarships linked to this university
+                                    </div>
+                                    <div className="space-y-3">
+                                      {universityScholarships.map((scholarship, index) => (
+                                        <div
+                                          key={`${university.name}-linked-scholarship-${index}`}
+                                          className="space-y-3 rounded-xl border border-dashed border-muted-foreground/40 bg-background/70 p-4"
+                                        >
+                                          <div className="flex flex-wrap items-start justify-between gap-3">
+                                            <div className="space-y-1">
+                                              <p className="font-medium text-foreground">{scholarship.name}</p>
+                                              {scholarship.provider && (
+                                                <p className="text-sm text-muted-foreground">
+                                                  Provider: {scholarship.provider}
+                                                </p>
+                                              )}
+                                            </div>
+                                            {scholarship.link && (
+                                              <Button asChild size="sm" variant="ghost" className="h-9 px-3">
+                                                <a href={scholarship.link} target="_blank" rel="noreferrer">
+                                                  Details <ExternalLink className="ml-2 h-4 w-4" />
+                                                </a>
+                                              </Button>
+                                            )}
+                                          </div>
+                                          <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                                            {scholarship.amount && <span>Funding: {scholarship.amount}</span>}
+                                            {scholarship.deadline && <span>Deadline: {scholarship.deadline}</span>}
+                                          </div>
+                                          {scholarship.eligibility && (
+                                            <p className="text-sm text-muted-foreground">
+                                              Eligibility: {scholarship.eligibility}
+                                            </p>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {scholarships.length > 0 && (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          <Award className="h-4 w-4" /> Featured Scholarships
+                        </div>
+                        <div className="space-y-3">
+                          {scholarships.map((scholarship, index) => (
                             <div
-                              key={`${university.name}-${university.country ?? ""}`}
-                              className="rounded-2xl border border-border bg-card/80 p-6 shadow-sm"
+                              key={`featured-scholarship-${index}`}
+                              className="space-y-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-5"
                             >
-                              <div className="flex flex-wrap items
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="space-y-1">
+                                  <p className="font-medium text-foreground">{scholarship.name}</p>
+                                  {scholarship.provider && (
+                                    <p className="text-sm text-muted-foreground">
+                                      Provider: {scholarship.provider}
+                                    </p>
+                                  )}
+                                </div>
+                                {scholarship.link && (
+                                  <Button asChild size="sm" variant="outline" className="h-9 rounded-lg px-3">
+                                    <a href={scholarship.link} target="_blank" rel="noreferrer">
+                                      View details <ExternalLink className="ml-2 h-4 w-4" />
+                                    </a>
+                                  </Button>
+                                )}
+                              </div>
+                              <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
+                                {scholarship.amount && <span>Funding: {scholarship.amount}</span>}
+                                {scholarship.deadline && <span>Deadline: {scholarship.deadline}</span>}
+                              </div>
+                              {scholarship.eligibility && (
+                                <p className="text-sm text-muted-foreground">
+                                  Eligibility: {scholarship.eligibility}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {nextSteps.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          <ArrowRight className="h-4 w-4" /> Recommended next steps
+                        </div>
+                        <ol className="space-y-2 text-sm text-muted-foreground">
+                          {nextSteps.map((step, index) => (
+                            <li key={`next-step-${index}`} className="flex items-start gap-3">
+                              <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                                {index + 1}
+                              </span>
+                              <span className="leading-relaxed">{step}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+
+                    {sources.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                          <Globe2 className="h-4 w-4" /> Sources reviewed
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {sources.map((source, index) => (
+                            <Badge
+                              key={`source-${index}`}
+                              variant="outline"
+                              className="border-primary/30 text-muted-foreground"
+                            >
+                              {source}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!loading && !hasResults && (
+                  <div className="rounded-2xl border border-dashed border-muted-foreground/40 bg-muted/20 p-6 text-sm text-muted-foreground">
+                    Run a search to see AI-powered university matches, scholarships, and next steps tailored for you.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
