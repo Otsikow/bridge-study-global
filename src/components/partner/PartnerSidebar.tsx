@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 type PartnerNavItem = {
   label: string;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
-  view: string | null;
+  view?: string | null;
+  path?: string;
 };
 
 const navItems: PartnerNavItem[] = [
@@ -16,7 +17,7 @@ const navItems: PartnerNavItem[] = [
   { label: "Applications", icon: FileText, view: "applications" },
   { label: "Document Requests", icon: Upload, view: "documents" },
   { label: "Offers & CAS", icon: FileCheck2, view: "offers" },
-  { label: "Messages", icon: MessageSquare, view: "messages" },
+  { label: "Messages", icon: MessageSquare, path: "/partner/messages" },
   { label: "Analytics", icon: BarChart3, view: "analytics" },
 ];
 
@@ -59,14 +60,16 @@ export function PartnerSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+                {navItems.map((item) => {
                 const Icon = item.icon;
-                const target =
-                  item.view === null ? "/dashboard" : `/dashboard?view=${item.view}`;
-                const isActive =
-                  item.view === null
-                    ? currentView === DEFAULT_VIEW
-                    : currentView === item.view;
+                  const target =
+                    item.path ??
+                    (item.view === null ? "/dashboard" : `/dashboard?view=${item.view ?? DEFAULT_VIEW}`);
+                  const isActive = item.path
+                    ? location.pathname === item.path
+                    : item.view === null
+                      ? currentView === DEFAULT_VIEW
+                      : currentView === item.view;
 
                 return (
                   <SidebarMenuItem key={item.label}>

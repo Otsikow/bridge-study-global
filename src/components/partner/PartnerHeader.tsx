@@ -87,7 +87,7 @@ export function PartnerHeader() {
               Account settings
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => navigate("/dashboard?view=messages")}
+                onClick={() => navigate("/partner/messages")}
               className="gap-2 text-slate-200"
             >
               <Bell className="h-4 w-4" />
