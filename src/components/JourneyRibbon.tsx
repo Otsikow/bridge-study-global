@@ -53,7 +53,9 @@ export const JourneyRibbon = () => {
             >
               <div className="flex items-center gap-2.5 text-xs uppercase tracking-wide text-white/80 sm:gap-3 sm:text-sm">
                 <segment.icon className="h-4 w-4 flex-shrink-0 sm:h-5 sm:w-5" />
-                <span className="truncate">{segment.stage}</span>
+                <span className="max-w-[170px] text-left leading-tight text-white sm:max-w-[200px]">
+                  {segment.stage}
+                </span>
               </div>
               <div className="mt-4 flex flex-wrap items-baseline gap-2 sm:mt-6">
                 <span className="text-3xl font-bold leading-none sm:text-4xl">{segment.metricValue}</span>

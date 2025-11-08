@@ -477,7 +477,7 @@ const en = {
       journeyRibbon: {
         items: {
           discover: {
-            stage: "Discover",
+            stage: "Explore Global Partners",
             metricValue: "200+",
             metricLabel: "Partner Universities",
             description:
@@ -485,7 +485,7 @@ const en = {
             ctaLabel: "Start Application",
           },
           plan: {
-            stage: "Plan",
+            stage: "Build Your Roadmap",
             metricValue: "5000+",
             metricLabel: "Personalized plans created",
             description:
@@ -493,7 +493,7 @@ const en = {
             ctaLabel: "",
           },
           collaborate: {
-            stage: "Collaborate",
+            stage: "Collaborate with Advisors",
             metricValue: "24h",
             metricLabel: "Average agent response",
             description:
@@ -501,7 +501,7 @@ const en = {
             ctaLabel: "Meet Your Agent",
           },
           submit: {
-            stage: "Submit",
+            stage: "Streamline Applications",
             metricValue: "95%",
             metricLabel: "Success Rate",
             description:
@@ -509,7 +509,7 @@ const en = {
             ctaLabel: "",
           },
           celebrate: {
-            stage: "Celebrate",
+            stage: "Launch Your Journey",
             metricValue: "50+",
             metricLabel: "Countries represented",
             description:
