@@ -261,6 +261,7 @@ serve(async (req: Request): Promise<Response> => {
           agent_profile_id: agentProfileId,
           student_id: studentRecord.id,
           application_count: 0,
+          status: "pending",
         },
         { onConflict: "agent_profile_id,student_id" },
       );
