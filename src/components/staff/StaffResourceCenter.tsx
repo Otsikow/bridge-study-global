@@ -295,57 +295,78 @@ const StaffResourceCenter = () => {
             </CardDescription>
           </div>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div className="w-full md:max-w-md">
-              <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="grid w-full gap-3 sm:grid-cols-2 md:w-auto md:max-w-md lg:flex lg:items-center">
+              <div className="relative w-full md:w-auto">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="border-0 p-0 shadow-none focus-visible:ring-0"
-                  placeholder="Search by name or description"
+                  className="w-full rounded-lg border-0 bg-background pl-9 shadow-none ring-1 ring-inset ring-border focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-0"
+                  placeholder="Search resources..."
                   value={searchTerm}
                   onChange={(event) => setSearchTerm(event.target.value)}
                 />
               </div>
+
+              <div className="grid w-full grid-cols-2 gap-3 md:w-auto lg:flex">
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(value: ResourceCategory | "all") => setCategoryFilter(value)}
+                >
+                  <SelectTrigger className="w-full lg:w-[180px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {(Object.keys(CATEGORY_LABELS) as ResourceCategory[]).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {CATEGORY_LABELS[key]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={fileTypeFilter}
+                  onValueChange={(value: FileType | "all") => setFileTypeFilter(value)}
+                >
+                  <SelectTrigger className="w-full lg:w-[180px]">
+                    <SelectValue placeholder="File type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All file types</SelectItem>
+                    {(Object.keys(FILE_TYPE_LABELS) as FileType[]).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {FILE_TYPE_LABELS[key]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Select
-                value={categoryFilter}
-                onValueChange={(value: ResourceCategory | "all") => setCategoryFilter(value)}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {(Object.keys(CATEGORY_LABELS) as ResourceCategory[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {CATEGORY_LABELS[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={fileTypeFilter}
-                onValueChange={(value: FileType | "all") => setFileTypeFilter(value)}
-              >
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="File type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All file types</SelectItem>
-                  {(Object.keys(FILE_TYPE_LABELS) as FileType[]).map((key) => (
-                    <SelectItem key={key} value={key}>
-                      {FILE_TYPE_LABELS[key]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
+            <div className="hidden md:flex">
               <Button variant="outline" className="gap-2" onClick={fetchResources} disabled={isLoading}>
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />}
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
+                Refresh
+              </Button>
+            </div>
+            <div className="flex w-full md:hidden">
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                onClick={fetchResources}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Filter className="h-4 w-4" />
+                )}
                 Refresh
               </Button>
             </div>
@@ -410,7 +431,7 @@ const StaffResourceCenter = () => {
                 {items.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No files in this category match your filters.</p>
                 ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
                     {items.map((resource) => {
                       const Icon = getFileIcon(resource.fileType);
                       const uploadedDate = resource.createdAt
