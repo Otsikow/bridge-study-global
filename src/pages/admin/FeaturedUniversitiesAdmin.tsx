@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import type { Database } from "@/integrations/supabase/types";
 
 interface UniversityRecord {
   id: string;
@@ -43,6 +44,10 @@ interface UniversityRecord {
   featured_summary: string | null;
   featured_highlight: string | null;
   featured_image_url: string | null;
+  featured_listing_status: Database["public"]["Enums"]["featured_listing_status"] | null;
+  featured_listing_expires_at: string | null;
+  featured_listing_last_paid_at: string | null;
+  featured_listing_current_order_id: string | null;
   updated_at: string | null;
 }
 
@@ -53,6 +58,25 @@ interface DraftState {
   featured_highlight: string;
   featured_image_url: string;
 }
+
+type FeaturedListingStatus = Database["public"]["Enums"]["featured_listing_status"];
+
+const getListingStatusBadge = (
+  status: FeaturedListingStatus | null,
+): { label: string; variant: "default" | "secondary" | "outline" | "destructive" } => {
+  switch (status) {
+    case "active":
+      return { label: "Spotlight active", variant: "default" };
+    case "pending":
+      return { label: "Pending activation", variant: "outline" };
+    case "expired":
+      return { label: "Expired plan", variant: "outline" };
+    case "cancelled":
+      return { label: "Cancelled", variant: "destructive" };
+    default:
+      return { label: "Not subscribed", variant: "secondary" };
+  }
+};
 
 export default function FeaturedUniversitiesAdmin() {
   const queryClient = useQueryClient();
@@ -72,7 +96,7 @@ export default function FeaturedUniversitiesAdmin() {
       const { data, error } = await supabase
         .from("universities")
         .select(
-          "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, featured_image_url, updated_at",
+          "id, name, country, city, logo_url, website, featured, featured_priority, featured_summary, featured_highlight, featured_image_url, featured_listing_status, featured_listing_expires_at, featured_listing_last_paid_at, featured_listing_current_order_id, updated_at",
         )
         .order("featured", { ascending: false })
         .order("featured_priority", { ascending: true, nullsFirst: false })
@@ -462,6 +486,13 @@ export default function FeaturedUniversitiesAdmin() {
                 draft.featured && draft.featured_priority.trim() !== ""
                   ? `Priority #${Number(draft.featured_priority) + 1}`
                   : "Not prioritised";
+              const listingBadge = getListingStatusBadge(university.featured_listing_status);
+              const listingExpiresOn = university.featured_listing_expires_at
+                ? new Date(university.featured_listing_expires_at).toLocaleDateString()
+                : null;
+              const lastPaidOn = university.featured_listing_last_paid_at
+                ? new Date(university.featured_listing_last_paid_at).toLocaleDateString()
+                : null;
 
               return (
                 <Card key={university.id} className="border-muted/60">
@@ -499,9 +530,12 @@ export default function FeaturedUniversitiesAdmin() {
                         )}
                       </div>
                     </div>
-                    <Badge variant={draft.featured ? "default" : "secondary"}>
-                      {draft.featured ? "Featured" : "Not featured"}
-                    </Badge>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant={draft.featured ? "default" : "secondary"}>
+                        {draft.featured ? "Featured" : "Not featured"}
+                      </Badge>
+                      <Badge variant={listingBadge.variant}>{listingBadge.label}</Badge>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -511,6 +545,16 @@ export default function FeaturedUniversitiesAdmin() {
                           Toggle to publish or hide this university on the
                           landing page highlight section.
                         </p>
+                        {listingExpiresOn ? (
+                          <p className="text-xs text-muted-foreground">
+                            Current plan expires {listingExpiresOn}
+                            {lastPaidOn ? ` • Last payment ${lastPaidOn}` : ""}
+                          </p>
+                        ) : lastPaidOn ? (
+                          <p className="text-xs text-muted-foreground">
+                            Last payment {lastPaidOn}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-3">
                         <Switch

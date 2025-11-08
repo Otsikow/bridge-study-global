@@ -75,6 +75,7 @@ const menuItems = {
     { title: "Offers & CAS", url: "/dashboard/offers", icon: FileText },
     { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
     { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+    { title: "Featured Showcase", url: "/university/featured-showcase", icon: Sparkles },
   ],
   staff: [
     { title: "My Dashboard", url: "/dashboard", icon: Home },

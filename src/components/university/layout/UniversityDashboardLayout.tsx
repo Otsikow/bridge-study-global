@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { UniversitySidebar } from "./UniversitySidebar";
@@ -21,6 +22,8 @@ import { Building2, AlertCircle, ArrowUpRight, RefreshCw } from "lucide-react";
 
 type Nullable<T> = T | null;
 
+type FeaturedListingStatus = Database["public"]["Enums"]["featured_listing_status"];
+
 interface UniversityRecord {
   id: string;
   name: string;
@@ -29,6 +32,15 @@ interface UniversityRecord {
   country: string;
   city: string | null;
   description?: string | null;
+  featured?: boolean | null;
+  featured_summary?: string | null;
+  featured_highlight?: string | null;
+  featured_image_url?: string | null;
+  featured_priority?: number | null;
+  featured_listing_status?: FeaturedListingStatus | null;
+  featured_listing_expires_at?: string | null;
+  featured_listing_last_paid_at?: string | null;
+  featured_listing_current_order_id?: string | null;
 }
 
 export interface UniversityProgram {

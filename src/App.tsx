@@ -227,6 +227,9 @@ const UniversityMessages = lazyWithErrorHandling(() => import("./pages/universit
 const UniversityOffersCAS = lazyWithErrorHandling(() => import("./pages/university/OffersCAS"));
 const UniversityAnalytics = lazyWithErrorHandling(() => import("./pages/university/Analytics"));
 const UniversityPrograms = lazyWithErrorHandling(() => import("./pages/university/Programs"));
+const UniversityFeaturedShowcase = lazyWithErrorHandling(
+  () => import("./pages/university/FeaturedShowcase"),
+);
 
 // Partner
 const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
@@ -343,6 +346,7 @@ const App = () => {
                           <Route path="offers-cas" element={<UniversityOffersCAS />} />
                           <Route path="analytics" element={<UniversityAnalytics />} />
                           <Route path="programs" element={<UniversityPrograms />} />
+                          <Route path="featured-showcase" element={<UniversityFeaturedShowcase />} />
                         </Route>
 
                         {/* ✅ Admin Dashboard */}
