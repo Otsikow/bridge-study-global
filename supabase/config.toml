@@ -1,6 +1,6 @@
 project_id = "gbustuntgvmwkcttjojo"
 
-[functions.ai-recommendations]
+[functions.zoe-staff-prompt]
 verify_jwt = true
 
 [functions.ai-chatbot]
