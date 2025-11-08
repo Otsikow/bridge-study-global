@@ -144,6 +144,7 @@ const FAQ = lazyWithErrorHandling(() => import("./pages/FAQ"));
 const HelpCenter = lazyWithErrorHandling(() => import("./pages/HelpCenter"));
 const LegalPrivacy = lazyWithErrorHandling(() => import("./pages/LegalPrivacy"));
 const LegalTerms = lazyWithErrorHandling(() => import("./pages/LegalTerms"));
+const Feedback = lazyWithErrorHandling(() => import("./pages/Feedback"));
 const Login = lazyWithErrorHandling(() => import("./pages/auth/Login"));
 const Signup = lazyWithErrorHandling(() => import("./pages/auth/Signup"));
 const VerifyEmail = lazyWithErrorHandling(() => import("./pages/auth/VerifyEmail"));
@@ -275,6 +276,8 @@ const App = () => {
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
                         <Route path="/universities/:id" element={<PublicLayout><UniversityProfile /></PublicLayout>} />
                         <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
+                        <Route path="/visa-calculator" element={<PublicLayout><VisaCalculator /></PublicLayout>} />
+                        <Route path="/feedback" element={<PublicLayout><Feedback /></PublicLayout>} />
 
                         {/* ✅ Protected Routes */}
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
