@@ -1009,6 +1009,91 @@ export type Database = {
           },
         ]
       }
+      featured_listing_orders: {
+        Row: {
+          activated_at: string | null
+          amount_cents: number
+          created_at: string | null
+          currency: string
+          duration_days: number
+          expires_at: string | null
+          highlight: string | null
+          id: string
+          image_url: string | null
+          notes: string | null
+          payment_id: string | null
+          plan_code: string
+          priority: number | null
+          status: Database["public"]["Enums"]["featured_listing_status"]
+          summary: string | null
+          tenant_id: string
+          university_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          amount_cents: number
+          created_at?: string | null
+          currency?: string
+          duration_days: number
+          expires_at?: string | null
+          highlight?: string | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          payment_id?: string | null
+          plan_code: string
+          priority?: number | null
+          status?: Database["public"]["Enums"]["featured_listing_status"]
+          summary?: string | null
+          tenant_id: string
+          university_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          amount_cents?: number
+          created_at?: string | null
+          currency?: string
+          duration_days?: number
+          expires_at?: string | null
+          highlight?: string | null
+          id?: string
+          image_url?: string | null
+          notes?: string | null
+          payment_id?: string | null
+          plan_code?: string
+          priority?: number | null
+          status?: Database["public"]["Enums"]["featured_listing_status"]
+          summary?: string | null
+          tenant_id?: string
+          university_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_listing_orders_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_listing_orders_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "featured_listing_orders_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       intake_calendars: {
         Row: {
           created_at: string | null
@@ -2300,6 +2385,11 @@ export type Database = {
           description: string | null
           featured: boolean | null
           featured_highlight: string | null
+          featured_image_url: string | null
+          featured_listing_current_order_id: string | null
+          featured_listing_expires_at: string | null
+          featured_listing_last_paid_at: string | null
+          featured_listing_status: Database["public"]["Enums"]["featured_listing_status"] | null
           featured_priority: number | null
           featured_summary: string | null
           id: string
@@ -2322,6 +2412,11 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           featured_highlight?: string | null
+          featured_image_url?: string | null
+          featured_listing_current_order_id?: string | null
+          featured_listing_expires_at?: string | null
+          featured_listing_last_paid_at?: string | null
+          featured_listing_status?: Database["public"]["Enums"]["featured_listing_status"] | null
           featured_priority?: number | null
           featured_summary?: string | null
           id?: string
@@ -2344,6 +2439,11 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           featured_highlight?: string | null
+          featured_image_url?: string | null
+          featured_listing_current_order_id?: string | null
+          featured_listing_expires_at?: string | null
+          featured_listing_last_paid_at?: string | null
+          featured_listing_status?: Database["public"]["Enums"]["featured_listing_status"] | null
           featured_priority?: number | null
           featured_summary?: string | null
           id?: string
@@ -2358,6 +2458,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "universities_featured_listing_current_order_id_fkey"
+            columns: ["featured_listing_current_order_id"]
+            isOneToOne: false
+            referencedRelation: "featured_listing_orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "universities_tenant_id_fkey"
             columns: ["tenant_id"]
@@ -2901,6 +3008,14 @@ export const Constants = {
         "deposit",
         "tuition",
         "other",
+        "featured_listing",
+      ],
+      featured_listing_status: [
+        "inactive",
+        "pending",
+        "active",
+        "expired",
+        "cancelled",
       ],
       payment_status: ["pending", "succeeded", "failed", "refunded"],
       security_event_severity: ["low", "medium", "high", "critical"],
