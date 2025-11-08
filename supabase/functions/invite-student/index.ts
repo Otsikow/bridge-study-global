@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { retry } from "./retry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -91,8 +92,10 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const body = (await req.json()) as Partial<InviteStudentRequest> | null;
+    console.log("Invite student request received", { body });
 
     if (!body) {
+      console.error("Request body is missing");
       return new Response(JSON.stringify({ error: "Request body is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -134,11 +137,13 @@ serve(async (req: Request): Promise<Response> => {
 
     const redirectTo = Deno.env.get("INVITE_REDIRECT_URL") || undefined;
 
-    const { data: existingProfile, error: profileLookupError } = await supabaseAdmin
-      .from("profiles")
-      .select("id, tenant_id, role, full_name, email, phone")
-      .eq("email", normalizedEmail)
-      .maybeSingle();
+    const { data: existingProfile, error: profileLookupError } = await retry(() =>
+      supabaseAdmin
+        .from("profiles")
+        .select("id, tenant_id, role, full_name, email, phone")
+        .eq("email", normalizedEmail)
+        .maybeSingle(),
+    );
 
     if (profileLookupError) {
       console.error("Error fetching existing profile", profileLookupError);
@@ -159,19 +164,21 @@ serve(async (req: Request): Promise<Response> => {
     let inviteType: "invite" | "magic_link" = "invite";
 
     if (existingProfile) {
-      const { error: magicLinkError } = await supabaseAdmin.auth.signInWithOtp({
-        email: normalizedEmail,
-        options: {
-          emailRedirectTo: redirectTo,
-          shouldCreateUser: false,
-          data: {
-            full_name: fullName,
-            role: "student",
-            tenant_id: tenantId,
-            phone: phone ?? undefined,
+      const { error: magicLinkError } = await retry(() =>
+        supabaseAdmin.auth.signInWithOtp({
+          email: normalizedEmail,
+          options: {
+            emailRedirectTo: redirectTo,
+            shouldCreateUser: false,
+            data: {
+              full_name: fullName,
+              role: "student",
+              tenant_id: tenantId,
+              phone: phone ?? undefined,
+            },
           },
-        },
-      });
+        }),
+      );
 
       if (magicLinkError) {
         console.error("Error sending magic link", magicLinkError);
@@ -180,15 +187,17 @@ serve(async (req: Request): Promise<Response> => {
 
       inviteType = "magic_link";
     } else {
-      const { data: inviteData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail, {
-        redirectTo,
-        data: {
-          full_name: fullName,
-          role: "student",
-          tenant_id: tenantId,
-          phone: phone ?? undefined,
-        },
-      });
+      const { data: inviteData, error: inviteError } = await retry(() =>
+        supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail, {
+          redirectTo,
+          data: {
+            full_name: fullName,
+            role: "student",
+            tenant_id: tenantId,
+            phone: phone ?? undefined,
+          },
+        }),
+      );
 
       if (inviteError) {
         console.error("Error inviting user", inviteError);
@@ -205,17 +214,19 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const { error: profileUpsertError } = await supabaseAdmin.from("profiles").upsert(
-      {
-        id: userId,
-        tenant_id: tenantId,
-        email: normalizedEmail,
-        full_name: fullName,
-        phone: phone ?? null,
-        onboarded: false,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" },
+    const { error: profileUpsertError } = await retry(() =>
+      supabaseAdmin.from("profiles").upsert(
+        {
+          id: userId,
+          tenant_id: tenantId,
+          email: normalizedEmail,
+          full_name: fullName,
+          phone: phone ?? null,
+          onboarded: false,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      ),
     );
 
     if (profileUpsertError) {
@@ -223,30 +234,32 @@ serve(async (req: Request): Promise<Response> => {
       throw profileUpsertError;
     }
 
-    const { error: userRoleError } = await supabaseAdmin
-      .from("user_roles")
-      .upsert({ user_id: userId, role: "student" }, { onConflict: "user_id,role" });
+    const { error: userRoleError } = await retry(() =>
+      supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "student" }, { onConflict: "user_id,role" }),
+    );
 
     if (userRoleError) {
       console.error("Error upserting user role", userRoleError);
       throw userRoleError;
     }
 
-    const { data: studentRecord, error: studentUpsertError } = await supabaseAdmin
-      .from("students")
-      .upsert(
-        {
-          tenant_id: tenantId,
-          profile_id: userId,
-          legal_name: fullName,
-          preferred_name: fullName,
-          contact_email: normalizedEmail,
-          contact_phone: phone ?? null,
-        },
-        { onConflict: "profile_id" },
-      )
-      .select("id")
-      .single();
+    const { data: studentRecord, error: studentUpsertError } = await retry(() =>
+      supabaseAdmin
+        .from("students")
+        .upsert(
+          {
+            tenant_id: tenantId,
+            profile_id: userId,
+            legal_name: fullName,
+            preferred_name: fullName,
+            contact_email: normalizedEmail,
+            contact_phone: phone ?? null,
+          },
+          { onConflict: "profile_id" },
+        )
+        .select("id")
+        .single(),
+    );
 
     if (studentUpsertError) {
       console.error("Error upserting student", studentUpsertError);
@@ -254,11 +267,13 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Look up the agent record using the profile_id
-    const { data: agentRecord, error: agentLookupError } = await supabaseAdmin
-      .from("agents")
-      .select("id")
-      .eq("profile_id", agentProfileId)
-      .maybeSingle();
+    const { data: agentRecord, error: agentLookupError } = await retry(() =>
+      supabaseAdmin
+        .from("agents")
+        .select("id")
+        .eq("profile_id", agentProfileId)
+        .maybeSingle(),
+    );
 
     if (agentLookupError) {
       console.error("Error looking up agent", agentLookupError);
@@ -275,18 +290,20 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const { error: linkUpsertError } = await supabaseAdmin
-      .from("agent_student_links")
-      .upsert(
-        {
-          agent_id: agentRecord.id,
-          student_id: studentRecord.id,
-          tenant_id: tenantId,
-          application_count: 0,
-          status: "pending",
-        },
-        { onConflict: "agent_id,student_id" },
-      );
+    const { error: linkUpsertError } = await retry(() =>
+      supabaseAdmin
+        .from("agent_student_links")
+        .upsert(
+          {
+            agent_id: agentRecord.id,
+            student_id: studentRecord.id,
+            tenant_id: tenantId,
+            application_count: 0,
+            status: "pending",
+          },
+          { onConflict: "agent_id,student_id" },
+        ),
+    );
 
     if (linkUpsertError) {
       console.error("Error linking agent to student", linkUpsertError);
@@ -305,8 +322,13 @@ serve(async (req: Request): Promise<Response> => {
       },
     );
   } catch (error) {
-    console.error("Error inviting student", error);
     const message = error instanceof Error ? error.message : "Unexpected error";
+    console.error("Error inviting student", {
+      errorMessage: message,
+      errorStack: error instanceof Error ? error.stack : null,
+      errorCause: error instanceof Error && error.cause ? error.cause : null,
+    });
+
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
