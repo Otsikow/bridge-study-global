@@ -815,6 +815,10 @@ export const useCreateTask = () => {
         applicationId?: string;
       },
     ) => {
+      if (!profile || !tenantId) {
+        throw new Error("User profile or tenant not found.");
+      }
+
       const payload = {
         title: input.title,
         description: input.description ?? null,
@@ -827,8 +831,9 @@ export const useCreateTask = () => {
         status: "open",
       };
 
-      const { error } = await supabase.from("tasks").insert(payload);
-      if (error) throw error;
+      const { data, error } = await supabase.from("tasks").insert(payload).select().single();
+      if (error) throw new Error(error.message);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: staffTasksKey(tenantId, 1, profile?.id) });
