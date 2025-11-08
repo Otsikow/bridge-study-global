@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Sparkles,
   Send,
@@ -22,6 +23,7 @@ import {
   MessageSquareQuote,
   Maximize2,
   Minimize2,
+  AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -52,6 +54,13 @@ interface Message {
   content: string;
   attachments?: Attachment[];
   sources?: ZoeSource[];
+  error?: string;
+}
+
+interface ZoeErrorState {
+  title: string;
+  description: string;
+  troubleshooting?: string;
 }
 
 const STORAGE_KEY = "zoe-chat-session-id";
@@ -235,6 +244,7 @@ export default function ZoeChatbot() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasConversationStarted, setHasConversationStarted] = useState(false);
   const [suggestions, setSuggestions] = useState(SUGGESTED_PROMPTS);
+  const [errorState, setErrorState] = useState<ZoeErrorState | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -382,6 +392,60 @@ export default function ZoeChatbot() {
     }
 
     return filled.slice(0, 4);
+  }, []);
+
+  const interpretError = useCallback((error: unknown): ZoeErrorState => {
+    const base: ZoeErrorState = {
+      title: "Zoe is unavailable",
+      description: "We couldn’t reach Zoe just now. Please try again in a moment.",
+      troubleshooting:
+        "If this keeps happening, verify that the Supabase Edge Functions are deployed and reachable from your network.",
+    };
+
+    if (error instanceof Error) {
+      const message = error.message || "";
+      const cause = (error as Error & { cause?: { status?: number } }).cause;
+
+      if (cause?.status === 401) {
+        return {
+          title: "Session expired",
+          description:
+            "Your session has expired, so Zoe can’t use your account context. Please sign in again and retry your message.",
+        };
+      }
+
+      if (cause?.status === 429) {
+        return {
+          title: "Zoe is busy",
+          description:
+            "We’re handling a lot of requests right now. Give Zoe a few seconds before trying again.",
+        };
+      }
+
+      if (/edge function/i.test(message)) {
+        return {
+          ...base,
+          description:
+            "We couldn’t connect to the Zoe Edge Function. It may be offline or blocked by the current environment.",
+        };
+      }
+
+      if (/fetch|network|Failed to reach Zoe/i.test(message)) {
+        return {
+          ...base,
+          description: "A network error stopped Zoe from responding. Check your connection and retry.",
+        };
+      }
+
+      if (message.trim().length > 0 && message !== base.description) {
+        return {
+          ...base,
+          description: message,
+        };
+      }
+    }
+
+    return base;
   }, []);
 
   useEffect(() => {
@@ -626,6 +690,19 @@ export default function ZoeChatbot() {
     }
 
     const userContent = input.trim();
+    const previousAttachments = attachments;
+    const sanitizedHistory = (() => {
+      const next = [...messages];
+      const last = next[next.length - 1];
+      if (
+        last?.role === "user" &&
+        last.error &&
+        last.content.trim() === userContent
+      ) {
+        next.pop();
+      }
+      return next;
+    })();
 
     const userMessage: Message = {
       role: "user",
@@ -633,7 +710,7 @@ export default function ZoeChatbot() {
       attachments: attachments.length ? [...attachments] : undefined,
     };
 
-    const updatedHistory = [...messages, userMessage];
+    const updatedHistory = [...sanitizedHistory, userMessage];
 
     setMessages(updatedHistory);
     setSuggestions(generateSuggestions(updatedHistory));
@@ -642,6 +719,7 @@ export default function ZoeChatbot() {
     setAttachments([]);
     setIsLoading(true);
     notificationPlayedRef.current = false;
+    setErrorState(null);
 
     try {
       const chatUrl = `${SUPABASE_FUNCTIONS_BASE}/ai-chatbot`;
@@ -670,8 +748,38 @@ export default function ZoeChatbot() {
         }),
       });
 
-      if (!response.ok || !response.body) {
-        throw new Error("Failed to reach Zoe");
+      if (!response.ok) {
+        let errorMessage = `Zoe returned an unexpected ${response.status} response.`;
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType?.includes("application/json")) {
+            const data = await response.json();
+            errorMessage =
+              (data?.message as string | undefined) ||
+              (data?.error as string | undefined) ||
+              errorMessage;
+          } else {
+            const text = await response.text();
+            if (text.trim()) {
+              errorMessage = text.trim();
+            }
+          }
+        } catch (parseError) {
+          console.warn("Unable to parse Zoe error response", parseError);
+        }
+
+        const error = new Error(errorMessage);
+        error.name = "ZoeResponseError";
+        (error as Error & { cause?: { status?: number } }).cause = {
+          status: response.status,
+        };
+        throw error;
+      }
+
+      if (!response.body) {
+        const error = new Error("Zoe didn’t return a response stream.");
+        error.name = "ZoeStreamError";
+        throw error;
       }
 
       const reader = response.body.getReader();
@@ -765,12 +873,29 @@ export default function ZoeChatbot() {
       }
     } catch (error) {
       console.error("Zoe chat error", error);
+      const friendly = interpretError(error);
+      const inlineError =
+        friendly.title === "Session expired"
+          ? "Please sign in again to continue this conversation."
+          : friendly.description;
+      const failedHistory = [
+        ...sanitizedHistory,
+        {
+          ...userMessage,
+          error: inlineError,
+        },
+      ];
+
+      setMessages(failedHistory);
+      setHasConversationStarted(true);
+      setSuggestions(generateSuggestions(failedHistory));
+      setInput(userContent);
+      setAttachments(previousAttachments);
+      setErrorState(friendly);
+
       toast({
-        title: "Something went wrong",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Zoe could not finish that reply.",
+        title: friendly.title,
+        description: friendly.description,
         variant: "destructive",
       });
     } finally {
@@ -788,7 +913,14 @@ export default function ZoeChatbot() {
     session?.access_token,
     sessionId,
     toast,
-    ]);
+    interpretError,
+  ]);
+
+  const handleRetry = useCallback(() => {
+    if (isLoading) return;
+    if (!input.trim()) return;
+    void sendMessage();
+  }, [input, isLoading, sendMessage]);
 
   const quickPromptHandler = useCallback(
     (prompt: string) => {
@@ -909,6 +1041,44 @@ export default function ZoeChatbot() {
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-0">
+        {errorState ? (
+          <div className="px-5 pt-4">
+            <Alert
+              variant="destructive"
+              className="border-destructive/40 bg-destructive/5"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{errorState.title}</AlertTitle>
+              <AlertDescription>
+                <p>{errorState.description}</p>
+                {errorState.troubleshooting ? (
+                  <p className="mt-2 text-xs text-destructive/80">
+                    {errorState.troubleshooting}
+                  </p>
+                ) : null}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRetry}
+                    disabled={isLoading}
+                    className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                  >
+                    Try again
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setErrorState(null)}
+                    className="text-destructive hover:bg-destructive/10"
+                  >
+                    Dismiss
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        ) : null}
         <ScrollArea ref={scrollRef} className="min-h-0 flex-1 px-5">
           <div className="space-y-4 py-5">
             {messages.map((message, index) => {
@@ -957,6 +1127,19 @@ export default function ZoeChatbot() {
                             </a>
                           </div>
                         ))}
+                      </div>
+                    ) : null}
+                    {message.error ? (
+                      <div
+                        className={cn(
+                          "mt-3 flex items-center gap-2 text-xs",
+                          isUser
+                            ? "text-primary-foreground/90"
+                            : "text-destructive",
+                        )}
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        <span>{message.error}</span>
                       </div>
                     ) : null}
                     {message.sources &&
