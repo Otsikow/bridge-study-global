@@ -13,8 +13,8 @@ export function StaffStudentsTable() {
   const [search, setSearch] = useState("");
   const { data, isLoading, isFetching } = useStaffStudents(page, search);
 
-  const total = data?.total ?? 0;
-  const rows = data?.data ?? [];
+  const total = (data as any)?.total ?? 0;
+  const rows = (data as any)?.data ?? [];
 
   return (
     <Card className="rounded-2xl">

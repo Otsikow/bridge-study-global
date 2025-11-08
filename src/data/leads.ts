@@ -7,10 +7,10 @@ export const getLeads = async (): Promise<Lead[]> => {
     .select(
       `
       id,
-      first_name,
-      last_name,
-      email,
-      country,
+      legal_name,
+      preferred_name,
+      contact_email,
+      current_country,
       agent_student_links!inner(
         status
       )
@@ -25,8 +25,12 @@ export const getLeads = async (): Promise<Lead[]> => {
 
   // The type needs to be adjusted because Supabase returns the nested data
   // inside the 'agent_student_links' property.
-  return data.map((student) => ({
-    ...student,
+  return (data as any[]).map((student) => ({
+    id: student.id,
+    first_name: student.legal_name || student.preferred_name || '',
+    last_name: '',
+    email: student.contact_email || '',
+    country: student.current_country || '',
     status: student.agent_student_links[0]?.status || 'unknown',
   })) as Lead[];
 };

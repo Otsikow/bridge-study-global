@@ -67,7 +67,7 @@ export default function ReviewSubmitStep({
 
       try {
         const { data, error } = await supabase
-          .from<ProgramDetailsRow>('programs')
+          .from('programs')
           .select(
             `
             name,
@@ -81,7 +81,7 @@ export default function ReviewSubmitStep({
           `
           )
           .eq('id', formData.programSelection.programId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         if (data) {

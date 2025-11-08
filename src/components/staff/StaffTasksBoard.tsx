@@ -31,8 +31,8 @@ export function StaffTasksBoard() {
   const { data, isLoading, isFetching, isError, error, refetch } = useStaffTasks(page, { status, priority });
   const mutation = useUpdateTaskStatus();
 
-  const total = data?.total ?? 0;
-  const rows = data?.data ?? [];
+  const total = (data as any)?.total ?? 0;
+  const rows = (data as any)?.data ?? [];
   const isFiltered = status !== "all" || priority !== "all";
 
   const errorMessage =

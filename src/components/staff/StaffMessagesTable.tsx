@@ -27,8 +27,8 @@ export function StaffMessagesTable() {
   const { toast } = useToast();
   const zoeMutation = useZoeAI();
 
-  const total = data?.total ?? 0;
-  const rows = data?.data ?? [];
+  const total = (data as any)?.total ?? 0;
+  const rows = (data as any)?.data ?? [];
 
   const handleAskZoe = async () => {
     if (!prompt.trim()) {

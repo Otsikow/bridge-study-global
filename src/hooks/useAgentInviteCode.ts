@@ -12,13 +12,13 @@ const fetchAgentInviteCode = async (
 ): Promise<string> => {
   const { data, error } = await supabase.rpc("ensure_agent_team_invite_code", {
     p_agent_profile_id: agentProfileId,
-  });
+  }) as { data: string | null; error: PostgrestError | null };
 
   if (error) {
     throw error satisfies PostgrestError;
   }
 
-  return data;
+  return data as string;
 };
 
 const regenerateAgentInviteCode = async (
@@ -27,13 +27,13 @@ const regenerateAgentInviteCode = async (
   const { data, error } = await supabase.rpc("ensure_agent_team_invite_code", {
     p_agent_profile_id: agentProfileId,
     p_regenerate: true,
-  });
+  }) as { data: string | null; error: PostgrestError | null };
 
   if (error) {
     throw error satisfies PostgrestError;
   }
 
-  return data;
+  return data as string;
 };
 
 export const useAgentInviteCode = (agentProfileId?: string | null) => {

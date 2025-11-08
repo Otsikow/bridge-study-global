@@ -215,11 +215,11 @@ serve(async (req) => {
       { data: isPartner, error: partnerRoleError },
       { data: isAdminOrStaff, error: adminRoleError },
     ] = await Promise.all([
-      supabase.rpc<RpcHasRoleResult>("has_role", {
+      supabase.rpc("has_role", {
         p_user_id: authContext.userId,
         p_role: "partner",
       }),
-      supabase.rpc<RpcHasRoleResult>("is_admin_or_staff", {
+      supabase.rpc("is_admin_or_staff", {
         user_id: authContext.userId,
       }),
     ]);

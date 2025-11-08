@@ -71,7 +71,7 @@ export default function ProgramSelectionStep({
   const fetchPrograms = useCallback(async () => {
     try {
       let query = supabase
-        .from<ProgramQueryRow>('programs')
+        .from('programs')
         .select(`
           id,
           name,

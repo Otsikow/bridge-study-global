@@ -33,7 +33,7 @@ export function StaffTaskAutomationPanel() {
   const { data, isLoading } = useStaffTasks(1);
 
   const highlightedTasks = useMemo(() => {
-    const tasks = data?.data ?? [];
+    const tasks = (data as any)?.data ?? [];
     return tasks
       .filter((task) => task.status !== "done")
       .slice(0, 3)

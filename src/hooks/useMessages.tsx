@@ -857,10 +857,10 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             .in('id', conversationIds);
 
           if (includeLastMessageOrder) {
-            query = query.order('last_message_at', { ascending: false, nullsLast: true });
+            query = query.order('last_message_at', { ascending: false, nullsFirst: false });
           }
 
-          return query.order('updated_at', { ascending: false, nullsLast: true });
+          return query.order('updated_at', { ascending: false, nullsFirst: false });
         };
 
         let { data: conversationRows, error: convError } = await runConversationQuery(
@@ -882,7 +882,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             .from('conversations')
             .select(baseConversationSelect)
             .in('id', conversationIds)
-            .order('created_at', { ascending: false, nullsLast: true }));
+            .order('created_at', { ascending: false, nullsFirst: false }));
         }
 
         if (

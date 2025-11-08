@@ -254,15 +254,38 @@ serve(async (req: Request): Promise<Response> => {
       throw studentUpsertError;
     }
 
+    // Look up the agent record using the profile_id
+    const { data: agentRecord, error: agentLookupError } = await supabaseAdmin
+      .from("agents")
+      .select("id")
+      .eq("profile_id", agentProfileId)
+      .maybeSingle();
+
+    if (agentLookupError) {
+      console.error("Error looking up agent", agentLookupError);
+      throw agentLookupError;
+    }
+
+    if (!agentRecord) {
+      return new Response(
+        JSON.stringify({ error: "Agent not found for the given profile ID" }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const { error: linkUpsertError } = await supabaseAdmin
       .from("agent_student_links")
       .upsert(
         {
-          agent_profile_id: agentProfileId,
+          agent_id: agentRecord.id,
           student_id: studentRecord.id,
+          tenant_id: tenantId,
           application_count: 0,
         },
-        { onConflict: "agent_profile_id,student_id" },
+        { onConflict: "agent_id,student_id" },
       );
 
     if (linkUpsertError) {

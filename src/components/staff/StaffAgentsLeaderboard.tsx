@@ -16,8 +16,8 @@ export function StaffAgentsLeaderboard() {
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching } = useStaffAgents(page);
 
-  const total = data?.total ?? 0;
-  const rows = data?.data ?? [];
+  const total = (data as any)?.total ?? 0;
+  const rows = (data as any)?.data ?? [];
 
   return (
     <Card className="rounded-2xl">

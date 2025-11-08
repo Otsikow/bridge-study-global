@@ -95,6 +95,21 @@ const mapAgentStudent = (row: AgentStudentRow): AgentStudent | null => {
 const fetchAgentStudents = async (
   agentProfileId: string,
 ): Promise<AgentStudent[]> => {
+  // First, get the agent ID from the profile ID
+  const { data: agentData, error: agentError } = await supabase
+    .from("agents")
+    .select("id")
+    .eq("profile_id", agentProfileId)
+    .maybeSingle();
+
+  if (agentError) {
+    throw agentError satisfies PostgrestError;
+  }
+
+  if (!agentData) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from("agent_student_links")
     .select(
@@ -124,7 +139,7 @@ const fetchAgentStudents = async (
         )
       `,
     )
-    .eq("agent_profile_id", agentProfileId);
+    .eq("agent_id", agentData.id);
 
   if (error) {
     throw error satisfies PostgrestError;

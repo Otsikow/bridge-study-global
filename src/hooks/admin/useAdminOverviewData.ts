@@ -60,7 +60,7 @@ const ACTIVE_STATUSES = [
   "unconditional_offer",
   "cas_loa",
   "visa",
-];
+] as const;
 
 const SEVERITY_WEIGHTS: Record<string, number> = {
   low: 1,

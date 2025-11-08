@@ -188,8 +188,8 @@ const fetchStudents = async (tenantId: string, page: number, search?: string): P
       { count: "exact" },
     )
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false, nullsLast: false })
-    .order("created_at", { ascending: false, nullsLast: false })
+    .order("updated_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false, nullsFirst: false })
     .range(from, to);
 
   if (search) {
@@ -231,7 +231,7 @@ const fetchAgents = async (tenantId: string, page: number): Promise<PaginatedRes
       { count: "exact" },
     )
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false, nullsLast: false })
+    .order("updated_at", { ascending: false, nullsFirst: false })
     .range(from, to);
 
   if (error) {
@@ -518,7 +518,6 @@ export const useStaffStudents = (page: number, search?: string) => {
     queryFn: () => fetchStudents(tenantId!, page, search),
     enabled,
     placeholderData: (previous) => previous,
-    keepPreviousData: true,
   });
 
   useRealtimeInvalidate(tenantId, staffStudentsKey(tenantId, page, search), "students");
@@ -535,7 +534,6 @@ export const useStaffAgents = (page: number) => {
     queryFn: () => fetchAgents(tenantId!, page),
     enabled: Boolean(tenantId),
     placeholderData: (previous) => previous,
-    keepPreviousData: true,
   });
 
   useRealtimeInvalidate(tenantId, staffAgentsKey(tenantId, page), "agents");
@@ -557,7 +555,6 @@ export const useStaffTasks = (
     queryFn: () => fetchTasks(tenantId!, page, assigneeId!, canManageTenant, options),
     enabled: Boolean(tenantId && assigneeId),
     placeholderData: (previous) => previous,
-    keepPreviousData: true,
   });
 
   useRealtimeInvalidate(tenantId, staffTasksKey(tenantId, page, assigneeId, options), "tasks");
@@ -680,7 +677,7 @@ const fetchTaskAssignees = async (
     .select("id, full_name, email, role")
     .eq("tenant_id", tenantId)
     .in("role", ["staff", "admin", "agent"])
-    .order("full_name", { ascending: true, nullsLast: false });
+    .order("full_name", { ascending: true, nullsFirst: false });
 
   if (error) {
     throw error satisfies PostgrestError;
@@ -740,7 +737,6 @@ export const useStaffMessages = (
     queryFn: () => fetchMessages(tenantId!, page, options),
     enabled: Boolean(tenantId),
     placeholderData: (previous) => previous,
-    keepPreviousData: true,
   });
 
   useRealtimeInvalidate(tenantId, staffMessagesKey(tenantId, page, options), "messages", "");
@@ -757,7 +753,6 @@ export const useStaffPayments = (page: number) => {
     queryFn: () => fetchPayments(tenantId!, page),
     enabled: Boolean(tenantId),
     placeholderData: (previous) => previous,
-    keepPreviousData: true,
   });
 
   useRealtimeInvalidate(tenantId, staffPaymentsKey(tenantId, page), "payments");
