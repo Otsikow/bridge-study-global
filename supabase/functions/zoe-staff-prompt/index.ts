@@ -134,7 +134,7 @@ Format the response in clear, concise bullet points.`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
-    console.error('Error in ai-recommendations function:', error);
+    console.error('Error in zoe-staff-prompt function:', error);
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
