@@ -10,6 +10,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import SuccessRate from '@/components/ui/success-rate';
+import InfoCircledIcon from '@/components/ui/info-circled-icon';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { 
   Calculator, 
   CheckCircle, 
@@ -781,36 +789,108 @@ export default function VisaCalculator() {
                     <div className="border-t pt-4">
                       <h4 className="font-medium mb-3">Requirements for {VISA_REQUIREMENTS[selectedCountry].country}:</h4>
                       <div className="grid gap-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>IELTS Minimum:</span>
-                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].ielts_min}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>GPA Minimum:</span>
-                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].gpa_min}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Bank Balance:</span>
-                          <span className="font-medium">
-                            {VISA_REQUIREMENTS[selectedCountry].currency} {VISA_REQUIREMENTS[selectedCountry].bank_balance_min.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Work Experience:</span>
-                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].work_experience_min} years</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Age Limit:</span>
-                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].age_limit} years</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Processing Time:</span>
-                          <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].processing_time_days} days</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Success Rate:</span>
-                          <span className="font-medium text-success">{VISA_REQUIREMENTS[selectedCountry].success_rate}%</span>
-                        </div>
+                        <TooltipProvider>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>IELTS Minimum:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The minimum IELTS score required for admission.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].ielts_min}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>GPA Minimum:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The minimum GPA required for admission.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].gpa_min}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>Bank Balance:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The minimum bank balance required for visa application.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">
+                              {VISA_REQUIREMENTS[selectedCountry].currency} {VISA_REQUIREMENTS[selectedCountry].bank_balance_min.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>Work Experience:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The minimum work experience required for admission.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].work_experience_min} years</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>Age Limit:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The maximum age limit for visa application.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].age_limit} years</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>Processing Time:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The estimated processing time for visa application.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <span className="font-medium">{VISA_REQUIREMENTS[selectedCountry].processing_time_days} days</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <div className="flex items-center gap-x-2">
+                              <span>Success Rate:</span>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <InfoCircledIcon />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>The estimated success rate for visa application.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
+                            <SuccessRate rate={VISA_REQUIREMENTS[selectedCountry].success_rate} />
+                          </div>
+                        </TooltipProvider>
                       </div>
                     </div>
                   )}
