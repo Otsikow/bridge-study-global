@@ -1,20 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle } from 'lucide-react';
+import RankingTable from './RankingTable';
 
 export default function PreferenceRanking() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" />
-          Preference Ranking
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground">
-          This feature is currently under development and will be available soon.
-        </p>
-      </CardContent>
-    </Card>
-  );
+  return <RankingTable />;
 }
