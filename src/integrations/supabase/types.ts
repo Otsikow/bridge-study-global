@@ -2605,6 +2605,11 @@ export type Database = {
           description: string | null
           featured: boolean | null
           featured_highlight: string | null
+          featured_image_url: string | null
+          featured_listing_current_order_id: string | null
+          featured_listing_expires_at: string | null
+          featured_listing_last_paid_at: string | null
+          featured_listing_status: string | null
           featured_priority: number | null
           featured_summary: string | null
           id: string
@@ -2627,6 +2632,11 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           featured_highlight?: string | null
+          featured_image_url?: string | null
+          featured_listing_current_order_id?: string | null
+          featured_listing_expires_at?: string | null
+          featured_listing_last_paid_at?: string | null
+          featured_listing_status?: string | null
           featured_priority?: number | null
           featured_summary?: string | null
           id?: string
@@ -2649,6 +2659,11 @@ export type Database = {
           description?: string | null
           featured?: boolean | null
           featured_highlight?: string | null
+          featured_image_url?: string | null
+          featured_listing_current_order_id?: string | null
+          featured_listing_expires_at?: string | null
+          featured_listing_last_paid_at?: string | null
+          featured_listing_status?: string | null
           featured_priority?: number | null
           featured_summary?: string | null
           id?: string
@@ -2977,6 +2992,7 @@ export type Database = {
         Args: { _student_id: string; _user_id: string }
         Returns: boolean
       }
+      is_username_available: { Args: { candidate: string }; Returns: boolean }
       mark_all_notifications_read: {
         Args: { p_user_id: string }
         Returns: number
@@ -2992,6 +3008,15 @@ export type Database = {
       notify_course_recommendation: {
         Args: { p_program_id: string; p_reason?: string; p_student_id: string }
         Returns: string
+      }
+      search_agent_contacts: {
+        Args: { search_query: string }
+        Returns: {
+          avatar_url: string
+          email: string
+          full_name: string
+          id: string
+        }[]
       }
     }
     Enums: {

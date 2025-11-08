@@ -176,8 +176,8 @@ const Signup = () => {
           setReferrerInfo(data);
           setReferrerError(null);
         }
-      })
-      .finally(() => active && setReferrerLoading(false));
+        if (active) setReferrerLoading(false);
+      });
 
     return () => {
       active = false;
@@ -321,7 +321,7 @@ const Signup = () => {
       });
 
       if (error) {
-        toast({ variant: "destructive", title: "Signup failed", description: error.message });
+        toast({ variant: "destructive", title: "Signup failed", description: (error as Error).message || "An error occurred" });
       } else {
         toast({
           title: "Account created!",

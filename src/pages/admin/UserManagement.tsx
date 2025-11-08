@@ -233,7 +233,7 @@ export default function UserManagement() {
           total: count ?? 0,
         } satisfies UsersQueryResult;
       },
-      keepPreviousData: true,
+      placeholderData: (previousData) => previousData,
     }
   );
 

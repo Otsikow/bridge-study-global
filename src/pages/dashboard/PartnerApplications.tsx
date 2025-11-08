@@ -194,7 +194,7 @@ const PartnerApplications = () => {
           .eq('tenant_id', profile.tenant_id);
 
         if (statuses.length > 0) {
-          query = query.in('status', statuses);
+          query = query.in('status', statuses as any);
         }
 
         const { data, error, count } = await query

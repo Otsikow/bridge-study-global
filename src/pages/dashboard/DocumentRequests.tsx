@@ -159,7 +159,7 @@ const DocumentRequestsPage = () => {
           const requestedAt = request.requested_at || request.created_at || null;
 
           const storagePath =
-            request.storage_path || request.file_path || null;
+            request.storage_path || null;
 
           let documentUrl =
             request.document_url ||

@@ -254,7 +254,7 @@ export default function OffersManagement() {
 
       const fetchCasLetters = async (): Promise<CasRecord[]> => {
         const casLettersResponse = await supabase
-          .from<CasRecord>("cas_letters")
+          .from("cas_letters")
           .select(casSelect)
           .order("issue_date", { ascending: false, nullsFirst: false })
           .order("created_at", { ascending: false, nullsFirst: false });
@@ -267,7 +267,7 @@ export default function OffersManagement() {
             casLettersResponse.error.message?.includes("cas_letters")
           ) {
             const fallbackResponse = await supabase
-              .from<CasRecord>("cas_loa")
+              .from("cas_loa")
               .select(casSelect)
               .order("issue_date", { ascending: false, nullsFirst: false })
               .order("created_at", { ascending: false, nullsFirst: false });
@@ -284,7 +284,7 @@ export default function OffersManagement() {
 
       const [offersResponse, casLetters] = await Promise.all([
         supabase
-          .from<OfferRecord>("offers")
+          .from("offers")
           .select(offerSelect)
           .order("created_at", { ascending: false }),
         fetchCasLetters(),
@@ -359,21 +359,23 @@ export default function OffersManagement() {
 
       return Array.from(combinedMap.values()).map(toProcessedRecord);
     },
-    onError: (queryError) => {
-      console.error("Failed to fetch offers and CAS letters", queryError);
-      toast({
-        variant: "destructive",
-        title: "Failed to load records",
-        description:
-          queryError instanceof Error
-            ? queryError.message
-            : "Please try again in a moment.",
-      });
-    },
     staleTime: 1000 * 60 * 5,
+    meta: {
+      onError: (queryError: Error) => {
+        console.error("Failed to fetch offers and CAS letters", queryError);
+        toast({
+          variant: "destructive",
+          title: "Failed to load records",
+          description:
+            queryError instanceof Error
+              ? queryError.message
+              : "Please try again in a moment.",
+        });
+      },
+    },
   });
 
-  const processedRecords = data ?? [];
+  const processedRecords = (data ?? []) as ProcessedRecord[];
 
   const stats = useMemo(() => {
     const total = processedRecords.length;

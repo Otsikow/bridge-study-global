@@ -48,6 +48,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 const STORAGE_BUCKET = "resources";
 
@@ -208,6 +209,7 @@ const formatBytes = (bytes: number | null) => {
 
 const AdminResources = () => {
   const { toast } = useToast();
+  const { profile } = useAuth();
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);

@@ -87,7 +87,7 @@ const mapAuditLogRow = (row: AuditLogRow): AuditLogRecord => ({
   action: row.action,
   entity: row.entity,
   details: row.changes,
-  ipAddress: row.ip_address,
+  ipAddress: row.ip_address as string,
   userAgent: row.user_agent,
   createdAt: row.created_at,
   userName: row.user?.full_name ?? row.user?.email ?? "System",
