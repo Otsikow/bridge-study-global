@@ -10,7 +10,7 @@ SECURITY DEFINER
 AS $$
   SELECT
     s.id as student_id,
-    COUNT(a.id) as application_count,
+    COUNT(DISTINCT a.id) as application_count,
     json_build_object(
       'id', s.id,
       'tenant_id', s.tenant_id,
@@ -22,6 +22,7 @@ AS $$
       'current_country', s.current_country,
       'created_at', s.created_at,
       'updated_at', s.updated_at,
+      'destination_countries', COALESCE(ARRAY_AGG(DISTINCT u.country) FILTER (WHERE u.country IS NOT NULL), '{}'),
       'profile', (
         SELECT json_build_object(
           'id', p.id,
@@ -38,6 +39,7 @@ AS $$
     ) as student
   FROM public.students s
   LEFT JOIN public.applications a ON s.id = a.student_id
+  LEFT JOIN public.universities u ON a.university_id = u.id
   WHERE s.tenant_id = p_tenant_id
   GROUP BY s.id;
 $$;
