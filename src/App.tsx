@@ -234,6 +234,7 @@ const UniversityFeaturedShowcase = lazyWithErrorHandling(
 // Partner
 const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
 const PartnerOffersCAS = lazyWithErrorHandling(() => import("./pages/partner/OffersCAS"));
+const StudentDetailsPage = lazyWithErrorHandling(() => import("./pages/agent/StudentDetailsPage"));
 
 /* -------------------------------------------------------------------------- */
 /* ✅ Main App Component                                                      */
@@ -308,6 +309,7 @@ const App = () => {
                         <Route path="/dashboard/ai-insights" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffAIInsightsPage /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
                         <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
+                        <Route path="/agent/student/:studentId" element={<ProtectedRoute allowedRoles={["agent", "admin", "staff"]}><StudentDetailsPage /></ProtectedRoute>} />
 
                         {/* ✅ Student Routes */}
                         <Route

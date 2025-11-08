@@ -1,15 +1,33 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Lead } from "@/types/lead";
 import LeadActions from "./LeadActions";
+import { Link } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface LeadTableRowProps {
   lead: Lead;
+  isSelected: boolean;
+  onSelect: (leadId: string) => void;
 }
 
-export default function LeadTableRow({ lead }: LeadTableRowProps) {
+export default function LeadTableRow({
+  lead,
+  isSelected,
+  onSelect,
+}: LeadTableRowProps) {
   return (
     <TableRow>
-      <TableCell>{`${lead.first_name} ${lead.last_name}`}</TableCell>
+      <TableCell>
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onSelect(lead.id)}
+        />
+      </TableCell>
+      <TableCell>
+        <Link to={`/agent/student/${lead.id}`} className="hover:underline">
+          {`${lead.first_name} ${lead.last_name}`}
+        </Link>
+      </TableCell>
       <TableCell>{lead.email}</TableCell>
       <TableCell>{lead.country}</TableCell>
       <TableCell>{lead.status}</TableCell>
