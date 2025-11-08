@@ -55,6 +55,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
 import StaffStudentsTable from "@/components/staff/StaffStudentsTable";
+import AgentStudentsManager from "@/components/agent/AgentStudentsManager";
 
 const { url: SUPABASE_URL, functionsUrl: SUPABASE_FUNCTIONS_URL } =
   getSupabaseBrowserConfig();
@@ -199,10 +200,18 @@ export default function StaffStudents() {
   const { profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
 
+  const isAgent = profile?.role === "agent";
+
   const [students, setStudents] = useState<StudentRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchStudents = useCallback(async () => {
+    if (isAgent) {
+      setStudents([]);
+      setLoading(false);
+      return;
+    }
+
     if (!profile?.id) {
       setStudents([]);
       setLoading(false);
@@ -274,11 +283,22 @@ export default function StaffStudents() {
     } finally {
       setLoading(false);
     }
-  }, [profile?.id, toast]);
+  }, [isAgent, profile?.id, toast]);
 
   useEffect(() => {
-    if (!authLoading) void fetchStudents();
-  }, [authLoading, fetchStudents]);
+    if (!authLoading && !isAgent) void fetchStudents();
+  }, [authLoading, fetchStudents, isAgent]);
+
+  if (!authLoading && isAgent) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6 p-4 sm:p-6 lg:p-8">
+          <BackButton to="/dashboard" label="Back" />
+          <AgentStudentsManager />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
