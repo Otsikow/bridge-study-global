@@ -212,7 +212,6 @@ serve(async (req: Request): Promise<Response> => {
         email: normalizedEmail,
         full_name: fullName,
         phone: phone ?? null,
-        role: "student",
         onboarded: false,
         updated_at: new Date().toISOString(),
       },
