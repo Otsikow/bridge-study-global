@@ -29,7 +29,6 @@ export interface ConversationParticipant {
   joined_at: string | null;
   last_read_at: string;
   role?: string | null;
-  is_admin?: boolean | null;
   profile?: {
     id: string;
     full_name: string;
@@ -131,7 +130,6 @@ type RawParticipant = {
   user_id: string;
   joined_at: string | null;
   last_read_at: string;
-  is_admin?: boolean | null;
   role?: string | null;
 };
 
@@ -917,9 +915,8 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         })) as RawConversation[];
 
         const baseParticipantSelect =
-          'id, conversation_id, user_id, joined_at, last_read_at, is_admin, role';
-        const fallbackParticipantSelect =
-          'id, conversation_id, user_id, joined_at, is_admin';
+          'id, conversation_id, user_id, joined_at, last_read_at, role';
+        const fallbackParticipantSelect = 'id, conversation_id, user_id, joined_at';
 
         let { data: participantRows, error: participantsError } = await supabase
           .from('conversation_participants')
@@ -1070,7 +1067,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
                   participant.last_read_at ??
                   participant.joined_at ??
                   new Date().toISOString(),
-                is_admin: participant.is_admin,
                 role: participant.role ?? profileRecord?.role ?? 'member',
                 profile: profileRecord
                   ? {
@@ -1463,7 +1459,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             {
               conversation_id: conversationId,
               user_id: user.id,
-              is_admin: true,
+              role: 'owner',
             },
             {
               conversation_id: conversationId,
