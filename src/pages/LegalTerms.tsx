@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import BackButton from '@/components/BackButton';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SEO } from "@/components/SEO";
 
 type Section = {
   id: string;
@@ -208,6 +209,11 @@ const sections: Section[] = [
 const LegalTerms = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO
+        title="Terms of Service - Global Education Gateway"
+        description="Review the Global Education Gateway terms of service. Understand your rights and responsibilities when using our platform for university applications and student services."
+        keywords="terms of service, legal terms, platform agreement, student agreement, university partnership terms"
+      />
       <header className="border-b bg-background/60 backdrop-blur">
         <div className="container mx-auto flex max-w-6xl items-center gap-3 px-4 py-6">
           <BackButton variant="ghost" size="sm" fallback="/" className="px-0" />

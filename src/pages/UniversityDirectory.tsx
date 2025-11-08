@@ -33,6 +33,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 // --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
@@ -438,6 +439,11 @@ export default function UniversityDirectory() {
 
   return (
     <div className="min-h-screen bg-background pb-12">
+      <SEO
+        title="University Directory - Global Education Gateway"
+        description="Browse our directory of partner universities from around the world. Find detailed profiles, rankings, and program information to help you choose the right institution."
+        keywords="university directory, partner universities, college listings, international universities, student recruitment directory, university finder"
+      />
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 md:px-8">
         <BackButton variant="ghost" size="sm" wrapperClassName="mb-2" fallback="/" />
 

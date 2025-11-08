@@ -2,6 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import BackButton from "@/components/BackButton";
 import libraryStudent from "@/assets/library.png";
 import { useTranslation } from "react-i18next";
+import { SEO } from "@/components/SEO";
 
 const FAQ = () => {
   const { t } = useTranslation();
@@ -12,6 +13,11 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO
+        title="Frequently Asked Questions - Global Education Gateway"
+        description="Find answers to common questions about studying abroad, university applications, student visas, and our platform. Get the information you need to start your journey."
+        keywords="FAQ, study abroad questions, university application help, student visa FAQ, international student questions, agent recruitment FAQ"
+      />
       <section className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto">
           <BackButton variant="ghost" size="sm" fallback="/" />

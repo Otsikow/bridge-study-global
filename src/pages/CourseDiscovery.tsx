@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/useDebounce";
 import BackButton from "@/components/BackButton";
+import { SEO } from "@/components/SEO";
 
 const ITEMS_PER_PAGE = 12;
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
@@ -733,6 +734,11 @@ export default function CourseDiscovery() {
 
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Discover Courses - Global Education Gateway"
+          description="Explore thousands of courses from top universities worldwide. Filter by discipline, level, tuition, and more to find the right program for your international education."
+          keywords="course discovery, find courses, study abroad programs, university courses, international student courses, find a degree"
+        />
         {/* Header */}
         <div className="border-b bg-card/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-6">
