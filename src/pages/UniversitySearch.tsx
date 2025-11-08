@@ -37,6 +37,7 @@ import {
   MessageSquare,
   } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { SEO } from "@/components/SEO";
 
 // --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
@@ -220,6 +221,11 @@ export default function UniversitySearch() {
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
+      <SEO
+        title="Search Universities - Global Education Gateway"
+        description="Find and compare universities from around the world. Filter by country, program, and more to discover the perfect institution for your study abroad journey."
+        keywords="university search, find universities, study abroad programs, international colleges, student recruitment, find a university"
+      />
       <div className="max-w-7xl mx-auto space-y-6">
         <BackButton variant="ghost" size="sm" fallback="/" wrapperClassName="mb-4" />
           <div className="space-y-2">

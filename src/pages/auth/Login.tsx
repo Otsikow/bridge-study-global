@@ -11,6 +11,7 @@ import { Loader2, Eye, EyeOff } from 'lucide-react';
 import gegLogo from '@/assets/geg-logo.png';
 import BackButton from '@/components/BackButton';
 import { getSiteUrl } from '@/lib/supabaseClientConfig';
+import { SEO } from "@/components/SEO";
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -66,6 +67,11 @@ const Login = () => {
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
+        <SEO
+          title="Login - Global Education Gateway"
+          description="Access your Global Education Gateway account to manage your university applications, connect with agents, and track your progress."
+          keywords="login, sign in, student account, agent portal, university partner login"
+        />
         <Card className="w-full max-w-md shadow-lg">
           <CardHeader className="space-y-1 text-center">
             <div className="flex justify-center mb-4">

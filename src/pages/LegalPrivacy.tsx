@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import BackButton from '@/components/BackButton';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SEO } from "@/components/SEO";
 
 type Section = {
   id: string;
@@ -186,6 +187,11 @@ const sections: Section[] = [
 const LegalPrivacy = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO
+        title="Privacy Policy - Global Education Gateway"
+        description="Read the Global Education Gateway privacy policy to understand how we collect, use, and protect your personal information throughout your study abroad journey."
+        keywords="privacy policy, data protection, student data, GDPR, student privacy, university application data"
+      />
       <header className="border-b bg-background/60 backdrop-blur">
         <div className="container mx-auto flex max-w-6xl items-center gap-3 px-4 py-6">
           <BackButton variant="ghost" size="sm" fallback="/" className="px-0" />
