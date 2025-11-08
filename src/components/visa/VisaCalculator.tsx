@@ -196,6 +196,22 @@ export default function VisaCalculator() {
   const [compareDialogOpen, setCompareDialogOpen] = useState(false);
   const [comparisonCountries, setComparisonCountries] = useState<string[]>([]);
 
+  const handleClear = () => {
+    setSelectedCountry('');
+    setStudentProfile({
+      ielts_score: '',
+      toefl_score: '',
+      gpa: '',
+      bank_balance: '',
+      work_experience: '',
+      age: '',
+      nationality: '',
+      study_level: '',
+      program_field: ''
+    });
+    setEligibility(null);
+  };
+
   const calculateEligibility = async () => {
     if (!selectedCountry || !studentProfile.ielts_score || !studentProfile.gpa) {
       toast({
@@ -681,23 +697,32 @@ export default function VisaCalculator() {
               </div>
             </div>
 
-            <Button 
-              onClick={calculateEligibility}
-              disabled={isCalculating}
-              className="w-full"
-            >
-              {isCalculating ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Calculating...
-                </>
-              ) : (
-                <>
-                  <Calculator className="h-4 w-4 mr-2" />
-                  Calculate Eligibility
-                </>
-              )}
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={calculateEligibility}
+                disabled={isCalculating}
+                className="w-full"
+              >
+                {isCalculating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Calculating...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="h-4 w-4 mr-2" />
+                    Calculate Eligibility
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleClear}
+              >
+                Clear
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
