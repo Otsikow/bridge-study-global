@@ -51,9 +51,10 @@ import { EmptyState } from "@/components/EmptyState";
 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useAgentStudents, agentStudentsQueryKey } from "@/hooks/useAgentStudents";
+import { useTenantStudents, tenantStudentsQueryKey } from "@/hooks/useTenantStudents";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import AgentInviteCodeManager from "./AgentInviteCodeManager";
 
 const addStudentSchema = z.object({
   fullName: z
@@ -107,9 +108,9 @@ const AddStudentDialog = ({
   const handleSuccess = () => {
     onOpenChange(false);
     reset();
-    if (agentProfileId) {
+    if (tenantId) {
       queryClient.invalidateQueries({
-        queryKey: agentStudentsQueryKey(agentProfileId),
+        queryKey: tenantStudentsQueryKey(tenantId),
       });
     }
   };
@@ -304,7 +305,7 @@ export default function AgentStudentsManager() {
   const agentProfileId = profile?.id ?? null;
   const tenantId = profile?.tenant_id ?? null;
 
-  const { data, isLoading, isFetching, isError, error, refetch } = useAgentStudents(agentProfileId);
+  const { data, isLoading, isFetching, isError, error, refetch } = useTenantStudents(tenantId);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -387,6 +388,8 @@ export default function AgentStudentsManager() {
         />
       </div>
 
+      <AgentInviteCodeManager agentProfileId={agentProfileId} />
+
       {isLoading ? (
         <MetricsSkeleton />
       ) : (
@@ -399,7 +402,7 @@ export default function AgentStudentsManager() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metrics.total}</div>
-              <p className="text-xs text-muted-foreground">Assigned to you</p>
+              <p className="text-xs text-muted-foreground">In your organization</p>
             </CardContent>
           </Card>
           <Card>
