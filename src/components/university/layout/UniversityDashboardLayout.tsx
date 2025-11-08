@@ -324,7 +324,7 @@ const fetchUniversityDashboardData = async (
     throw agentsRes.error;
   }
 
-  const programs = (programsRes.data ?? []) as UniversityProgram[];
+  const programs = (programsRes.data ?? []) as any as UniversityProgram[];
   const programIds = programs.map((program) => program.id);
 
   let applications: UniversityApplication[] = [];

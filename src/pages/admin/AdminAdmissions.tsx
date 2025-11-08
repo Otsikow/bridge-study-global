@@ -211,7 +211,7 @@ const AdminAdmissionsOversight = () => {
           `,
         )
         .eq("tenant_id", tenantId)
-        .order("submitted_at", { ascending: false, nullsLast: true })
+        .order("submitted_at", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false });
 
       if (queryError) {

@@ -282,7 +282,7 @@ const fetchTasks = async (
   }
 
   if (filters?.status && filters.status !== "all") {
-    query = query.eq("status", filters.status);
+    query = query.eq("status", filters.status as any);
   }
 
   if (filters?.priority && filters.priority !== "all") {
@@ -334,7 +334,7 @@ const fetchMessages = async (
   query = query.eq("application.tenant_id", tenantId);
 
   if (filters?.type && filters.type !== "all") {
-    query = query.eq("message_type", filters.type);
+    query = query.eq("message_type", filters.type as any);
   }
 
   if (filters?.search) {
@@ -782,7 +782,7 @@ export const useUpdateTaskStatus = () => {
     mutationFn: async ({ taskId, status }: { taskId: string; status: string }) => {
       const { error } = await supabase
         .from("tasks")
-        .update({ status })
+        .update({ status: status as any })
         .eq("id", taskId);
 
       if (error) throw error;
@@ -826,7 +826,7 @@ export const useCreateTask = () => {
         status: "open",
       };
 
-      const { data, error } = await supabase.from("tasks").insert(payload).select().single();
+      const { data, error } = await supabase.from("tasks").insert([payload] as any).select().single();
       if (error) throw new Error(error.message);
       return data;
     },

@@ -423,16 +423,19 @@ const AdminResources = () => {
 
       if (dialogMode === "upload") {
         const { error: insertError } = await supabase.from("resource_library").insert({
+          tenant_id: profile?.tenant_id,
           title: formState.title,
           description: formState.description,
           file_type: formState.fileType,
+          file_url: storagePath,
           access_level: formState.accessLevel,
           resource_type: formState.type,
           storage_path: storagePath,
           file_name: selectedFile?.name ?? null,
           file_extension: selectedFile?.name.split(".").pop()?.toLowerCase() ?? null,
           file_size: selectedFile?.size ?? null,
-        });
+          created_by: profile?.id,
+        } as any);
 
         if (insertError) {
           await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);

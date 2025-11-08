@@ -179,7 +179,7 @@ const AdminOverview = () => {
       {KPI_CONFIG.map((item) => {
         const value = metricsQuery.data?.[item.key] ?? 0;
         const display =
-          item.format === "currency"
+          'format' in item && item.format === "currency"
             ? formatValue(value, "currency", metricsQuery.data?.currency, i18n.language)
             : formatValue(value, undefined, undefined, i18n.language);
         return (

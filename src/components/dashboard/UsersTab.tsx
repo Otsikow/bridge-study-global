@@ -291,11 +291,11 @@ export default function UsersTab() {
       const { data, error } = await supabase
         .from('profiles')
         .insert({
+          tenant_id: profile?.tenant_id,
           full_name: payload.full_name,
           email: payload.email,
           role: 'staff',
-          tenant_id: profile?.tenant_id,
-        })
+        } as any)
         .select()
         .single();
 
@@ -330,8 +330,8 @@ export default function UsersTab() {
     try {
       setUpdatingPermissions(true);
       const { error } = await supabase
-        .from('staff_profiles')
-        .update({ permissions: permissionSelections })
+        .from('profiles')
+        .update({ role: permissionSelections as any } as any)
         .eq('id', selectedStaff.id);
 
       if (error) throw error;

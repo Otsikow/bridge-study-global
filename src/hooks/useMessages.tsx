@@ -731,7 +731,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         }
       } else if (receiptsData) {
         receiptsByMessage =
-          receiptsData.reduce((map, receipt) => {
+          receiptsData.reduce((map, receipt: any) => {
             const arr = map.get(receipt.message_id) || [];
             arr.push(receipt as RawReceipt);
             map.set(receipt.message_id, arr);
@@ -882,7 +882,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             .from('conversations')
             .select(baseConversationSelect)
             .in('id', conversationIds)
-            .order('created_at', { ascending: false, nullsFirst: false }));
+            .order('created_at', { ascending: false, nullsFirst: false }) as any);
         }
 
         if (
@@ -1241,7 +1241,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             content: contentToSend,
             message_type: messageType,
           attachments: serializedAttachments as any,
-          metadata: payload.metadata ?? null,
+          metadata: (payload.metadata ?? null) as any,
           }])
           .select(`
             id,

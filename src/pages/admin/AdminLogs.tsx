@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { PostgrestFilterBuilder } from "@supabase/supabase-js";
 import { Shield, Terminal, Download, RefreshCw, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -36,8 +35,8 @@ interface AuditLogRow {
   id: string;
   action: string;
   entity: string;
-  changes: Record<string, unknown> | null;
-  ip_address: string | null;
+  changes: any;
+  ip_address: unknown;
   user_agent: string | null;
   created_at: string;
   user: {
@@ -61,7 +60,7 @@ interface AuditLogRecord {
   userRole: string;
 }
 
-type AuditLogQuery = PostgrestFilterBuilder<any, any, any, any, any, any, any>;
+type AuditLogQuery = any;
 
 const ROLE_OPTIONS: { label: string; value: string }[] = [
   { label: "All roles", value: "all" },

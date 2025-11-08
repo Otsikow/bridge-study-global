@@ -45,7 +45,7 @@ const AdminUsers = () => {
         if (error) throw error;
         if (!isMounted) return;
 
-        setRows(data ?? []);
+        setRows((data ?? []) as any);
         const summary = new Map<string, number>();
         for (const item of data ?? []) {
           summary.set(item.role, (summary.get(item.role) ?? 0) + 1);

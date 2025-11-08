@@ -16,12 +16,23 @@ export async function logAnalyticsEvent(
 
   try {
     let userId = providedUserId ?? null;
+    let tenantId: string | null = null;
 
     if (!userId) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
       userId = user?.id ?? null;
+    }
+
+    // Get user's tenant_id
+    if (userId) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('tenant_id')
+        .eq('id', userId)
+        .single();
+      tenantId = profileData?.tenant_id || null;
     }
 
     const augmentedProperties: Record<string, unknown> = {
@@ -33,11 +44,15 @@ export async function logAnalyticsEvent(
     }
 
     const { error } = await supabase.from('analytics_events').insert({
-      event_name: eventName,
-      event_source: source,
-      event_properties: augmentedProperties,
+      tenant_id: tenantId,
+      event_type: eventName,
+      event_data: augmentedProperties,
+      page_url: typeof window !== 'undefined' ? window.location.href : undefined,
+      referrer: typeof document !== 'undefined' ? document.referrer : undefined,
+      session_id: null,
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
       user_id: userId,
-    });
+    } as any);
 
     if (error) {
       throw error;
