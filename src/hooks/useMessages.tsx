@@ -841,9 +841,9 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         }
 
         const baseConversationSelect =
-          'id, tenant_id, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at';
+          'id, tenant_id, name, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at';
         const fallbackConversationSelect =
-          'id, tenant_id, title, type, is_group, avatar_url, created_at, updated_at';
+          'id, tenant_id, name, is_group, avatar_url, created_at, updated_at';
 
         const runConversationQuery = async (
           selectString: string,
@@ -898,21 +898,38 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
 
         if (convError) throw convError;
 
-        const sanitizedConversations = (conversationRows || []).map((row: any) => ({
-          id: row.id as string,
-          tenant_id: row.tenant_id as string,
-          title: typeof row.title === 'string' ? row.title : null,
-          type: typeof row.type === 'string' ? row.type : null,
-          is_group: typeof row.is_group === 'boolean' ? row.is_group : Boolean(row.is_group),
-          avatar_url: typeof row.avatar_url === 'string' ? row.avatar_url : null,
-          created_by: typeof row.created_by === 'string' ? row.created_by : null,
-          created_at: row.created_at ?? null,
-          updated_at: row.updated_at ?? row.created_at ?? null,
-          last_message_at: row.last_message_at ?? null,
-          metadata: row.metadata ?? null,
-          participants: [],
-          lastMessage: [],
-        })) as RawConversation[];
+        const sanitizedConversations = (conversationRows || []).map((row: any) => {
+          const resolvedTitle =
+            typeof row.title === 'string' && row.title.trim().length > 0
+              ? row.title
+              : typeof row.name === 'string'
+                ? row.name
+                : null;
+
+          const resolvedType =
+            typeof row.type === 'string' && row.type.trim().length > 0
+              ? row.type
+              : Boolean(row.is_group)
+                ? 'group'
+                : 'direct';
+
+          return {
+            id: row.id as string,
+            tenant_id: row.tenant_id as string,
+            title: resolvedTitle,
+            type: resolvedType,
+            is_group: typeof row.is_group === 'boolean' ? row.is_group : Boolean(row.is_group),
+            avatar_url: typeof row.avatar_url === 'string' ? row.avatar_url : null,
+            created_by: typeof row.created_by === 'string' ? row.created_by : null,
+            created_at: row.created_at ?? null,
+            updated_at: row.updated_at ?? row.created_at ?? null,
+            last_message_at: row.last_message_at ?? null,
+            metadata: row.metadata ?? null,
+            participants: [],
+            lastMessage: [],
+            name: typeof row.name === 'string' ? row.name : resolvedTitle,
+          } as RawConversation;
+        });
 
         const baseParticipantSelect =
           'id, conversation_id, user_id, joined_at, last_read_at, role';
