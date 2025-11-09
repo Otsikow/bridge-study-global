@@ -64,7 +64,7 @@ export function CourseCard({ course }: CourseCardProps) {
       }}
       aria-label={`View details for ${course.name}`}
     >
-      <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col animate-fade-in-up hover:scale-[1.01] pointer-events-none">
+      <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col animate-fade-in-up hover:scale-[1.01]">
         <CardContent className="pt-6 pb-4 flex-1">
           {/* University Header */}
           <div className="flex items-start gap-3 mb-4">
