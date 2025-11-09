@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { useDebounce } from "@/hooks/useDebounce";
 import BackButton from "@/components/BackButton";
+import { SEO } from "@/components/SEO";
 
 const ITEMS_PER_PAGE = 12;
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
@@ -64,6 +65,7 @@ const getNextIntakeYear = (month: number): number => {
 const FALLBACK_COURSES: Course[] = [
   {
     id: "fallback-oxford-cs-msc",
+    university_id: "fallback-oxford",
     name: "MSc Computer Science",
     level: "Postgraduate",
     discipline: "Computer Science",
@@ -80,6 +82,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-harvard-mba",
+    university_id: "fallback-harvard",
     name: "MBA (Leadership & Strategy)",
     level: "Postgraduate",
     discipline: "Business Administration",
@@ -96,6 +99,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-toronto-bsc-data",
+    university_id: "fallback-toronto",
     name: "BSc Data Science & Analytics",
     level: "Undergraduate",
     discipline: "Data Science",
@@ -112,6 +116,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-melbourne-meng",
+    university_id: "fallback-melbourne",
     name: "Master of Engineering (Software)",
     level: "Postgraduate",
     discipline: "Engineering",
@@ -128,6 +133,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-mit-eecs",
+    university_id: "fallback-mit",
     name: "SB Electrical Engineering and Computer Science",
     level: "Undergraduate",
     discipline: "Computer Science",
@@ -144,6 +150,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-ubc-msc-energy",
+    university_id: "fallback-ubc",
     name: "MSc Sustainable Energy Systems",
     level: "Postgraduate",
     discipline: "Sustainability",
@@ -160,6 +167,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-imperial-msc-robotics",
+    university_id: "fallback-imperial",
     name: "MSc Robotics & Autonomous Systems",
     level: "Postgraduate",
     discipline: "Robotics",
@@ -176,6 +184,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-sydney-mph",
+    university_id: "fallback-sydney",
     name: "Master of Public Health",
     level: "Postgraduate",
     discipline: "Public Health",
@@ -192,6 +201,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-stanford-msce",
+    university_id: "fallback-stanford",
     name: "MS Computer Engineering",
     level: "Postgraduate",
     discipline: "Computer Engineering",
@@ -208,6 +218,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-eth-msc-data",
+    university_id: "fallback-eth",
     name: "MSc Data Science",
     level: "Postgraduate",
     discipline: "Data Science",
@@ -224,6 +235,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-tokyo-msc-quantum",
+    university_id: "fallback-tokyo",
     name: "MSc Quantum Computing",
     level: "Postgraduate",
     discipline: "Physics",
@@ -240,6 +252,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-cape-town-bcom",
+    university_id: "fallback-cape-town",
     name: "BCom Finance & Analytics",
     level: "Undergraduate",
     discipline: "Finance",
@@ -256,6 +269,7 @@ const FALLBACK_COURSES: Course[] = [
   },
   {
     id: "fallback-uc-berkeley-msds",
+    university_id: "fallback-uc-berkeley",
     name: "Master of Information & Data Science",
     level: "Postgraduate",
     discipline: "Information Science",
@@ -504,6 +518,7 @@ export default function CourseDiscovery() {
           tuition_amount,
           intake_months,
           universities (
+            id,
             name,
             country,
             city,
@@ -542,6 +557,7 @@ export default function CourseDiscovery() {
 
         return {
           id: item.id,
+          university_id: item.universities?.id || '',
           name: item.name,
           level: item.level,
           discipline: item.discipline,
@@ -733,6 +749,11 @@ export default function CourseDiscovery() {
 
     return (
       <div className="min-h-screen bg-background">
+        <SEO
+          title="Discover Courses - Global Education Gateway"
+          description="Explore thousands of courses from top universities worldwide. Filter by discipline, level, tuition, and more to find the right program for your international education."
+          keywords="course discovery, find courses, study abroad programs, university courses, international student courses, find a degree"
+        />
         {/* Header */}
         <div className="border-b bg-card/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-6">

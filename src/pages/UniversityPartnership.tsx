@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 
 const stats = [
   {
@@ -115,6 +116,11 @@ const faqs = [
 const UniversityPartnership = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO
+        title="University Partnerships - Global Education Gateway"
+        description="Partner with Global Education Gateway to grow your international student enrollment. Access our network of vetted agents and qualified applicants."
+        keywords="university partnership, student recruitment, international enrollment, education agent network, international student recruitment, university recruitment"
+      />
       <section className="container mx-auto px-4 py-12 lg:py-16">
         <div className="mx-auto max-w-6xl space-y-10">
           <BackButton variant="ghost" size="sm" fallback="/" />

@@ -353,6 +353,40 @@ export default function NewApplication() {
 
   const draftQueryKey = ['application-draft', studentId] as const;
 
+  const upsertDraftMutationFn = useCallback(async (
+    payload: DraftMutationPayload,
+  ): Promise<ApplicationDraftRow> => {
+    const draftRecord = {
+      student_id: payload.studentId,
+      tenant_id: payload.tenantId,
+      program_id: payload.programId,
+      last_step: payload.lastStep,
+      form_data: sanitizeFormDataForDraft(payload.formData) as unknown as Json,
+    };
+
+    const { data, error } = await supabase
+      .from('application_drafts')
+      .upsert(draftRecord, { onConflict: 'student_id' })
+      .select('id, student_id, tenant_id, program_id, form_data, last_step, updated_at, created_at')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data as ApplicationDraftRow;
+  }, []);
+
+  const handleDraftSuccess = useCallback((data: ApplicationDraftRow) => {
+    queryClient.setQueryData(draftQueryKey, data);
+    if (data.updated_at) {
+      setLastSavedAt(new Date(data.updated_at));
+    } else {
+      setLastSavedAt(new Date());
+    }
+    setAutoSaveError(null);
+  }, [draftQueryKey, queryClient]);
+
   const draftQuery = useQuery({
     queryKey: draftQueryKey,
     enabled: Boolean(studentId),
@@ -505,40 +539,6 @@ export default function NewApplication() {
 
     hasHydratedFromDraft.current = true;
   }, [draftQuery.data]);
-
-  const upsertDraftMutationFn = useCallback(async (
-    payload: DraftMutationPayload,
-  ): Promise<ApplicationDraftRow> => {
-    const draftRecord = {
-      student_id: payload.studentId,
-      tenant_id: payload.tenantId,
-      program_id: payload.programId,
-      last_step: payload.lastStep,
-      form_data: sanitizeFormDataForDraft(payload.formData) as unknown as Json,
-    };
-
-    const { data, error } = await supabase
-      .from('application_drafts')
-      .upsert(draftRecord, { onConflict: 'student_id' })
-      .select('id, student_id, tenant_id, program_id, form_data, last_step, updated_at, created_at')
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    return data as ApplicationDraftRow;
-  }, []);
-
-  const handleDraftSuccess = useCallback((data: ApplicationDraftRow) => {
-    queryClient.setQueryData(draftQueryKey, data);
-    if (data.updated_at) {
-      setLastSavedAt(new Date(data.updated_at));
-    } else {
-      setLastSavedAt(new Date());
-    }
-    setAutoSaveError(null);
-  }, [draftQueryKey, queryClient]);
 
   const autoSaveMutation = useMutation<ApplicationDraftRow, unknown, DraftMutationPayload>({
     mutationFn: upsertDraftMutationFn,

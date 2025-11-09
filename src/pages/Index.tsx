@@ -19,6 +19,7 @@ import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniver
 import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
+import { SEO } from "@/components/SEO";
 const Index = () => {
   const {
     t
@@ -124,6 +125,11 @@ const Index = () => {
 
   // --- RENDER ---
   return <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      <SEO
+        title="Global Education Gateway - Your Path to International Education"
+        description="Connect with top universities worldwide. Streamline your study abroad journey with expert guidance, application tracking, and comprehensive support for international students."
+        keywords="study abroad, international education, university applications, student visa, college admissions, international student recruitment, university partnerships, education agent portal"
+      />
       {/* HERO SECTION */}
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
         <div className="container relative mx-auto px-4 py-24 text-center">

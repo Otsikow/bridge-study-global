@@ -17,6 +17,7 @@ interface TenantStudentRow {
     current_country: string | null;
     created_at: string | null;
     updated_at: string | null;
+    destination_countries: string[] | null;
     profile: {
       id: string;
       full_name: string;
@@ -58,6 +59,9 @@ const mapTenantStudent = (row: TenantStudentRow): AgentStudent | null => {
 
   const phone = student.contact_phone?.trim() || profile?.phone?.trim() || null;
   const country = profile?.country?.trim() || student.current_country || null;
+  const destinationCountries = Array.from(
+    new Set(student.destination_countries?.filter(Boolean) ?? []),
+  ).sort();
 
   return {
     studentId: student.id,
@@ -68,6 +72,7 @@ const mapTenantStudent = (row: TenantStudentRow): AgentStudent | null => {
     email,
     phone,
     country,
+    destinationCountries,
     onboarded: Boolean(profile?.onboarded),
     applicationCount:
       typeof row.application_count === "number" ? row.application_count : 0,

@@ -48,13 +48,18 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { SortableButton } from "@/components/SortableButton";
 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantStudents, tenantStudentsQueryKey } from "@/hooks/useTenantStudents";
+import { useSort } from "@/hooks/useSort";
+import type { AgentStudent } from "@/hooks/useAgentStudents";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import AgentInviteCodeManager from "./AgentInviteCodeManager";
+
+type SortableColumn = "country" | "status";
 
 const addStudentSchema = z.object({
   fullName: z
@@ -310,13 +315,17 @@ export default function AgentStudentsManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const { sortState, setSortColumn } = useSort<SortableColumn>({
+    column: "status",
+    direction: "asc",
+  });
 
   const allStudents = data ?? [];
 
   const filteredStudents = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
 
-    return allStudents.filter((student) => {
+    const filtered = allStudents.filter((student) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
         student.displayName.toLowerCase().includes(normalizedSearch) ||
@@ -330,7 +339,23 @@ export default function AgentStudentsManager() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [allStudents, searchQuery, statusFilter]);
+
+    const sortModifier = sortState.direction === "asc" ? 1 : -1;
+
+    return filtered.sort((a, b) => {
+      switch (sortState.column) {
+        case "country":
+          return (a.country ?? "").localeCompare(b.country ?? "") * sortModifier;
+        case "status":
+          return (
+            (a.onboarded ? 1 : 0) - (b.onboarded ? 1 : 0) ||
+            (a.displayName ?? "").localeCompare(b.displayName ?? "")
+          ) * sortModifier;
+        default:
+          return 0;
+      }
+    });
+  }, [allStudents, searchQuery, statusFilter, sortState]);
 
   const metrics = useMemo(() => {
     const total = allStudents.length;
@@ -535,8 +560,25 @@ export default function AgentStudentsManager() {
                   <TableRow>
                     <TableHead>Student</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <SortableButton
+                        column="country"
+                        sortState={sortState}
+                        onClick={setSortColumn}
+                      >
+                        Origin
+                      </SortableButton>
+                    </TableHead>
+                    <TableHead>Destination</TableHead>
+                    <TableHead>
+                      <SortableButton
+                        column="status"
+                        sortState={sortState}
+                        onClick={setSortColumn}
+                      >
+                        Status
+                      </SortableButton>
+                    </TableHead>
                     <TableHead>Applications</TableHead>
                     <TableHead>Last activity</TableHead>
                   </TableRow>
@@ -575,6 +617,13 @@ export default function AgentStudentsManager() {
                         <TableCell>
                           <span className="text-sm text-muted-foreground">
                             {student.country ?? "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-muted-foreground">
+                            {student.destinationCountries.length > 0
+                              ? student.destinationCountries.join(", ")
+                              : "—"}
                           </span>
                         </TableCell>
                         <TableCell>

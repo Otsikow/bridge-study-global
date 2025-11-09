@@ -3,12 +3,18 @@ import { ContactForm } from "@/components/ContactForm";
 import BackButton from "@/components/BackButton";
 import professionalConsultant from "@/assets/professional-consultant.png";
 import { useTranslation } from "react-i18next";
+import { SEO } from "@/components/SEO";
 
 const Contact = () => {
   const { t } = useTranslation();
   const emailAddress = t("pages.contact.email");
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      <SEO
+        title="Contact Us - Global Education Gateway"
+        description="Get in touch with the Global Education Gateway team. We're here to help with your questions about studying abroad, university applications, and our services."
+        keywords="contact, support, study abroad help, university admissions contact, student recruitment support, university partnership inquiries"
+      />
       <section className="container mx-auto px-4 py-12">
         <div className="max-w-5xl mx-auto space-y-6">
           <BackButton variant="ghost" size="sm" fallback="/" />

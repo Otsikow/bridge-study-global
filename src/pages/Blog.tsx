@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SEO } from "@/components/SEO";
 
 interface BlogPost {
   id: string;
@@ -112,6 +113,11 @@ export default function Blog() {
 
   return (
     <div className="relative">
+      <SEO
+        title="Blog - Global Education Gateway"
+        description="Explore articles, guides, and insights on studying abroad, university admissions, and international education trends. Your resource for a successful academic journey."
+        keywords="study abroad blog, international student advice, university application tips, education articles, student recruitment trends, university marketing"
+      />
       <section className="border-b bg-gradient-to-b from-background to-muted/40">
         <div className="container mx-auto px-4 py-12 sm:py-16">
           <div className="mx-auto max-w-3xl text-center space-y-6">
