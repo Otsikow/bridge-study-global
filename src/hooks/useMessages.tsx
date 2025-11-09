@@ -909,7 +909,7 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
           const resolvedType =
             typeof row.type === 'string' && row.type.trim().length > 0
               ? row.type
-              : Boolean(row.is_group)
+              : row.is_group
                 ? 'group'
                 : 'direct';
 

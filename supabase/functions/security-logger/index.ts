@@ -224,7 +224,7 @@ async function maybeCreateAlert(
   let shouldCreate = false;
   let summary = ALERT_SUMMARIES[eventType];
   let details: string | undefined;
-  let alertSeverity: Severity = severity;
+  const alertSeverity: Severity = severity;
 
   if (typeof alertPayload === "object") {
     summary = alertPayload.summary ?? summary;
