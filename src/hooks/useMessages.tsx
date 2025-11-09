@@ -38,17 +38,6 @@ export interface ConversationParticipant {
   };
 }
 
-export interface MessageReceipt {
-  message_id: string;
-  user_id: string;
-  read_at: string;
-  profile?: {
-    id: string;
-    full_name: string;
-    avatar_url: string | null;
-  };
-}
-
 export interface Message {
   id: string;
   conversation_id: string;
@@ -61,7 +50,6 @@ export interface Message {
   edited_at: string | null;
   deleted_at: string | null;
   created_at: string;
-  receipts: MessageReceipt[];
   sender?: {
     id: string;
     full_name: string;
@@ -116,13 +104,6 @@ type RawMessage = {
     full_name: string;
     avatar_url: string | null;
   } | null;
-  receipts?: RawReceipt[] | null;
-};
-
-type RawReceipt = {
-  message_id: string;
-  user_id: string;
-  read_at: string;
 };
 
 type RawParticipant = {
@@ -422,7 +403,6 @@ export function useMessages() {
   const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
   const messagesChannelRef = useRef<RealtimeChannel | null>(null);
   const typingChannelRef = useRef<RealtimeChannel | null>(null);
-  const messageReceiptsChannelRef = useRef<RealtimeChannel | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const currentConversationRef = useRef<string | null>(null);
   const initialConversationIdRef = useRef<string | null>(
@@ -522,15 +502,6 @@ export function useMessages() {
     }, [user?.id]);
 
 const transformMessage = useCallback((message: RawMessage): Message => {
-  const receipts: MessageReceipt[] = (message.receipts || [])
-    .filter((receipt): receipt is RawReceipt => Boolean(receipt && receipt.user_id))
-    .map((receipt) => ({
-      message_id: receipt.message_id || message.id,
-      user_id: receipt.user_id,
-      read_at: receipt.read_at,
-    }))
-    .sort((a, b) => new Date(a.read_at).getTime() - new Date(b.read_at).getTime());
-
   return {
     id: message.id,
     conversation_id: message.conversation_id,
@@ -543,7 +514,6 @@ const transformMessage = useCallback((message: RawMessage): Message => {
     edited_at: message.edited_at,
     deleted_at: message.deleted_at,
     created_at: message.created_at,
-    receipts,
     sender: message.sender
       ? {
           id: message.sender.id,
@@ -585,26 +555,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
     const currentConversation = conversationsRef.current.find((conv) => conv.id === conversationId);
     const currentProfile = currentConversation?.participants?.find((participant) => participant.user_id === user.id)?.profile;
 
-    setMessages((prev) =>
-      prev.map((message) => {
-        if (message.conversation_id !== conversationId) return message;
-        if (message.receipts.some((receipt) => receipt.user_id === user.id)) {
-          return message;
-        }
-        return {
-          ...message,
-          receipts: [
-            ...message.receipts,
-            {
-              message_id: message.id,
-              user_id: user.id,
-              read_at: nowIso,
-              profile: currentProfile,
-            },
-          ],
-        };
-      })
-    );
     } catch (error) {
       console.error('Error marking message thread as read:', error);
   }
@@ -717,29 +667,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
       if (msg?.sender_id) senderIds.add(msg.sender_id);
     });
 
-    // Fetch receipts for the messages in this conversation
-    let receiptsByMessage = new Map<string, RawReceipt[]>();
-    if (messageIds.length > 0) {
-      const { data: receiptsData, error: receiptsError } = await supabase
-        .from('message_receipts')
-        .select('message_id, user_id, read_at')
-        .in('message_id', messageIds);
-
-      if (receiptsError) {
-        if (!isMissingRelationError(receiptsError, 'message_receipts')) {
-          console.error('Error fetching message receipts:', receiptsError);
-        }
-      } else if (receiptsData) {
-        receiptsByMessage =
-          receiptsData.reduce((map, receipt: any) => {
-            const arr = map.get(receipt.message_id) || [];
-            arr.push(receipt as RawReceipt);
-            map.set(receipt.message_id, arr);
-            senderIds.add(receipt.user_id);
-            return map;
-          }, new Map<string, RawReceipt[]>()) ?? new Map();
-      }
-    }
 
     // Fetch profiles for senders and recipients (for receipts)
     const uniqueUserIds = Array.from(senderIds).filter(Boolean);
@@ -790,23 +717,13 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
                 full_name: 'Unknown User',
                 avatar_url: null,
               },
-          receipts: receiptsByMessage.get(rawMessage.id) || [],
         };
 
         return transformMessage(messageWithRelations);
       })
       .filter((message): message is Message => Boolean(message));
 
-    // Enhance receipts with profile data now that messages are transformed
-    const messagesWithReceiptProfiles = formatted.map((message) => ({
-      ...message,
-      receipts: message.receipts.map((receipt) => ({
-        ...receipt,
-        profile: profilesMap.get(receipt.user_id) || receipt.profile,
-      })),
-    }));
-
-    setMessages(messagesWithReceiptProfiles);
+    setMessages(formatted);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -843,101 +760,36 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         }
 
         const baseConversationSelect =
-          'id, tenant_id, title, type, is_group, avatar_url, created_by, metadata, created_at, updated_at, last_message_at';
-        const fallbackConversationSelect =
-          'id, tenant_id, title, type, is_group, avatar_url, created_at, updated_at';
+          'id, tenant_id, name, is_group, avatar_url, created_by, created_at, updated_at';
 
-        const runConversationQuery = async (
-          selectString: string,
-          includeLastMessageOrder: boolean
-        ) => {
-          let query = supabase
-            .from('conversations')
-            .select(selectString)
-            .in('id', conversationIds);
-
-          if (includeLastMessageOrder) {
-            query = query.order('last_message_at', { ascending: false, nullsFirst: false });
-          }
-
-          return query.order('updated_at', { ascending: false, nullsFirst: false });
-        };
-
-        let { data: conversationRows, error: convError } = await runConversationQuery(
-          baseConversationSelect,
-          true
-        );
-
-        if (convError) {
-          if (isMissingColumnError(convError, 'last_message_at')) {
-            ({ data: conversationRows, error: convError } = await runConversationQuery(
-              baseConversationSelect,
-              false
-            ));
-          }
-        }
-
-        if (convError && isMissingColumnError(convError, 'updated_at')) {
-          ({ data: conversationRows, error: convError } = await supabase
-            .from('conversations')
-            .select(baseConversationSelect)
-            .in('id', conversationIds)
-            .order('created_at', { ascending: false, nullsFirst: false }) as any);
-        }
-
-        if (
-          convError &&
-          (isMissingColumnError(convError, 'metadata') ||
-            isMissingColumnError(convError, 'avatar_url') ||
-            isMissingColumnError(convError, 'title') ||
-            isMissingColumnError(convError, 'type'))
-        ) {
-          ({ data: conversationRows, error: convError } = await runConversationQuery(
-            fallbackConversationSelect,
-            false
-          ));
-        }
+        const { data: conversationRows, error: convError } = await supabase
+          .from('conversations')
+          .select(baseConversationSelect)
+          .in('id', conversationIds)
+          .order('updated_at', { ascending: false, nullsFirst: false });
 
         if (convError) throw convError;
 
         const sanitizedConversations = (conversationRows || []).map((row: any) => ({
           id: row.id as string,
           tenant_id: row.tenant_id as string,
-          title: typeof row.title === 'string' ? row.title : null,
-          type: typeof row.type === 'string' ? row.type : null,
+          name: typeof row.name === 'string' ? row.name : null,
           is_group: typeof row.is_group === 'boolean' ? row.is_group : Boolean(row.is_group),
           avatar_url: typeof row.avatar_url === 'string' ? row.avatar_url : null,
           created_by: typeof row.created_by === 'string' ? row.created_by : null,
           created_at: row.created_at ?? null,
           updated_at: row.updated_at ?? row.created_at ?? null,
-          last_message_at: row.last_message_at ?? null,
-          metadata: row.metadata ?? null,
           participants: [],
           lastMessage: [],
         })) as RawConversation[];
 
         const baseParticipantSelect =
-          'id, conversation_id, user_id, joined_at, last_read_at, is_admin, role';
-        const fallbackParticipantSelect =
           'id, conversation_id, user_id, joined_at, is_admin';
 
-        let { data: participantRows, error: participantsError } = await supabase
+        const { data: participantRows, error: participantsError } = await supabase
           .from('conversation_participants')
           .select(baseParticipantSelect)
           .in('conversation_id', conversationIds);
-
-        if (
-          participantsError &&
-          (isMissingColumnError(participantsError, 'last_read_at') ||
-            isMissingColumnError(participantsError, 'role'))
-        ) {
-          const fallbackResult = await supabase
-            .from('conversation_participants')
-            .select(fallbackParticipantSelect)
-            .in('conversation_id', conversationIds);
-          participantRows = fallbackResult.data;
-          participantsError = fallbackResult.error;
-        }
 
         if (participantsError) throw participantsError;
 
@@ -1066,12 +918,8 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
                 conversation_id: participant.conversation_id,
                 user_id: participant.user_id,
                 joined_at: participant.joined_at,
-                last_read_at:
-                  participant.last_read_at ??
-                  participant.joined_at ??
-                  new Date().toISOString(),
+                last_read_at: new Date().toISOString(),
                 is_admin: participant.is_admin,
-                role: participant.role ?? profileRecord?.role ?? 'member',
                 profile: profileRecord
                   ? {
                       id: profileRecord.id,
@@ -1090,7 +938,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             const senderProfile = profilesMap.get(rawLastMessage.sender_id);
             const messageWithProfile = {
               ...rawLastMessage,
-              metadata: rawLastMessage.metadata ?? null,
               sender: senderProfile
                 ? {
                     id: senderProfile.id,
@@ -1102,15 +949,13 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             lastMessage = transformMessage(messageWithProfile as RawMessage);
           }
 
-          const updatedAtCandidate = conversation.last_message_at ?? conversation.updated_at;
-
           const isGroup = Boolean(conversation.is_group);
           const otherParticipant = !isGroup
             ? participants.find((participant) => participant.user_id !== user?.id)
             : undefined;
 
           const displayName =
-            conversation.title ??
+            conversation.name ??
             (isGroup
               ? 'Group Message'
               : otherParticipant?.profile?.full_name ?? 'Direct Message');
@@ -1122,44 +967,20 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
           return {
             id: conversation.id,
             tenant_id: conversation.tenant_id,
-            title: conversation.title ?? null,
-            type: conversation.type ?? (isGroup ? 'group' : 'direct'),
             is_group: conversation.is_group,
             created_at: conversation.created_at,
-            updated_at: updatedAtCandidate,
-            last_message_at: conversation.last_message_at,
+            updated_at: conversation.updated_at,
             participants,
             lastMessage,
             unreadCount: 0,
             name: displayName,
             avatar_url: displayAvatar,
-            metadata: parseMetadata(conversation.metadata),
           } as Conversation;
         });
 
-        const unreadCounts = await Promise.all(
-          formatted.map(async (conversation) => {
-            try {
-              const { data: unreadData, error: unreadError } = await supabase.rpc(
-                'get_unread_count',
-                {
-                  p_user_id: user.id,
-                  p_conversation_id: conversation.id,
-                }
-              );
-
-              if (unreadError) throw unreadError;
-              return (unreadData as number | null) ?? 0;
-            } catch (rpcError) {
-              console.error('Error fetching unread count:', rpcError);
-              return 0;
-            }
-          })
-        );
-
-        const withUnread = formatted.map((conversation, index) => ({
+        const withUnread = formatted.map((conversation) => ({
           ...conversation,
-          unreadCount: unreadCounts[index] ?? 0,
+          unreadCount: 0,
         }));
 
         withUnread.sort((a, b) => {
@@ -1273,26 +1094,12 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             full_name: 'Unknown User',
             avatar_url: null,
           },
-          receipts: [{ message_id: data.id, user_id: user.id, read_at: data.created_at }],
         };
 
         const formatted = transformMessage(messageWithProfile as RawMessage);
-        const formattedWithProfile: Message = {
-          ...formatted,
-          receipts: formatted.receipts.map((receipt) => ({
-            ...receipt,
-            profile: receipt.user_id === user.id
-              ? {
-                  id: user.id,
-                  full_name: profileData?.full_name ?? user.email ?? 'You',
-                  avatar_url: profileData?.avatar_url ?? null,
-                }
-              : receipt.profile,
-          })),
-        };
 
         if (currentConversation === conversationId) {
-          setMessages((prev) => [...prev, formattedWithProfile]);
+          setMessages((prev) => [...prev, formatted]);
         }
 
         setConversations((prev) =>
@@ -1301,10 +1108,10 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
               conv.id === conversationId
                 ? {
                     ...conv,
-                    lastMessage: formattedWithProfile,
+                    lastMessage: formatted,
                     unreadCount: 0,
-                    updated_at: formattedWithProfile.created_at,
-                    last_message_at: formattedWithProfile.created_at,
+                    updated_at: formatted.created_at,
+                    last_message_at: formatted.created_at,
                   }
                 : conv
             )
@@ -1445,7 +1252,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
             .insert({
               tenant_id: profile.tenant_id,
               is_group: false,
-              type: 'direct',
             })
           .select('id')
           .single();
@@ -1608,95 +1414,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
     markConversationAsRead(currentConversation);
   }, [currentConversation, fetchMessages, fetchTypingIndicators, markConversationAsRead]);
 
-  useEffect(() => {
-    if (!user?.id) {
-      if (messageReceiptsChannelRef.current) {
-        supabase.removeChannel(messageReceiptsChannelRef.current);
-        messageReceiptsChannelRef.current = null;
-      }
-      return;
-    }
-
-    if (messageReceiptsChannelRef.current) {
-      supabase.removeChannel(messageReceiptsChannelRef.current);
-      messageReceiptsChannelRef.current = null;
-    }
-
-    const channel = supabase
-      .channel(`message-receipts-${user.id}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'message_receipts',
-      }, (payload) => {
-        const receipt = payload.new as RawReceipt;
-        if (!receipt?.message_id || !receipt?.user_id) {
-          return;
-        }
-
-        let conversationId: string | null = null;
-        let profileForReceipt: MessageReceipt['profile'] | undefined;
-
-        setMessages(prev => {
-          let updated = false;
-          const next = prev.map(message => {
-            if (message.id !== receipt.message_id) return message;
-            conversationId = message.conversation_id;
-            if (message.receipts.some(r => r.user_id === receipt.user_id)) {
-              return message;
-            }
-
-            const conversation = conversationsRef.current.find(conv => conv.id === message.conversation_id);
-            const participant = conversation?.participants?.find(p => p.user_id === receipt.user_id);
-            profileForReceipt = participant?.profile;
-
-            updated = true;
-            return {
-              ...message,
-              receipts: [
-                ...message.receipts,
-                {
-                  message_id: receipt.message_id,
-                  user_id: receipt.user_id,
-                  read_at: receipt.read_at,
-                  profile: participant?.profile,
-                },
-              ],
-            };
-          });
-          return updated ? next : prev;
-        });
-
-        setConversations(prev => prev.map(conv => {
-          if (!conv.participants?.some(p => p.user_id === receipt.user_id)) {
-            return conv;
-          }
-
-          const updatedParticipants = conv.participants.map(p =>
-            p.user_id === receipt.user_id ? { ...p, last_read_at: receipt.read_at } : p
-          );
-
-          const shouldClearUnread = receipt.user_id === user.id && conversationId && conv.id === conversationId;
-
-          return {
-            ...conv,
-            participants: updatedParticipants,
-            unreadCount: shouldClearUnread ? 0 : conv.unreadCount,
-          };
-        }));
-
-      })
-      .subscribe();
-
-    messageReceiptsChannelRef.current = channel;
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-        messageReceiptsChannelRef.current = null;
-      }
-    };
-  }, [supabase, user?.id]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -1726,12 +1443,6 @@ const markConversationAsRead = useCallback(async (conversationId: string) => {
         conversationsChannelRef.current = null;
       }
     };
-
-type RawReceipt = {
-  message_id: string;
-  user_id: string;
-  read_at: string;
-};
   }, [fetchConversations, user?.id]);
 
   useEffect(() => {
@@ -1756,6 +1467,12 @@ type RawReceipt = {
     const filter = ids.length === 1
       ? `conversation_id=eq.${ids[0]}`
       : `conversation_id=in.(${ids.join(',')})`;
+
+    type RawReceipt = {
+      message_id: string;
+      user_id: string;
+      read_at: string;
+    };
 
     const channel = supabase
       .channel(`conversation-messages-${user.id}`)
@@ -1784,13 +1501,6 @@ type RawReceipt = {
                   full_name: 'Unknown User',
                   avatar_url: null,
                 },
-            receipts: rawPayload.receipts && rawPayload.receipts.length > 0
-              ? rawPayload.receipts
-              : [{
-                  message_id: rawPayload.id,
-                  user_id: rawPayload.sender_id,
-                  read_at: rawPayload.created_at,
-                }],
           };
 
           const transformed = transformMessage(rawMessage);
@@ -1799,13 +1509,6 @@ type RawReceipt = {
 
           const messageWithProfile: Message = {
             ...transformed,
-            receipts: transformed.receipts.map(receipt => {
-              const participant = conversation?.participants?.find(p => p.user_id === receipt.user_id);
-              return {
-                ...receipt,
-                profile: participant?.profile ?? receipt.profile,
-              };
-            }),
           };
 
           setConversations(prev => {
@@ -1963,10 +1666,6 @@ type RawReceipt = {
         supabase.removeChannel(typingChannelRef.current);
         typingChannelRef.current = null;
       }
-    if (messageReceiptsChannelRef.current) {
-      supabase.removeChannel(messageReceiptsChannelRef.current);
-      messageReceiptsChannelRef.current = null;
-    }
       if (audioContextRef.current) {
         audioContextRef.current.close().catch(() => undefined);
         audioContextRef.current = null;

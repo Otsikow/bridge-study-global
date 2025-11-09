@@ -133,29 +133,6 @@ export function ChatArea({
     return format(new Date(date), 'HH:mm');
   };
 
-  const getReadReceiptLabel = (message: Message) => {
-    if (!conversation || !user?.id) return null;
-    if (message.sender_id !== user.id) return null;
-
-    const recipients = (conversation.participants || []).filter((participant) => participant.user_id !== user.id);
-    if (recipients.length === 0) return null;
-
-    const readers = message.receipts.filter((receipt) => receipt.user_id !== user.id);
-    if (readers.length === 0) return null;
-
-    const hasAllRead = recipients.every((recipient) => readers.some((receipt) => receipt.user_id === recipient.user_id));
-    const readerNames = readers
-      .map((receipt) =>
-        conversation.participants?.find((participant) => participant.user_id === receipt.user_id)?.profile?.full_name
-      )
-      .filter((name): name is string => Boolean(name));
-
-    if (hasAllRead) {
-      return readerNames.length > 0 ? `Seen by ${readerNames.join(', ')}` : 'Seen';
-    }
-
-    return readerNames.length > 0 ? `Delivered to ${readerNames.join(', ')}` : 'Delivered';
-  };
 
   const shouldShowDateDivider = (currentMsg: Message, previousMsg: Message | null) => {
     if (!previousMsg) return true;
@@ -172,11 +149,19 @@ export function ChatArea({
     return currentMsg.sender_id === previousMsg.sender_id && timeDiff < fiveMinutes;
   };
 
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-muted/20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!conversation) {
     return (
       <div className="flex-1 flex items-center justify-center bg-muted/20">
         <div className="text-center text-muted-foreground">
-          <p className="text-lg">Select a message thread to start messaging</p>
+          <p className="text-lg">Select a conversation to start messaging</p>
         </div>
       </div>
     );
@@ -243,8 +228,6 @@ export function ChatArea({
               const groupWithPrevious = shouldGroupMessage(message, previousMessage);
               const isOwnMessage = message.sender_id === user?.id;
               const showAvatar = !groupWithPrevious || isOwnMessage;
-
-              const readReceiptLabel = getReadReceiptLabel(message);
 
               return (
                 <div key={message.id}>
@@ -363,11 +346,6 @@ export function ChatArea({
                         >
                           {formatMessageTime(message.created_at)}
                         </p>
-                          {isOwnMessage && readReceiptLabel && (
-                          <p className="text-[10px] mt-0.5 text-primary-foreground/70">
-                              {readReceiptLabel}
-                          </p>
-                        )}
                     </div>
                   </div>
                 </div>
