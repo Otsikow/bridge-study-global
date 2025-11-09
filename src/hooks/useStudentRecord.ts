@@ -9,8 +9,10 @@ export type StudentRecord = Tables<'students'> | null;
 
 export const studentRecordQueryKey = (userId: string | undefined) => ['student-record', userId] as const;
 
-interface UseStudentRecordOptions
-  extends Pick<UseQueryOptions<StudentRecord, unknown, StudentRecord>, 'enabled' | 'staleTime' | 'gcTime'> {}
+type UseStudentRecordOptions = Pick<
+  UseQueryOptions<StudentRecord, unknown, StudentRecord>,
+  'enabled' | 'staleTime' | 'gcTime'
+>;
 
 export const useStudentRecord = (
   options?: UseStudentRecordOptions
