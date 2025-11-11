@@ -7,17 +7,30 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BackButton from "@/components/BackButton";
-import { 
-  GraduationCap, 
-  MapPin, 
-  Globe, 
-  DollarSign, 
-  Clock, 
+import {
+  GraduationCap,
+  MapPin,
+  Globe,
+  DollarSign,
+  Clock,
   FileText,
   Award,
   BookOpen,
-  CheckCircle2
+  CheckCircle2,
+  Mail,
+  Phone,
+  Linkedin,
+  Instagram,
+  Facebook,
+  Youtube,
+  Sparkles,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  parseUniversityProfileDetails,
+  emptyUniversityProfileDetails,
+  type UniversityProfileDetails,
+} from "@/lib/universityProfile";
 
 // --- University Images ---
 import oxfordImg from "@/assets/university-oxford.jpg";
@@ -43,6 +56,8 @@ interface University {
   website: string | null;
   description: string | null;
   ranking: any;
+  featured_image_url: string | null;
+  submission_config_json: unknown;
 }
 
 interface Program {
@@ -99,6 +114,9 @@ export default function UniversityProfile() {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [university, setUniversity] = useState<University | null>(null);
+  const [profileDetails, setProfileDetails] = useState<UniversityProfileDetails>(
+    emptyUniversityProfileDetails,
+  );
   const [programs, setPrograms] = useState<Program[]>([]);
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
@@ -122,6 +140,9 @@ export default function UniversityProfile() {
 
       if (uniError) throw uniError;
       setUniversity(universityData);
+      setProfileDetails(
+        parseUniversityProfileDetails(universityData?.submission_config_json ?? null),
+      );
 
       // Load programs
       const { data: programsData, error: progError } = await supabase
@@ -187,15 +208,24 @@ export default function UniversityProfile() {
     );
   }
 
+  const heroImage =
+    profileDetails.media.heroImageUrl ??
+    university.featured_image_url ??
+    getUniversityImage(university.name);
+  const primaryContact = profileDetails.contacts.primary;
+  const socialLinks: Array<{ label: string; url: string | null | undefined; icon: LucideIcon }> = [
+    { label: "Website", url: university.website, icon: Globe },
+    { label: "LinkedIn", url: profileDetails.social.linkedin, icon: Linkedin },
+    { label: "Facebook", url: profileDetails.social.facebook, icon: Facebook },
+    { label: "Instagram", url: profileDetails.social.instagram, icon: Instagram },
+    { label: "YouTube", url: profileDetails.social.youtube, icon: Youtube },
+  ].filter((link) => Boolean(link.url));
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative h-96 overflow-hidden">
-        <img
-          src={getUniversityImage(university.name)}
-          alt={university.name}
-          className="w-full h-full object-cover"
-        />
+        <img src={heroImage} alt={university.name} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-background/30" />
         <div className="absolute bottom-0 left-0 right-0 p-8">
           <div className="max-w-7xl mx-auto">
@@ -205,9 +235,16 @@ export default function UniversityProfile() {
               wrapperClassName="mb-4"
               fallback="/universities"
             />
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 drop-shadow-lg">
-              {university.name}
-            </h1>
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+                {university.name}
+              </h1>
+              {profileDetails.tagline ? (
+                <p className="max-w-2xl text-lg text-white/90 drop-shadow">
+                  {profileDetails.tagline}
+                </p>
+              ) : null}
+            </div>
             <div className="flex flex-wrap items-center gap-4 text-white/90 drop-shadow">
               <span className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
@@ -215,9 +252,9 @@ export default function UniversityProfile() {
                 {university.country}
               </span>
               {university.website && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
                   asChild
                 >
@@ -313,6 +350,94 @@ export default function UniversityProfile() {
                 </div>
               </CardContent>
             </Card>
+
+            {profileDetails.highlights.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>University Highlights</CardTitle>
+                  <CardDescription>
+                    Why students and partners choose {university.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-2">
+                  {profileDetails.highlights.map((highlight, index) => (
+                    <div
+                      key={`${highlight}-${index}`}
+                      className="flex items-start gap-3 rounded-lg bg-muted/50 p-4"
+                    >
+                      <Sparkles className="mt-1 h-4 w-4 text-primary" />
+                      <p className="text-sm text-muted-foreground">{highlight}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {(primaryContact || socialLinks.length > 0) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Connect with {university.name}</CardTitle>
+                  <CardDescription>
+                    Speak directly with the admissions team or explore official channels.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2">
+                  {primaryContact ? (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
+                        Primary contact
+                      </h3>
+                      <div className="space-y-2 text-sm text-muted-foreground">
+                        {primaryContact.name ? (
+                          <p className="text-base font-medium text-foreground">
+                            {primaryContact.name}
+                          </p>
+                        ) : null}
+                        {primaryContact.title ? <p>{primaryContact.title}</p> : null}
+                        {primaryContact.email ? (
+                          <a
+                            href={`mailto:${primaryContact.email}`}
+                            className="flex items-center gap-2 hover:text-foreground"
+                          >
+                            <Mail className="h-4 w-4" />
+                            {primaryContact.email}
+                          </a>
+                        ) : null}
+                        {primaryContact.phone ? (
+                          <a
+                            href={`tel:${primaryContact.phone}`}
+                            className="flex items-center gap-2 hover:text-foreground"
+                          >
+                            <Phone className="h-4 w-4" />
+                            {primaryContact.phone}
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold uppercase text-muted-foreground">
+                      Official channels
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {socialLinks.map((link) => (
+                        <Button
+                          key={link.label}
+                          variant="secondary"
+                          size="sm"
+                          asChild
+                          className="gap-2"
+                        >
+                          <a href={link.url ?? "#"} target="_blank" rel="noopener noreferrer">
+                            <link.icon className="h-4 w-4" /> {link.label}
+                          </a>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Programs Tab */}

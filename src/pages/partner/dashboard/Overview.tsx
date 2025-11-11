@@ -9,6 +9,9 @@ import {
   RefreshCw,
   ArrowRight,
   University,
+  MapPin,
+  Mail,
+  Globe,
 } from "lucide-react";
 import {
   Card,
@@ -35,6 +38,12 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { getErrorMessage, logError } from "@/lib/errorUtils";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  parseUniversityProfileDetails,
+  emptyUniversityProfileDetails,
+  type UniversityProfileDetails,
+} from "@/lib/universityProfile";
 
 type DocumentsRow = {
   id: string;
@@ -99,6 +108,10 @@ type UniversityOverviewRow = {
   country: string | null;
   city: string | null;
   created_at: string | null;
+  logo_url?: string | null;
+  website?: string | null;
+  submission_config_json?: unknown;
+  profileDetails?: UniversityProfileDetails;
 };
 
 interface OverviewData {
@@ -246,7 +259,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .limit(5),
     supabase
       .from("universities")
-      .select("id, name, country, city, created_at")
+      .select("id, name, country, city, created_at, logo_url, website, submission_config_json")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(3),
@@ -268,6 +281,13 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
   const offersReceived = offersResponse.count ?? 0;
   const conversionRate = totalApplications === 0 ? 0 : offersReceived / totalApplications;
 
+  const universityRows = (universitiesResponse.data ?? []).map((university) => ({
+    ...university,
+    profileDetails: parseUniversityProfileDetails(
+      (university as { submission_config_json?: unknown }).submission_config_json ?? null,
+    ),
+  }));
+
   return {
     summary: {
       totalApplications,
@@ -278,8 +298,8 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
     },
     recentApplications: recentApplicationsResponse.data ?? [],
     universities: {
-      list: universitiesResponse.data ?? [],
-      total: universitiesCountResponse.count ?? (universitiesResponse.data?.length ?? 0),
+      list: universityRows,
+      total: universitiesCountResponse.count ?? universityRows.length,
     },
   };
 };
@@ -466,22 +486,79 @@ const UniversityOverviewCard = ({
             </p>
           </div>
           <div className="space-y-4">
-            {universities.map((university) => (
-              <div
-                key={university.id}
-                className="flex flex-col justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900/40 p-4 sm:flex-row sm:items-center"
-              >
-                <div>
-                  <p className="text-base font-medium text-slate-100">{university.name ?? "Unnamed university"}</p>
-                  <p className="text-sm text-slate-400">
-                    {[university.city, university.country].filter(Boolean).join(", ") || "Location unavailable"}
-                  </p>
+            {universities.map((university) => {
+              const profileDetails = university.profileDetails ?? emptyUniversityProfileDetails;
+              const primaryContact = profileDetails.contacts?.primary ?? null;
+
+              const initials = (university.name || "").split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part.charAt(0).toUpperCase())
+                .join("") || "U";
+
+              return (
+                <div
+                  key={university.id}
+                  className="flex flex-col gap-3 rounded-lg border border-slate-800 bg-slate-900/40 p-4"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex flex-1 items-start gap-3">
+                      <Avatar className="h-12 w-12 border border-slate-800 bg-slate-950/60">
+                        {university.logo_url ? (
+                          <AvatarImage src={university.logo_url} alt={university.name ?? "University logo"} />
+                        ) : null}
+                        <AvatarFallback className="bg-slate-800 text-slate-200">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-base font-medium text-slate-100">
+                            {university.name ?? "Unnamed university"}
+                          </p>
+                          <p className="text-xs uppercase tracking-wide text-slate-500">
+                            Added {formatDate(university.created_at)}
+                          </p>
+                        </div>
+                        {profileDetails.tagline ? (
+                          <p className="text-sm text-slate-300">{profileDetails.tagline}</p>
+                        ) : null}
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {[university.city, university.country].filter(Boolean).join(", ") || "Location unavailable"}
+                          </span>
+                          {primaryContact?.email ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {primaryContact.email}
+                            </span>
+                          ) : null}
+                          {university.website ? (
+                            <span className="inline-flex items-center gap-1">
+                              <Globe className="h-3 w-3" />
+                              {university.website.replace(/^https?:\/\//, "")}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {profileDetails.highlights.length > 0 ? (
+                    <div className="grid gap-2 text-xs text-slate-400 sm:grid-cols-2">
+                      {profileDetails.highlights.slice(0, 2).map((highlight, index) => (
+                        <div
+                          key={`${university.id}-highlight-${index}`}
+                          className="rounded-md border border-slate-800/80 bg-slate-950/50 p-3"
+                        >
+                          {highlight}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-                <p className="text-xs uppercase tracking-wide text-slate-500">
-                  Added {formatDate(university.created_at)}
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline" size="sm" className="gap-2 text-blue-300 hover:text-blue-100">

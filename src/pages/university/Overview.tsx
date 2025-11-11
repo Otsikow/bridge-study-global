@@ -11,6 +11,10 @@ import {
   CheckCircle2,
   Stamp,
   GraduationCap,
+  MapPin,
+  Globe,
+  Mail,
+  Phone,
 } from "lucide-react";
 import {
   Card,
@@ -33,6 +37,7 @@ import {
   withUniversitySurfaceTint,
 } from "@/components/university/common/cardStyles";
 import { useUniversityDashboard } from "@/components/university/layout/UniversityDashboardLayout";
+import { Separator } from "@/components/ui/separator";
 
 const formatNumber = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -80,10 +85,24 @@ const OverviewPage = () => {
     statusSummary,
   } = data;
 
+  const details = data.profileDetails;
+  const primaryContact = details.contacts.primary;
+  const heroImage = details.media.heroImageUrl ?? university.featured_image_url ?? null;
+
   return (
     <div className="space-y-8">
       <Card className={withUniversityCardStyles("overflow-hidden rounded-3xl text-card-foreground shadow-primary/20")}>
-        <CardContent className="p-6 lg:p-8">
+        <CardContent className="space-y-6 p-6 lg:p-8">
+          {heroImage ? (
+            <div className="relative overflow-hidden rounded-2xl border border-primary/20">
+              <img
+                src={heroImage}
+                alt={`${university.name} campus`}
+                className="h-48 w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+            </div>
+          ) : null}
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-1 items-start gap-5">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/30 bg-primary/10 shadow-lg shadow-primary/20">
@@ -97,20 +116,20 @@ const OverviewPage = () => {
                   <Building2 className="h-10 w-10 text-primary" />
                 )}
               </div>
-              <div className="space-y-2">
-                <h1 className="text-2xl font-semibold text-foreground lg:text-3xl">
-                  {university.name}
-                </h1>
+              <div className="space-y-3">
+                <div>
+                  <h1 className="text-2xl font-semibold text-foreground lg:text-3xl">
+                    {university.name}
+                  </h1>
+                  {details.tagline ? (
+                    <p className="text-sm text-primary">{details.tagline}</p>
+                  ) : null}
+                </div>
                 <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  {university.city ? (
-                    <Badge variant="outline" className="border-border bg-muted/60">
-                      {university.city}, {university.country}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-border bg-muted/60">
-                      {university.country}
-                    </Badge>
-                  )}
+                  <Badge variant="outline" className="border-border bg-muted/60">
+                    <MapPin className="mr-1 h-3 w-3" />
+                    {[university.city, university.country].filter(Boolean).join(", ") || university.country}
+                  </Badge>
                   <Badge variant="outline" className="border-primary/30 text-primary">
                     {programs.length} Programmes
                   </Badge>
@@ -119,25 +138,28 @@ const OverviewPage = () => {
                   </Badge>
                 </div>
                 {university.description ? (
-                  <p className="max-w-3xl text-sm text-muted-foreground">
+                  <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
                     {university.description}
                   </p>
                 ) : null}
-                {university.website ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2 gap-2 text-primary hover:text-foreground"
-                    asChild
-                  >
-                    <a href={university.website} target="_blank" rel="noreferrer">
-                      Visit University Site
-                    </a>
-                  </Button>
+                {details.highlights.length > 0 ? (
+                  <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                    {details.highlights.slice(0, 4).map((highlight, index) => (
+                      <div
+                        key={`${highlight}-${index}`}
+                        className={withUniversitySurfaceSubtle(
+                          "flex items-start gap-2 rounded-xl p-3 text-sm text-muted-foreground",
+                        )}
+                      >
+                        <Sparkles className="mt-0.5 h-4 w-4 text-primary" />
+                        <span>{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
                 ) : null}
               </div>
             </div>
-            <div className={withUniversitySurfaceTint("flex flex-col gap-4 rounded-2xl p-6 text-sm text-muted-foreground bg-muted/60")}>
+            <div className={withUniversitySurfaceTint("flex flex-col gap-4 rounded-2xl p-6 text-sm text-muted-foreground bg-muted/60")}> 
               <div className="flex items-center justify-between">
                 <span>Total Applications</span>
                 <span className="text-lg font-semibold text-foreground">
@@ -161,6 +183,53 @@ const OverviewPage = () => {
                 <span className="text-lg font-semibold text-primary">
                   {formatNumber(metrics.newApplicationsThisWeek)}
                 </span>
+              </div>
+              <Separator className="bg-border/40" />
+              <div className="space-y-3">
+                <p className="text-xs font-semibold uppercase text-muted-foreground">
+                  Primary contact
+                </p>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  {primaryContact?.name ? (
+                    <p className="font-medium text-foreground">{primaryContact.name}</p>
+                  ) : null}
+                  {primaryContact?.title ? <p>{primaryContact.title}</p> : null}
+                  {primaryContact?.email ? (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <a
+                        href={`mailto:${primaryContact.email}`}
+                        className="hover:text-foreground"
+                      >
+                        {primaryContact.email}
+                      </a>
+                    </div>
+                  ) : null}
+                  {primaryContact?.phone ? (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      <a
+                        href={`tel:${primaryContact.phone}`}
+                        className="hover:text-foreground"
+                      >
+                        {primaryContact.phone}
+                      </a>
+                    </div>
+                  ) : null}
+                  {university.website ? (
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <a
+                        href={university.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-foreground"
+                      >
+                        {university.website.replace(/^https?:\/\//, "")}
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
