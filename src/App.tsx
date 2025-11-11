@@ -230,6 +230,9 @@ const UniversityPrograms = lazyWithErrorHandling(() => import("./pages/universit
 const UniversityFeaturedShowcase = lazyWithErrorHandling(
   () => import("./pages/university/FeaturedShowcase"),
 );
+const UniversityProfileSettings = lazyWithErrorHandling(
+  () => import("./pages/university/Profile"),
+);
 
 // Partner
 const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
@@ -348,6 +351,7 @@ const App = () => {
                           <Route path="offers-cas" element={<UniversityOffersCAS />} />
                           <Route path="analytics" element={<UniversityAnalytics />} />
                           <Route path="programs" element={<UniversityPrograms />} />
+                          <Route path="profile" element={<UniversityProfileSettings />} />
                           <Route path="featured-showcase" element={<UniversityFeaturedShowcase />} />
                         </Route>
 

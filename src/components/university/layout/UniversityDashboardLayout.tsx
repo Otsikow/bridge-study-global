@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import { UniversitySidebar } from "./UniversitySidebar";
 import { UniversityHeader } from "./UniversityHeader";
 import { StatePlaceholder } from "../common/StatePlaceholder";
@@ -18,7 +19,15 @@ import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Building2, AlertCircle, ArrowUpRight, RefreshCw } from "lucide-react";
+import { Building2, AlertCircle, ArrowUpRight, RefreshCw, Sparkles } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import {
+  computeUniversityProfileCompletion,
+  emptyUniversityProfileDetails,
+  parseUniversityProfileDetails,
+  type UniversityProfileDetails,
+} from "@/lib/universityProfile";
 
 type Nullable<T> = T | null;
 
@@ -41,6 +50,7 @@ interface UniversityRecord {
   featured_listing_expires_at?: string | null;
   featured_listing_last_paid_at?: string | null;
   featured_listing_current_order_id?: string | null;
+  submission_config_json?: unknown;
 }
 
 export interface UniversityProgram {
@@ -129,6 +139,7 @@ export interface UniversityDashboardMetrics {
 
 export interface UniversityDashboardData {
   university: Nullable<UniversityRecord>;
+  profileDetails: UniversityProfileDetails;
   programs: UniversityProgram[];
   applications: UniversityApplication[];
   documentRequests: UniversityDocumentRequest[];
@@ -194,6 +205,7 @@ const pipelineStageDefinitions = [
 
 const buildEmptyDashboardData = (): UniversityDashboardData => ({
   university: null,
+  profileDetails: { ...emptyUniversityProfileDetails },
   programs: [],
   applications: [],
   documentRequests: [],
@@ -258,6 +270,10 @@ const fetchUniversityDashboardData = async (
   console.log("Universities found:", uniRows?.length ?? 0);
 
   const uniData = (uniRows?.[0] ?? null) as Nullable<UniversityRecord>;
+
+  const profileDetails = uniData
+    ? parseUniversityProfileDetails(uniData.submission_config_json ?? null)
+    : { ...emptyUniversityProfileDetails };
 
   if (!uniData) {
     console.warn("No university found for tenant:", tenantId);
@@ -490,7 +506,9 @@ const fetchUniversityDashboardData = async (
       country: uniData.country,
       city: uniData.city,
       description: uniData.description,
+      featured_image_url: uniData.featured_image_url,
     },
+    profileDetails,
     programs,
     applications,
     documentRequests,
@@ -679,6 +697,7 @@ export const UniversityDashboardLayout = ({
   const { profile, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const navigate = useNavigate();
 
   const tenantId = profile?.tenant_id;
 
@@ -741,6 +760,22 @@ export const UniversityDashboardLayout = ({
     }),
     [data, error, isFetching, isLoading, queryRefetch],
   );
+
+  const profileCompletion = useMemo(
+    () =>
+      data
+        ? computeUniversityProfileCompletion(
+            data.university,
+            data.profileDetails ?? emptyUniversityProfileDetails,
+          )
+        : { percentage: 0, missingFields: [] as string[] },
+    [data],
+  );
+
+  const showProfileReminder = Boolean(data?.university) && profileCompletion.percentage < 100;
+  const missingSummary = showProfileReminder
+    ? profileCompletion.missingFields.slice(0, 3).join(", ")
+    : "";
 
   if (authLoading || isLoading) {
     return (
@@ -831,6 +866,40 @@ export const UniversityDashboardLayout = ({
           />
           <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-subtle px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+              {showProfileReminder ? (
+                <Alert className="border-primary/40 bg-primary/5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-2">
+                      <AlertTitle className="flex items-center gap-2 text-primary">
+                        <Sparkles className="h-4 w-4" />
+                        Complete your university profile
+                      </AlertTitle>
+                      <AlertDescription className="space-y-3 text-sm text-muted-foreground">
+                        <p>
+                          You're {profileCompletion.percentage}% complete.
+                          {missingSummary
+                            ? ` Add ${missingSummary} to unlock a fully polished listing.`
+                            : " Add the remaining details to unlock a fully polished listing."}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <Progress value={profileCompletion.percentage} className="h-2 flex-1" />
+                          <span className="font-medium text-primary">
+                            {profileCompletion.percentage}%
+                          </span>
+                        </div>
+                      </AlertDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="gap-2 whitespace-nowrap"
+                      onClick={() => navigate("/university/profile")}
+                    >
+                      Update profile
+                      <ArrowUpRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </Alert>
+              ) : null}
               {children}
             </div>
           </main>

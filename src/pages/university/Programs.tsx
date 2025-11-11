@@ -80,6 +80,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { getSuggestedCurrencyForCountry } from "@/lib/universityProfile";
 
 const PROGRAM_LEVEL_OPTIONS = [
   "Foundation",
@@ -778,6 +779,11 @@ const ProgramsPage = () => {
     }
   };
 
+  const suggestedCurrency = useMemo(
+    () => getSuggestedCurrencyForCountry(data?.university?.country ?? null),
+    [data?.university?.country],
+  );
+
   if (isLoading && !data) {
     return <LoadingState message="Loading programmes" />;
   }
@@ -789,6 +795,7 @@ const ProgramsPage = () => {
 
   const createInitialValues: ProgramFormValues = {
     ...defaultFormValues,
+    tuitionCurrency: suggestedCurrency ?? defaultFormValues.tuitionCurrency,
   };
 
   const editInitialValues: ProgramFormValues | null = editingProgram
@@ -798,7 +805,10 @@ const ProgramsPage = () => {
         discipline: editingProgram.discipline ?? "",
         durationMonths:
           editingProgram.duration_months ?? defaultFormValues.durationMonths,
-        tuitionCurrency: editingProgram.tuition_currency ?? "USD",
+        tuitionCurrency:
+          editingProgram.tuition_currency ??
+          suggestedCurrency ??
+          defaultFormValues.tuitionCurrency,
         tuitionAmount: (() => {
           const amount = editingProgram.tuition_amount;
           if (amount === null || amount === undefined) {

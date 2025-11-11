@@ -248,6 +248,12 @@ export const UniversityHeader = ({
                 View Profile
             </DropdownMenuItem>
               <DropdownMenuItem
+                onSelect={() => navigate("/university/profile")}
+                className="focus:bg-muted focus:text-foreground"
+              >
+                University Profile
+            </DropdownMenuItem>
+              <DropdownMenuItem
                 onSelect={handleAccountSettings}
                 className="focus:bg-muted focus:text-foreground"
               >

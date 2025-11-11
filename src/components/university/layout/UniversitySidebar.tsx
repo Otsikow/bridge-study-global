@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Stamp,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +51,11 @@ const navItems = [
     label: "Programmes",
     to: "/university/programs",
     icon: GraduationCap,
+  },
+  {
+    label: "Profile",
+    to: "/university/profile",
+    icon: Sparkles,
   },
 ];
 
