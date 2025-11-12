@@ -69,6 +69,7 @@ const hi = {
       links: {
         home: "मुखपृष्ठ",
         search: "खोज",
+        scholarships: "छात्रवृत्तियाँ",
         courses: "पाठ्यक्रम",
         blog: "ब्लॉग",
         contact: "संपर्क",

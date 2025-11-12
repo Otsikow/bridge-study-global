@@ -70,6 +70,7 @@ const fr = {
       links: {
         home: "Accueil",
         search: "Recherche",
+        scholarships: "Bourses",
         courses: "Formations",
         blog: "Blog",
         contact: "Contact",

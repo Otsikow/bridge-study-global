@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Newspaper,
   MessageCircle,
+  Award,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,9 +31,10 @@ import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
 import BackButton from "@/components/BackButton";
 
-const navLinks: Array<{ id: "home" | "search" | "courses" | "blog" | "contact"; to: string; icon: LucideIcon }> = [
+const navLinks: Array<{ id: "home" | "search" | "scholarships" | "courses" | "blog" | "contact"; to: string; icon: LucideIcon }> = [
   { id: "home", to: "/", icon: HomeIcon },
   { id: "search", to: "/search", icon: Search },
+  { id: "scholarships", to: "/scholarships", icon: Award },
   { id: "courses", to: "/courses", icon: GraduationCap },
   { id: "blog", to: "/blog", icon: Newspaper },
   { id: "contact", to: "/contact", icon: MessageCircle },
