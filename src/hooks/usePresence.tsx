@@ -22,11 +22,16 @@ export function usePresence() {
       const timestamp = new Date().toISOString();
       const { error } = await supabase
         .from('user_presence')
-        .upsert({
-          user_id: user.id,
-          status,
-          last_seen: timestamp,
-        });
+        .upsert(
+          {
+            user_id: user.id,
+            status,
+            last_seen: timestamp,
+          },
+          {
+            onConflict: 'user_id',
+          }
+        );
 
       if (error) throw error;
     } catch (error) {
