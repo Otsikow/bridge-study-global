@@ -282,7 +282,7 @@ export function UniversityZoeAssistant() {
   }, []);
 
   return (
-    <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-none border-border bg-muted/50 text-card-foreground shadow-lg shadow-primary/10">
+    <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden overflow-y-auto rounded-none border-border bg-muted/50 text-card-foreground shadow-lg shadow-primary/10">
       <CardHeader className="border-b border-border pb-4">
         <div className="flex items-center justify-between">
           <div>
