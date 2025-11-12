@@ -1,5 +1,8 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SendMessagePayload } from "@/hooks/useMessages";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ChatList } from "@/components/messages/ChatList";
+import { ChatArea } from "@/components/messages/ChatArea";
+import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
+import { usePresence } from "@/hooks/usePresence";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,17 +38,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { MessageCircle, Search, Loader2, MoreVertical, CheckCheck, Trash2, Sparkles } from "lucide-react";
 import {
   withUniversityCardStyles,
-  withUniversitySurfaceTint,
 } from "@/components/university/common/cardStyles";
-
-// Lazy load all messaging components to avoid circular dependencies
-const ChatList = lazy(() => import("@/components/messages/ChatList").then(m => ({ default: m.ChatList })));
-const ChatArea = lazy(() => import("@/components/messages/ChatArea").then(m => ({ default: m.ChatArea })));
-const UniversityZoeAssistant = lazy(() => import("@/components/university/UniversityZoeAssistant"));
-
-// Import hooks separately to ensure clean initialization
-const useMessagesImport = () => import("@/hooks/useMessages");
-const usePresenceImport = () => import("@/hooks/usePresence");
 
 const ZoeAssistantLoadingState = () => (
   <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground">
