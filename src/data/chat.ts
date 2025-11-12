@@ -1,10 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export const getOrCreateConversation = async (studentId: string): Promise<string> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("tenant_id")
-    .eq("id", supabase.auth.user()!.id)
+    .eq("id", user.id)
     .single();
 
   if (profileError) {
@@ -13,8 +16,8 @@ export const getOrCreateConversation = async (studentId: string): Promise<string
   }
 
   const { data, error } = await supabase.rpc("get_or_create_conversation", {
-    p_user1_id: supabase.auth.user()!.id,
-    p_user2_id: studentId,
+    p_user_id: user.id,
+    p_other_user_id: studentId,
     p_tenant_id: profile.tenant_id,
   });
 
@@ -45,15 +48,19 @@ export const sendMessage = async (
   conversationId: string,
   content: string
 ): Promise<any> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+  
   const { data, error } = await supabase
     .from("conversation_messages")
     .insert([
       {
         conversation_id: conversationId,
-        sender_id: supabase.auth.user()!.id,
+        sender_id: user.id,
         content: content,
       },
     ])
+    .select()
     .single();
 
   if (error) {
