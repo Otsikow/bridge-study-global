@@ -254,6 +254,16 @@ function UniversityMessagesPage() {
     }
   }, [searchContacts, showNewChatDialog]);
 
+  useEffect(() => {
+    if (!showNewChatDialog) return;
+
+    const timeout = window.setTimeout(() => {
+      void searchContacts(searchQuery);
+    }, 300);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchContacts, searchQuery, showNewChatDialog]);
+
   /* ------------------------------- Messaging handlers ------------------------------- */
   const handleSelectConversation = useCallback(
     (conversationId: string) => {
