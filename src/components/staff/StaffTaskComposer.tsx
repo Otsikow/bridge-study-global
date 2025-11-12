@@ -1,6 +1,6 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonProps } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,12 +29,42 @@ const initialState: FormState = {
   applicationId: "",
 };
 
-export function StaffTaskComposer() {
-  const [open, setOpen] = useState(false);
+export interface StaffTaskComposerProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
+  triggerLabel?: string;
+  triggerChildren?: ReactNode;
+  triggerProps?: ButtonProps;
+}
+
+export function StaffTaskComposer({
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger = false,
+  triggerLabel = "Add task",
+  triggerChildren,
+  triggerProps,
+}: StaffTaskComposerProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [form, setForm] = useState<FormState>(initialState);
   const { toast } = useToast();
   const { data: assignees, isLoading: loadingAssignees, isError: assigneeError } = useStaffTaskAssignees();
   const createTask = useCreateTask();
+
+  const isControlled = typeof controlledOpen === "boolean" && typeof onOpenChange === "function";
+  const dialogOpen = isControlled ? (controlledOpen as boolean) : internalOpen;
+
+  const setDialogOpen = useCallback(
+    (next: boolean) => {
+      if (isControlled) {
+        onOpenChange?.(next);
+      } else {
+        setInternalOpen(next);
+      }
+    },
+    [isControlled, onOpenChange],
+  );
 
   const selectableAssignees = useMemo(() => {
     if (!assignees) return [];
@@ -50,7 +80,7 @@ export function StaffTaskComposer() {
   }, [assignees, form.assigneeId]);
 
   const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen);
+    setDialogOpen(nextOpen);
     if (!nextOpen) {
       setForm(initialState);
     }
@@ -87,7 +117,7 @@ export function StaffTaskComposer() {
             description: "Zoe will keep this workflow in sync with your admissions pipeline.",
           });
           setForm(initialState);
-          setOpen(false);
+          handleOpenChange(false);
         },
         onError: (error) => {
           toast({
@@ -104,12 +134,18 @@ export function StaffTaskComposer() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button className="gap-2" size="sm">
-          <Plus className="h-4 w-4" /> Log manual task
-        </Button>
-      </DialogTrigger>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
+      {hideTrigger ? null : (
+        <DialogTrigger asChild>
+          <Button className="w-full justify-center gap-2 sm:w-auto" size="sm" {...triggerProps}>
+            {triggerChildren ?? (
+              <>
+                <Plus className="h-4 w-4" /> {triggerLabel}
+              </>
+            )}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create a manual task</DialogTitle>
