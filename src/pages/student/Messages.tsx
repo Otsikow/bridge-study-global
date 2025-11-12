@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
+import { MessagingUnavailable } from '@/components/messages/MessagingUnavailable';
 import { useMessages, type SendMessagePayload } from '@/hooks/useMessages';
 import { usePresence } from '@/hooks/usePresence';
 import BackButton from '@/components/BackButton';
@@ -43,6 +44,7 @@ export default function Messages() {
     startTyping,
     stopTyping,
     getOrCreateConversation,
+    error,
   } = useMessages();
 
   const { getUserPresence, isUserOnline } = usePresence();
@@ -156,6 +158,26 @@ export default function Messages() {
         return 'outline';
     }
   };
+
+  if (error) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
+        <div className="border-b bg-background px-4 py-2">
+          <BackButton
+            variant="ghost"
+            size="sm"
+            className="md:w-auto"
+            fallback="/dashboard"
+          />
+        </div>
+        <MessagingUnavailable
+          reason={error}
+          redirectHref="/dashboard"
+          redirectLabel="Return to dashboard"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">

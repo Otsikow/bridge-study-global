@@ -6,9 +6,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageSquare, Search, Send } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { Tables } from '@/integrations/supabase/types';
+import { MessagingUnavailable } from './MessagingUnavailable';
 
 type MessageRow = Tables<'messages'>;
 
@@ -42,6 +43,7 @@ function formatRelativeTime(dateIso: string | null | undefined) {
 
 export default function MessagesDashboard() {
   const { user, profile } = useAuth();
+  const messagingDisabled = !isSupabaseConfigured;
   const [loading, setLoading] = useState(true);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [applications, setApplications] = useState<ApplicationSummary[]>([]);
@@ -76,6 +78,12 @@ export default function MessagesDashboard() {
 
   // Fetch student id and applications
   useEffect(() => {
+    if (messagingDisabled) {
+      setLoading(false);
+      setApplications([]);
+      setStudentId(null);
+      return;
+    }
     const bootstrap = async () => {
       if (!user) return;
       setLoading(true);
@@ -129,10 +137,11 @@ export default function MessagesDashboard() {
       }
     };
     bootstrap();
-  }, [user]);
+  }, [messagingDisabled, user]);
 
   // Fetch full thread when selecting a message thread
   useEffect(() => {
+    if (messagingDisabled) return;
     const loadThread = async () => {
       if (!selectedAppId) return;
       const { data, error } = await supabase
@@ -155,10 +164,11 @@ export default function MessagesDashboard() {
     };
     loadThread();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAppId]);
+  }, [messagingDisabled, selectedAppId]);
 
   // Realtime subscription to new messages
   useEffect(() => {
+    if (messagingDisabled) return;
     const channel = supabase
       .channel('student-messages')
       .on(
@@ -185,7 +195,7 @@ export default function MessagesDashboard() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedAppId]);
+  }, [messagingDisabled, selectedAppId]);
 
   const filteredApplications = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -242,6 +252,26 @@ export default function MessagesDashboard() {
       setSending(false);
     }
   };
+
+  if (messagingDisabled) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in">
+          <div className="space-y-1.5 min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight break-words">Messages</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Stay connected with advisors and support
+            </p>
+          </div>
+        </div>
+        <MessagingUnavailable
+          reason="Messaging is currently unavailable because the messaging service is not configured."
+          redirectHref="/"
+          redirectLabel="Return to home"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

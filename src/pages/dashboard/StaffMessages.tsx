@@ -6,6 +6,7 @@ import BackButton from "@/components/BackButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatList } from "@/components/messages/ChatList";
 import { ChatArea } from "@/components/messages/ChatArea";
+import { MessagingUnavailable } from "@/components/messages/MessagingUnavailable";
 import {
   useMessages,
   type SendMessagePayload,
@@ -72,6 +73,7 @@ export default function StaffMessages() {
     sendMessage: sendPartnerMessage,
     startTyping: startPartnerTyping,
     stopTyping: stopPartnerTyping,
+    error: partnerError,
   } = partnerMessaging;
 
   const {
@@ -85,7 +87,10 @@ export default function StaffMessages() {
     startTyping: startStaffTyping,
     stopTyping: stopStaffStopTyping,
     getOrCreateConversation: getStaffConversation,
+    error: staffError,
   } = staffMessaging;
+
+  const messagingError = staffError ?? partnerError;
 
   const [activeTab, setActiveTab] = useState<TabValue>(
     partnerEnabled ? "partners" : "staff"
@@ -328,6 +333,21 @@ export default function StaffMessages() {
       )}
     </div>
   );
+
+  if (messagingError) {
+    return (
+      <DashboardLayout title="Staff Messages">
+        <div className="space-y-4">
+          <BackButton variant="ghost" />
+          <MessagingUnavailable
+            reason={messagingError}
+            redirectHref="/dashboard"
+            redirectLabel="Return to dashboard"
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
