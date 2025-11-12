@@ -1,8 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChatList } from "@/components/messages/ChatList";
-import { ChatArea } from "@/components/messages/ChatArea";
-import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
-import { usePresence } from "@/hooks/usePresence";
+import type { SendMessagePayload } from "@/hooks/useMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +38,14 @@ import {
   withUniversitySurfaceTint,
 } from "@/components/university/common/cardStyles";
 
+// Lazy load all messaging components to avoid circular dependencies
+const ChatList = lazy(() => import("@/components/messages/ChatList").then(m => ({ default: m.ChatList })));
+const ChatArea = lazy(() => import("@/components/messages/ChatArea").then(m => ({ default: m.ChatArea })));
 const UniversityZoeAssistant = lazy(() => import("@/components/university/UniversityZoeAssistant"));
+
+// Import hooks separately to ensure clean initialization
+const useMessagesImport = () => import("@/hooks/useMessages");
+const usePresenceImport = () => import("@/hooks/usePresence");
 
 const ZoeAssistantLoadingState = () => (
   <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground">
@@ -80,6 +84,47 @@ const CONTACT_ROLES = ["agent", "staff", "admin", "partner"];
 const UniversityMessagesPage = () => {
   const { user, profile } = useAuth();
   const { toast } = useToast();
+  
+  // Dynamically import hooks to avoid initialization issues
+  const [hooksLoaded, setHooksLoaded] = useState(false);
+  const [useMessages, setUseMessages] = useState<any>(null);
+  const [usePresence, setUsePresence] = useState<any>(null);
+
+  useEffect(() => {
+    Promise.all([useMessagesImport(), usePresenceImport()])
+      .then(([messagesModule, presenceModule]) => {
+        setUseMessages(() => messagesModule.useMessages);
+        setUsePresence(() => presenceModule.usePresence);
+        setHooksLoaded(true);
+      })
+      .catch((error) => {
+        console.error("Failed to load messaging hooks:", error);
+        toast({
+          title: "Error loading messages",
+          description: "Please refresh the page to try again.",
+          variant: "destructive",
+        });
+      });
+  }, [toast]);
+
+  if (!hooksLoaded || !useMessages || !usePresence) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return <UniversityMessagesPageContent />;
+};
+
+// Separate component to use the hooks after they're loaded
+const UniversityMessagesPageContent = () => {
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
+  const { useMessages } = useMessagesImport();
+  const { usePresence } = usePresenceImport();
+  
   const {
     conversations,
     currentConversation,
