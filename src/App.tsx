@@ -15,7 +15,6 @@ import { lazy, Suspense, ComponentType } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Messages from "./pages/student/Messages";
 import ZoeChatbot from "@/components/ai/AIChatbot";
 import { useTranslation } from "react-i18next";
 
@@ -172,6 +171,7 @@ const Applications = lazyWithErrorHandling(() => import("./pages/student/Applica
 const ApplicationTracking = lazyWithErrorHandling(() => import("./pages/student/ApplicationTracking"));
 const NewApplication = lazyWithErrorHandling(() => import("./pages/student/NewApplication"));
 const ApplicationDetails = lazyWithErrorHandling(() => import("./pages/student/ApplicationDetails"));
+const StudentMessages = lazyWithErrorHandling(() => import("./pages/student/Messages"));
 const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
 const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
@@ -325,7 +325,7 @@ const App = () => {
                           <Route path="onboarding" element={<StudentOnboarding />} />
                           <Route path="profile" element={<StudentProfile />} />
                           <Route path="documents" element={<Documents />} />
-                          <Route path="messages" element={<Messages />} />
+                          <Route path="messages" element={<StudentMessages />} />
                           <Route path="applications" element={<Applications />} />
                           <Route path="applications/new" element={<NewApplication />} />
                           <Route path="applications/:id" element={<ApplicationDetails />} />

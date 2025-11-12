@@ -325,7 +325,7 @@ const en = {
       fallbackMessage: "An unexpected error occurred",
       technicalDetails: "Technical Details",
       tryAgain: "Try Again",
-      tryAgainCount: "Try Again ({count} left)",
+      tryAgainCount: "Try Again ({{count}} left)",
       goHome: "Go Home",
       maxRetriesReached: "Maximum retry attempts reached. Please refresh the page or contact support.",
     },
