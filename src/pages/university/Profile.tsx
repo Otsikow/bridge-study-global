@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ChangeEvent, KeyboardEvent } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -160,6 +161,9 @@ const UniversityProfilePage = () => {
 
   const tenantId = profile?.tenant_id ?? null;
 
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const heroInputRef = useRef<HTMLInputElement>(null);
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [heroFile, setHeroFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -272,6 +276,8 @@ const UniversityProfilePage = () => {
       setHeroPreviewObjectUrl(null);
     }
     setHeroPreview(hero);
+    setLogoFile(null);
+    setHeroFile(null);
   }, [
     form,
     heroPreviewObjectUrl,
@@ -313,14 +319,19 @@ const UniversityProfilePage = () => {
     [queryData],
   );
 
-  const handleLogoChange = (file: File | null) => {
-    if (!file) return;
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      event.target.value = "";
+      return;
+    }
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Unsupported file",
         description: "Upload an image for your logo",
         variant: "destructive",
       });
+      event.target.value = "";
       return;
     }
     if (file.size > MAX_LOGO_SIZE) {
@@ -329,6 +340,7 @@ const UniversityProfilePage = () => {
         description: "Logos should be smaller than 5MB",
         variant: "destructive",
       });
+      event.target.value = "";
       return;
     }
 
@@ -340,16 +352,22 @@ const UniversityProfilePage = () => {
     setLogoPreview(objectUrl);
     setLogoPreviewObjectUrl(objectUrl);
     setLogoFile(file);
+    event.target.value = "";
   };
 
-  const handleHeroChange = (file: File | null) => {
-    if (!file) return;
+  const handleHeroChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      event.target.value = "";
+      return;
+    }
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Unsupported file",
         description: "Upload an image for your hero banner",
         variant: "destructive",
       });
+      event.target.value = "";
       return;
     }
     if (file.size > MAX_HERO_SIZE) {
@@ -358,6 +376,7 @@ const UniversityProfilePage = () => {
         description: "Hero images should be smaller than 10MB",
         variant: "destructive",
       });
+      event.target.value = "";
       return;
     }
 
@@ -369,6 +388,22 @@ const UniversityProfilePage = () => {
     setHeroPreview(objectUrl);
     setHeroPreviewObjectUrl(objectUrl);
     setHeroFile(file);
+    event.target.value = "";
+  };
+
+  const triggerLogoFileDialog = () => {
+    logoInputRef.current?.click();
+  };
+
+  const triggerHeroFileDialog = () => {
+    heroInputRef.current?.click();
+  };
+
+  const handleHeroKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      triggerHeroFileDialog();
+    }
   };
 
   const uploadAsset = async (
@@ -1049,7 +1084,15 @@ const UniversityProfilePage = () => {
                   </div>
                   <div className="grid gap-6 lg:grid-cols-2">
                     <div className="space-y-3">
-                      <Label>Logo</Label>
+                      <Label htmlFor="university-logo">Logo</Label>
+                      <input
+                        id="university-logo"
+                        ref={logoInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleLogoChange}
+                      />
                       <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20 border border-dashed border-muted-foreground/40 bg-muted">
                           {logoPreview ? (
@@ -1061,34 +1104,51 @@ const UniversityProfilePage = () => {
                           )}
                         </Avatar>
                         <div className="flex flex-col gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="gap-2"
-                            onClick={() => {
-                              const input = document.createElement("input");
-                              input.type = "file";
-                              input.accept = "image/*";
-                              input.onchange = (event) => {
-                                const target = event.target as HTMLInputElement;
-                                const file = target.files?.[0] ?? null;
-                                handleLogoChange(file);
-                              };
-                              input.click();
-                            }}
-                          >
-                            <Upload className="h-4 w-4" /> Upload logo
-                          </Button>
-                          <p className="text-xs text-muted-foreground">
-                            PNG or SVG, up to 5MB.
-                          </p>
+                          <div className="space-y-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="gap-2"
+                              onClick={triggerLogoFileDialog}
+                            >
+                              <Upload className="h-4 w-4" />
+                              {logoPreview ? "Change logo" : "Upload logo"}
+                            </Button>
+                            {logoFile ? (
+                              <p className="text-xs text-foreground">
+                                Selected: <span className="font-medium">{logoFile.name}</span>
+                              </p>
+                            ) : logoPreview ? (
+                              <p className="text-xs text-muted-foreground">
+                                Using saved logo
+                              </p>
+                            ) : null}
+                            <p className="text-xs text-muted-foreground">
+                              PNG or SVG, up to 5MB.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <Label>Hero image</Label>
-                      <div className="relative flex h-40 items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted-foreground/40 bg-muted">
+                      <Label htmlFor="university-hero">Hero image</Label>
+                      <input
+                        id="university-hero"
+                        ref={heroInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleHeroChange}
+                      />
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={triggerHeroFileDialog}
+                        onKeyDown={handleHeroKeyDown}
+                        className="group relative flex h-44 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-muted-foreground/40 bg-muted transition hover:border-primary/50 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        aria-describedby="hero-image-guidelines"
+                      >
                         {heroBackground ? (
                           <img
                             src={heroBackground}
@@ -1098,34 +1158,27 @@ const UniversityProfilePage = () => {
                         ) : (
                           <div className="flex flex-col items-center gap-2 text-muted-foreground">
                             <ImageIcon className="h-6 w-6" />
-                            <p className="text-xs">Upload a wide banner (16:9)</p>
+                            <p className="text-xs font-medium">Click to add a hero image</p>
+                            <p className="text-[11px]">16:9 ratio works best</p>
                           </div>
                         )}
-                        <div className="absolute bottom-3 right-3">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            className="gap-2"
-                            onClick={() => {
-                              const input = document.createElement("input");
-                              input.type = "file";
-                              input.accept = "image/*";
-                              input.onchange = (event) => {
-                                const target = event.target as HTMLInputElement;
-                                const file = target.files?.[0] ?? null;
-                                handleHeroChange(file);
-                              };
-                              input.click();
-                            }}
-                          >
-                            <Upload className="h-4 w-4" /> Upload hero
-                          </Button>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
+                          <span className="inline-flex items-center gap-2 rounded-full bg-background/90 px-3 py-1 text-xs font-medium text-foreground shadow-sm ring-1 ring-border/60">
+                            <Upload className="h-3.5 w-3.5" />
+                            {heroBackground ? "Change hero image" : "Select hero image"}
+                          </span>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Recommended size 1600×900px. JPG or PNG up to 10MB.
-                      </p>
+                      <div className="space-y-1 text-xs text-muted-foreground" id="hero-image-guidelines">
+                        <p>Recommended size 1600×900px. JPG or PNG up to 10MB.</p>
+                        {heroFile ? (
+                          <p className="text-foreground">
+                            Selected: <span className="font-medium">{heroFile.name}</span>
+                          </p>
+                        ) : heroBackground ? (
+                          <p>Using saved hero image</p>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
                 </section>
