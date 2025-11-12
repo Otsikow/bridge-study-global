@@ -760,13 +760,7 @@ export function useMessages() {
           )
         `
         )
-        .eq("user_id", user.id)
-        .order("last_message_at", {
-          foreignTable: "conversations",
-          ascending: false,
-          nullsFirst: false,
-        })
-        .order("updated_at", { foreignTable: "conversations", ascending: false });
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
@@ -807,6 +801,7 @@ export function useMessages() {
       }));
 
       const enhanced = await enhanceConversations(conversationsWithProfiles);
+      // Sort conversations locally to avoid REST errors from complex cross-table ordering
       enhanced.sort((a, b) => {
         const aDate = a.last_message_at || a.updated_at || a.created_at || "";
         const bDate = b.last_message_at || b.updated_at || b.created_at || "";
