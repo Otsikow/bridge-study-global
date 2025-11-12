@@ -83,7 +83,7 @@ export function AppFooter() {
             </h3>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link to="/search" className="inline-flex items-center gap-2 hover:underline">
+                <Link to="/courses?view=programs" className="inline-flex items-center gap-2 hover:underline">
                   <Search className="h-4 w-4 text-muted-foreground" />
                   {t("layout.footer.platformLinks.search")}
                 </Link>

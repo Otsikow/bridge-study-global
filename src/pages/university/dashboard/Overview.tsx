@@ -664,7 +664,7 @@ const UniversityOverviewPage = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-primary">
-            <Link to="/search" className="hover:text-primary-foreground hover:underline">
+            <Link to="/courses?view=programs" className="hover:text-primary-foreground hover:underline">
               Search Universities
             </Link>
             <Link to="/blog" className="hover:text-primary-foreground hover:underline">
