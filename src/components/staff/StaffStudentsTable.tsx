@@ -7,10 +7,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import StaffPagination from "@/components/staff/StaffPagination";
 import { useStaffStudents, STAFF_PAGE_SIZE } from "@/hooks/useStaffData";
+import { useAuth } from "@/hooks/useAuth";
+import InviteStudentDialog from "@/components/students/InviteStudentDialog";
 
 export function StaffStudentsTable() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const { profile } = useAuth();
+
+  const tenantId = profile?.tenant_id;
+  const counselorId = profile?.id;
   const { data, isLoading, isFetching } = useStaffStudents(page, search);
 
   const total = (data as any)?.total ?? 0;
@@ -25,17 +32,27 @@ export function StaffStudentsTable() {
           </CardTitle>
           <CardDescription>Live roster synced with Zoe’s risk telemetry.</CardDescription>
         </div>
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(event) => {
-              setPage(1);
-              setSearch(event.target.value);
-            }}
-            placeholder="Search students"
-            className="pl-8"
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <InviteStudentDialog
+            tenantId={tenantId}
+            counselorProfileId={counselorId}
+            open={inviteOpen}
+            onOpenChange={setInviteOpen}
+            disabled={!tenantId || !counselorId}
+            onSuccess={() => setPage(1)}
           />
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => {
+                setPage(1);
+                setSearch(event.target.value);
+              }}
+              placeholder="Search students"
+              className="pl-8"
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

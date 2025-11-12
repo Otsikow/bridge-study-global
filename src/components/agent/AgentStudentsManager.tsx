@@ -1,11 +1,6 @@
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
-import { useQueryClient } from "@tanstack/react-query";
 import {
-  UserPlus,
   Search,
   Mail,
   Phone,
@@ -14,12 +9,13 @@ import {
   Clock3,
   RefreshCw,
   AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -28,16 +24,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -50,198 +36,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { SortableButton } from "@/components/SortableButton";
 
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useTenantStudents, tenantStudentsQueryKey } from "@/hooks/useTenantStudents";
+import { useTenantStudents } from "@/hooks/useTenantStudents";
 import { useSort } from "@/hooks/useSort";
 import type { AgentStudent } from "@/hooks/useAgentStudents";
-import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import AgentInviteCodeManager from "./AgentInviteCodeManager";
+import InviteStudentDialog from "@/components/students/InviteStudentDialog";
 
 type SortableColumn = "country" | "status";
-
-const addStudentSchema = z.object({
-  fullName: z
-    .string()
-    .min(2, "Please provide at least 2 characters.")
-    .max(200, "Name cannot exceed 200 characters."),
-  email: z.string().email("Enter a valid email address."),
-  phone: z
-    .string()
-    .optional()
-    .refine(
-      (value) => !value || value.trim().length >= 6,
-      "If provided, phone number should contain at least 6 characters.",
-    ),
-});
-
-type AddStudentFormValues = z.infer<typeof addStudentSchema>;
-
-interface AddStudentDialogProps {
-  agentProfileId?: string | null;
-  tenantId?: string | null;
-  disabled?: boolean;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const AddStudentDialog = ({
-  agentProfileId,
-  tenantId,
-  disabled,
-  open,
-  onOpenChange,
-}: AddStudentDialogProps) => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<AddStudentFormValues>({
-    resolver: zodResolver(addStudentSchema),
-    defaultValues: {
-      fullName: "",
-      email: "",
-      phone: "",
-    },
-  });
-
-  const handleSuccess = () => {
-    onOpenChange(false);
-    reset();
-    if (tenantId) {
-      queryClient.invalidateQueries({
-        queryKey: tenantStudentsQueryKey(tenantId),
-      });
-    }
-  };
-
-  const onSubmit = async (values: AddStudentFormValues) => {
-    if (!agentProfileId || !tenantId) {
-      toast({
-        title: "Missing agent details",
-        description: "We could not verify your agent profile. Please refresh and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const payload = {
-        fullName: values.fullName.trim(),
-        email: values.email.trim().toLowerCase(),
-        phone: values.phone?.trim() ? values.phone.trim() : undefined,
-        agentProfileId,
-        tenantId,
-      };
-
-      const { data, error } = await supabase.functions.invoke<{
-        success?: boolean;
-        studentId?: string;
-        inviteType?: string;
-        error?: string;
-      }>("invite-student", {
-        body: payload,
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.success) {
-        throw new Error(data?.error ?? "The student invite could not be completed.");
-      }
-
-      toast({
-        title: "Student invited",
-        description: `${values.fullName} will receive an email with next steps.`,
-      });
-
-      handleSuccess();
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Unexpected error while inviting the student.";
-
-      toast({
-        title: "Unable to invite student",
-        description: message,
-        variant: "destructive",
-      });
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(nextOpen) => !isSubmitting && onOpenChange(nextOpen)}>
-      <DialogTrigger asChild>
-        <Button disabled={disabled} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invite Student
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Invite a student</DialogTitle>
-          <DialogDescription>
-            Send an invite to connect a student to your dashboard. They&apos;ll receive an email
-            with instructions to activate their account.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Full name</Label>
-            <Input id="fullName" autoComplete="name" {...register("fullName")} />
-            {errors.fullName && (
-              <p className="text-sm text-destructive">{errors.fullName.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input id="email" type="email" autoComplete="email" {...register("email")} />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone number (optional)</Label>
-            <Input id="phone" autoComplete="tel" {...register("phone")} />
-            {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
-          </div>
-
-          <DialogFooter className="gap-2 border-t pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isSubmitting}
-              onClick={() => {
-                reset();
-                onOpenChange(false);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Sending
-                </>
-              ) : (
-                "Send invite"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
 const formatRelativeTime = (value: string | null) => {
   if (!value) return "—";
@@ -404,7 +207,7 @@ export default function AgentStudentsManager() {
             Track student progress, invite new prospects, and monitor application activity.
           </p>
         </div>
-        <AddStudentDialog
+        <InviteStudentDialog
           agentProfileId={agentProfileId}
           tenantId={tenantId}
           disabled={!tenantId}
