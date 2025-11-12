@@ -283,31 +283,73 @@ const fetchUniversityDashboardData = async (
 
   console.log("Loading data for university:", uniData.name);
 
-  const [programsRes, documentRequestsRes, agentsRes] = await Promise.all([
+  const programColumns = [
+    "id",
+    "name",
+    "level",
+    "discipline",
+    "duration_months",
+    "tuition_amount",
+    "tuition_currency",
+    "intake_months",
+    "entry_requirements",
+    "ielts_overall",
+    "toefl_overall",
+    "seats_available",
+    "description",
+    "app_fee",
+    "image_url",
+    "active",
+  ] as const;
+
+  const selectPrograms = (columns: readonly string[]) =>
     supabase
       .from("programs")
-      .select(
-        [
-          "id",
-          "name",
-          "level",
-          "discipline",
-          "duration_months",
-          "tuition_amount",
-          "tuition_currency",
-          "intake_months",
-          "entry_requirements",
-          "ielts_overall",
-          "toefl_overall",
-          "seats_available",
-          "description",
-          "app_fee",
-          "image_url",
-          "active",
-        ].join(", "),
-      )
+      .select(columns.join(", "))
       .eq("university_id", uniData.id)
-      .order("name"),
+      .order("name");
+
+  const fetchProgramsWithFallback = async (): Promise<UniversityProgram[]> => {
+    const response = await selectPrograms(programColumns);
+
+    if (!response.error) {
+      return (response.data ?? []) as any as UniversityProgram[];
+    }
+
+    const errorCode = (response.error as { code?: string }).code ?? "";
+    const errorMessage = response.error.message?.toLowerCase() ?? "";
+    const missingImageColumn =
+      errorCode === "42703" || errorMessage.includes("image_url");
+
+    if (!missingImageColumn) {
+      throw response.error;
+    }
+
+    console.warn(
+      "programs.image_url column missing – refetching without optional column",
+      {
+        code: errorCode,
+        message: response.error.message,
+      },
+    );
+
+    const fallbackColumns = programColumns.filter(
+      (column) => column !== "image_url",
+    );
+
+    const fallback = await selectPrograms(fallbackColumns);
+    if (fallback.error) {
+      throw fallback.error;
+    }
+
+    return (fallback.data ?? []).map((program: any) => ({
+      ...program,
+      image_url: null,
+    })) as UniversityProgram[];
+  };
+
+  const [programs, documentRequestsRes, agentsRes] = await Promise.all([
+    fetchProgramsWithFallback(),
     supabase
       .from("document_requests")
       .select(
@@ -330,10 +372,6 @@ const fetchUniversityDashboardData = async (
       .eq("tenant_id", tenantId),
   ]);
 
-  if (programsRes.error) {
-    throw programsRes.error;
-  }
-
   if (documentRequestsRes.error) {
     throw documentRequestsRes.error;
   }
@@ -342,7 +380,6 @@ const fetchUniversityDashboardData = async (
     throw agentsRes.error;
   }
 
-  const programs = (programsRes.data ?? []) as any as UniversityProgram[];
   const programIds = programs.map((program) => program.id);
 
   let applications: UniversityApplication[] = [];
