@@ -4,7 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { useStaffTaskSummary } from "@/hooks/useStaffData";
-import { StaffTaskComposer } from "@/components/staff/StaffTaskComposer";
+import { StaffTaskComposerButton } from "@/components/staff/StaffTaskComposerProvider";
 import { CalendarClock, CheckCircle2, Loader2, RefreshCw, ShieldAlert } from "lucide-react";
 import { useMemo } from "react";
 
@@ -67,7 +67,7 @@ export function StaffTaskOverview() {
             {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Sync with Zoe
           </Button>
-          <StaffTaskComposer />
+          <StaffTaskComposerButton />
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

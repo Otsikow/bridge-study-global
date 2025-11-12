@@ -57,6 +57,7 @@ import StaffAgentsLeaderboard from "@/components/staff/StaffAgentsLeaderboard";
 import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
 import StaffTasksBoard from "@/components/staff/StaffTasksBoard";
 import StaffZoeInsightsTab from "@/components/staff/StaffZoeInsightsTab";
+import { StaffTaskComposerProvider } from "@/components/staff/StaffTaskComposerProvider";
 
 const personalOverviewKpis = [
   {
@@ -228,7 +229,8 @@ export default function StaffDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+      <StaffTaskComposerProvider>
+        <div className="space-y-8 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <BackButton to="/dashboard" label="Back" />
@@ -434,7 +436,8 @@ export default function StaffDashboard() {
             <StaffZoeInsightsTab />
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </StaffTaskComposerProvider>
     </DashboardLayout>
   );
 }

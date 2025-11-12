@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import StaffPagination from "@/components/staff/StaffPagination";
+import { StaffTaskComposerButton } from "@/components/staff/StaffTaskComposerProvider";
 import { useStaffTasks, useUpdateTaskStatus, STAFF_PAGE_SIZE } from "@/hooks/useStaffData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -90,32 +91,37 @@ export function StaffTasksBoard() {
           </CardTitle>
           <CardDescription>Stay on top of deadlines with Zoe-assisted triage.</CardDescription>
         </div>
-        <div className="flex w-full flex-col gap-2 md:w-auto">
-          <div className="flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-end">
-            <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
-              <SelectTrigger className="md:w-40">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={priority} onValueChange={(value) => { setPriority(value); setPage(1); }}>
-              <SelectTrigger className="md:w-40">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                {priorityOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex w-full flex-col gap-3 md:w-auto">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+              <Select value={status} onValueChange={(value) => { setStatus(value); setPage(1); }}>
+                <SelectTrigger className="sm:w-40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={priority} onValueChange={(value) => { setPriority(value); setPage(1); }}>
+                <SelectTrigger className="sm:w-40">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorityOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end md:ml-4">
+              <StaffTaskComposerButton />
+            </div>
           </div>
           {isFetching && !isLoading ? (
             <span className="flex items-center gap-2 text-xs text-muted-foreground md:justify-end">
