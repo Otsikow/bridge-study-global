@@ -68,6 +68,7 @@ export interface UniversityProgram {
   seats_available: number | null;
   description: string | null;
   app_fee: number | null;
+  image_url: string | null;
   active: boolean | null;
 }
 
@@ -301,6 +302,7 @@ const fetchUniversityDashboardData = async (
           "seats_available",
           "description",
           "app_fee",
+          "image_url",
           "active",
         ].join(", "),
       )
