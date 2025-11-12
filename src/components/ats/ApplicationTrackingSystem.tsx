@@ -261,7 +261,7 @@ export default function ApplicationTrackingSystem() {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
               <Button asChild className="hover-scale">
-                <Link to="/search">
+                <Link to="/courses?view=programs">
                   <Plus className="h-4 w-4 mr-2" />
                   Browse Programs
                 </Link>

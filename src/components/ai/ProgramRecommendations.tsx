@@ -351,7 +351,7 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
                           <span className="hidden sm:inline">Check Visa</span>
                         </Button>
                         <Button variant="ghost" size="sm" asChild className="flex-1 lg:w-full">
-                          <Link to={`/search?program=${program.id}`}>
+                          <Link to={`/courses?view=programs&program=${program.id}`}>
                             View Details
                           </Link>
                         </Button>

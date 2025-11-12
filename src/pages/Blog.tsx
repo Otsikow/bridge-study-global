@@ -104,7 +104,7 @@ export default function Blog() {
       title: "Platform",
       description: "Navigate essential tools for every stage of the recruitment journey.",
       links: [
-        { label: "Search Universities", href: "/search", external: false },
+        { label: "Search Universities", href: "/courses?view=programs", external: false },
         { label: "Help Centre", href: "/help", external: false },
         { label: "Visa Calculator", href: "/visa-calculator", external: false },
       ],

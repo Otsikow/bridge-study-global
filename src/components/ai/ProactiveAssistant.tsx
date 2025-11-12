@@ -117,7 +117,7 @@ export default function ProactiveAssistant({ studentId }: ProactiveAssistantProp
           "Based on your profile, you might also be interested in these similar programmes in Canada.",
         priority: "low",
         category: "Recommendation",
-        action_url: "/search",
+        action_url: "/courses?view=programs",
         action_text: "Explore Programmes",
         created_at: new Date().toISOString(),
       },

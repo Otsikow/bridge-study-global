@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatList } from "@/components/messages/ChatList";
 import { ChatArea } from "@/components/messages/ChatArea";
 import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
@@ -34,12 +34,38 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import UniversityZoeAssistant from "@/components/university/UniversityZoeAssistant";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import { MessageCircle, Search, Loader2, MoreVertical, CheckCheck, Trash2, Sparkles } from "lucide-react";
 import {
   withUniversityCardStyles,
   withUniversitySurfaceTint,
 } from "@/components/university/common/cardStyles";
+
+const UniversityZoeAssistant = lazy(() => import("@/components/university/UniversityZoeAssistant"));
+
+const ZoeAssistantLoadingState = () => (
+  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground">
+    <Sparkles className="h-6 w-6 animate-pulse text-primary" />
+    <div className="space-y-1">
+      <p className="text-sm font-semibold">Connecting you with Zoe…</p>
+      <p className="text-xs text-muted-foreground">
+        Preparing personalized insights for your university conversations.
+      </p>
+    </div>
+  </div>
+);
+
+const ZoeAssistantErrorState = () => (
+  <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center text-muted-foreground">
+    <Sparkles className="h-6 w-6 text-primary" />
+    <div className="space-y-1">
+      <p className="text-sm font-semibold text-card-foreground">Zoe assistant is temporarily unavailable</p>
+      <p className="text-xs">
+        Messaging and notifications remain available while we restore Zoe’s insights.
+      </p>
+    </div>
+  </div>
+);
 
 interface ContactRecord {
   id: string;
@@ -410,8 +436,12 @@ const UniversityMessagesPage = () => {
           />
         </section>
 
-        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-card-foreground xl:flex")}>
-          <UniversityZoeAssistant />
+        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-card-foreground xl:flex")}> 
+          <ErrorBoundary fallback={<ZoeAssistantErrorState />}>
+            <Suspense fallback={<ZoeAssistantLoadingState />}>
+              <UniversityZoeAssistant />
+            </Suspense>
+          </ErrorBoundary>
         </section>
       </div>
 
