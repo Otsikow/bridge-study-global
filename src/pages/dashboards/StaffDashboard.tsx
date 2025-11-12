@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useEffect, useMemo, useState, Suspense, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -111,6 +111,34 @@ const dailyActivityTrendData = [
   { day: "Sat", tasks: 6, approvals: 1 },
   { day: "Sun", tasks: 5, approvals: 1 },
 ];
+
+const chartTooltipStyles = {
+  content: {
+    background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--accent)) 100%)",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: "12px",
+    color: "hsl(var(--card-foreground))",
+    boxShadow: "0 12px 30px hsl(var(--foreground) / 0.12)",
+    padding: "0.75rem",
+  } satisfies CSSProperties,
+  label: {
+    color: "hsl(var(--primary))",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+    letterSpacing: "0.01em",
+  } satisfies CSSProperties,
+  item: {
+    color: "hsl(var(--card-foreground))",
+    fontWeight: 500,
+    fontSize: "0.8rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "0.5rem",
+  } satisfies CSSProperties,
+  wrapper: {
+    outline: "none",
+  } satisfies CSSProperties,
+};
 
 const quickLinks = [
   { label: "My Students", description: "Review assigned cases", to: "/dashboard/students", icon: Users },
@@ -247,7 +275,12 @@ export default function StaffDashboard() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis dataKey="status" />
                         <YAxis allowDecimals={false} />
-                        <RechartsTooltip />
+                        <RechartsTooltip
+                          contentStyle={chartTooltipStyles.content}
+                          labelStyle={chartTooltipStyles.label}
+                          itemStyle={chartTooltipStyles.item}
+                          wrapperStyle={chartTooltipStyles.wrapper}
+                        />
                         <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -267,7 +300,12 @@ export default function StaffDashboard() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis dataKey="day" />
                         <YAxis allowDecimals={false} />
-                        <RechartsTooltip />
+                        <RechartsTooltip
+                          contentStyle={chartTooltipStyles.content}
+                          labelStyle={chartTooltipStyles.label}
+                          itemStyle={chartTooltipStyles.item}
+                          wrapperStyle={chartTooltipStyles.wrapper}
+                        />
                         <Legend />
                         <Line type="monotone" dataKey="tasks" stroke="hsl(var(--chart-1))" strokeWidth={2} />
                         <Line type="monotone" dataKey="approvals" stroke="hsl(var(--chart-2))" strokeWidth={2} />
