@@ -48,6 +48,18 @@ const SUGGESTIONS: { label: string; prompt: string }[] = [
 const createMessageId = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
+const generateSessionId = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  if (typeof window.crypto?.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+
+  return `session-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
 const LINK_PATTERN = /((?:https?:\/\/|www\.)[^\s<]+)/gi;
 
 const formatTextWithLinks = (text: string): ReactNode => {
@@ -104,7 +116,24 @@ export function UniversityZoeAssistant() {
   const { session, profile } = useAuth();
   const { toast } = useToast();
 
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const existing = window.localStorage.getItem(STORAGE_KEY);
+    if (existing) {
+      return existing;
+    }
+
+    const generated = generateSessionId();
+    if (!generated) {
+      return null;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, generated);
+    return generated;
+  });
   const [messages, setMessages] = useState<AssistantMessage[]>([
     { id: "assistant-intro", role: "assistant", content: INTRO_MESSAGE },
   ]);
@@ -116,14 +145,18 @@ export function UniversityZoeAssistant() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    let existing = window.localStorage.getItem(STORAGE_KEY);
-    if (!existing) {
-      existing = crypto.randomUUID();
-      window.localStorage.setItem(STORAGE_KEY, existing);
+    if (sessionId || typeof window === "undefined") {
+      return;
     }
-    setSessionId(existing);
-  }, []);
+
+    const generated = generateSessionId();
+    if (!generated) {
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, generated);
+    setSessionId(generated);
+  }, [sessionId]);
 
   useEffect(() => {
     const viewport = scrollAreaRef.current?.querySelector(
