@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
 import zoeAvatar from "@/assets/professional-consultant.png";
 import { cn } from "@/lib/utils";
+import ZoeTypingIndicator from "@/components/ai/ZoeTypingIndicator";
 
 interface Attachment {
   id: string;
@@ -1161,8 +1162,9 @@ export default function ZoeChatbot() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 ring-1 ring-primary/30">
                   <Bot className="h-4 w-4 text-primary" />
                 </div>
-                <div className="rounded-full bg-muted/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  Zoe is preparing a response…
+                <div className="flex items-center gap-3 rounded-full bg-muted/60 px-4 py-2 text-xs uppercase tracking-wide text-muted-foreground">
+                  <span className="font-semibold text-foreground">Zoe is preparing a response</span>
+                  <ZoeTypingIndicator className="text-primary" />
                 </div>
               </div>
             )}

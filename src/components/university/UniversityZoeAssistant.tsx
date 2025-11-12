@@ -10,6 +10,7 @@ import { Sparkles, Send, Bot, User, Loader2, MessageSquareQuote } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
+import ZoeTypingIndicator from "@/components/ai/ZoeTypingIndicator";
 
 type AssistantRole = "user" | "assistant";
 
@@ -390,9 +391,14 @@ export function UniversityZoeAssistant() {
                 </div>
               ))}
               {isLoading && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  Zoe is composing a reply…
+                <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/60 p-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/60">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex flex-1 items-center justify-between gap-3 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">Zoe is composing a reply</span>
+                    <ZoeTypingIndicator className="text-primary" />
+                  </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
