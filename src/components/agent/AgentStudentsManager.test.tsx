@@ -124,11 +124,15 @@ describe("AgentStudentsManager student invite flow", () => {
       /Jane Doe\s+will receive an email with next steps\./,
     );
 
-    await waitFor(() =>
+    await waitFor(() => {
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: tenantStudentsQueryKey("tenant-456"),
-      }),
-    );
+      });
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: ["staff", "students", "tenant-456"],
+        exact: false,
+      });
+    });
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 

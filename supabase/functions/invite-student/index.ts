@@ -12,7 +12,8 @@ interface InviteStudentRequest {
   fullName: string;
   email: string;
   phone?: string;
-  agentProfileId: string;
+  agentProfileId?: string;
+  counselorProfileId?: string;
   tenantId: string;
 }
 
@@ -102,7 +103,14 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const { fullName, email, phone, agentProfileId, tenantId } = body;
+    const { fullName, email, phone, agentProfileId, counselorProfileId, tenantId } = body;
+
+    if (!agentProfileId && !counselorProfileId) {
+      return new Response(JSON.stringify({ error: "An agent or staff owner is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     if (!fullName || typeof fullName !== "string" || fullName.trim().length === 0 || fullName.length > 200) {
       return new Response(JSON.stringify({ error: "fullName is required and must be fewer than 200 characters" }), {
@@ -118,8 +126,15 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    if (!agentProfileId || typeof agentProfileId !== "string" || !isValidUuid(agentProfileId)) {
+    if (agentProfileId && (typeof agentProfileId !== "string" || !isValidUuid(agentProfileId))) {
       return new Response(JSON.stringify({ error: "agentProfileId must be a valid UUID" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (counselorProfileId && (typeof counselorProfileId !== "string" || !isValidUuid(counselorProfileId))) {
+      return new Response(JSON.stringify({ error: "counselorProfileId must be a valid UUID" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -267,47 +282,96 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Look up the agent record using the profile_id
-    const { data: agentRecord, error: agentLookupError } = await retry(() =>
-      supabaseAdmin
-        .from("agents")
-        .select("id")
-        .eq("profile_id", agentProfileId)
-        .maybeSingle(),
-    );
-
-    if (agentLookupError) {
-      console.error("Error looking up agent", agentLookupError);
-      throw agentLookupError;
-    }
-
-    if (!agentRecord) {
-      return new Response(
-        JSON.stringify({ error: "Agent not found for the given profile ID" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+    if (agentProfileId) {
+      const { data: agentRecord, error: agentLookupError } = await retry(() =>
+        supabaseAdmin
+          .from("agents")
+          .select("id")
+          .eq("profile_id", agentProfileId)
+          .maybeSingle(),
       );
+
+      if (agentLookupError) {
+        console.error("Error looking up agent", agentLookupError);
+        throw agentLookupError;
+      }
+
+      if (!agentRecord) {
+        return new Response(
+          JSON.stringify({ error: "Agent not found for the given profile ID" }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const { error: linkUpsertError } = await retry(() =>
+        supabaseAdmin
+          .from("agent_student_links")
+          .upsert(
+            {
+              agent_id: agentRecord.id,
+              student_id: studentRecord.id,
+              tenant_id: tenantId,
+              application_count: 0,
+              status: "pending",
+            },
+            { onConflict: "agent_id,student_id" },
+          ),
+      );
+
+      if (linkUpsertError) {
+        console.error("Error linking agent to student", linkUpsertError);
+        throw linkUpsertError;
+      }
     }
 
-    const { error: linkUpsertError } = await retry(() =>
-      supabaseAdmin
-        .from("agent_student_links")
-        .upsert(
-          {
-            agent_id: agentRecord.id,
-            student_id: studentRecord.id,
-            tenant_id: tenantId,
-            application_count: 0,
-            status: "pending",
-          },
-          { onConflict: "agent_id,student_id" },
-        ),
-    );
+    if (counselorProfileId) {
+      const { data: counselorProfile, error: counselorLookupError } = await retry(() =>
+        supabaseAdmin
+          .from("profiles")
+          .select("id, tenant_id")
+          .eq("id", counselorProfileId)
+          .maybeSingle(),
+      );
 
-    if (linkUpsertError) {
-      console.error("Error linking agent to student", linkUpsertError);
-      throw linkUpsertError;
+      if (counselorLookupError) {
+        console.error("Error looking up counselor profile", counselorLookupError);
+        throw counselorLookupError;
+      }
+
+      if (!counselorProfile || counselorProfile.tenant_id !== tenantId) {
+        return new Response(
+          JSON.stringify({ error: "Counselor not found for the given tenant" }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      const { error: assignmentCleanupError } = await retry(() =>
+        supabaseAdmin.from("student_assignments").delete().eq("student_id", studentRecord.id),
+      );
+
+      if (assignmentCleanupError) {
+        console.error("Error removing previous assignments", assignmentCleanupError);
+        throw assignmentCleanupError;
+      }
+
+      const { error: assignmentInsertError } = await retry(() =>
+        supabaseAdmin.from("student_assignments").insert({
+          student_id: studentRecord.id,
+          counselor_id: counselorProfileId,
+          assigned_at: new Date().toISOString(),
+        }),
+      );
+
+      if (assignmentInsertError) {
+        console.error("Error assigning counselor to student", assignmentInsertError);
+        throw assignmentInsertError;
+      }
     }
 
     return new Response(
