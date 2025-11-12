@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
 import { ChatList } from "@/components/messages/ChatList";
 import { ChatArea } from "@/components/messages/ChatArea";
 import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
@@ -38,7 +38,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { MessageCircle, Search, Loader2, MoreVertical, CheckCheck, Trash2, Sparkles } from "lucide-react";
 import {
   withUniversityCardStyles,
-  withUniversitySurfaceTint,
 } from "@/components/university/common/cardStyles";
 
 const UniversityZoeAssistant = lazy(() => import("@/components/university/UniversityZoeAssistant"));
@@ -61,7 +60,7 @@ const ZoeAssistantErrorState = () => (
     <div className="space-y-1">
       <p className="text-sm font-semibold text-card-foreground">Zoe assistant is temporarily unavailable</p>
       <p className="text-xs">
-        Messaging and notifications remain available while we restore Zoe’s insights.
+        Messaging and notifications remain available while we restore Zoe's insights.
       </p>
     </div>
   </div>
@@ -77,7 +76,7 @@ interface ContactRecord {
 
 const CONTACT_ROLES = ["agent", "staff", "admin", "partner"];
 
-const UniversityMessagesPage = () => {
+function UniversityMessagesPage() {
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const {
@@ -498,10 +497,11 @@ const UniversityMessagesPage = () => {
             <ScrollArea className="h-96">
               {contacts.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
-                  <p className="text-sm font-medium">No contacts found</p>
-                  <p className="text-xs text-muted-foreground">
-                    Try broadening your search or check with your partnership manager.
-                  </p>
+                  <MessageCircle className="h-12 w-12 opacity-30" />
+                  <div className="space-y-1">
+                    <p className="font-medium">No contacts found</p>
+                    <p className="text-xs">Try searching by name or email</p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -509,17 +509,22 @@ const UniversityMessagesPage = () => {
                     <button
                       key={contact.id}
                       onClick={() => void handleSelectContact(contact)}
-                      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-muted/60 p-3 text-left transition hover:border-border hover:bg-muted/50"
+                      className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent"
                     >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={contact.avatar_url ?? undefined} alt={contact.full_name} />
+                      <Avatar className="h-10 w-10 flex-shrink-0">
+                        <AvatarImage
+                          src={contact.avatar_url || undefined}
+                          alt={contact.full_name}
+                        />
                         <AvatarFallback>{initialsForName(contact.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-card-foreground">{contact.full_name}</p>
-                        <p className="truncate text-xs text-muted-foreground">{contact.email}</p>
+                        <p className="truncate font-semibold">{contact.full_name}</p>
+                        <p className="truncate text-sm text-muted-foreground">
+                          {contact.email}
+                        </p>
                       </div>
-                      <Badge variant="outline" className="text-xs capitalize">
+                      <Badge variant="outline" className="capitalize">
                         {contact.role}
                       </Badge>
                     </button>
@@ -534,18 +539,18 @@ const UniversityMessagesPage = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove this conversation?</AlertDialogTitle>
+            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
             <AlertDialogDescription>
-              You will no longer see this thread in your inbox. Other participants will retain the conversation history.
+              This will remove the conversation from your inbox. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-red-600 hover:bg-red-500"
               onClick={() => void handleDeleteConversation()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete conversation
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -558,6 +563,6 @@ const UniversityMessagesPage = () => {
       )}
     </div>
   );
-};
+}
 
 export default UniversityMessagesPage;
