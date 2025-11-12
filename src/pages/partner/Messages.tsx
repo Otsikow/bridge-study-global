@@ -44,6 +44,7 @@ export default function PartnerMessagesPage() {
     startTyping,
     stopTyping,
   } = useAgentMessages();
+
   const { getUserPresence, isUserOnline } = usePresence();
 
   const [showComposer, setShowComposer] = useState(false);
@@ -72,6 +73,7 @@ export default function PartnerMessagesPage() {
     if (typeof window === "undefined") return;
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
+
     try {
       let ctx = audioContextRef.current;
       if (!ctx) {
@@ -83,6 +85,7 @@ export default function PartnerMessagesPage() {
         await ctx.resume();
         setIsInitializingAudio(false);
       }
+
       const oscillator = ctx.createOscillator();
       const gain = ctx.createGain();
       oscillator.type = "triangle";
@@ -106,7 +109,7 @@ export default function PartnerMessagesPage() {
       sendMessage(currentConversation, payload);
       void playSendSound();
     },
-    [currentConversation, messagingDisabled, playSendSound, sendMessage],
+    [currentConversation, messagingDisabled, playSendSound, sendMessage]
   );
 
   const handleStartTyping = useCallback(() => {
@@ -121,12 +124,12 @@ export default function PartnerMessagesPage() {
 
   const totalUnread = useMemo(
     () => conversations.reduce((sum, conversation) => sum + (conversation.unreadCount ?? 0), 0),
-    [conversations],
+    [conversations]
   );
 
   const currentConversationData = useMemo(
     () => conversations.find((conversation) => conversation.id === currentConversation) ?? null,
-    [conversations, currentConversation],
+    [conversations, currentConversation]
   );
 
   const conversationOptions = useMemo<ConversationOption[]>(() => {
@@ -160,7 +163,7 @@ export default function PartnerMessagesPage() {
       setShowComposer(false);
       setComposerSearch("");
     },
-    [setCurrentConversation],
+    [setCurrentConversation]
   );
 
   const initialsForName = useCallback((name: string) => {
@@ -173,7 +176,8 @@ export default function PartnerMessagesPage() {
       .toUpperCase();
   }, []);
 
-  const isMessagingEnabled = enabled && !messagingDisabled && (conversations.length > 0 || !loading);
+  const isMessagingEnabled =
+    enabled && !messagingDisabled && (conversations.length > 0 || !loading);
 
   return (
     <SidebarProvider>
@@ -185,7 +189,9 @@ export default function PartnerMessagesPage() {
             <div className="border-b border-slate-200/70 bg-white/80 transition-colors dark:border-slate-900/70 dark:bg-slate-950/60">
               <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-8">
                 <div>
-                  <h1 className="text-2xl font-semibold text-slate-900 transition-colors dark:text-slate-100 md:text-3xl">Partner Messages</h1>
+                  <h1 className="text-2xl font-semibold text-slate-900 transition-colors dark:text-slate-100 md:text-3xl">
+                    Partner Messages
+                  </h1>
                   <p className="text-sm text-slate-600 transition-colors dark:text-slate-400">
                     Coordinate with students and universities across your pipeline.
                   </p>
@@ -201,7 +207,10 @@ export default function PartnerMessagesPage() {
                     New Message
                   </Button>
                   {totalUnread > 0 && (
-                    <Badge variant="destructive" className="rounded-full px-3 py-1 text-xs font-semibold">
+                    <Badge
+                      variant="destructive"
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                    >
                       {totalUnread} unread
                     </Badge>
                   )}
@@ -234,6 +243,8 @@ export default function PartnerMessagesPage() {
                       currentConversation={currentConversation}
                       onSelectConversation={handleSelectConversation}
                       onNewChat={() => setShowComposer(true)}
+                      getUserPresence={getUserPresence}
+                      isUserOnline={isUserOnline}
                     />
                   </div>
 
@@ -285,9 +296,7 @@ export default function PartnerMessagesPage() {
           open={showComposer}
           onOpenChange={(open) => {
             setShowComposer(open);
-            if (!open) {
-              setComposerSearch("");
-            }
+            if (!open) setComposerSearch("");
           }}
         >
           <DialogContent className="sm:max-w-lg">
@@ -341,9 +350,13 @@ export default function PartnerMessagesPage() {
                             )}
                           </Avatar>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{option.name}</p>
+                            <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                              {option.name}
+                            </p>
                             {option.subtitle && (
-                              <p className="truncate text-xs text-slate-500 dark:text-slate-400">{option.subtitle}</p>
+                              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                                {option.subtitle}
+                              </p>
                             )}
                           </div>
                         </button>

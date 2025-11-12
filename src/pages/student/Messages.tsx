@@ -200,6 +200,8 @@ export default function Messages() {
             currentConversation={currentConversation}
             onSelectConversation={handleSelectConversation}
             onNewChat={handleNewChat}
+            getUserPresence={getUserPresence}
+            isUserOnline={isUserOnline}
           />
         </div>
 
