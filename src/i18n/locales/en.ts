@@ -70,6 +70,7 @@ const en = {
       links: {
         home: "Home",
         search: "Search",
+        scholarships: "Scholarships",
         courses: "Courses",
         blog: "Blog",
         contact: "Contact",

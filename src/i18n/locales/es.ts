@@ -69,6 +69,7 @@ const es = {
       links: {
         home: "Inicio",
         search: "Buscar",
+        scholarships: "Becas",
         courses: "Cursos",
         blog: "Blog",
         contact: "Contacto",

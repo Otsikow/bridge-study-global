@@ -70,6 +70,7 @@ const pt = {
       links: {
         home: "Início",
         search: "Buscar",
+        scholarships: "Bolsas",
         courses: "Cursos",
         blog: "Blog",
         contact: "Contato",

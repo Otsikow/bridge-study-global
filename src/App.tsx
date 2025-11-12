@@ -158,6 +158,7 @@ const UniversityDirectory = lazyWithErrorHandling(() => import("./pages/Universi
 const UniversityProfile = lazyWithErrorHandling(() => import("./pages/UniversityProfile"));
 const IntakeForm = lazyWithErrorHandling(() => import("./pages/IntakeForm"));
 const VisaCalculator = lazyWithErrorHandling(() => import("./pages/VisaCalculator"));
+const Scholarships = lazyWithErrorHandling(() => import("./pages/Scholarships"));
 const Blog = lazyWithErrorHandling(() => import("./pages/Blog"));
 const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
@@ -278,6 +279,7 @@ const App = () => {
                         <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
                         <Route path="/search" element={<Navigate to="/courses?view=programs" replace />} />
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
+                        <Route path="/scholarships" element={<PublicLayout><Scholarships /></PublicLayout>} />
                         <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
                         <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />

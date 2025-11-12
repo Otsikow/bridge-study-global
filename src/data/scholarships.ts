@@ -1,0 +1,353 @@
+import { Scholarship } from "@/types/scholarship";
+
+export const FALLBACK_SCHOLARSHIPS: Scholarship[] = [
+  {
+    id: "chevening-global-leaders-2025",
+    title: "Chevening Global Leaders Scholarship",
+    country: "United Kingdom",
+    institution: "UK Foreign, Commonwealth & Development Office",
+    level: "Masters",
+    awardAmount: "Full tuition + £1,300 monthly stipend",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["Global"],
+      gpa: "Equivalent of 3.0/4.0 or above",
+      fieldOfStudy: ["Public Policy", "International Relations", "Business"],
+      languageRequirement: "IELTS 6.5 or equivalent",
+    },
+    eligibilitySummary: "Open to international students with leadership experience and strong academic record.",
+    deadline: "2025-11-07",
+    description:
+      "Chevening Scholarships enable emerging leaders to pursue a one-year master’s degree in the UK with comprehensive funding support.",
+    overview:
+      "Chevening is the UK government's global scholarship programme, supporting future leaders who demonstrate outstanding leadership potential.",
+    applicationSteps: [
+      "Complete the online application form with personal statements",
+      "Submit two professional or academic references",
+      "Attend an in-person or virtual interview",
+      "Receive final selection decision and confirm acceptance",
+    ],
+    documentsRequired: [
+      "Valid passport",
+      "Bachelor's degree certificate and transcripts",
+      "Two reference letters",
+      "English language test results",
+      "Curriculum vitae",
+    ],
+    officialLink: "https://www.chevening.org/scholarships",
+    tags: ["leadership", "government", "full-funding", "deadline-soon"],
+    aiScore: 93,
+    languageSupport: ["English"],
+    selectionProcess: "Applications are scored on leadership potential, networking ability, and academic strength followed by regional panel interviews.",
+    recommendedFor: "Students with demonstrated leadership and public service impact.",
+    verified: true,
+  },
+  {
+    id: "vanier-canada-graduate-2025",
+    title: "Vanier Canada Graduate Scholarship",
+    country: "Canada",
+    institution: "Government of Canada",
+    level: "PhD",
+    awardAmount: "$50,000 per year for 3 years",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["International", "Canadian"],
+      gpa: "First-class average (A-/80%)",
+      fieldOfStudy: ["Health Sciences", "Natural Sciences", "Engineering", "Social Sciences"],
+    },
+    eligibilitySummary: "Exceptional doctoral candidates with proven research excellence and leadership.",
+    deadline: "2025-10-31",
+    description:
+      "The Vanier CGS helps Canadian institutions attract highly qualified doctoral students who demonstrate leadership skills and a high standard of scholarly achievement.",
+    overview:
+      "Designed to recruit and retain world-class doctoral students by supporting scholars who demonstrate leadership and research excellence.",
+    applicationSteps: [
+      "Secure institutional nomination from a Canadian university",
+      "Submit research proposal and reference assessments",
+      "Complete online application via ResearchNet",
+      "Await national selection committee decision",
+    ],
+    documentsRequired: [
+      "Research proposal",
+      "Two leadership reference letters",
+      "Academic CV (CCV format)",
+      "Official transcripts",
+    ],
+    officialLink: "https://vanier.gc.ca/en/home-accueil.html",
+    tags: ["research", "doctoral", "stem", "leadership"],
+    aiScore: 97,
+    languageSupport: ["English", "French"],
+    selectionProcess: "Applications assessed by interdisciplinary committees on academic excellence, research potential, and leadership.",
+    recommendedFor: "Doctoral candidates with top-tier research publications and leadership involvement.",
+    verified: true,
+  },
+  {
+    id: "daad-postgraduate-development-2025",
+    title: "DAAD Postgraduate Scholarships for Development",
+    country: "Germany",
+    institution: "German Academic Exchange Service (DAAD)",
+    level: "Masters",
+    awardAmount: "€934 monthly stipend + tuition waiver",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["Developing Countries"],
+      fieldOfStudy: ["Sustainable Development", "Engineering", "Public Health"],
+      languageRequirement: "German B1 or IELTS 6.5",
+    },
+    eligibilitySummary: "Professionals from developing countries with at least two years of experience.",
+    deadline: "2024-12-15",
+    description:
+      "DAAD offers scholarships for graduates with at least two years of professional experience to study in development-related fields in Germany.",
+    overview:
+      "Supports future leaders who aim to take on responsibility for sustainable development in their home countries.",
+    applicationSteps: [
+      "Select eligible course and contact host university",
+      "Prepare DAAD scholarship application form",
+      "Submit application with supporting documents to the university",
+      "Attend interviews where applicable and receive DAAD decision",
+    ],
+    documentsRequired: [
+      "DAAD application form",
+      "Motivation letter (max 2 pages)",
+      "Curriculum vitae",
+      "Academic transcripts",
+      "Proof of professional experience",
+    ],
+    officialLink: "https://www.daad.de/en/study-and-research-in-germany/scholarships/",
+    tags: ["development", "masters", "professional-experience"],
+    aiScore: 90,
+    languageSupport: ["English", "German"],
+    selectionProcess: "University shortlisting followed by DAAD panel review focusing on impact potential.",
+    recommendedFor: "Professionals driving sustainable development initiatives.",
+    verified: true,
+  },
+  {
+    id: "fulbright-foreign-student-2025",
+    title: "Fulbright Foreign Student Program",
+    country: "United States",
+    institution: "U.S. Department of State",
+    level: "Masters",
+    awardAmount: "Full tuition + living stipend + airfare",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["Country-specific"],
+      gpa: "Strong academic record",
+      fieldOfStudy: ["All fields"],
+      languageRequirement: "TOEFL 90 or IELTS 7.0",
+    },
+    eligibilitySummary: "Open to graduate students, young professionals, and artists from over 160 countries.",
+    deadline: "2024-06-15",
+    description:
+      "The Fulbright Program enables graduate students and young professionals to study and conduct research in the United States.",
+    overview:
+      "Promotes mutual understanding between nations through educational exchange.",
+    applicationSteps: [
+      "Complete country-specific Fulbright application",
+      "Submit academic transcripts and test scores",
+      "Attend interview with Fulbright commission",
+      "Receive placement at U.S. host institution",
+    ],
+    documentsRequired: [
+      "Academic transcripts",
+      "Standardized test scores",
+      "Two recommendation letters",
+      "Personal statement",
+      "Study objectives essay",
+    ],
+    officialLink: "https://foreign.fulbrightonline.org/applicants",
+    tags: ["exchange", "masters", "all-fields"],
+    aiScore: 88,
+    languageSupport: ["English"],
+    selectionProcess: "Country-level screening followed by binational review committees and J. William Fulbright Foreign Scholarship Board.",
+    recommendedFor: "Students seeking cultural exchange and leadership development.",
+    verified: true,
+  },
+  {
+    id: "monash-international-merit-2025",
+    title: "Monash International Merit Scholarship",
+    country: "Australia",
+    institution: "Monash University",
+    level: "Undergraduate",
+    awardAmount: "Up to $10,000 per annum",
+    fundingType: "Partial",
+    eligibility: {
+      nationality: ["International"],
+      gpa: "Top 10% academic performance",
+      fieldOfStudy: ["Any discipline"],
+    },
+    eligibilitySummary: "High-achieving international students commencing undergraduate studies.",
+    deadline: "2025-03-30",
+    description:
+      "Monash University offers merit-based scholarships for outstanding international students enrolling in undergraduate programs.",
+    overview:
+      "Rewards academic excellence and provides leadership opportunities via the Monash International Leadership Program.",
+    applicationSteps: [
+      "Submit application for admission to Monash University",
+      "Complete online scholarship application with personal statement",
+      "Provide evidence of academic achievements",
+      "Await scholarship selection outcome",
+    ],
+    documentsRequired: [
+      "Academic transcripts",
+      "Personal statement",
+      "Proof of citizenship",
+      "Evidence of achievements",
+    ],
+    officialLink: "https://www.monash.edu/study/fees-scholarships/scholarships/find-a-scholarship/monash-international-merit-scholarship-5080",
+    tags: ["undergraduate", "merit", "partial-funding"],
+    aiScore: 84,
+    languageSupport: ["English"],
+    selectionProcess: "Assessed on academic excellence and scholarship application responses.",
+    recommendedFor: "High-achieving students with extracurricular leadership.",
+    verified: true,
+  },
+  {
+    id: "african-women-stem-2025",
+    title: "African Women in STEM Fellowship",
+    country: "Multiple African Countries",
+    institution: "African Union",
+    level: "Masters",
+    awardAmount: "Full tuition + research grant",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["African"],
+      gpa: "Minimum 3.2/4.0",
+      fieldOfStudy: ["STEM"],
+      experience: "At least 1 year of community STEM engagement",
+    },
+    eligibilitySummary: "Women in STEM fields from African nations pursuing master’s research.",
+    deadline: "2025-01-20",
+    description:
+      "This fellowship supports African women advancing STEM research that addresses regional challenges.",
+    overview:
+      "Empowers women scientists with mentorship, leadership training, and research funding.",
+    applicationSteps: [
+      "Submit research proposal aligned with AU Agenda 2063",
+      "Provide academic references and community impact statement",
+      "Attend virtual technical interview",
+      "Sign fellowship agreement and commence research",
+    ],
+    documentsRequired: [
+      "Research proposal",
+      "Curriculum vitae",
+      "Academic transcripts",
+      "Proof of community engagement",
+    ],
+    officialLink: "https://au.int/en/scholarships",
+    tags: ["women", "stem", "africa", "research"],
+    aiScore: 91,
+    languageSupport: ["English", "French", "Portuguese"],
+    selectionProcess: "Evaluated by STEM experts with focus on regional impact and leadership potential.",
+    recommendedFor: "Women scientists seeking mentorship and regional impact.",
+    verified: true,
+  },
+  {
+    id: "latin-america-innovation-2025",
+    title: "Latin America Innovation Scholars",
+    country: "Spain",
+    institution: "IE University",
+    level: "Masters",
+    awardAmount: "Up to 80% tuition coverage",
+    fundingType: "Partial",
+    eligibility: {
+      nationality: ["Latin America"],
+      gpa: "3.3/4.0 or equivalent",
+      fieldOfStudy: ["Business", "Technology", "Entrepreneurship"],
+    },
+    eligibilitySummary: "Innovative Latin American professionals pursuing tech-driven master's degrees.",
+    deadline: "2025-04-15",
+    description:
+      "IE University offers scholarships to Latin American leaders shaping the future of business and technology.",
+    overview:
+      "Combines financial support with innovation labs and mentorship from global entrepreneurs.",
+    applicationSteps: [
+      "Complete IE master’s program application",
+      "Submit scholarship essay highlighting innovation impact",
+      "Participate in online assessment or interview",
+      "Receive scholarship award decision",
+    ],
+    documentsRequired: [
+      "Curriculum vitae",
+      "Academic transcripts",
+      "Entrepreneurial portfolio",
+      "Essay on innovation impact",
+    ],
+    officialLink: "https://www.ie.edu/financial-aid/",
+    tags: ["innovation", "entrepreneurship", "regional"],
+    aiScore: 86,
+    languageSupport: ["English", "Spanish"],
+    selectionProcess: "Assessed on innovation potential, leadership, and academic performance.",
+    recommendedFor: "Entrepreneurs seeking global exposure and venture support.",
+    verified: true,
+  },
+  {
+    id: "nursing-excellence-canada-2025",
+    title: "Canadian Nursing Excellence Award",
+    country: "Canada",
+    institution: "University of British Columbia",
+    level: "Masters",
+    awardAmount: "Full tuition + $1,200 monthly stipend",
+    fundingType: "Full",
+    eligibility: {
+      nationality: ["International"],
+      gpa: "3.0/4.0 minimum",
+      fieldOfStudy: ["Nursing"],
+      languageRequirement: "IELTS 7.0; no GRE required",
+    },
+    eligibilitySummary: "International nurses pursuing advanced practice or leadership roles in Canada.",
+    deadline: "2025-02-28",
+    description:
+      "Supports experienced nurses in advancing healthcare leadership and clinical innovation across Canadian health systems.",
+    overview:
+      "Includes clinical placements, mentorship, and pathways to Canadian licensure support.",
+    applicationSteps: [
+      "Apply for admission to UBC Master of Nursing",
+      "Upload statement of purpose and professional references",
+      "Provide proof of English proficiency (IELTS accepted, no IELTS waiver required if meeting score)",
+      "Complete scholarship interview with nursing faculty",
+    ],
+    documentsRequired: [
+      "Nursing license",
+      "Academic transcripts",
+      "Statement of purpose",
+      "Professional references",
+    ],
+    officialLink: "https://nursing.ubc.ca/graduate/funding",
+    tags: ["nursing", "healthcare", "no-ielts-waiver", "canada"],
+    aiScore: 95,
+    languageSupport: ["English"],
+    selectionProcess: "Faculty panel reviews clinical excellence, leadership, and community impact.",
+    recommendedFor: "Nursing leaders focused on health innovation.",
+    verified: true,
+  },
+];
+
+export const SCHOLARSHIP_FIELDS = Array.from(
+  new Set(
+    FALLBACK_SCHOLARSHIPS.flatMap((scholarship) => scholarship.eligibility.fieldOfStudy ?? [])
+      .concat(FALLBACK_SCHOLARSHIPS.flatMap((scholarship) => scholarship.tags)),
+  ),
+).filter(Boolean);
+
+export const SCHOLARSHIP_COUNTRIES = Array.from(
+  new Set(FALLBACK_SCHOLARSHIPS.map((scholarship) => scholarship.country)),
+).sort();
+
+export const SCHOLARSHIP_LEVELS = Array.from(
+  new Set(FALLBACK_SCHOLARSHIPS.map((scholarship) => scholarship.level)),
+).sort();
+
+export const SCHOLARSHIP_FUNDING_TYPES = Array.from(
+  new Set(FALLBACK_SCHOLARSHIPS.map((scholarship) => scholarship.fundingType)),
+);
+
+export const SCHOLARSHIP_ELIGIBILITY_TAGS = [
+  "International",
+  "Region-specific",
+  "Women-only",
+  "No IELTS",
+  "Leadership",
+  "Research",
+  "STEM",
+  "Business",
+];

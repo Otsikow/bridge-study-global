@@ -69,6 +69,7 @@ const ar = {
       links: {
         home: "الرئيسية",
         search: "بحث",
+        scholarships: "المنح الدراسية",
         courses: "الدورات",
         blog: "المدونة",
         contact: "اتصل بنا",

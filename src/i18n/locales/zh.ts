@@ -69,6 +69,7 @@ const zh = {
       links: {
         home: "首页",
         search: "搜索",
+        scholarships: "奖学金",
         courses: "课程",
         blog: "博客",
         contact: "联系",

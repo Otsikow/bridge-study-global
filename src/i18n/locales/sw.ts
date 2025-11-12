@@ -69,6 +69,7 @@ const sw = {
       links: {
         home: "Nyumbani",
         search: "Tafuta",
+        scholarships: "Ufadhili wa Masomo",
         courses: "Kozi",
         blog: "Blogu",
         contact: "Wasiliana",

@@ -70,6 +70,7 @@ const de = {
       links: {
         home: "Startseite",
         search: "Suche",
+        scholarships: "Stipendien",
         courses: "Studiengänge",
         blog: "Blog",
         contact: "Kontakt",
