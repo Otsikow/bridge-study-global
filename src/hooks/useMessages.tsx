@@ -580,9 +580,42 @@ export function useMessages() {
           userId: user.id,
         });
 
-        let data, error;
-        try {
-          const result = await supabase
+        let result = await supabase
+          .from("conversation_messages")
+          .select(
+            `
+            id,
+            conversation_id,
+            sender_id,
+            content,
+            message_type,
+            attachments,
+            metadata,
+            reply_to_id,
+            edited_at,
+            deleted_at,
+            created_at
+          `
+          )
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: true });
+        
+        const isSchemaMismatch = (err: any) => {
+          if (!err) return false;
+          return (
+            err.code === "42703" ||
+            err.code?.startsWith("PGRST") ||
+            /column .* does not exist|missing FROM-clause|relationship .* does not exist/i.test(err.message || "")
+          );
+        };
+
+        if (result.error && isSchemaMismatch(result.error)) {
+          console.warn("fetchMessages: Schema mismatch detected, retrying with minimal columns", {
+            error: result.error.message,
+            code: result.error.code,
+          });
+          
+          result = await supabase
             .from("conversation_messages")
             .select(
               `
@@ -592,50 +625,16 @@ export function useMessages() {
               content,
               message_type,
               attachments,
-              metadata,
-              reply_to_id,
-              edited_at,
-              deleted_at,
               created_at
             `
             )
             .eq("conversation_id", conversationId)
             .order("created_at", { ascending: true });
-          
-          data = result.data;
-          error = result.error;
-        } catch (schemaError: any) {
-          if (schemaError?.code === "42703" || schemaError?.message?.includes("column")) {
-            console.warn("fetchMessages: Schema mismatch detected, retrying with minimal columns", {
-              error: schemaError.message,
-            });
-            
-            const fallbackResult = await supabase
-              .from("conversation_messages")
-              .select(
-                `
-                id,
-                conversation_id,
-                sender_id,
-                content,
-                message_type,
-                attachments,
-                created_at
-              `
-              )
-              .eq("conversation_id", conversationId)
-              .order("created_at", { ascending: true });
-            
-            data = fallbackResult.data;
-            error = fallbackResult.error;
-          } else {
-            throw schemaError;
-          }
         }
 
-        if (error) throw error;
+        if (result.error) throw result.error;
 
-        const transformed = (data || []).map((message) => {
+        const transformed = (result.data || []).map((message) => {
           const base = transformMessage(message as RawMessage);
           return attachSenderDetails(base, conversationId);
         });
@@ -721,7 +720,7 @@ export function useMessages() {
     if (!user?.id) return;
 
     try {
-      const { data, error } = await supabase
+      let result = await supabase
         .from("conversation_participants")
         .select(
           `
@@ -768,9 +767,67 @@ export function useMessages() {
         })
         .order("updated_at", { foreignTable: "conversations", ascending: false });
 
-      if (error) throw error;
+      const isSchemaMismatch = (err: any) => {
+        if (!err) return false;
+        return (
+          err.code === "42703" ||
+          err.code?.startsWith("PGRST") ||
+          /column .* does not exist|missing FROM-clause|relationship .* does not exist/i.test(err.message || "")
+        );
+      };
 
-      const conversationsData = (data || [])
+      if (result.error && isSchemaMismatch(result.error)) {
+        console.warn("fetchConversations: Schema mismatch detected, retrying with minimal columns", {
+          error: result.error.message,
+          code: result.error.code,
+        });
+        
+        result = await supabase
+          .from("conversation_participants")
+          .select(
+            `
+            conversation:conversations (
+              id,
+              tenant_id,
+              title,
+              type,
+              is_group,
+              created_at,
+              updated_at,
+              last_message_at,
+              avatar_url,
+              participants:conversation_participants (
+                id,
+                conversation_id,
+                user_id,
+                joined_at,
+                last_read_at,
+                role
+              ),
+              lastMessage:conversation_messages!conversation_messages_conversation_id_fkey (
+                id,
+                conversation_id,
+                sender_id,
+                content,
+                message_type,
+                attachments,
+                created_at
+              )
+            )
+          `
+          )
+          .eq("user_id", user.id)
+          .order("last_message_at", {
+            foreignTable: "conversations",
+            ascending: false,
+            nullsFirst: false,
+          })
+          .order("updated_at", { foreignTable: "conversations", ascending: false });
+      }
+
+      if (result.error) throw result.error;
+
+      const conversationsData = (result.data || [])
         .map((item) => item.conversation)
         .filter(Boolean) as RawConversation[];
 
