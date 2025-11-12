@@ -227,7 +227,11 @@ export function AIPoweredSearchSection() {
 
   return (
     <section className="relative overflow-hidden border-y border-primary/10 bg-muted/40">
-      <div className="container mx-auto px-4 py-24 lg:py-28">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
+      <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-secondary/30 blur-3xl" />
+
+      <div className="container relative mx-auto px-4 py-24 lg:py-28">
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.1fr] xl:gap-16">
           {/* LEFT SIDE */}
           <div className="space-y-10">
