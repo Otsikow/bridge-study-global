@@ -257,8 +257,13 @@ const ProgramForm = ({
                     min={1}
                     value={field.value ?? ""}
                     onChange={(event) => {
-                      const value = event.target.value;
-                      field.onChange(value ? Number(value) : 0);
+                      const rawValue = event.target.value;
+                      const sanitizedValue = rawValue.replace(/^0+(?=\d)/, "");
+                      if (sanitizedValue === "") {
+                        field.onChange(undefined);
+                      } else {
+                        field.onChange(Number(sanitizedValue));
+                      }
                     }}
                   />
                 </FormControl>
@@ -303,8 +308,13 @@ const ProgramForm = ({
                     step="100"
                     value={field.value ?? ""}
                     onChange={(event) => {
-                      const value = event.target.value;
-                      field.onChange(value ? Number(value) : 0);
+                      const rawValue = event.target.value;
+                      const sanitizedValue = rawValue.replace(/^0+(?=\d)/, "");
+                      if (sanitizedValue === "") {
+                        field.onChange(undefined);
+                      } else {
+                        field.onChange(Number(sanitizedValue));
+                      }
                     }}
                   />
                 </FormControl>
