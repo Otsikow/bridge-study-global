@@ -232,6 +232,76 @@ export function useMessages() {
     []
   );
 
+  const resolveSenderProfile = useCallback(
+    (
+      senderId: string,
+      conversationId?: string,
+      participants?: ConversationParticipant[]
+    ) => {
+      if (!senderId) return undefined;
+
+      const participantList =
+        participants ??
+        conversationsRef.current.find((conv) => conv.id === conversationId)?.participants ??
+        [];
+
+      const participant = participantList.find((item) => item.user_id === senderId);
+      if (participant?.profile) {
+        return {
+          id: participant.profile.id,
+          full_name: participant.profile.full_name,
+          avatar_url: participant.profile.avatar_url,
+        };
+      }
+
+      if (profile && senderId === profile.id) {
+        return {
+          id: profile.id,
+          full_name: profile.full_name,
+          avatar_url: profile.avatar_url ?? null,
+        };
+      }
+
+      if (user?.id === senderId) {
+        return {
+          id: user.id,
+          full_name:
+            profile?.full_name ||
+            (typeof user.user_metadata?.full_name === "string"
+              ? user.user_metadata.full_name
+              : user.email ?? "You"),
+          avatar_url: profile?.avatar_url ?? null,
+        };
+      }
+
+      return undefined;
+    },
+    [profile, user]
+  );
+
+  const attachSenderDetails = useCallback(
+    (
+      message: Message,
+      conversationId?: string,
+      participants?: ConversationParticipant[]
+    ): Message => {
+      if (message.sender) return message;
+
+      const senderProfile = resolveSenderProfile(
+        message.sender_id,
+        conversationId,
+        participants
+      );
+      if (!senderProfile) return message;
+
+      return {
+        ...message,
+        sender: senderProfile,
+      };
+    },
+    [resolveSenderProfile]
+  );
+
   const transformConversation = useCallback(
     (conversation: RawConversation): Conversation => {
       const participants = (conversation.participants || []).map((participant) =>
@@ -241,15 +311,18 @@ export function useMessages() {
         Array.isArray(conversation.lastMessage) && conversation.lastMessage.length > 0
           ? transformMessage(conversation.lastMessage[0])
           : undefined;
+      const enrichedLastMessage = lastMessage
+        ? attachSenderDetails(lastMessage, conversation.id, participants)
+        : undefined;
 
       return {
         ...conversation,
         metadata: parseMetadata(conversation.metadata),
         participants,
-        lastMessage,
+        lastMessage: enrichedLastMessage,
       };
     },
-    [transformMessage, transformParticipant]
+    [attachSenderDetails, transformMessage, transformParticipant]
   );
 
   const transformTypingIndicator = useCallback(
@@ -444,12 +517,7 @@ export function useMessages() {
             reply_to_id,
             edited_at,
             deleted_at,
-            created_at,
-            sender:profiles!conversation_messages_sender_id_fkey (
-              id,
-              full_name,
-              avatar_url
-            )
+            created_at
           `
           )
           .eq("conversation_id", conversationId)
@@ -457,9 +525,10 @@ export function useMessages() {
 
         if (error) throw error;
 
-        const transformed = (data || []).map((message) =>
-          transformMessage(message as RawMessage)
-        );
+        const transformed = (data || []).map((message) => {
+          const base = transformMessage(message as RawMessage);
+          return attachSenderDetails(base, conversationId);
+        });
         setMessages(transformed);
         messagesRef.current = transformed;
         await markConversationRead(conversationId);
@@ -475,7 +544,15 @@ export function useMessages() {
         if (shouldShowLoader) setLoading(false);
       }
     },
-    [fetchTypingIndicators, flagMessagingUnavailable, markConversationRead, toast, transformMessage, user?.id]
+    [
+      attachSenderDetails,
+      fetchTypingIndicators,
+      flagMessagingUnavailable,
+      markConversationRead,
+      toast,
+      transformMessage,
+      user?.id,
+    ]
   );
 
   const enhanceConversations = useCallback(
@@ -562,12 +639,7 @@ export function useMessages() {
               reply_to_id,
               edited_at,
               deleted_at,
-              created_at,
-              sender:profiles!conversation_messages_sender_id_fkey (
-                id,
-                full_name,
-                avatar_url
-              )
+              created_at
             )
           )
         `
@@ -641,12 +713,7 @@ export function useMessages() {
             reply_to_id,
             edited_at,
             deleted_at,
-            created_at,
-            sender:profiles!conversation_messages_sender_id_fkey (
-              id,
-              full_name,
-              avatar_url
-            )
+            created_at
           `
           )
           .single();
@@ -655,19 +722,22 @@ export function useMessages() {
 
         if (data) {
           const message = transformMessage(data as RawMessage);
+          const enrichedMessage = attachSenderDetails(message, conversationId);
           setMessages((prev) => {
-            const exists = prev.find((item) => item.id === message.id);
+            const exists = prev.find((item) => item.id === enrichedMessage.id);
             if (exists) {
-              return prev.map((item) => (item.id === message.id ? message : item));
+              return prev.map((item) =>
+                item.id === enrichedMessage.id ? enrichedMessage : item
+              );
             }
-            return [...prev, message];
+            return [...prev, enrichedMessage];
           });
           conversationsRef.current = conversationsRef.current.map((conversation) =>
             conversation.id === conversationId
               ? {
                   ...conversation,
-                  lastMessage: message,
-                  last_message_at: message.created_at,
+                  lastMessage: enrichedMessage,
+                  last_message_at: enrichedMessage.created_at,
                   unreadCount: 0,
                 }
               : conversation
@@ -683,7 +753,7 @@ export function useMessages() {
         });
       }
     },
-    [flagMessagingUnavailable, toast, transformMessage, user?.id]
+    [attachSenderDetails, flagMessagingUnavailable, toast, transformMessage, user?.id]
   );
 
   const startTyping = useCallback(
@@ -845,12 +915,7 @@ export function useMessages() {
                   reply_to_id,
                   edited_at,
                   deleted_at,
-                  created_at,
-                  sender:profiles!conversation_messages_sender_id_fkey (
-                    id,
-                    full_name,
-                    avatar_url
-                  )
+                  created_at
                 `
                 )
                 .eq("id", newMessage.id)
@@ -858,7 +923,8 @@ export function useMessages() {
 
               if (data) {
                 const message = transformMessage(data as RawMessage);
-                showNewMessageToast(conversationId, message);
+                const enrichedMessage = attachSenderDetails(message, conversationId);
+                showNewMessageToast(conversationId, enrichedMessage);
               }
             } catch (notifyError) {
               console.warn("Unable to fetch message for notification", notifyError);
@@ -877,7 +943,14 @@ export function useMessages() {
         void supabase.removeChannel(channel);
       }
     };
-  }, [fetchConversations, flagMessagingUnavailable, showNewMessageToast, transformMessage, user?.id]);
+  }, [
+    attachSenderDetails,
+    fetchConversations,
+    flagMessagingUnavailable,
+    showNewMessageToast,
+    transformMessage,
+    user?.id,
+  ]);
 
   useEffect(() => {
     if (messagesChannelRef.current) {
