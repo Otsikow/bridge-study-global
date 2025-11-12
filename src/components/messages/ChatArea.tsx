@@ -70,13 +70,54 @@ export function ChatArea({
       return { label: 'Offline', indicator: 'bg-gray-400' };
     }
 
-    const otherParticipant = conversation.participants?.find(
-      participant => participant.user_id !== user.id
+    const others = (conversation.participants ?? []).filter(
+      (participant) => participant.user_id !== user.id
     );
 
-    if (!otherParticipant) {
+    if (others.length === 0) {
       return { label: 'Offline', indicator: 'bg-gray-400' };
     }
+
+    if (conversation.is_group) {
+      const onlineCount = isUserOnline
+        ? others.filter((participant) => isUserOnline(participant.user_id)).length
+        : 0;
+
+      if (onlineCount > 0) {
+        return {
+          label: onlineCount === 1 ? '1 person online' : `${onlineCount} people online`,
+          indicator: 'bg-green-500',
+        };
+      }
+
+      const recentPresence = others
+        .map((participant) => getUserPresence?.(participant.user_id))
+        .filter((presence): presence is UserPresence => Boolean(presence));
+
+      if (recentPresence.length > 0) {
+        const mostRecent = recentPresence.reduce<number | null>((latest, presence) => {
+          const timestamp = presence.last_seen ?? presence.updated_at;
+          if (!timestamp) return latest;
+          const time = new Date(timestamp).getTime();
+          if (Number.isNaN(time)) return latest;
+          if (latest === null || time > latest) {
+            return time;
+          }
+          return latest;
+        }, null);
+
+        if (mostRecent) {
+          return {
+            label: `Last activity ${formatDistanceToNow(mostRecent, { addSuffix: true })}`,
+            indicator: 'bg-gray-400',
+          };
+        }
+      }
+
+      return { label: 'No one online', indicator: 'bg-gray-400' };
+    }
+
+    const otherParticipant = others[0];
 
     if (isUserOnline && isUserOnline(otherParticipant.user_id)) {
       return { label: 'Online', indicator: 'bg-green-500' };
@@ -147,6 +188,55 @@ export function ChatArea({
       new Date(currentMsg.created_at).getTime() - new Date(previousMsg.created_at).getTime();
     const fiveMinutes = 5 * 60 * 1000;
     return currentMsg.sender_id === previousMsg.sender_id && timeDiff < fiveMinutes;
+  };
+
+  const getMessageReceiptDetails = (message: Message) => {
+    if (!conversation?.participants || !user?.id) return null;
+    if (message.sender_id !== user.id) return null;
+
+    const others = conversation.participants.filter(
+      (participant) => participant.user_id !== user.id
+    );
+
+    if (others.length === 0) return null;
+
+    const createdAt = new Date(message.created_at).getTime();
+    const readParticipants = others.filter((participant) => {
+      if (!participant.last_read_at) return false;
+      const lastRead = new Date(participant.last_read_at).getTime();
+      if (Number.isNaN(lastRead)) return false;
+      return lastRead >= createdAt;
+    });
+
+    if (readParticipants.length === 0) {
+      return {
+        state: 'delivered' as const,
+        label: others.length === 1 ? 'Delivered' : 'Delivered to group',
+        readers: [] as string[],
+      };
+    }
+
+    const readerNames = readParticipants
+      .map((participant) => participant.profile?.full_name || null)
+      .filter((name): name is string => Boolean(name));
+    const everyoneRead = readParticipants.length === others.length;
+
+    if (everyoneRead) {
+      return {
+        state: 'read' as const,
+        label: readerNames.length > 0 ? `Read by ${readerNames.join(', ')}` : 'Read',
+        readers: readerNames,
+      };
+    }
+
+    return {
+      state: 'partial' as const,
+      label:
+        readerNames.length > 0
+          ? `Read by ${readerNames.join(', ')}`
+          : 'Read by some participants',
+      readers: readerNames,
+    };
   };
 
   if (loading) {
@@ -228,6 +318,7 @@ export function ChatArea({
               const groupWithPrevious = shouldGroupMessage(message, previousMessage);
               const isOwnMessage = message.sender_id === user?.id;
               const showAvatar = !groupWithPrevious || isOwnMessage;
+              const receipt = getMessageReceiptDetails(message);
 
               return (
                 <div key={message.id}>
@@ -325,6 +416,7 @@ export function ChatArea({
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="inline-flex items-center gap-2 text-xs underline break-all"
+                                  download={attachment.name ?? undefined}
                                 >
                                   <FileText className="h-4 w-4" />
                                   <span>{attachment.name || 'View attachment'}</span>
@@ -336,16 +428,28 @@ export function ChatArea({
                             })}
                           </div>
                         )}
-                        <p
+                        <div
                           className={cn(
-                            'text-xs mt-1',
+                            'mt-1 text-xs flex flex-col gap-0.5',
                             isOwnMessage
-                              ? 'text-primary-foreground/70'
+                              ? 'items-end text-right text-primary-foreground/70'
                               : 'text-muted-foreground'
                           )}
                         >
-                          {formatMessageTime(message.created_at)}
-                        </p>
+                          <span>{formatMessageTime(message.created_at)}</span>
+                          {receipt && (
+                            <span
+                              className={cn(
+                                'leading-none',
+                                isOwnMessage
+                                  ? 'text-primary-foreground/80'
+                                  : 'text-muted-foreground/90'
+                              )}
+                            >
+                              {receipt.label}
+                            </span>
+                          )}
+                        </div>
                     </div>
                   </div>
                 </div>

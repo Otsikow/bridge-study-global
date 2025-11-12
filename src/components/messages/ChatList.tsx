@@ -8,6 +8,7 @@ import { Search, MessageSquarePlus } from 'lucide-react';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '@/hooks/useMessages';
+import type { UserPresence } from '@/hooks/usePresence';
 import { useAuth } from '@/hooks/useAuth';
 
 interface ChatListProps {
@@ -15,13 +16,17 @@ interface ChatListProps {
   currentConversation: string | null;
   onSelectConversation: (conversationId: string) => void;
   onNewChat?: () => void;
+  getUserPresence?: (userId: string) => UserPresence | null;
+  isUserOnline?: (userId: string) => boolean;
 }
 
 export function ChatList({
   conversations,
   currentConversation,
   onSelectConversation,
-  onNewChat
+  onNewChat,
+  getUserPresence,
+  isUserOnline,
 }: ChatListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
@@ -82,7 +87,7 @@ export function ChatList({
     return text.slice(0, maxLength) + '...';
   };
 
-    const getConversationPreview = (conversation: Conversation) => {
+  const getConversationPreview = (conversation: Conversation) => {
     const lastMessage = conversation.lastMessage;
     if (!lastMessage) {
       return 'No messages yet';
@@ -109,6 +114,82 @@ export function ChatList({
     }
 
     return truncateMessage(lastMessage.content);
+  };
+
+  const getPresenceDetails = (conversation: Conversation) => {
+    if (!user?.id) return null;
+
+    const others = (conversation.participants ?? []).filter(
+      (participant) => participant.user_id !== user.id
+    );
+
+    if (others.length === 0) return null;
+
+    if (conversation.is_group) {
+      const onlineCount = isUserOnline
+        ? others.filter((participant) => isUserOnline(participant.user_id)).length
+        : 0;
+
+      if (onlineCount > 0) {
+        return {
+          label: onlineCount === 1 ? '1 person online' : `${onlineCount} people online`,
+          indicator: 'bg-green-500',
+        };
+      }
+
+      const recentPresence = others
+        .map((participant) => getUserPresence?.(participant.user_id))
+        .filter((presence): presence is UserPresence => Boolean(presence?.last_seen || presence?.updated_at));
+
+      if (recentPresence.length > 0) {
+        const mostRecent = recentPresence.reduce<number | null>((latest, presence) => {
+          const timestamp = presence.last_seen ?? presence.updated_at;
+          if (!timestamp) return latest;
+          const time = new Date(timestamp).getTime();
+          if (Number.isNaN(time)) return latest;
+          if (latest === null || time > latest) {
+            return time;
+          }
+          return latest;
+        }, null);
+
+        if (mostRecent) {
+          return {
+            label: `Active ${formatDistanceToNow(mostRecent, { addSuffix: true })}`,
+            indicator: 'bg-gray-400',
+          };
+        }
+      }
+
+      return { label: 'No one online', indicator: 'bg-gray-400' };
+    }
+
+    const otherParticipant = others[0];
+
+    if (isUserOnline && isUserOnline(otherParticipant.user_id)) {
+      return { label: 'Online', indicator: 'bg-green-500' };
+    }
+
+    const presence = getUserPresence?.(otherParticipant.user_id);
+    if (!presence) return null;
+
+    if (presence.status === 'away') {
+      return { label: 'Away', indicator: 'bg-amber-500' };
+    }
+
+    if (presence.status === 'online') {
+      return { label: 'Online', indicator: 'bg-green-500' };
+    }
+
+    const lastSeen = presence.last_seen || presence.updated_at;
+    if (!lastSeen) {
+      return { label: 'Offline', indicator: 'bg-gray-400' };
+    }
+
+    return {
+      label: `Last seen ${formatDistanceToNow(new Date(lastSeen), { addSuffix: true })}`,
+      indicator: 'bg-gray-400',
+    };
   };
 
   return (
@@ -167,6 +248,7 @@ export function ChatList({
                   conversation.metadata && typeof conversation.metadata === 'object'
                     ? (conversation.metadata as { subtitle?: string }).subtitle
                     : undefined;
+                const presenceDetails = getPresenceDetails(conversation);
 
                 return (
                   <button
@@ -177,10 +259,22 @@ export function ChatList({
                       isActive && 'bg-accent'
                     )}
                   >
-                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
-                      <AvatarImage src={avatarUrl || undefined} alt={name} />
-                      <AvatarFallback className="text-xs sm:text-sm">{getInitials(name)}</AvatarFallback>
-                    </Avatar>
+                    <div className="relative flex-shrink-0">
+                      <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                        <AvatarImage src={avatarUrl || undefined} alt={name} />
+                        <AvatarFallback className="text-xs sm:text-sm">{getInitials(name)}</AvatarFallback>
+                      </Avatar>
+                      {presenceDetails && (
+                        <span
+                          className={cn(
+                            'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background',
+                            presenceDetails.indicator
+                          )}
+                          aria-hidden
+                          title={presenceDetails.label}
+                        />
+                      )}
+                    </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
@@ -211,6 +305,11 @@ export function ChatList({
                             </Badge>
                           )}
                         </div>
+                        {presenceDetails && (
+                          <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">
+                            {presenceDetails.label}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </button>
