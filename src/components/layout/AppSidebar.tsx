@@ -49,7 +49,6 @@ const menuItems = {
     { title: "My Profile", url: "/student/profile", icon: UserCircle },
     { title: "Universities", url: "/universities", icon: Building2 },
     { title: "Discover Courses", url: "/courses", icon: Search },
-    { title: "Search Programmes", url: "/search", icon: BookOpen },
     { title: "My Applications", url: "/student/applications", icon: FileText },
     { title: "Documents", url: "/student/documents", icon: Upload },
     { title: "Messages", url: "/student/messages", icon: MessageSquare },

@@ -268,7 +268,7 @@ export default function Applications() {
         </div>
 
         <Button asChild>
-          <Link to="/search">
+          <Link to="/courses?view=programs">
             <Plus className="mr-2 h-4 w-4" />
             New Application
           </Link>
@@ -344,7 +344,7 @@ export default function Applications() {
                 application
               </p>
               <Button asChild>
-                <Link to="/search">
+                <Link to="/courses?view=programs">
                   <Plus className="mr-2 h-4 w-4" />
                   Browse Programmes
                 </Link>

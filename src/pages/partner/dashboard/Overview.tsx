@@ -562,7 +562,7 @@ const UniversityOverviewCard = ({
           </div>
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline" size="sm" className="gap-2 text-blue-300 hover:text-blue-100">
-              <Link to="/search">
+              <Link to="/courses?view=programs">
                 <University className="h-4 w-4" />
                 Search Universities
               </Link>
@@ -736,7 +736,7 @@ const PartnerOverviewPage = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-blue-300">
-            <Link to="/search" className="hover:text-blue-100 hover:underline">
+            <Link to="/courses?view=programs" className="hover:text-blue-100 hover:underline">
               Search Universities
             </Link>
             <Link to="/blog" className="hover:text-blue-100 hover:underline">

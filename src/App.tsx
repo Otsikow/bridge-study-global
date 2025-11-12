@@ -276,7 +276,7 @@ const App = () => {
                         <Route path="/verify-email" element={<PublicLayout><VerifyEmail /></PublicLayout>} />
                         <Route path="/auth/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
                         <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />
-                        <Route path="/search" element={<PublicLayout><UniversitySearch /></PublicLayout>} />
+                        <Route path="/search" element={<Navigate to="/courses?view=programs" replace />} />
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
                         <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
                         <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />

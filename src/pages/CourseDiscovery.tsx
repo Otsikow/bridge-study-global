@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ import {
 import { useDebounce } from "@/hooks/useDebounce";
 import BackButton from "@/components/BackButton";
 import { SEO } from "@/components/SEO";
+import { ProgramSearchView } from "@/components/course-discovery/ProgramSearchView";
 
 const ITEMS_PER_PAGE = 12;
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
@@ -299,6 +301,27 @@ const SORT_OPTIONS = [
 export default function CourseDiscovery() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const isProgramView = searchParams.get("view") === "programs";
+  const handleViewChange = useCallback(
+    (nextView: "courses" | "programs") => {
+      const currentView = isProgramView ? "programs" : "courses";
+      if (nextView === currentView) {
+        return;
+      }
+
+      const params = new URLSearchParams(searchParams.toString());
+      if (nextView === "courses") {
+        params.delete("view");
+      } else {
+        params.set("view", "programs");
+      }
+
+      setSearchParams(params, { replace: true });
+    },
+    [isProgramView, searchParams, setSearchParams],
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<string>("name:asc");
@@ -747,13 +770,19 @@ export default function CourseDiscovery() {
     });
   }, [filterOptions]);
 
-    return (
-      <div className="min-h-screen bg-background">
-        <SEO
-          title="Discover Courses - Global Education Gateway"
-          description="Explore thousands of courses from top universities worldwide. Filter by discipline, level, tuition, and more to find the right program for your international education."
-          keywords="course discovery, find courses, study abroad programs, university courses, international student courses, find a degree"
-        />
+  const seoTitle = isProgramView
+    ? "Find Programs & Universities - Global Education Gateway"
+    : "Discover Courses - Global Education Gateway";
+  const seoDescription = isProgramView
+    ? "Find and compare universities from around the world. Filter by country, program, and more to discover the perfect institution for your study abroad journey."
+    : "Explore thousands of courses from top universities worldwide. Filter by discipline, level, tuition, and more to find the right program for your international education.";
+  const seoKeywords = isProgramView
+    ? "university search, find universities, study abroad programs, international colleges, student recruitment, find a university"
+    : "course discovery, find courses, study abroad programs, university courses, international student courses, find a degree";
+
+  return (
+    <div className="min-h-screen bg-background">
+        <SEO title={seoTitle} description={seoDescription} keywords={seoKeywords} />
         {/* Header */}
         <div className="border-b bg-card/50 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-6">
@@ -767,163 +796,196 @@ export default function CourseDiscovery() {
             <div className="space-y-4">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Discover Your Perfect Course
+                  {isProgramView
+                    ? "Find the Right Program & University"
+                    : "Discover Your Perfect Course"}
                 </h1>
                 <p className="text-muted-foreground mt-1">
-                  Explore programs from top universities worldwide
+                  {isProgramView
+                    ? "Search universities, compare programs, and explore AI-powered guidance."
+                    : "Explore programs from top universities worldwide"}
                 </p>
               </div>
 
-            {/* Search and Sort Bar */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search courses or universities..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-10"
-                />
-                {searchQuery && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Mobile Filter Button */}
-                <Sheet
-                  open={mobileFiltersOpen}
-                  onOpenChange={setMobileFiltersOpen}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant={isProgramView ? "outline" : "default"}
+                  onClick={() => handleViewChange("courses")}
+                  size="sm"
+                  className="whitespace-nowrap"
                 >
-                  <SheetTrigger asChild>
-                    <Button variant="outline" className="lg:hidden">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Filters
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-full sm:w-[400px] p-0">
-                    <SheetHeader className="p-6 pb-0">
-                      <SheetTitle>Filters</SheetTitle>
-                    </SheetHeader>
-                    <div className="mt-4">
-                      <FiltersBar
-                        filterOptions={filterOptions}
-                        activeFilters={activeFilters}
-                        onFiltersChange={setActiveFilters}
-                        onReset={handleResetFilters}
-                      />
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                  Course Explorer
+                </Button>
+                <Button
+                  variant={isProgramView ? "default" : "outline"}
+                  onClick={() => handleViewChange("programs")}
+                  size="sm"
+                  className="whitespace-nowrap"
+                >
+                  Program Finder
+                </Button>
               </div>
-            </div>
 
-            {/* Results count */}
-            {!loading && (
-              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                <span>
-                  Found{" "}
-                  <span className="font-semibold text-foreground">
-                    {totalCount}
-                  </span>{" "}
-                  course
-                  {totalCount !== 1 ? "s" : ""}
-                </span>
-                {usingFallbackData && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    Showing sample catalogue
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
+              {!isProgramView && (
+                <>
+                  {/* Search and Sort Bar */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search courses or universities..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      {searchQuery && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-[200px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SORT_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Mobile Filter Button */}
+                      <Sheet
+                        open={mobileFiltersOpen}
+                        onOpenChange={setMobileFiltersOpen}
+                      >
+                        <SheetTrigger asChild>
+                          <Button variant="outline" className="lg:hidden">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filters
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-full sm:w-[400px] p-0">
+                          <SheetHeader className="p-6 pb-0">
+                            <SheetTitle>Filters</SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-4">
+                            <FiltersBar
+                              filterOptions={filterOptions}
+                              activeFilters={activeFilters}
+                              onFiltersChange={setActiveFilters}
+                              onReset={handleResetFilters}
+                            />
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    </div>
+                  </div>
+
+                  {/* Results count */}
+                  {!loading && (
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                      <span>
+                        Found{" "}
+                        <span className="font-semibold text-foreground">
+                          {totalCount}
+                        </span>{" "}
+                        course
+                        {totalCount !== 1 ? "s" : ""}
+                      </span>
+                      {usingFallbackData && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">
+                          <Sparkles className="h-3 w-3 text-primary" />
+                          Showing sample catalogue
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-8">
-          {/* Desktop Filters Sidebar */}
-          <aside className="hidden lg:block w-80 flex-shrink-0">
-            <FiltersBar
-              filterOptions={filterOptions}
-              activeFilters={activeFilters}
-              onFiltersChange={setActiveFilters}
-              onReset={handleResetFilters}
-            />
-          </aside>
+      {isProgramView ? (
+        <div className="container mx-auto px-4 py-8">
+          <ProgramSearchView variant="embedded" />
+        </div>
+      ) : (
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex gap-8">
+            {/* Desktop Filters Sidebar */}
+            <aside className="hidden lg:block w-80 flex-shrink-0">
+              <FiltersBar
+                filterOptions={filterOptions}
+                activeFilters={activeFilters}
+                onFiltersChange={setActiveFilters}
+                onReset={handleResetFilters}
+              />
+            </aside>
 
-          {/* Courses Grid */}
-          <div className="flex-1 min-w-0">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <LoadingState message="Loading courses..." />
-              </div>
-            ) : displayedCourses.length === 0 ? (
-              <div className="text-center py-12">
-                <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No courses found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your search or filters to find more results
-                </p>
-                <Button onClick={handleResetFilters} variant="outline">
-                  Reset Filters
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {displayedCourses.map((course) => (
-                    <CourseCard key={course.id} course={course} />
-                  ))}
+            {/* Courses Grid */}
+            <div className="flex-1 min-w-0">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <LoadingState message="Loading courses..." />
                 </div>
-
-                {/* Load More Button */}
-                {hasMoreResults && (
-                  <div className="mt-8 flex justify-center">
-                    <Button
-                      onClick={handleLoadMore}
-                      disabled={loadingMore}
-                      size="lg"
-                      variant="outline"
-                    >
-                      {loadingMore ? (
-                        <>
-                          <LoadingState size="sm" className="mr-2" />
-                          Loading...
-                        </>
-                      ) : (
-                        `Load More (${totalCount - displayedCourses.length} remaining)`
-                      )}
-                    </Button>
+              ) : displayedCourses.length === 0 ? (
+                <div className="text-center py-12">
+                  <Search className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No courses found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Try adjusting your search or filters to find more results
+                  </p>
+                  <Button onClick={handleResetFilters} variant="outline">
+                    Reset Filters
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {displayedCourses.map((course) => (
+                      <CourseCard key={course.id} course={course} />
+                    ))}
                   </div>
-                )}
-              </>
-            )}
+
+                  {/* Load More Button */}
+                  {hasMoreResults && (
+                    <div className="mt-8 flex justify-center">
+                      <Button
+                        onClick={handleLoadMore}
+                        disabled={loadingMore}
+                        size="lg"
+                        variant="outline"
+                      >
+                        {loadingMore ? (
+                          <>
+                            <LoadingState size="sm" className="mr-2" />
+                            Loading...
+                          </>
+                        ) : (
+                          `Load More (${totalCount - displayedCourses.length} remaining)`
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

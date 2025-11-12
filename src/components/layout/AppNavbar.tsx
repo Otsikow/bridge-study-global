@@ -32,7 +32,7 @@ import BackButton from "@/components/BackButton";
 
 const navLinks: Array<{ id: "home" | "search" | "courses" | "blog" | "contact"; to: string; icon: LucideIcon }> = [
   { id: "home", to: "/", icon: HomeIcon },
-  { id: "search", to: "/search", icon: Search },
+  { id: "search", to: "/courses?view=programs", icon: Search },
   { id: "courses", to: "/courses", icon: GraduationCap },
   { id: "blog", to: "/blog", icon: Newspaper },
   { id: "contact", to: "/contact", icon: MessageCircle },

@@ -442,7 +442,7 @@ export default function StudentDashboard() {
               </Link>
             </Button>
             <Button asChild size="sm" className="hover-scale whitespace-nowrap">
-              <Link to="/search" className="flex items-center gap-2">
+              <Link to="/courses?view=programs" className="flex items-center gap-2">
                 <Search className="h-4 w-4" />
                 <span>Find Programs</span>
               </Link>
@@ -484,7 +484,7 @@ export default function StudentDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
-            { to: '/search', icon: Search, label: 'Search Courses' },
+            { to: '/courses', icon: Search, label: 'Discover Courses' },
             { to: '/student/applications', icon: FileText, label: 'Track Applications' },
             { to: '/student/documents', icon: Upload, label: 'Upload Documents' },
             { to: '/student/messages', icon: MessageCircle, label: 'Chat with Agent' },
@@ -530,7 +530,7 @@ export default function StudentDashboard() {
                     <h3 className="text-lg font-semibold mb-2">No applications yet</h3>
                     <p className="text-muted-foreground mb-4">Start by applying to programs</p>
                     <Button asChild>
-                      <Link to="/search">
+                      <Link to="/courses?view=programs">
                         <Search className="mr-2 h-4 w-4" /> Search Programs
                       </Link>
                     </Button>
@@ -619,7 +619,7 @@ export default function StudentDashboard() {
                     {recommendedPrograms.map((program) => (
                       <Link
                         key={program.id}
-                        to={`/search?program=${program.id}`}
+                        to={`/courses?view=programs&program=${program.id}`}
                         className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
                         <div className="flex items-start justify-between gap-4">
