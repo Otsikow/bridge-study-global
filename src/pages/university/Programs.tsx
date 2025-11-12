@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   Search,
   Plus,
@@ -6,6 +6,9 @@ import {
   Eye,
   Pencil,
   Trash2,
+  Upload,
+  Image as ImageIcon,
+  Loader2,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -111,6 +114,29 @@ const INTAKE_MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
   };
 });
 
+const optionalImageUrlSchema = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (value) => {
+      if (!value) return true;
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+      } catch (error) {
+        return false;
+      }
+    },
+    { message: "Enter a valid image URL including https://" },
+  )
+  .transform((value) => {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  });
+
 const programSchema = z.object({
   name: z.string().min(2, "Programme name is required"),
   level: z.string().min(2, "Level is required"),
@@ -131,6 +157,7 @@ const programSchema = z.object({
     .min(1, "Select at least one intake month"),
   entryRequirements: z.string().max(2000).optional(),
   description: z.string().max(4000).optional(),
+  imageUrl: optionalImageUrlSchema,
   active: z.boolean(),
 });
 
@@ -143,6 +170,7 @@ interface ProgramFormProps {
   isSubmitting: boolean;
   submitLabel: string;
   levelOptions: string[];
+  tenantId: string | null;
 }
 
 const defaultFormValues: ProgramFormValues = {
@@ -159,7 +187,20 @@ const defaultFormValues: ProgramFormValues = {
   intakeMonths: [9],
   entryRequirements: "",
   description: "",
+  imageUrl: null,
   active: true,
+};
+
+const extractStorageObject = (url: string | null | undefined) => {
+  if (!url) return null;
+  const match = url.match(/storage\/v1\/object\/public\/([^?]+)/);
+  if (!match) return null;
+  const [bucket, ...pathParts] = match[1].split("/");
+  if (!bucket || pathParts.length === 0) return null;
+  return {
+    bucket,
+    path: pathParts.join("/"),
+  };
 };
 
 const ProgramForm = ({
@@ -169,12 +210,17 @@ const ProgramForm = ({
   isSubmitting,
   submitLabel,
   levelOptions,
+  tenantId,
 }: ProgramFormProps) => {
+  const { toast } = useToast();
   const form = useForm<ProgramFormValues>({
     resolver: zodResolver(programSchema),
     defaultValues: initialValues,
     mode: "onBlur",
   });
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     form.reset(initialValues);
@@ -189,6 +235,116 @@ const ProgramForm = ({
       return Array.from(new Set([...months, month])).sort((a, b) => a - b);
     }
     return months.filter((value) => value !== month);
+  };
+
+  const removeImageFromStorage = async (url: string | null | undefined) => {
+    const target = extractStorageObject(url);
+    if (!target) return;
+
+    const { error } = await supabase.storage.from(target.bucket).remove([target.path]);
+
+    if (error) {
+      console.warn("Unable to remove previous programme image", error);
+    }
+  };
+
+  const handleFileSelection = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!tenantId) {
+      toast({
+        title: "Unable to upload image",
+        description: "We could not determine your university account. Refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Unsupported file",
+        description: "Please select a valid image file (PNG, JPG, or WebP).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Image too large",
+        description: "Programme images must be smaller than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    const previousUrl = form.getValues("imageUrl");
+
+    try {
+      const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
+      const objectPath = `programs/${tenantId}/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.${extension}`;
+
+      const { error: uploadError } = await supabase.storage.from("public").upload(objectPath, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrlData, error: publicUrlError } = supabase.storage
+        .from("public")
+        .getPublicUrl(objectPath);
+
+      if (publicUrlError || !publicUrlData?.publicUrl) {
+        throw publicUrlError ?? new Error("Unable to determine uploaded image URL");
+      }
+
+      const publicUrl = publicUrlData.publicUrl;
+
+      form.setValue("imageUrl", publicUrl, { shouldDirty: true, shouldTouch: true });
+
+      if (previousUrl && previousUrl !== publicUrl) {
+        await removeImageFromStorage(previousUrl);
+      }
+
+      toast({
+        title: "Image uploaded",
+        description: "Your programme image has been updated.",
+      });
+    } catch (error) {
+      console.error("Programme image upload failed", error);
+      toast({
+        title: "Upload failed",
+        description:
+          error instanceof Error ? error.message : "We could not upload the selected image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    const currentUrl = form.getValues("imageUrl");
+    if (currentUrl) {
+      await removeImageFromStorage(currentUrl);
+    }
+
+    form.setValue("imageUrl", null, { shouldDirty: true, shouldTouch: true });
+    toast({
+      title: "Image removed",
+      description: "This programme will no longer display a cover image.",
+    });
   };
 
   return (
@@ -412,6 +568,104 @@ const ProgramForm = ({
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => {
+            const hasImage = Boolean(field.value);
+
+            return (
+              <FormItem>
+                <FormLabel>Programme image</FormLabel>
+                <FormDescription>
+                  Upload an optional cover image to help your programme stand out in listings.
+                </FormDescription>
+                <div className="mt-3 space-y-4">
+                  {hasImage ? (
+                    <div className="relative overflow-hidden rounded-xl border border-border bg-muted/40">
+                      <img
+                        src={field.value ?? undefined}
+                        alt="Programme cover"
+                        className="h-56 w-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="absolute right-3 top-3 bg-background/80 text-foreground backdrop-blur"
+                        onClick={handleRemoveImage}
+                        disabled={isSubmitting || isUploadingImage}
+                      >
+                        Remove image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div
+                      className={withUniversitySurfaceTint(
+                        "flex h-40 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border text-sm text-muted-foreground",
+                      )}
+                    >
+                      <ImageIcon className="h-8 w-8" />
+                      <p className="max-w-xs text-center text-xs">
+                        Add a hero image to make this programme more visually engaging for prospective students.
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="sm:w-auto"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingImage || isSubmitting || !tenantId}
+                    >
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" /> Upload image
+                        </>
+                      )}
+                    </Button>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/programme-image.jpg"
+                      value={field.value ?? ""}
+                      onChange={(event) =>
+                        field.onChange(event.target.value.length > 0 ? event.target.value : null)
+                      }
+                      onBlur={(event) =>
+                        field.onChange(event.target.value.trim().length > 0 ? event.target.value.trim() : null)
+                      }
+                      className="flex-1"
+                    />
+                  </div>
+                  {!tenantId ? (
+                    <p className="text-xs text-muted-foreground">
+                      Connect your university profile to enable secure image uploads.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Supported formats: JPG, PNG, or WebP up to 5&nbsp;MB. We host images securely on Supabase Storage.
+                    </p>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelection}
+                  disabled={isUploadingImage || isSubmitting || !tenantId}
+                />
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
 
         <FormField
           control={form.control}
@@ -672,6 +926,7 @@ const ProgramsPage = () => {
       values.description && values.description.trim().length > 0
         ? values.description.trim()
         : null,
+    image_url: values.imageUrl ?? null,
     active: values.active,
   });
 
@@ -763,10 +1018,24 @@ const ProgramsPage = () => {
 
     try {
       setIsSubmitting(true);
+      const programToDelete = programs.find((program) => program.id === deletingId) ?? null;
       const { error } = await supabase.from("programs").delete().eq("id", deletingId);
 
       if (error) {
         throw error;
+      }
+
+      if (programToDelete?.image_url) {
+        const target = extractStorageObject(programToDelete.image_url);
+        if (target) {
+          const { error: storageError } = await supabase.storage
+            .from(target.bucket)
+            .remove([target.path]);
+
+          if (storageError) {
+            console.warn("Unable to remove programme image from storage", storageError);
+          }
+        }
       }
 
       toast({
@@ -840,6 +1109,7 @@ const ProgramsPage = () => {
             : defaultFormValues.intakeMonths,
         entryRequirements: (editingProgram.entry_requirements ?? []).join("\n"),
         description: editingProgram.description ?? "",
+        imageUrl: editingProgram.image_url ?? null,
         active: Boolean(editingProgram.active),
       }
     : null;
@@ -950,13 +1220,24 @@ const ProgramsPage = () => {
                   {filteredPrograms.map((program) => (
                     <tr key={program.id} className="text-foreground">
                       <td className="px-4 py-4 align-top">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-semibold text-foreground">{program.name}</span>
-                          {program.description ? (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {program.description}
-                            </p>
+                        <div className="flex items-start gap-3">
+                          {program.image_url ? (
+                            <div className="relative hidden h-12 w-12 overflow-hidden rounded-md border border-border bg-muted/30 sm:block">
+                              <img
+                                src={program.image_url}
+                                alt={`${program.name} thumbnail`}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
                           ) : null}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-foreground">{program.name}</span>
+                            {program.description ? (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {program.description}
+                              </p>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                       <td className="px-4 py-4 align-top">
@@ -1076,6 +1357,7 @@ const ProgramsPage = () => {
             isSubmitting={isSubmitting}
             submitLabel="Create programme"
             levelOptions={availableLevelOptions}
+            tenantId={tenantId}
           />
         </DialogContent>
       </Dialog>
@@ -1096,6 +1378,7 @@ const ProgramsPage = () => {
               isSubmitting={isSubmitting}
               submitLabel="Save changes"
               levelOptions={availableLevelOptions}
+              tenantId={tenantId}
             />
           ) : null}
         </DialogContent>
@@ -1111,6 +1394,15 @@ const ProgramsPage = () => {
                   {viewingProgram.discipline ?? "Discipline not specified"}
                 </DialogDescription>
               </DialogHeader>
+              {viewingProgram.image_url ? (
+                <div className="mb-4 overflow-hidden rounded-xl border border-border">
+                  <img
+                    src={viewingProgram.image_url}
+                    alt={`${viewingProgram.name} cover image`}
+                    className="h-56 w-full object-cover"
+                  />
+                </div>
+              ) : null}
               <ScrollArea className="max-h-[60vh] pr-4">
                 <div className="space-y-5 pb-2 text-sm">
                   <div className="grid gap-4 sm:grid-cols-2">
