@@ -203,6 +203,8 @@ export default function PartnerMessagesPage() {
                   currentConversation={currentConversation}
                   onSelectConversation={handleSelectConversation}
                   onNewChat={() => setShowComposer(true)}
+                  getUserPresence={getUserPresence}
+                  isUserOnline={isUserOnline}
                 />
               </div>
 

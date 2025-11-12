@@ -417,6 +417,8 @@ function UniversityMessagesPage() {
             currentConversation={currentConversation}
             onSelectConversation={handleSelectConversation}
             onNewChat={handleNewChat}
+            getUserPresence={getUserPresence}
+            isUserOnline={isUserOnline}
           />
         </section>
 

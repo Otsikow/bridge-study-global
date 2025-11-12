@@ -290,6 +290,8 @@ export default function StaffMessages() {
             currentConversation={currentConversationId}
             onSelectConversation={onSelectConversation}
             onNewChat={enableNewChat ? onNewChat : undefined}
+            getUserPresence={getUserPresence}
+            isUserOnline={isUserOnline}
           />
         </div>
       </div>

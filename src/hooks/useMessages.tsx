@@ -182,6 +182,9 @@ export function useMessages() {
   const conversationsRef = useRef<Conversation[]>([]);
   const currentConversationRef = useRef<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const notificationsPermissionRef = useRef<NotificationPermission | null>(
+    typeof window !== "undefined" && "Notification" in window ? Notification.permission : null,
+  );
 
   const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
   const messagesChannelRef = useRef<RealtimeChannel | null>(null);
@@ -251,6 +254,7 @@ export function useMessages() {
   );
 
   const playNotificationSound = useCallback(async () => {
+    if (typeof window === "undefined") return;
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
@@ -273,6 +277,57 @@ export function useMessages() {
     }
   }, []);
 
+  const ensureNotificationPermission = useCallback(async (): Promise<NotificationPermission> => {
+    if (typeof window === "undefined" || !("Notification" in window)) return "denied";
+    const current = notificationsPermissionRef.current ?? Notification.permission;
+    if (current === "granted" || current === "denied") {
+      notificationsPermissionRef.current = current;
+      return current;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      notificationsPermissionRef.current = permission;
+      return permission;
+    } catch (error) {
+      console.warn("Unable to request notification permission", error);
+      notificationsPermissionRef.current = "denied";
+      return "denied";
+    }
+  }, []);
+
+  const showDesktopNotification = useCallback(
+    async (conversationId: string, message: Message) => {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      if (typeof document === "undefined") return;
+      if (document.visibilityState !== "hidden") return;
+
+      const permission = await ensureNotificationPermission();
+      if (permission !== "granted") return;
+
+      try {
+        const conv = conversationsRef.current.find((c) => c.id === conversationId);
+        const other = conv?.participants?.find((p) => p.user_id !== user?.id);
+        const title = conv?.name || other?.profile?.full_name || "New message";
+        const description = message.content || (message.attachments.length > 0 ? "[Attachment]" : "");
+        const notification = new Notification(title, {
+          body: description || "You have a new message",
+          tag: conversationId,
+          icon: conv?.avatar_url || other?.profile?.avatar_url || undefined,
+        });
+
+        notification.onclick = () => {
+          window.focus();
+          setCurrentConversation(conversationId);
+          notification.close();
+        };
+      } catch (error) {
+        console.warn("Unable to show desktop notification", error);
+      }
+    },
+    [ensureNotificationPermission, setCurrentConversation, user?.id],
+  );
+
   const showNewMessageToast = useCallback(
     (conversationId: string, message: Message) => {
       const conv = conversationsRef.current.find((c) => c.id === conversationId);
@@ -289,9 +344,15 @@ export function useMessages() {
         },
       });
       playNotificationSound();
+      void showDesktopNotification(conversationId, message);
     },
-    [playNotificationSound, user?.id]
+    [playNotificationSound, showDesktopNotification, user?.id]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    notificationsPermissionRef.current = Notification.permission;
+  }, []);
 
   useEffect(() => {
     conversationsRef.current = conversations;
@@ -688,10 +749,15 @@ export function useMessages() {
 
           if (payload.eventType === "INSERT") {
             const msg = transformMessage(payload.new as RawMessage);
-            if (currentConversationRef.current === conversationId) {
+            if (msg.sender_id !== user.id) {
+              if (currentConversationRef.current === conversationId) {
+                await fetchMessages(conversationId);
+                playNotificationSound();
+              } else {
+                showNewMessageToast(conversationId, msg);
+              }
+            } else if (currentConversationRef.current === conversationId) {
               await fetchMessages(conversationId);
-            } else {
-              showNewMessageToast(conversationId, msg);
             }
           } else if (currentConversationRef.current === conversationId) {
             await fetchMessages(conversationId);
@@ -752,6 +818,7 @@ export function useMessages() {
     fetchConversations,
     fetchMessages,
     fetchTypingUsers,
+    playNotificationSound,
     showNewMessageToast,
     transformMessage,
     user?.id,
