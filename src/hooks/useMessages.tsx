@@ -632,7 +632,18 @@ export function useMessages() {
             .order("created_at", { ascending: true });
         }
 
-        if (result.error) throw result.error;
+        if (result.error) {
+          if (result.error.code === "42P17") {
+            console.error("RLS infinite recursion detected", result.error);
+            toast({
+              title: "Database configuration error",
+              description: "Messaging policies need to be fixed. Please contact support.",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw result.error;
+        }
 
         const transformed = (result.data || []).map((message) => {
           const base = transformMessage(message as RawMessage);
@@ -801,8 +812,7 @@ export function useMessages() {
                 conversation_id,
                 user_id,
                 joined_at,
-                last_read_at,
-                role
+                last_read_at
               ),
               lastMessage:conversation_messages!conversation_messages_conversation_id_fkey (
                 id,
@@ -825,7 +835,18 @@ export function useMessages() {
           .order("updated_at", { foreignTable: "conversations", ascending: false });
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        if (result.error.code === "42P17") {
+          console.error("RLS infinite recursion detected", result.error);
+          toast({
+            title: "Database configuration error",
+            description: "Messaging policies need to be fixed. Please contact support.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw result.error;
+      }
 
       const conversationsData = (result.data || [])
         .map((item) => item.conversation)
