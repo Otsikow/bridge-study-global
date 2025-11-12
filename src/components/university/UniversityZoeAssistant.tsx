@@ -154,132 +154,140 @@ export function UniversityZoeAssistant() {
     );
   }, []);
 
-  const sendMessage = useCallback(async () => {
-    const trimmed = inputValue.trim();
-    if (!trimmed || isLoading) {
-      return;
-    }
-    if (!session?.access_token) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to chat with Zoe.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!sessionId) {
-      toast({
-        title: "Session not ready",
-        description: "Please wait a moment and try again.",
-      });
-      return;
-    }
-
-    const userMessageId = createMessageId("user");
-    const assistantMessageId = createMessageId("assistant");
-
-    const nextHistory: AssistantMessage[] = [
-      ...messages,
-      { id: userMessageId, role: "user", content: trimmed },
-      { id: assistantMessageId, role: "assistant", content: "" },
-    ];
-
-    setMessages(nextHistory);
-    setInputValue("");
-    setActiveSuggestion(null);
-    setIsLoading(true);
-
-    try {
-      const payloadHistory = nextHistory
-        .filter((message) => message.id !== assistantMessageId)
-        .map((message) => ({
-          role: message.role,
-          content: message.content,
-        }));
-
-      const response = await fetch(`${FUNCTIONS_BASE}/ai-chatbot`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          session_id: sessionId,
-          audience,
-          locale: typeof navigator !== "undefined" ? navigator.language : "en",
-          messages: payloadHistory,
-          metadata: {
-            surface: "university-messages-sidebar",
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Zoe could not respond to that prompt.");
+  const sendMessage = useCallback(
+    async (promptOverride?: string) => {
+      const source = promptOverride ?? inputValue;
+      const trimmed = source.trim();
+      if (!trimmed || isLoading) {
+        return;
       }
-
-      if (!response.body) {
-        const text = await response.text();
-        updateAssistantMessage(assistantMessageId, text);
+      if (!session?.access_token) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to chat with Zoe.",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!sessionId) {
+        toast({
+          title: "Session not ready",
+          description: "Please wait a moment and try again.",
+        });
         return;
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
+      const userMessageId = createMessageId("user");
+      const assistantMessageId = createMessageId("assistant");
 
-      while (!done) {
-        const { value, done: streamDone } = await reader.read();
-        if (streamDone) break;
-        if (!value) continue;
-        const chunk = decoder.decode(value, { stream: true });
-        const events = chunk.split("\n\n").filter(Boolean);
+      const nextHistory: AssistantMessage[] = [
+        ...messages,
+        { id: userMessageId, role: "user", content: trimmed },
+        { id: assistantMessageId, role: "assistant", content: "" },
+      ];
 
-        for (const event of events) {
-          if (!event.startsWith("data:")) continue;
-          const data = event.replace(/^data:\s*/, "").trim();
+      setMessages(nextHistory);
+      setInputValue("");
+      setActiveSuggestion(null);
+      setIsLoading(true);
 
-          if (!data) continue;
-          if (data === "[DONE]") {
-            done = true;
-            break;
-          }
+      try {
+        const payloadHistory = nextHistory
+          .filter((message) => message.id !== assistantMessageId)
+          .map((message) => ({
+            role: message.role,
+            content: message.content,
+          }));
 
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed?.type === "error") {
-              throw new Error(parsed.message ?? "Zoe encountered an issue.");
+        const response = await fetch(`${FUNCTIONS_BASE}/ai-chatbot`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            session_id: sessionId,
+            audience,
+            locale: typeof navigator !== "undefined" ? navigator.language : "en",
+            messages: payloadHistory,
+            metadata: {
+              surface: "university-messages-sidebar",
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Zoe could not respond to that prompt.");
+        }
+
+        if (!response.body) {
+          const text = await response.text();
+          updateAssistantMessage(assistantMessageId, text);
+          return;
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let done = false;
+
+        while (!done) {
+          const { value, done: streamDone } = await reader.read();
+          if (streamDone) break;
+          if (!value) continue;
+          const chunk = decoder.decode(value, { stream: true });
+          const events = chunk.split("\n\n").filter(Boolean);
+
+          for (const event of events) {
+            if (!event.startsWith("data:")) continue;
+            const data = event.replace(/^data:\s*/, "").trim();
+
+            if (!data) continue;
+            if (data === "[DONE]") {
+              done = true;
+              break;
             }
-            const textChunk = parsed?.choices?.[0]?.delta?.content as string | undefined;
-            if (textChunk) {
-              updateAssistantMessage(assistantMessageId, textChunk);
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed?.type === "error") {
+                throw new Error(parsed.message ?? "Zoe encountered an issue.");
+              }
+              const textChunk = parsed?.choices?.[0]?.delta?.content as string | undefined;
+              if (textChunk) {
+                updateAssistantMessage(assistantMessageId, textChunk);
+              }
+            } catch (error) {
+              console.error("Failed to parse Zoe response chunk", error);
             }
-          } catch (error) {
-            console.error("Failed to parse Zoe response chunk", error);
           }
         }
+      } catch (error) {
+        console.error("Zoe assistant error", error);
+        updateAssistantMessage(
+          nextHistory[nextHistory.length - 1].id,
+          error instanceof Error ? error.message : "Zoe is unavailable right now. Please try again later.",
+        );
+        toast({
+          title: "Zoe is unavailable",
+          description:
+            error instanceof Error ? error.message : "Something went wrong while contacting Zoe.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Zoe assistant error", error);
-      updateAssistantMessage(
-        nextHistory[nextHistory.length - 1].id,
-        error instanceof Error ? error.message : "Zoe is unavailable right now. Please try again later.",
-      );
-      toast({
-        title: "Zoe is unavailable",
-        description:
-          error instanceof Error ? error.message : "Something went wrong while contacting Zoe.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [audience, inputValue, isLoading, messages, session?.access_token, sessionId, toast, updateAssistantMessage]);
+    },
+    [audience, inputValue, isLoading, messages, session?.access_token, sessionId, toast, updateAssistantMessage],
+  );
 
-  const handleSuggestion = useCallback((prompt: string) => {
-    setInputValue(prompt);
-    setActiveSuggestion(prompt);
-  }, []);
+  const handleSuggestion = useCallback(
+    (prompt: string) => {
+      setInputValue(prompt);
+      setActiveSuggestion(prompt);
+      void sendMessage(prompt);
+    },
+    [sendMessage],
+  );
 
   return (
     <Card className="flex h-full min-h-0 w-full flex-col overflow-hidden overflow-y-auto rounded-none border-border bg-muted/50 text-card-foreground shadow-lg shadow-primary/10">

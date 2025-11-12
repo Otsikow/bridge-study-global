@@ -367,8 +367,8 @@ const AdminLayout = () => {
               <AvatarFallback>Z</AvatarFallback>
             </Avatar>
             <div className="hidden text-left sm:flex flex-col leading-tight">
-              <span className="text-[11px] uppercase tracking-wide text-muted-foreground">AI Assistant</span>
-              <span className="text-sm font-semibold text-foreground">Zoe</span>
+              <span className="text-[11px] uppercase tracking-wide text-primary">AI Assistant</span>
+              <span className="text-sm font-semibold text-primary">Zoe</span>
             </div>
             <Sparkles className="h-4 w-4 text-primary transition-transform duration-200 group-hover:scale-110" />
           </Button>
