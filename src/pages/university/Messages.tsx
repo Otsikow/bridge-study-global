@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense, lazy } from "react";
 import { ChatList } from "@/components/messages/ChatList";
 import { ChatArea } from "@/components/messages/ChatArea";
+import { MessagingUnavailable } from "@/components/messages/MessagingUnavailable";
 import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
 import { usePresence } from "@/hooks/usePresence";
 import { useAuth } from "@/hooks/useAuth";
@@ -91,9 +92,12 @@ function UniversityMessagesPage() {
     stopTyping,
     getOrCreateConversation,
     fetchConversations,
+    error,
   } = useMessages();
 
   const { getUserPresence, isUserOnline } = usePresence();
+
+  const messagingDisabled = Boolean(error);
 
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,6 +108,13 @@ function UniversityMessagesPage() {
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const lastMessageIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (messagingDisabled) {
+      setShowNewChatDialog(false);
+      setShowDeleteDialog(false);
+    }
+  }, [messagingDisabled]);
 
   useEffect(() => {
     return () => {
@@ -361,6 +372,7 @@ function UniversityMessagesPage() {
             onClick={handleNewChat}
             size="sm"
             className="gap-2 rounded-full bg-primary px-4 py-2 text-primary-foreground shadow-lg hover:bg-primary/90"
+            disabled={messagingDisabled}
           >
             <MessageCircle className="h-4 w-4" />
             New Message
@@ -385,176 +397,191 @@ function UniversityMessagesPage() {
               {totalUnread} unread
             </Badge>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full border-border">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Conversation actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => void handleMarkAsRead()} disabled={!currentConversation}>
-                <CheckCheck className="mr-2 h-4 w-4" />
-                Mark as Read
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={!currentConversation}
-                className="text-red-500 focus:text-red-500"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Conversation
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {!messagingDisabled && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full border-border">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Conversation actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => void handleMarkAsRead()} disabled={!currentConversation}>
+                  <CheckCheck className="mr-2 h-4 w-4" />
+                  Mark as Read
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={!currentConversation}
+                  className="text-red-500 focus:text-red-500"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Conversation
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </header>
 
-      <div className="flex flex-1 gap-4 lg:gap-6">
-        <section className={withUniversityCardStyles("flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl text-card-foreground md:w-[360px] lg:w-[380px]")}>
-          <ChatList
-            conversations={conversations}
-            currentConversation={currentConversation}
-            onSelectConversation={handleSelectConversation}
-            onNewChat={handleNewChat}
+      {messagingDisabled ? (
+        <section className={withUniversityCardStyles("flex flex-1 overflow-hidden rounded-3xl text-card-foreground")}
+        >
+          <MessagingUnavailable
+            reason={error ?? "Messaging is currently unavailable."}
+            redirectHref="/university"
+            redirectLabel="Return to dashboard"
           />
         </section>
-
-        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl text-card-foreground md:flex")}>
-          <ChatArea
-            conversation={currentConversationData}
-            messages={messages}
-            typingUsers={typingUsers}
-            loading={loading}
-            onSendMessage={handleSendMessage}
-            onStartTyping={handleStartTyping}
-            onStopTyping={handleStopTyping}
-            getUserPresence={getUserPresence}
-            isUserOnline={isUserOnline}
-            onBack={() => setCurrentConversation(null)}
-          />
-        </section>
-
-        <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-card-foreground xl:flex")}> 
-          <ErrorBoundary fallback={<ZoeAssistantErrorState />}>
-            <Suspense fallback={<ZoeAssistantLoadingState />}>
-              <UniversityZoeAssistant />
-            </Suspense>
-          </ErrorBoundary>
-        </section>
-      </div>
-
-      {currentConversation && (
-        <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-background">
-          <ChatArea
-            conversation={currentConversationData}
-            messages={messages}
-            typingUsers={typingUsers}
-            loading={loading}
-            onSendMessage={handleSendMessage}
-            onStartTyping={handleStartTyping}
-            onStopTyping={handleStopTyping}
-            getUserPresence={getUserPresence}
-            isUserOnline={isUserOnline}
-            onBack={() => setCurrentConversation(null)}
-            showBackButton
-          />
-        </div>
-      )}
-
-      <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Start a new conversation</DialogTitle>
-            <DialogDescription>
-              Search for agents or GEG team members to begin a new chat.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by name or email"
-                className="pl-9"
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    void searchContacts(searchQuery);
-                  }
-                }}
+      ) : (
+        <>
+          <div className="flex flex-1 gap-4 lg:gap-6">
+            <section className={withUniversityCardStyles("flex h-[calc(100vh-14rem)] w-full flex-col overflow-hidden rounded-3xl text-card-foreground md:w-[360px] lg:w-[380px]")}>
+              <ChatList
+                conversations={conversations}
+                currentConversation={currentConversation}
+                onSelectConversation={handleSelectConversation}
+                onNewChat={handleNewChat}
               />
-              <Button
-                size="sm"
-                onClick={() => void searchContacts(searchQuery)}
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-                disabled={isSearchingContacts}
-              >
-                {isSearchingContacts ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-              </Button>
-            </div>
-            <ScrollArea className="h-96">
-              {contacts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
-                  <MessageCircle className="h-12 w-12 opacity-30" />
-                  <div className="space-y-1">
-                    <p className="font-medium">No contacts found</p>
-                    <p className="text-xs">Try searching by name or email</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {contacts.map((contact) => (
-                    <button
-                      key={contact.id}
-                      onClick={() => void handleSelectContact(contact)}
-                      className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent"
-                    >
-                      <Avatar className="h-10 w-10 flex-shrink-0">
-                        <AvatarImage
-                          src={contact.avatar_url || undefined}
-                          alt={contact.full_name}
-                        />
-                        <AvatarFallback>{initialsForName(contact.full_name)}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold">{contact.full_name}</p>
-                        <p className="truncate text-sm text-muted-foreground">
-                          {contact.email}
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="capitalize">
-                        {contact.role}
-                      </Badge>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </section>
 
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove the conversation from your inbox. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => void handleDeleteConversation()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] flex-1 overflow-hidden rounded-3xl text-card-foreground md:flex")}> 
+              <ChatArea
+                conversation={currentConversationData}
+                messages={messages}
+                typingUsers={typingUsers}
+                loading={loading}
+                onSendMessage={handleSendMessage}
+                onStartTyping={handleStartTyping}
+                onStopTyping={handleStopTyping}
+                getUserPresence={getUserPresence}
+                isUserOnline={isUserOnline}
+                onBack={() => setCurrentConversation(null)}
+              />
+            </section>
+
+            <section className={withUniversityCardStyles("hidden h-[calc(100vh-14rem)] w-full max-w-xl overflow-hidden rounded-3xl text-card-foreground xl:flex")}> 
+              <ErrorBoundary fallback={<ZoeAssistantErrorState />}>
+                <Suspense fallback={<ZoeAssistantLoadingState />}>
+                  <UniversityZoeAssistant />
+                </Suspense>
+              </ErrorBoundary>
+            </section>
+          </div>
+
+          {currentConversation && (
+            <div className="md:hidden fixed inset-0 z-40 flex flex-col bg-background">
+              <ChatArea
+                conversation={currentConversationData}
+                messages={messages}
+                typingUsers={typingUsers}
+                loading={loading}
+                onSendMessage={handleSendMessage}
+                onStartTyping={handleStartTyping}
+                onStopTyping={handleStopTyping}
+                getUserPresence={getUserPresence}
+                isUserOnline={isUserOnline}
+                onBack={() => setCurrentConversation(null)}
+                showBackButton
+              />
+            </div>
+          )}
+
+          <Dialog open={showNewChatDialog} onOpenChange={setShowNewChatDialog}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Start a new conversation</DialogTitle>
+                <DialogDescription>
+                  Search for agents or GEG team members to begin a new chat.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search by name or email"
+                    className="pl-9"
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void searchContacts(searchQuery);
+                      }
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={() => void searchContacts(searchQuery)}
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                    disabled={isSearchingContacts}
+                  >
+                    {isSearchingContacts ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+                  </Button>
+                </div>
+                <ScrollArea className="h-96">
+                  {contacts.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
+                      <MessageCircle className="h-12 w-12 opacity-30" />
+                      <div className="space-y-1">
+                        <p className="font-medium">No contacts found</p>
+                        <p className="text-xs">Try searching by name or email</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {contacts.map((contact) => (
+                        <button
+                          key={contact.id}
+                          onClick={() => void handleSelectContact(contact)}
+                          className="flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors hover:bg-accent"
+                        >
+                          <Avatar className="h-10 w-10 flex-shrink-0">
+                            <AvatarImage
+                              src={contact.avatar_url || undefined}
+                              alt={contact.full_name}
+                            />
+                            <AvatarFallback>{initialsForName(contact.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-semibold">{contact.full_name}</p>
+                            <p className="truncate text-sm text-muted-foreground">
+                              {contact.email}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="capitalize">
+                            {contact.role}
+                          </Badge>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete conversation?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will remove the conversation from your inbox. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => void handleDeleteConversation()}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
+      )}
 
       {isInitializingAudio && (
         <div className="fixed bottom-4 right-4 z-50 rounded-full bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-lg">

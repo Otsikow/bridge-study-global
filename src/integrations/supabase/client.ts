@@ -1,8 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { getSupabaseBrowserConfig } from '@/lib/supabaseClientConfig';
+import { getSupabaseBrowserConfig, isSupabaseConfigFallback } from '@/lib/supabaseClientConfig';
 
-const { url: SUPABASE_URL, anonKey: SUPABASE_PUBLISHABLE_KEY } = getSupabaseBrowserConfig();
+const supabaseConfig = getSupabaseBrowserConfig();
+const { url: SUPABASE_URL, anonKey: SUPABASE_PUBLISHABLE_KEY } = supabaseConfig;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -14,3 +15,5 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   },
 });
+
+export const isSupabaseConfigured = !isSupabaseConfigFallback();

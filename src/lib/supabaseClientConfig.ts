@@ -6,6 +6,17 @@ const SUPABASE_MANAGED_SUFFIXES = [
 ];
 
 const DEFAULT_SITE_URL = "http://localhost:5173";
+const FALLBACK_SUPABASE_URL = "https://placeholder.supabase.co";
+const FALLBACK_SUPABASE_ANON_KEY = "public-anon-key";
+
+interface SupabaseBrowserConfig {
+  url: string;
+  anonKey: string;
+  functionsUrl: string;
+  isFallback: boolean;
+}
+
+let cachedBrowserConfig: SupabaseBrowserConfig | null = null;
 
 const safeString = (value: unknown): string | undefined => {
   if (typeof value !== "string") return undefined;
@@ -212,8 +223,34 @@ export const getSiteUrl = (): string => {
   return DEFAULT_SITE_URL;
 };
 
-export const getSupabaseBrowserConfig = () => ({
-  url: resolveSupabaseApiUrl(),
-  anonKey: getSupabaseAnonKey(),
-  functionsUrl: resolveSupabaseFunctionsUrl(),
-});
+export const getSupabaseBrowserConfig = (): SupabaseBrowserConfig => {
+  if (cachedBrowserConfig) {
+    return cachedBrowserConfig;
+  }
+
+  try {
+    cachedBrowserConfig = {
+      url: resolveSupabaseApiUrl(),
+      anonKey: getSupabaseAnonKey(),
+      functionsUrl: resolveSupabaseFunctionsUrl(),
+      isFallback: false,
+    };
+    return cachedBrowserConfig;
+  } catch (error) {
+    console.error(
+      "[supabase] Failed to resolve configuration. Messaging features will operate in degraded mode.",
+      error,
+    );
+
+    cachedBrowserConfig = {
+      url: FALLBACK_SUPABASE_URL,
+      anonKey: FALLBACK_SUPABASE_ANON_KEY,
+      functionsUrl: `${FALLBACK_SUPABASE_URL}/functions/v1`,
+      isFallback: true,
+    };
+
+    return cachedBrowserConfig;
+  }
+};
+
+export const isSupabaseConfigFallback = () => getSupabaseBrowserConfig().isFallback;

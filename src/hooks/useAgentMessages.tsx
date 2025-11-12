@@ -21,12 +21,6 @@ export function useAgentMessages() {
   const { profile } = useAuth();
   const messaging = useMessages();
 
-  const enabled = useMemo(() => {
-    const role = profile?.role;
-    if (!role) return false;
-    return PARTNER_MESSAGING_ROLES.has(role);
-  }, [profile?.role]);
-
   const {
     conversations,
     currentConversation,
@@ -39,10 +33,19 @@ export function useAgentMessages() {
     stopTyping,
     getOrCreateConversation,
     fetchConversations,
+    error,
   } = messaging;
+
+  const enabled = useMemo(() => {
+    const role = profile?.role;
+    if (!role) return false;
+    if (error) return false;
+    return PARTNER_MESSAGING_ROLES.has(role);
+  }, [error, profile?.role]);
 
   return {
     enabled,
+    error,
     conversations: enabled ? conversations : ([] as Conversation[]),
     currentConversation: enabled ? currentConversation : null,
     setCurrentConversation: enabled ? setCurrentConversation : noopSetConversation,

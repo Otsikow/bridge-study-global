@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { useToast } from "./use-toast";
 import { toast as sonnerToast } from "@/components/ui/sonner";
@@ -178,14 +178,32 @@ export function useMessages() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const conversationsRef = useRef<Conversation[]>([]);
   const currentConversationRef = useRef<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const reportedConfigIssueRef = useRef(false);
 
   const conversationsChannelRef = useRef<RealtimeChannel | null>(null);
   const messagesChannelRef = useRef<RealtimeChannel | null>(null);
   const typingChannelRef = useRef<RealtimeChannel | null>(null);
+
+  const messagingUnavailableMessage =
+    "Messaging is currently unavailable because the messaging service is not configured. Please contact your administrator.";
+
+  const flagMessagingUnavailable = useCallback(() => {
+    if (!reportedConfigIssueRef.current) {
+      reportedConfigIssueRef.current = true;
+      toast({
+        title: "Messaging unavailable",
+        description:
+          "We couldn't connect to the messaging service. Other parts of the dashboard remain available while we restore chat.",
+        variant: "destructive",
+      });
+    }
+    setError(messagingUnavailableMessage);
+  }, [toast]);
 
   const conversationIdsKey = useMemo(
     () => conversations.map((conv) => conv.id).sort().join(","),
@@ -302,18 +320,24 @@ export function useMessages() {
   }, [currentConversation]);
 
   useEffect(() => {
-    if (!user?.id) {
+    if (!user?.id || !isSupabaseConfigured) {
       setConversations([]);
       setCurrentConversation(null);
       setMessages([]);
       setTypingUsers([]);
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+      }
     }
-  }, [user?.id]);
+  }, [flagMessagingUnavailable, user?.id]);
 
   const fetchTypingUsers = useCallback(
     async (conversationId: string) => {
-      if (!conversationId || !user?.id) {
+      if (!conversationId || !user?.id || !isSupabaseConfigured) {
         setTypingUsers([]);
+        if (!isSupabaseConfigured) {
+          flagMessagingUnavailable();
+        }
         return;
       }
 
@@ -348,13 +372,17 @@ export function useMessages() {
         console.error("Error fetching typing indicators:", err);
       }
     },
-    [transformTypingIndicator, user?.id]
+    [flagMessagingUnavailable, transformTypingIndicator, user?.id]
   );
 
   /* ----------------------------- Fetch messages ---------------------------- */
   const fetchMessages = useCallback(
     async (conversationId: string) => {
       if (!conversationId || !user?.id) return;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
       try {
         setLoading(true);
         const { data, error } = await supabase
@@ -385,12 +413,16 @@ export function useMessages() {
         setLoading(false);
       }
     },
-    [transformMessage, toast, user?.id]
+    [flagMessagingUnavailable, transformMessage, toast, user?.id]
   );
 
   const getUnreadCount = useCallback(
     async (conversationId: string): Promise<number> => {
       if (!user?.id) return 0;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return 0;
+      }
       try {
         const { data, error } = await supabase.rpc("get_unread_count", {
           p_conversation_id: conversationId,
@@ -403,12 +435,17 @@ export function useMessages() {
         return 0;
       }
     },
-    [user?.id]
+    [flagMessagingUnavailable, user?.id]
   );
 
   /* --------------------------- Fetch conversations -------------------------- */
   const fetchConversations = useCallback(async () => {
     if (!user?.id) {
+      setConversations([]);
+      return;
+    }
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
       setConversations([]);
       return;
     }
@@ -490,12 +527,16 @@ export function useMessages() {
         variant: "destructive",
       });
     }
-  }, [getUnreadCount, toast, transformConversation, user?.id]);
+  }, [flagMessagingUnavailable, getUnreadCount, toast, transformConversation, user?.id]);
 
   /* ----------------------------- Send message ------------------------------ */
   const sendMessage = useCallback(
     async (conversationId: string, payload: SendMessagePayload) => {
       if (!conversationId || !user?.id) return;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
       const hasContent = payload.content?.trim();
       const hasFiles = payload.attachments?.length;
       if (!hasContent && !hasFiles) return;
@@ -545,13 +586,25 @@ export function useMessages() {
         });
       }
     },
-    [profile?.avatar_url, profile?.full_name, stopTyping, transformMessage, toast, user?.id]
+    [
+      flagMessagingUnavailable,
+      profile?.avatar_url,
+      profile?.full_name,
+      stopTyping,
+      transformMessage,
+      toast,
+      user?.id,
+    ]
   );
 
   /* ------------------------------ Typing events ----------------------------- */
   const startTyping = useCallback(
     async (conversationId?: string) => {
       if (!conversationId || !user?.id) return;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
       try {
         const expires = new Date(Date.now() + 4000).toISOString();
         await supabase.from("typing_indicators").upsert({
@@ -564,12 +617,16 @@ export function useMessages() {
         console.error("Typing start failed:", err);
       }
     },
-    [user?.id]
+    [flagMessagingUnavailable, user?.id]
   );
 
   const stopTyping = useCallback(
     async (conversationId?: string) => {
       if (!conversationId || !user?.id) return;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
       try {
         await supabase
           .from("typing_indicators")
@@ -580,7 +637,7 @@ export function useMessages() {
         console.error("Typing stop failed:", err);
       }
     },
-    [user?.id]
+    [flagMessagingUnavailable, user?.id]
   );
 
   useEffect(() => {
@@ -607,13 +664,17 @@ export function useMessages() {
 
   useEffect(() => {
     if (!currentConversation || !user?.id) return;
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      return;
+    }
     supabase
       .rpc("mark_conversation_read", { conversation_uuid: currentConversation })
       .then(() => fetchConversations())
       .catch((err) => {
         console.error("Failed to mark conversation as read:", err);
       });
-  }, [currentConversation, fetchConversations, user?.id]);
+  }, [currentConversation, fetchConversations, flagMessagingUnavailable, user?.id]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -633,6 +694,10 @@ export function useMessages() {
   const getOrCreateConversation = useCallback(
     async (otherUserId: string): Promise<string | null> => {
       if (!user?.id) return null;
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return null;
+      }
       if (!profile?.tenant_id) {
         toast({
           title: "Unable to start conversation",
@@ -666,12 +731,22 @@ export function useMessages() {
         return null;
       }
     },
-    [fetchConversations, profile?.tenant_id, toast, user?.id]
+    [
+      fetchConversations,
+      flagMessagingUnavailable,
+      profile?.tenant_id,
+      toast,
+      user?.id,
+    ]
   );
 
   /* --------------------------- Realtime listeners -------------------------- */
   useEffect(() => {
     if (!user?.id) return;
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      return;
+    }
 
     void fetchConversations();
 
@@ -753,6 +828,7 @@ export function useMessages() {
     fetchMessages,
     fetchTypingUsers,
     showNewMessageToast,
+    flagMessagingUnavailable,
     transformMessage,
     user?.id,
   ]);
@@ -770,6 +846,13 @@ export function useMessages() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      setLoading(false);
+    }
+  }, [flagMessagingUnavailable]);
+
   /* ------------------------------- RETURN ---------------------------------- */
   return {
     conversations,
@@ -778,6 +861,7 @@ export function useMessages() {
     messages,
     typingUsers,
     loading,
+    error,
     sendMessage,
     startTyping,
     stopTyping,
