@@ -132,6 +132,7 @@ export interface UniversityProfileCompletionResult {
 const COMPLETION_FIELDS: Array<{
   key: string;
   label: string;
+  description: string;
   isComplete: (
     university: UniversityRecord | null,
     details: UniversityProfileDetails,
@@ -140,46 +141,55 @@ const COMPLETION_FIELDS: Array<{
   {
     key: "name",
     label: "University name",
+    description: "Let partners know exactly who you are.",
     isComplete: (university) => Boolean(university?.name?.trim()),
   },
   {
     key: "location",
     label: "City and country",
+    description: "Pinpoint your campus location for discovery tools.",
     isComplete: (university) => Boolean(university?.country && university?.city),
   },
   {
     key: "website",
     label: "Website",
+    description: "Share the official site so students can learn more.",
     isComplete: (university) => Boolean(university?.website),
   },
   {
     key: "description",
     label: "About section",
+    description: "Tell your story in a concise overview (30+ characters).",
     isComplete: (university) => Boolean(university?.description && university.description.length > 30),
   },
   {
     key: "logo",
     label: "Logo",
+    description: "Upload a clear logo for instant recognition.",
     isComplete: (university) => Boolean(university?.logo_url),
   },
   {
     key: "heroImage",
     label: "Hero image",
+    description: "Add a hero banner to showcase your campus atmosphere.",
     isComplete: (_, details) => Boolean(details.media.heroImageUrl),
   },
   {
     key: "contact",
     label: "Primary contact",
+    description: "Provide a name and email for partnership outreach.",
     isComplete: (_, details) => Boolean(details.contacts.primary?.email && details.contacts.primary?.name),
   },
   {
     key: "highlights",
     label: "Highlights",
+    description: "List at least two standout achievements or facts.",
     isComplete: (_, details) => details.highlights.length >= 2,
   },
   {
     key: "tagline",
     label: "Tagline",
+    description: "Capture your promise in a single inspiring line.",
     isComplete: (_, details) => Boolean(details.tagline),
   },
 ];
@@ -200,6 +210,24 @@ export const computeUniversityProfileCompletion = (
     missingFields,
   };
 };
+
+export interface UniversityProfileChecklistItem {
+  key: string;
+  label: string;
+  description: string;
+  isComplete: boolean;
+}
+
+export const getUniversityProfileChecklist = (
+  university: UniversityRecord | null,
+  details: UniversityProfileDetails,
+): UniversityProfileChecklistItem[] =>
+  COMPLETION_FIELDS.map((field) => ({
+    key: field.key,
+    label: field.label,
+    description: field.description,
+    isComplete: field.isComplete(university, details),
+  }));
 
 const COUNTRY_CURRENCY_MAP: Record<string, string> = {
   "australia": "AUD",
