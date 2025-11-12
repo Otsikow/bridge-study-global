@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CheckCircle2,
+  Circle,
   Globe,
   Image as ImageIcon,
   Loader2,
@@ -48,9 +49,11 @@ import { COUNTRIES } from "@/lib/countries";
 import {
   computeUniversityProfileCompletion,
   emptyUniversityProfileDetails,
+  getUniversityProfileChecklist,
   mergeUniversityProfileDetails,
   parseUniversityProfileDetails,
   type UniversityProfileDetails,
+  type UniversityProfileChecklistItem,
 } from "@/lib/universityProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -209,6 +212,8 @@ const UniversityProfilePage = () => {
         .from("universities")
         .select("*")
         .eq("tenant_id", tenantId)
+        .order("updated_at", { ascending: false, nullsFirst: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {
@@ -298,6 +303,15 @@ const UniversityProfilePage = () => {
       queryData.details,
     );
   }, [queryData]);
+
+  const checklist: UniversityProfileChecklistItem[] = useMemo(
+    () =>
+      getUniversityProfileChecklist(
+        queryData?.university ?? null,
+        queryData?.details ?? emptyUniversityProfileDetails,
+      ),
+    [queryData],
+  );
 
   const handleLogoChange = (file: File | null) => {
     if (!file) return;
@@ -678,16 +692,23 @@ const UniversityProfilePage = () => {
       <div className="grid gap-6 lg:grid-cols-[1.3fr,1fr]">
         <Card className="border-border">
           <CardHeader className="space-y-1">
-            <CardTitle>Institution details</CardTitle>
+            <CardTitle>Profile builder</CardTitle>
             <CardDescription>
-              Share core information that appears on your dashboard and public
-              listings.
+              Work through each step to publish a polished university listing.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
-                <section className="space-y-6">
+                <section className="space-y-6" id="profile-step-1">
+                  <div className="space-y-2">
+                    <Badge className="w-fit bg-primary/10 text-xs font-medium text-primary" variant="outline">
+                      Step 1 · Institution basics
+                    </Badge>
+                    <p className="text-sm text-muted-foreground">
+                      Confirm your university identity and the essentials students see first.
+                    </p>
+                  </div>
                   <div className="grid gap-4 lg:grid-cols-2">
                     <FormField
                       control={form.control}
@@ -801,8 +822,11 @@ const UniversityProfilePage = () => {
 
                 <Separator />
 
-                <section className="space-y-6">
-                  <div>
+                <section className="space-y-6" id="profile-step-2">
+                  <div className="space-y-2">
+                    <Badge className="w-fit bg-primary/10 text-xs font-medium text-primary" variant="outline">
+                      Step 2 · Showcase highlights
+                    </Badge>
                     <h2 className="text-lg font-semibold text-foreground">
                       Highlights
                     </h2>
@@ -866,8 +890,11 @@ const UniversityProfilePage = () => {
 
                 <Separator />
 
-                <section className="space-y-6">
-                  <div>
+                <section className="space-y-6" id="profile-step-3">
+                  <div className="space-y-2">
+                    <Badge className="w-fit bg-primary/10 text-xs font-medium text-primary" variant="outline">
+                      Step 3 · Primary contact
+                    </Badge>
                     <h2 className="text-lg font-semibold text-foreground">
                       Primary contact
                     </h2>
@@ -936,8 +963,11 @@ const UniversityProfilePage = () => {
 
                 <Separator />
 
-                <section className="space-y-6">
-                  <div>
+                <section className="space-y-6" id="profile-step-4">
+                  <div className="space-y-2">
+                    <Badge className="w-fit bg-primary/10 text-xs font-medium text-primary" variant="outline">
+                      Step 4 · Social & media
+                    </Badge>
                     <h2 className="text-lg font-semibold text-foreground">
                       Social & media
                     </h2>
@@ -1004,8 +1034,11 @@ const UniversityProfilePage = () => {
 
                 <Separator />
 
-                <section className="space-y-6">
-                  <div>
+                <section className="space-y-6" id="profile-step-5">
+                  <div className="space-y-2">
+                    <Badge className="w-fit bg-primary/10 text-xs font-medium text-primary" variant="outline">
+                      Step 5 · Branding assets
+                    </Badge>
                     <h2 className="text-lg font-semibold text-foreground">
                       Branding assets
                     </h2>
@@ -1116,112 +1149,159 @@ const UniversityProfilePage = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-muted/40">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground">
-              Live preview
-            </CardTitle>
-            <CardDescription>
-              How agents and students will see your university profile card.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="overflow-hidden rounded-2xl border border-border shadow-sm">
-              <div className="relative h-44 w-full overflow-hidden">
-                {heroBackground ? (
-                  <img
-                    src={heroBackground}
-                    alt="Hero preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 text-muted-foreground">
-                    <ImageIcon className="h-10 w-10" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-                <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-background/20 bg-background/80">
-                    {logoPreview ? (
-                      <img
-                        src={logoPreview}
-                        alt="Logo"
-                        className="h-12 w-12 object-contain"
-                      />
-                    ) : (
-                      <Building2 className="h-7 w-7 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-foreground">
-                      {form.watch("name") || "Your university name"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {form.watch("tagline") || "Add a tagline to inspire students"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-4 bg-background p-5">
-                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  <Badge variant="outline" className="border-primary/20 text-primary">
-                    {form.watch("country") || "Country"}
-                  </Badge>
-                  {form.watch("city") ? (
-                    <Badge variant="outline" className="border-border text-muted-foreground">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      {form.watch("city")}
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {form.watch("description")
-                    ? `${form.watch("description").slice(0, 180)}${form.watch("description").length > 180 ? "…" : ""}`
-                    : "Use the description field to tell your story, spotlight your faculties and share what makes your campus unforgettable."}
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Globe className="h-4 w-4" />
-                    {form.watch("website") || "https://youruniversity.edu"}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    {form.watch("contactEmail") || "admissions@youruniversity.edu"}
-                  </div>
-                  {form.watch("contactPhone") ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      {form.watch("contactPhone")}
+        <div className="space-y-6">
+          <Card className="border-border">
+            <CardHeader className="space-y-1">
+              <CardTitle>Profile checklist</CardTitle>
+              <CardDescription>
+                Track your progress and know exactly what’s left to complete.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {checklist.map((item) => (
+                  <li key={item.key}>
+                    <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-3 sm:p-4">
+                      <div
+                        className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full ${item.isComplete ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {item.isComplete ? (
+                          <CheckCircle2 className="h-4 w-4" />
+                        ) : (
+                          <Circle className="h-3.5 w-3.5" />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">
+                            {item.label}
+                          </p>
+                          <span
+                            className={`text-xs font-medium ${item.isComplete ? "text-emerald-600" : "text-muted-foreground"}`}
+                          >
+                            {item.isComplete ? "Complete" : "Pending"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </div>
                     </div>
-                  ) : null}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-muted/40">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-foreground">
+                Live preview
+              </CardTitle>
+              <CardDescription>
+                How agents and students will see your university profile card.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="overflow-hidden rounded-2xl border border-border shadow-sm">
+                <div className="relative h-44 w-full overflow-hidden">
+                  {heroBackground ? (
+                    <img
+                      src={heroBackground}
+                      alt="Hero preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 text-muted-foreground">
+                      <ImageIcon className="h-10 w-10" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                  <div className="absolute bottom-4 left-4 flex items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-background/20 bg-background/80">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          className="h-12 w-12 object-contain"
+                        />
+                      ) : (
+                        <Building2 className="h-7 w-7 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-foreground">
+                        {form.watch("name") || "Your university name"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {form.watch("tagline") || "Add a tagline to inspire students"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase text-muted-foreground">
-                    Highlights
+                <div className="space-y-4 bg-background p-5">
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                    <Badge variant="outline" className="border-primary/20 text-primary">
+                      {form.watch("country") || "Country"}
+                    </Badge>
+                    {form.watch("city") ? (
+                      <Badge variant="outline" className="border-border text-muted-foreground">
+                        <MapPin className="mr-1 h-3 w-3" />
+                        {form.watch("city")}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {form.watch("description")
+                      ? `${form.watch("description").slice(0, 180)}${form.watch("description").length > 180 ? "…" : ""}`
+                      : "Use the description field to tell your story, spotlight your faculties and share what makes your campus unforgettable."}
                   </p>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    {form.watch("highlights").map((highlight, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                        <span>{highlight || "Share something remarkable about your institution"}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Globe className="h-4 w-4" />
+                      {form.watch("website") || "https://youruniversity.edu"}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      {form.watch("contactEmail") || "admissions@youruniversity.edu"}
+                    </div>
+                    {form.watch("contactPhone") ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-4 w-4" />
+                        {form.watch("contactPhone")}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">
+                      Highlights
+                    </p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      {form.watch("highlights").map((highlight, index) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
+                          <span>
+                            {highlight || "Share something remarkable about your institution"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4">
-              <p className="text-sm font-medium text-primary">
-                Tip: Rich profiles rank higher in student discovery
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Add vivid descriptions, authentic imagery and clear contact
-                details so agents can promote you confidently.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="rounded-xl border border-dashed border-primary/20 bg-primary/5 p-4">
+                <p className="text-sm font-medium text-primary">
+                  Tip: Rich profiles rank higher in student discovery
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Add vivid descriptions, authentic imagery and clear contact
+                  details so agents can promote you confidently.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
