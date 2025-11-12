@@ -156,7 +156,7 @@ const extractStorageObject = (url: string | null | undefined) => {
 const UniversityProfilePage = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
 
   const tenantId = profile?.tenant_id ?? null;
 
@@ -489,29 +489,39 @@ const UniversityProfilePage = () => {
         active: true,
       };
 
+      let upsertedUniversity: UniversityRecord | null = null;
+
       if (queryData?.university?.id) {
-        const { error: updateError } = await supabase
+        const { data: updatedUniversity, error: updateError } = await supabase
           .from("universities")
           .update({
             ...payload,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", queryData.university.id);
+          .eq("id", queryData.university.id)
+          .select()
+          .single();
 
         if (updateError) {
           throw updateError;
         }
+
+        upsertedUniversity = updatedUniversity;
       } else {
-        const { error: insertError } = await supabase
+        const { data: insertedUniversity, error: insertError } = await supabase
           .from("universities")
           .insert({
             ...payload,
             tenant_id: tenantId,
-          });
+          })
+          .select()
+          .single();
 
         if (insertError) {
           throw insertError;
         }
+
+        upsertedUniversity = insertedUniversity;
       }
 
       const { error: profileError } = await supabase
@@ -524,6 +534,16 @@ const UniversityProfilePage = () => {
 
       if (profileError) {
         throw profileError;
+      }
+
+      if (upsertedUniversity) {
+        queryClient.setQueryData<UniversityProfileQueryResult>(
+          ["university-profile", tenantId],
+          {
+            university: upsertedUniversity,
+            details: updatedDetails,
+          },
+        );
       }
 
       await Promise.all([
@@ -541,9 +561,40 @@ const UniversityProfilePage = () => {
         }),
       ]);
 
+      await refreshProfile().catch((error) => {
+        console.warn("Unable to refresh profile after update", error);
+      });
+
+      form.reset({
+        name: payload.name,
+        tagline: updatedDetails.tagline ?? "",
+        country: payload.country ?? "",
+        city: payload.city ?? "",
+        website: payload.website ?? "",
+        description: payload.description ?? "",
+        contactName: updatedDetails.contacts.primary?.name ?? "",
+        contactTitle: updatedDetails.contacts.primary?.title ?? "",
+        contactEmail: updatedDetails.contacts.primary?.email ?? "",
+        contactPhone: updatedDetails.contacts.primary?.phone ?? "",
+        highlights:
+          updatedDetails.highlights.length > 0
+            ? updatedDetails.highlights
+            : [""],
+        social: {
+          facebook: updatedDetails.social.facebook ?? "",
+          instagram: updatedDetails.social.instagram ?? "",
+          linkedin: updatedDetails.social.linkedin ?? "",
+          youtube: updatedDetails.social.youtube ?? "",
+        },
+      });
+
+      setLogoPreview(logoUrl);
+      setHeroPreview(heroUrl);
+
       toast({
-        title: "Profile updated",
-        description: "Your university profile is now up to date",
+        title: "Profile saved",
+        description:
+          "Your university profile has been saved successfully and is live across the platform.",
       });
 
       await profileQuery.refetch();
