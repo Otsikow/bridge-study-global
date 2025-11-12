@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { PostgrestError, RealtimeChannel } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
@@ -180,6 +180,7 @@ export function useMessages() {
   const [error, setError] = useState<string | null>(null);
 
   const conversationsRef = useRef<Conversation[]>([]);
+  const messagesRef = useRef<Message[]>([]);
   const currentConversationRef = useRef<string | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const reportedConfigIssueRef = useRef(false);
@@ -206,11 +207,6 @@ export function useMessages() {
     }
     setError(messagingUnavailableMessage);
   }, [toast]);
-
-  const conversationIdsKey = useMemo(
-    () => conversations.map((conv) => conv.id).sort().join(","),
-    [conversations]
-  );
 
   const transformMessage = useCallback(
     (msg: RawMessage): Message => ({
@@ -362,13 +358,611 @@ export function useMessages() {
     [playNotificationSound, showDesktopNotification, user?.id]
   );
 
-  /* --------------------------------- Rest of the hook remains same --------------------------------- */
-  // (All Supabase fetch, realtime listeners, typing events, etc. — unchanged from your source)
-  // ✅ No merge conflicts
-  // ✅ No undefined references
-  // ✅ Notification and config guards unified
+  const markConversationRead = useCallback(
+    async (conversationId: string) => {
+      try {
+        await supabase.rpc("mark_conversation_read", { conversation_uuid: conversationId });
+      } catch (rpcError) {
+        console.warn("Unable to mark conversation as read", rpcError);
+      }
 
-  // Return object (unchanged)
+      setConversations((prev) => {
+        const updated = prev.map((conversation) =>
+          conversation.id === conversationId
+            ? {
+                ...conversation,
+                unreadCount: 0,
+              }
+            : conversation
+        );
+        conversationsRef.current = updated;
+        return updated;
+      });
+    },
+    []
+  );
+
+  const fetchTypingIndicators = useCallback(
+    async (conversationId: string) => {
+      if (!user?.id || !conversationId || !isSupabaseConfigured) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("typing_indicators")
+          .select(
+            `
+            id,
+            conversation_id,
+            user_id,
+            started_at,
+            expires_at,
+            profile:profiles!typing_indicators_user_id_fkey (
+              full_name
+            )
+          `
+          )
+          .eq("conversation_id", conversationId)
+          .neq("user_id", user.id);
+
+        if (error) throw error;
+
+        const transformed = (data || []).map((indicator) =>
+          transformTypingIndicator(indicator as RawTypingIndicator)
+        );
+        setTypingUsers(transformed);
+      } catch (fetchError) {
+        console.warn("Unable to fetch typing indicators", fetchError);
+      }
+    },
+    [transformTypingIndicator, user?.id]
+  );
+
+  const fetchMessages = useCallback(
+    async (conversationId: string) => {
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
+
+      if (!conversationId || !user?.id) return;
+
+      const shouldShowLoader =
+        messagesRef.current.length === 0 || currentConversationRef.current !== conversationId;
+      if (shouldShowLoader) setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("conversation_messages")
+          .select(
+            `
+            id,
+            conversation_id,
+            sender_id,
+            content,
+            message_type,
+            attachments,
+            metadata,
+            reply_to_id,
+            edited_at,
+            deleted_at,
+            created_at,
+            sender:profiles!conversation_messages_sender_id_fkey (
+              id,
+              full_name,
+              avatar_url
+            )
+          `
+          )
+          .eq("conversation_id", conversationId)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        const transformed = (data || []).map((message) =>
+          transformMessage(message as RawMessage)
+        );
+        setMessages(transformed);
+        messagesRef.current = transformed;
+        await markConversationRead(conversationId);
+        void fetchTypingIndicators(conversationId);
+      } catch (fetchError) {
+        console.error("Error fetching messages", fetchError);
+        toast({
+          title: "Unable to load messages",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        if (shouldShowLoader) setLoading(false);
+      }
+    },
+    [fetchTypingIndicators, flagMessagingUnavailable, markConversationRead, toast, transformMessage, user?.id]
+  );
+
+  const enhanceConversations = useCallback(
+    async (rawConversations: RawConversation[]) => {
+      const transformed = rawConversations.map((conversation) =>
+        transformConversation(conversation)
+      );
+
+      if (!user?.id) return transformed;
+
+      const withUnread = await Promise.all(
+        transformed.map(async (conversation) => {
+          try {
+            const { data: unreadCount, error: unreadError } = await supabase.rpc(
+              "get_unread_count",
+              {
+                p_user_id: user.id,
+                p_conversation_id: conversation.id,
+              }
+            );
+            if (unreadError) throw unreadError;
+            return {
+              ...conversation,
+              unreadCount: unreadCount ?? 0,
+            };
+          } catch (rpcError) {
+            console.warn("Unable to fetch unread count", rpcError);
+            return conversation;
+          }
+        })
+      );
+
+      return withUnread;
+    },
+    [transformConversation, user?.id]
+  );
+
+  const fetchConversations = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      return;
+    }
+
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("conversation_participants")
+        .select(
+          `
+          conversation:conversations (
+            id,
+            tenant_id,
+            title,
+            type,
+            is_group,
+            created_at,
+            updated_at,
+            last_message_at,
+            metadata,
+            avatar_url,
+            participants:conversation_participants (
+              id,
+              conversation_id,
+              user_id,
+              joined_at,
+              last_read_at,
+              role,
+              profile:profiles!conversation_participants_user_id_fkey (
+                id,
+                full_name,
+                avatar_url,
+                role
+              )
+            ),
+            lastMessage:conversation_messages!conversation_messages_conversation_id_fkey (
+              id,
+              conversation_id,
+              sender_id,
+              content,
+              message_type,
+              attachments,
+              metadata,
+              reply_to_id,
+              edited_at,
+              deleted_at,
+              created_at,
+              sender:profiles!conversation_messages_sender_id_fkey (
+                id,
+                full_name,
+                avatar_url
+              )
+            )
+          )
+        `
+        )
+        .eq("user_id", user.id)
+        .order("last_message_at", {
+          foreignTable: "conversations",
+          ascending: false,
+          nullsFirst: false,
+        })
+        .order("updated_at", { foreignTable: "conversations", ascending: false });
+
+      if (error) throw error;
+
+      const conversationsData = (data || [])
+        .map((item) => item.conversation)
+        .filter(Boolean) as RawConversation[];
+
+      const enhanced = await enhanceConversations(conversationsData);
+      enhanced.sort((a, b) => {
+        const aDate = a.last_message_at || a.updated_at || a.created_at || "";
+        const bDate = b.last_message_at || b.updated_at || b.created_at || "";
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      });
+
+      conversationsRef.current = enhanced;
+      setConversations(enhanced);
+      setError(null);
+    } catch (fetchError) {
+      console.error("Error fetching conversations", fetchError);
+      toast({
+        title: "Unable to load conversations",
+        description: "Messaging is temporarily unavailable.",
+        variant: "destructive",
+      });
+    }
+  }, [enhanceConversations, flagMessagingUnavailable, toast, user?.id]);
+
+  const sendMessage = useCallback(
+    async (conversationId: string, payload: SendMessagePayload) => {
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return;
+      }
+
+      if (!conversationId || !user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("conversation_messages")
+          .insert(
+            {
+              conversation_id: conversationId,
+              sender_id: user.id,
+              content: payload.content,
+              message_type: payload.messageType ?? "text",
+              attachments: payload.attachments ?? [],
+              metadata: payload.metadata ?? {},
+            },
+            { count: "none" }
+          )
+          .select(
+            `
+            id,
+            conversation_id,
+            sender_id,
+            content,
+            message_type,
+            attachments,
+            metadata,
+            reply_to_id,
+            edited_at,
+            deleted_at,
+            created_at,
+            sender:profiles!conversation_messages_sender_id_fkey (
+              id,
+              full_name,
+              avatar_url
+            )
+          `
+          )
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          const message = transformMessage(data as RawMessage);
+          setMessages((prev) => {
+            const exists = prev.find((item) => item.id === message.id);
+            if (exists) {
+              return prev.map((item) => (item.id === message.id ? message : item));
+            }
+            return [...prev, message];
+          });
+          conversationsRef.current = conversationsRef.current.map((conversation) =>
+            conversation.id === conversationId
+              ? {
+                  ...conversation,
+                  lastMessage: message,
+                  last_message_at: message.created_at,
+                  unreadCount: 0,
+                }
+              : conversation
+          );
+          setConversations(conversationsRef.current);
+        }
+      } catch (sendError) {
+        console.error("Error sending message", sendError);
+        toast({
+          title: "Unable to send message",
+          description: "Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [flagMessagingUnavailable, toast, transformMessage, user?.id]
+  );
+
+  const startTyping = useCallback(
+    async (conversationId?: string | null) => {
+      if (!conversationId || !user?.id || !isSupabaseConfigured) return;
+
+      try {
+        await supabase
+          .from("typing_indicators")
+          .delete()
+          .eq("conversation_id", conversationId)
+          .eq("user_id", user.id);
+
+        await supabase.from("typing_indicators").insert({
+          conversation_id: conversationId,
+          user_id: user.id,
+          started_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 10_000).toISOString(),
+        });
+      } catch (typingError) {
+        console.warn("Unable to start typing indicator", typingError);
+      }
+    },
+    [user?.id]
+  );
+
+  const stopTyping = useCallback(
+    async (conversationId?: string | null) => {
+      if (!conversationId || !user?.id || !isSupabaseConfigured) return;
+
+      try {
+        await supabase
+          .from("typing_indicators")
+          .delete()
+          .eq("conversation_id", conversationId)
+          .eq("user_id", user.id);
+      } catch (typingError) {
+        console.warn("Unable to clear typing indicator", typingError);
+      }
+    },
+    [user?.id]
+  );
+
+  const getOrCreateConversation = useCallback(
+    async (otherUserId: string) => {
+      if (!isSupabaseConfigured) {
+        flagMessagingUnavailable();
+        return null;
+      }
+
+      if (!user?.id || !profile?.tenant_id) {
+        toast({
+          title: "Cannot start chat",
+          description: "Missing user context. Please refresh and try again.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc("get_or_create_conversation", {
+          p_user_id: user.id,
+          p_other_user_id: otherUserId,
+          p_tenant_id: profile.tenant_id,
+        });
+
+        if (error) throw error;
+
+        if (data) {
+          await fetchConversations();
+          return data as string;
+        }
+        return null;
+      } catch (rpcError) {
+        console.error("Error creating conversation", rpcError);
+        toast({
+          title: "Unable to start conversation",
+          description: "Please try again later.",
+          variant: "destructive",
+        });
+        return null;
+      }
+    },
+    [fetchConversations, flagMessagingUnavailable, profile?.tenant_id, toast, user?.id]
+  );
+
+  useEffect(() => {
+    currentConversationRef.current = currentConversation;
+  }, [currentConversation]);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      return;
+    }
+
+    if (!user?.id) return;
+
+    void fetchConversations();
+
+    const channel = supabase
+      .channel(`messaging:user:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversation_participants",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          void fetchConversations();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversations",
+        },
+        () => {
+          void fetchConversations();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "conversation_messages",
+        },
+        async (payload) => {
+          const newMessage = payload.new as RawMessage | null;
+          const conversationId = newMessage?.conversation_id;
+          if (!conversationId) return;
+
+          if (conversationId !== currentConversationRef.current && newMessage?.sender_id !== user.id) {
+            try {
+              const { data } = await supabase
+                .from("conversation_messages")
+                .select(
+                  `
+                  id,
+                  conversation_id,
+                  sender_id,
+                  content,
+                  message_type,
+                  attachments,
+                  metadata,
+                  reply_to_id,
+                  edited_at,
+                  deleted_at,
+                  created_at,
+                  sender:profiles!conversation_messages_sender_id_fkey (
+                    id,
+                    full_name,
+                    avatar_url
+                  )
+                `
+                )
+                .eq("id", newMessage.id)
+                .maybeSingle();
+
+              if (data) {
+                const message = transformMessage(data as RawMessage);
+                showNewMessageToast(conversationId, message);
+              }
+            } catch (notifyError) {
+              console.warn("Unable to fetch message for notification", notifyError);
+            }
+          }
+
+          void fetchConversations();
+        }
+      )
+      .subscribe();
+
+    conversationsChannelRef.current = channel;
+
+    return () => {
+      if (channel) {
+        void supabase.removeChannel(channel);
+      }
+    };
+  }, [fetchConversations, flagMessagingUnavailable, showNewMessageToast, transformMessage, user?.id]);
+
+  useEffect(() => {
+    if (messagesChannelRef.current) {
+      void supabase.removeChannel(messagesChannelRef.current);
+      messagesChannelRef.current = null;
+    }
+
+    if (typingChannelRef.current) {
+      void supabase.removeChannel(typingChannelRef.current);
+      typingChannelRef.current = null;
+    }
+
+    if (!isSupabaseConfigured) {
+      flagMessagingUnavailable();
+      return;
+    }
+
+    if (!currentConversation) {
+      setMessages([]);
+      messagesRef.current = [];
+      setTypingUsers([]);
+      return;
+    }
+
+    void fetchMessages(currentConversation);
+
+    const messageChannel = supabase
+      .channel(`conversation:${currentConversation}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversation_messages",
+          filter: `conversation_id=eq.${currentConversation}`,
+        },
+        () => {
+          void fetchMessages(currentConversation);
+        }
+      )
+      .subscribe();
+
+    const typingChannel = supabase
+      .channel(`typing:${currentConversation}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "typing_indicators",
+          filter: `conversation_id=eq.${currentConversation}`,
+        },
+        () => {
+          void fetchTypingIndicators(currentConversation);
+        }
+      )
+      .subscribe();
+
+    messagesChannelRef.current = messageChannel;
+    typingChannelRef.current = typingChannel;
+
+    return () => {
+      if (messageChannel) {
+        void supabase.removeChannel(messageChannel);
+      }
+      if (typingChannel) {
+        void supabase.removeChannel(typingChannel);
+      }
+    };
+  }, [currentConversation, fetchMessages, fetchTypingIndicators, flagMessagingUnavailable]);
+
+  useEffect(() => {
+    return () => {
+      if (conversationsChannelRef.current) {
+        void supabase.removeChannel(conversationsChannelRef.current);
+      }
+      if (messagesChannelRef.current) {
+        void supabase.removeChannel(messagesChannelRef.current);
+      }
+      if (typingChannelRef.current) {
+        void supabase.removeChannel(typingChannelRef.current);
+      }
+    };
+  }, []);
+
   return {
     conversations,
     currentConversation,
@@ -377,11 +971,11 @@ export function useMessages() {
     typingUsers,
     loading,
     error,
-    sendMessage: () => {},
-    startTyping: () => {},
-    stopTyping: () => {},
-    getOrCreateConversation: () => {},
-    fetchConversations: () => {},
-    fetchMessages: () => {},
+    sendMessage,
+    startTyping,
+    stopTyping,
+    getOrCreateConversation,
+    fetchConversations,
+    fetchMessages,
   };
 }
