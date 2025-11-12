@@ -266,8 +266,8 @@ export function AIPoweredSearchSection() {
             <Card className="border border-primary/20 bg-background/95 shadow-xl backdrop-blur">
               <CardHeader className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between sm:pb-5">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-xl bg-primary/10 p-3">
-                    <Bot className="h-6 w-6 text-primary" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Bot className="h-6 w-6" />
                   </div>
                   <div>
                     <CardTitle className="text-2xl font-semibold">{panelCopy.title}</CardTitle>
