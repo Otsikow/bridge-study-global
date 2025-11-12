@@ -37,7 +37,7 @@ export interface ConversationParticipant {
     id: string;
     full_name: string;
     avatar_url: string | null;
-    role: string;
+    role: string | null;
   };
 }
 
@@ -195,6 +195,13 @@ export function useMessages() {
   const messagingUnavailableMessage =
     "Messaging is currently unavailable because the messaging service is not configured. Please contact your administrator.";
 
+  type ParticipantProfile = {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+    role?: string | null;
+  };
+
   const flagMessagingUnavailable = useCallback(() => {
     if (!reportedConfigIssueRef.current) {
       reportedConfigIssueRef.current = true;
@@ -207,6 +214,45 @@ export function useMessages() {
     }
     setError(messagingUnavailableMessage);
   }, [toast]);
+
+  const fetchProfilesByIds = useCallback(
+    async (userIds: string[]): Promise<Record<string, ParticipantProfile>> => {
+      const uniqueIds = Array.from(
+        new Set(
+          userIds.filter((id): id is string => typeof id === "string" && id.trim().length > 0)
+        )
+      );
+
+      if (!isSupabaseConfigured || uniqueIds.length === 0) {
+        return {};
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, role")
+          .in("id", uniqueIds);
+
+        if (error) throw error;
+
+        const entries = (data || []).map((item) => {
+          const profile: ParticipantProfile = {
+            id: item.id,
+            full_name: item.full_name ?? "",
+            avatar_url: item.avatar_url ?? null,
+            role: item.role ?? null,
+          };
+          return [item.id, profile] as const;
+        });
+
+        return Object.fromEntries(entries) as Record<string, ParticipantProfile>;
+      } catch (profileError) {
+        console.warn("Unable to load participant profiles", profileError);
+        return {};
+      }
+    },
+    []
+  );
 
   const transformMessage = useCallback(
     (msg: RawMessage): Message => ({
@@ -468,10 +514,7 @@ export function useMessages() {
             conversation_id,
             user_id,
             started_at,
-            expires_at,
-            profile:profiles!typing_indicators_user_id_fkey (
-              full_name
-            )
+            expires_at
           `
           )
           .eq("conversation_id", conversationId)
@@ -479,15 +522,31 @@ export function useMessages() {
 
         if (error) throw error;
 
-        const transformed = (data || []).map((indicator) =>
-          transformTypingIndicator(indicator as RawTypingIndicator)
+        const rawIndicators = (data || []) as RawTypingIndicator[];
+        const profileMap = await fetchProfilesByIds(
+          rawIndicators.map((indicator) => indicator.user_id)
+        );
+
+        const enrichedIndicators = rawIndicators.map((indicator) => {
+          const profile = profileMap[indicator.user_id];
+          if (!profile) return indicator;
+          return {
+            ...indicator,
+            profile: {
+              full_name: profile.full_name,
+            },
+          };
+        });
+
+        const transformed = enrichedIndicators.map((indicator) =>
+          transformTypingIndicator(indicator)
         );
         setTypingUsers(transformed);
       } catch (fetchError) {
         console.warn("Unable to fetch typing indicators", fetchError);
       }
     },
-    [transformTypingIndicator, user?.id]
+    [fetchProfilesByIds, transformTypingIndicator, user?.id]
   );
 
   const fetchMessages = useCallback(
@@ -620,13 +679,7 @@ export function useMessages() {
               user_id,
               joined_at,
               last_read_at,
-              role,
-              profile:profiles!conversation_participants_user_id_fkey (
-                id,
-                full_name,
-                avatar_url,
-                role
-              )
+              role
             ),
             lastMessage:conversation_messages!conversation_messages_conversation_id_fkey (
               id,
@@ -658,7 +711,39 @@ export function useMessages() {
         .map((item) => item.conversation)
         .filter(Boolean) as RawConversation[];
 
-      const enhanced = await enhanceConversations(conversationsData);
+      const participantProfiles = await fetchProfilesByIds(
+        conversationsData.flatMap((conversation) =>
+          (conversation.participants || []).map((participant) => participant.user_id)
+        )
+      );
+
+      const conversationsWithProfiles = conversationsData.map((conversation) => ({
+        ...conversation,
+        participants: (conversation.participants || []).map((participant) => {
+          const existingProfile = participant.profile;
+          const loadedProfile = participantProfiles[participant.user_id];
+
+          if (!existingProfile && !loadedProfile) {
+            return participant;
+          }
+
+          const profileSource = loadedProfile ?? existingProfile;
+
+          return {
+            ...participant,
+            profile: profileSource
+              ? {
+                  id: profileSource.id,
+                  full_name: profileSource.full_name,
+                  avatar_url: profileSource.avatar_url ?? null,
+                  role: profileSource.role ?? null,
+                }
+              : undefined,
+          };
+        }),
+      }));
+
+      const enhanced = await enhanceConversations(conversationsWithProfiles);
       enhanced.sort((a, b) => {
         const aDate = a.last_message_at || a.updated_at || a.created_at || "";
         const bDate = b.last_message_at || b.updated_at || b.created_at || "";
@@ -676,7 +761,13 @@ export function useMessages() {
         variant: "destructive",
       });
     }
-  }, [enhanceConversations, flagMessagingUnavailable, toast, user?.id]);
+  }, [
+    enhanceConversations,
+    fetchProfilesByIds,
+    flagMessagingUnavailable,
+    toast,
+    user?.id,
+  ]);
 
   const sendMessage = useCallback(
     async (conversationId: string, payload: SendMessagePayload) => {
