@@ -556,31 +556,82 @@ export function useMessages() {
         return;
       }
 
-      if (!conversationId || !user?.id) return;
+      if (!conversationId || !user?.id) {
+        console.debug("fetchMessages: Missing conversationId or user.id", {
+          conversationId,
+          userId: user?.id,
+        });
+        return;
+      }
+
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(conversationId)) {
+        console.error("fetchMessages: Invalid conversationId format", { conversationId });
+        return;
+      }
 
       const shouldShowLoader =
         messagesRef.current.length === 0 || currentConversationRef.current !== conversationId;
       if (shouldShowLoader) setLoading(true);
+      
       try {
-        const { data, error } = await supabase
-          .from("conversation_messages")
-          .select(
+        console.debug("fetchMessages: Querying messages", {
+          conversationId,
+          userId: user.id,
+        });
+
+        let data, error;
+        try {
+          const result = await supabase
+            .from("conversation_messages")
+            .select(
+              `
+              id,
+              conversation_id,
+              sender_id,
+              content,
+              message_type,
+              attachments,
+              metadata,
+              reply_to_id,
+              edited_at,
+              deleted_at,
+              created_at
             `
-            id,
-            conversation_id,
-            sender_id,
-            content,
-            message_type,
-            attachments,
-            metadata,
-            reply_to_id,
-            edited_at,
-            deleted_at,
-            created_at
-          `
-          )
-          .eq("conversation_id", conversationId)
-          .order("created_at", { ascending: true });
+            )
+            .eq("conversation_id", conversationId)
+            .order("created_at", { ascending: true });
+          
+          data = result.data;
+          error = result.error;
+        } catch (schemaError: any) {
+          if (schemaError?.code === "42703" || schemaError?.message?.includes("column")) {
+            console.warn("fetchMessages: Schema mismatch detected, retrying with minimal columns", {
+              error: schemaError.message,
+            });
+            
+            const fallbackResult = await supabase
+              .from("conversation_messages")
+              .select(
+                `
+                id,
+                conversation_id,
+                sender_id,
+                content,
+                message_type,
+                attachments,
+                created_at
+              `
+              )
+              .eq("conversation_id", conversationId)
+              .order("created_at", { ascending: true });
+            
+            data = fallbackResult.data;
+            error = fallbackResult.error;
+          } else {
+            throw schemaError;
+          }
+        }
 
         if (error) throw error;
 
@@ -592,11 +643,23 @@ export function useMessages() {
         messagesRef.current = transformed;
         await markConversationRead(conversationId);
         void fetchTypingIndicators(conversationId);
-      } catch (fetchError) {
-        console.error("Error fetching messages", fetchError);
+      } catch (fetchError: any) {
+        console.error("Error fetching messages", {
+          error: fetchError,
+          message: fetchError?.message,
+          code: fetchError?.code,
+          details: fetchError?.details,
+          hint: fetchError?.hint,
+          conversationId,
+          userId: user.id,
+        });
+        
+        const isDev = import.meta.env.DEV;
         toast({
           title: "Unable to load messages",
-          description: "Please try again later.",
+          description: isDev && fetchError?.message 
+            ? `${fetchError.message}${fetchError.hint ? ` (${fetchError.hint})` : ""}`
+            : "Please try again later.",
           variant: "destructive",
         });
       } finally {
