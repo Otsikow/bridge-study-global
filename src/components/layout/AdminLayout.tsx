@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import zoeAvatar from "@/assets/professional-consultant.png";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useAuth } from "@/hooks/useAuth";
@@ -363,7 +364,7 @@ const AdminLayout = () => {
             aria-label="Chat with Zoe"
           >
             <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder.svg" alt="Zoe" />
+              <AvatarImage src={zoeAvatar} alt="Zoe" />
               <AvatarFallback>Z</AvatarFallback>
             </Avatar>
             <div className="hidden text-left sm:flex flex-col leading-tight">
