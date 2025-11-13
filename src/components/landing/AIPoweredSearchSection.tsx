@@ -226,10 +226,11 @@ export function AIPoweredSearchSection() {
   const activeArea = focusAreas.find((area) => area.key === activeFocus) ?? focusAreas[0] ?? fallbackFocusAreas[0];
 
   return (
-    <section className="relative overflow-hidden border-y border-primary/10 bg-muted/40">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background" />
-      <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-secondary/30 blur-3xl" />
+    <section className="relative overflow-hidden border-y border-primary/10 bg-background">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/5 to-background opacity-90" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(244,114,182,0.18),_transparent_60%)]" />
+      <div className="pointer-events-none absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-secondary/40 blur-3xl" />
 
       <div className="container relative mx-auto px-4 py-24 lg:py-28">
         <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.1fr] xl:gap-16">
