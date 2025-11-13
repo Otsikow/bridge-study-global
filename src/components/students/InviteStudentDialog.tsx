@@ -149,11 +149,21 @@ export function InviteStudentDialog({
       });
 
       if (error) {
-        throw error;
+        const message =
+          typeof error === "object" && error !== null && "message" in error
+            ? String(error.message ?? "")
+            : "";
+        throw new Error(message || "The student invite could not be completed.");
       }
 
-      if (!data?.success) {
-        throw new Error(data?.error ?? "The student invite could not be completed.");
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      const inviteSuccessful = data?.success ?? Boolean(data?.studentId);
+
+      if (!inviteSuccessful) {
+        throw new Error("The student invite could not be completed.");
       }
 
       toast({
