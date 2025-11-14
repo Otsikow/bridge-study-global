@@ -1673,7 +1673,6 @@ export type Database = {
           entry_requirements: Json | null
           id: string
           ielts_overall: number | null
-          image_url: string | null
           intake_months: number[] | null
           level: string
           name: string
@@ -1697,7 +1696,6 @@ export type Database = {
           entry_requirements?: Json | null
           id?: string
           ielts_overall?: number | null
-          image_url?: string | null
           intake_months?: number[] | null
           level: string
           name: string
@@ -1995,120 +1993,54 @@ export type Database = {
       scholarships: {
         Row: {
           active: boolean | null
-          ai_score: number | null
           amount_cents: number | null
           application_deadline: string | null
-          application_steps: string[] | null
-          award_amount: string | null
           coverage_type: string | null
-          country: string | null
           created_at: string | null
           currency: string | null
           description: string | null
-          documents_required: string[] | null
           eligibility_criteria: Json | null
-          eligibility_summary: string | null
-          eligibility: Json | null
-          funding_type: string | null
           id: string
-          institution: string | null
-          language_support: string[] | null
-          level: string | null
-          logo_url: string | null
           name: string
-          official_link: string | null
-          overview: string | null
           program_id: string | null
-          recommended_for: string | null
           renewable: boolean | null
-          selection_process: string | null
-          stipend_details: string | null
           tenant_id: string
-          title: string | null
-          tags: string[] | null
-          deadline: string | null
-          eligibility_notes: Json | null
           university_id: string | null
           updated_at: string | null
-          verified: boolean | null
         }
         Insert: {
           active?: boolean | null
-          ai_score?: number | null
           amount_cents?: number | null
           application_deadline?: string | null
-          application_steps?: string[] | null
-          award_amount?: string | null
           coverage_type?: string | null
-          country?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
-          documents_required?: string[] | null
           eligibility_criteria?: Json | null
-          eligibility_summary?: string | null
-          eligibility?: Json | null
-          funding_type?: string | null
           id?: string
-          institution?: string | null
-          language_support?: string[] | null
-          level?: string | null
-          logo_url?: string | null
           name: string
-          official_link?: string | null
-          overview?: string | null
           program_id?: string | null
-          recommended_for?: string | null
           renewable?: boolean | null
-          selection_process?: string | null
-          stipend_details?: string | null
           tenant_id: string
-          title?: string | null
-          tags?: string[] | null
-          deadline?: string | null
-          eligibility_notes?: Json | null
           university_id?: string | null
           updated_at?: string | null
-          verified?: boolean | null
         }
         Update: {
           active?: boolean | null
-          ai_score?: number | null
           amount_cents?: number | null
           application_deadline?: string | null
-          application_steps?: string[] | null
-          award_amount?: string | null
           coverage_type?: string | null
-          country?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
-          documents_required?: string[] | null
           eligibility_criteria?: Json | null
-          eligibility_summary?: string | null
-          eligibility?: Json | null
-          funding_type?: string | null
           id?: string
-          institution?: string | null
-          language_support?: string[] | null
-          level?: string | null
-          logo_url?: string | null
           name?: string
-          official_link?: string | null
-          overview?: string | null
           program_id?: string | null
-          recommended_for?: string | null
           renewable?: boolean | null
-          selection_process?: string | null
-          stipend_details?: string | null
           tenant_id?: string
-          title?: string | null
-          tags?: string[] | null
-          deadline?: string | null
-          eligibility_notes?: Json | null
           university_id?: string | null
           updated_at?: string | null
-          verified?: boolean | null
         }
         Relationships: [
           {

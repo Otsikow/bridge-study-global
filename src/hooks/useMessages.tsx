@@ -32,7 +32,6 @@ export interface ConversationParticipant {
   user_id: string;
   joined_at: string | null;
   last_read_at: string;
-  role?: string | null;
   profile?: {
     id: string;
     full_name: string;
@@ -741,8 +740,7 @@ export function useMessages() {
               conversation_id,
               user_id,
               joined_at,
-              last_read_at,
-              role
+              last_read_at
             ),
             lastMessage:conversation_messages!conversation_messages_conversation_id_fkey (
               id,
@@ -839,17 +837,14 @@ export function useMessages() {
       try {
         const { data, error } = await supabase
           .from("conversation_messages")
-          .insert(
-            {
-              conversation_id: conversationId,
-              sender_id: user.id,
-              content: payload.content,
-              message_type: payload.messageType ?? "text",
-              attachments: payload.attachments ?? [],
-              metadata: payload.metadata ?? {},
-            },
-            { count: "none" }
-          )
+          .insert([{
+            conversation_id: conversationId,
+            sender_id: user.id,
+            content: payload.content,
+            message_type: payload.messageType ?? "text",
+            attachments: (payload.attachments ?? []) as any,
+            metadata: (payload.metadata ?? {}) as any,
+          }])
           .select(
             `
             id,
