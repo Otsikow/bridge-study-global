@@ -802,7 +802,7 @@ export const UniversityDashboardLayout = ({
 
   const profileCompletion = useMemo(
     () =>
-      data
+      data?.university
         ? computeUniversityProfileCompletion(
             data.university,
             data.profileDetails ?? emptyUniversityProfileDetails,
