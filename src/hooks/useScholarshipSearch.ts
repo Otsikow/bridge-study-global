@@ -47,30 +47,15 @@ const formatAmountFromCents = (amount?: number | null, currency?: string | null)
 
 const mapScholarshipRow = (row: SupabaseScholarshipRow): Scholarship => {
   const fallbackAward = formatAmountFromCents(row.amount_cents, row.currency);
-  const fallbackTitle = row.title ?? row.name ?? "Scholarship opportunity";
-  const fallbackLevel = row.level ?? row.coverage_type ?? "Masters";
-  const fallbackInstitution = row.institution ?? row.university_id ?? row.name ?? "Host institution";
-  const fallbackCountry = row.country ?? (row.eligibility as { country?: string })?.country ?? "Global";
+  const fallbackTitle = (row as any).title ?? (row as any).name ?? "Scholarship opportunity";
+  const fallbackLevel = (row as any).level ?? row.coverage_type ?? "Masters";
+  const fallbackInstitution = (row as any).institution ?? row.university_id ?? (row as any).name ?? "Host institution";
+  const fallbackCountry = (row as any).country ?? "Global";
 
-  const eligibility =
-    (row.eligibility as Scholarship["eligibility"]) ??
-    (row.eligibility_criteria as Scholarship["eligibility"]) ??
-    {};
+  const eligibility = (row.eligibility_criteria as any) ?? {};
 
-  const steps = (row.application_steps as string[]) ?? [];
-  const inferredSteps =
-    steps.length > 0
-      ? steps
-      : Array.isArray((row.eligibility as { steps?: string[] })?.steps)
-      ? ((row.eligibility as { steps?: string[] })?.steps as string[])
-      : [];
-  const documents = (row.documents_required as string[]) ?? [];
-  const inferredDocuments =
-    documents.length > 0
-      ? documents
-      : Array.isArray((row.eligibility as { documents?: string[] })?.documents)
-      ? ((row.eligibility as { documents?: string[] })?.documents as string[])
-      : [];
+  const steps = (row as any).application_steps ?? [];
+  const documents = (row as any).documents_required ?? [];
 
   return {
     id: row.id,
@@ -78,27 +63,25 @@ const mapScholarshipRow = (row: SupabaseScholarshipRow): Scholarship => {
     country: fallbackCountry,
     institution: fallbackInstitution,
     level: fallbackLevel,
-    awardAmount: row.award_amount ?? fallbackAward ?? "See official details",
-    fundingType: (row.funding_type ?? row.coverage_type ?? "Partial") as Scholarship["fundingType"],
+    awardAmount: (row as any).award_amount ?? fallbackAward ?? "See official details",
+    fundingType: ((row as any).funding_type ?? row.coverage_type ?? "Partial") as Scholarship["fundingType"],
     eligibility,
-    eligibilitySummary:
-      row.eligibility_summary ??
-      (typeof row.eligibility_criteria === "string" ? row.eligibility_criteria : "Review official eligibility details."),
-    deadline: row.deadline ?? row.application_deadline ?? undefined,
+    eligibilitySummary: (row as any).eligibility_summary ?? (typeof row.eligibility_criteria === "string" ? row.eligibility_criteria : "Review official eligibility details."),
+    deadline: (row as any).deadline ?? row.application_deadline ?? undefined,
     description: row.description ?? "",
-    overview: row.overview ?? undefined,
-    applicationSteps: inferredSteps,
-    documentsRequired: inferredDocuments,
-    officialLink: row.official_link ?? "#",
-    tags: row.tags ?? [],
-    aiScore: row.ai_score ?? undefined,
-    languageSupport: row.language_support ?? undefined,
-    logoUrl: row.logo_url ?? null,
+    overview: (row as any).overview ?? undefined,
+    applicationSteps: steps,
+    documentsRequired: documents,
+    officialLink: (row as any).official_link ?? "#",
+    tags: (row as any).tags ?? [],
+    aiScore: (row as any).ai_score ?? undefined,
+    languageSupport: (row as any).language_support ?? undefined,
+    logoUrl: (row as any).logo_url ?? null,
     currency: row.currency ?? undefined,
-    stipendDetails: row.stipend_details ?? undefined,
-    selectionProcess: row.selection_process ?? undefined,
-    recommendedFor: row.recommended_for ?? undefined,
-    verified: row.verified ?? row.active ?? true,
+    stipendDetails: (row as any).stipend_details ?? undefined,
+    selectionProcess: (row as any).selection_process ?? undefined,
+    recommendedFor: (row as any).recommended_for ?? undefined,
+    verified: (row as any).verified ?? row.active ?? true,
   };
 };
 
@@ -355,7 +338,7 @@ export const useScholarshipSearch = ({
     queryKey: ["scholarship-search", query, filters, profileTags, limit],
     queryFn: () => fetchScholarships(query, filters, limit),
     staleTime: 5 * 60 * 1000,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   const enhancedResults = useMemo(
