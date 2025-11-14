@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -20,9 +21,11 @@ import {
   Users,
   Globe2,
   Sparkles,
+  BookOpenCheck,
+  BarChart3,
+  MapPinned,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { SEO } from "@/components/SEO";
 
 interface BlogPost {
@@ -62,30 +65,85 @@ export default function Blog() {
     );
   }, [data, q]);
 
-  const featuredCollections = [
+  const heroPost = filtered[0];
+  const supportingPosts = filtered.slice(1, 4);
+  const remainingPosts = filtered.slice(4);
+
+  const playbookSections = [
     {
-      title: "International Student Playbook",
-      description:
-        "Step-by-step guidance to research universities, prepare documents, and submit confident applications.",
+      value: "students",
+      label: "Student playbook",
       icon: GraduationCap,
-      cta: { label: "Explore checklist", href: "/student/onboarding" },
-      tags: ["Admissions", "Visas", "Scholarships"],
+      headline: "International Student Playbook",
+      description:
+        "Step-by-step guidance to shortlist universities, prepare documents, and stay on top of deadlines.",
+      cta: { label: "Explore admissions checklist", href: "/student/onboarding" },
+      resources: [
+        {
+          title: "Scholarship strategy workbook",
+          description: "Identify funding options and build a compelling financial aid story.",
+          type: "Guide",
+          href: "/help",
+          icon: BookOpenCheck,
+        },
+        {
+          title: "Visa preparation timeline",
+          description: "Track every requirement from document collection to interview day.",
+          type: "Insight",
+          href: "/courses?view=programs",
+          icon: MapPinned,
+        },
+      ],
     },
     {
-      title: "Agent Success Hub",
-      description:
-        "Tools, templates, and best practices to manage student pipelines and collaborate with universities.",
+      value: "agents",
+      label: "Agent playbook",
       icon: Users,
+      headline: "Agent Success Hub",
+      description:
+        "Operational templates and reporting insights to support student cohorts at scale.",
       cta: { label: "Visit agent dashboard", href: "/dashboard" },
-      tags: ["CRM", "Reporting", "Compliance"],
+      resources: [
+        {
+          title: "Recruitment pipeline tracker",
+          description: "Monitor enquiries, applications, and offers across every market.",
+          type: "Guide",
+          href: "/dashboard",
+          icon: BarChart3,
+        },
+        {
+          title: "Compliance review checklist",
+          description: "Standardise documentation and maintain transparent student records.",
+          type: "Insight",
+          href: "/help",
+          icon: BookOpenCheck,
+        },
+      ],
     },
     {
-      title: "Partner Resource Centre",
-      description:
-        "Data-driven insights on student demand, programme positioning, and market expansion strategies.",
+      value: "partners",
+      label: "Partner playbook",
       icon: Globe2,
+      headline: "Partner Resource Centre",
+      description:
+        "Market intelligence to position programmes and engage the right-fit student audiences.",
       cta: { label: "See partner guides", href: "/universities" },
-      tags: ["Market trends", "Programmes", "Recruitment"],
+      resources: [
+        {
+          title: "Regional demand dashboard",
+          description: "Spot trending subject areas and tailor your recruitment mix.",
+          type: "Insight",
+          href: "/universities",
+          icon: BarChart3,
+        },
+        {
+          title: "Co-marketing launch kit",
+          description: "Align messaging, timelines, and conversion goals with verified agents.",
+          type: "Guide",
+          href: "/contact",
+          icon: MapPinned,
+        },
+      ],
     },
   ] as const;
 
@@ -153,6 +211,243 @@ export default function Blog() {
       </section>
 
       <section className="container mx-auto px-4 py-12 sm:py-16">
+        <div className="space-y-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold">Latest from the blog</h2>
+              <p className="text-sm text-muted-foreground">
+                Fresh perspectives from our research team, admissions experts, and partner network.
+              </p>
+            </div>
+            <Button variant="ghost" className="w-full justify-start gap-2 sm:w-auto" asChild>
+              <Link to="/contact">
+                Talk with our team
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          {isLoading ? (
+            <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+              <Card className="hidden h-full overflow-hidden lg:block">
+                <Skeleton className="h-full w-full" />
+              </Card>
+              <div className="grid gap-4">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <Card key={index} className="overflow-hidden">
+                    <Skeleton className="h-36 w-full" />
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : filtered.length > 0 ? (
+            <div className="space-y-10">
+              <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                {heroPost && (
+                  <Card className="overflow-hidden border-border/70">
+                    {heroPost.cover_image_url ? (
+                      <img
+                        src={heroPost.cover_image_url}
+                        alt={heroPost.title}
+                        className="h-72 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-72 w-full bg-muted" />
+                    )}
+                    <CardHeader className="space-y-4">
+                      <div className="flex flex-wrap gap-2 text-xs uppercase tracking-wide text-primary">
+                        {(heroPost.tags || []).slice(0, 2).map((tag) => (
+                          <Badge key={tag} variant="secondary">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="space-y-3">
+                        <CardTitle className="text-2xl leading-tight">
+                          <Link to={`/blog/${heroPost.slug}`} className="hover:underline">
+                            {heroPost.title}
+                          </Link>
+                        </CardTitle>
+                        {heroPost.excerpt && (
+                          <CardDescription className="text-base text-muted-foreground">
+                            {heroPost.excerpt}
+                          </CardDescription>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button asChild className="gap-2">
+                        <Link to={`/blog/${heroPost.slug}`}>
+                          Read article
+                          <ArrowUpRight className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                )}
+
+                <div className="grid gap-4">
+                  {supportingPosts.map((post) => (
+                    <Card key={post.id} className="overflow-hidden border-border/70">
+                      {post.cover_image_url ? (
+                        <img src={post.cover_image_url} alt={post.title} className="h-36 w-full object-cover" />
+                      ) : (
+                        <div className="h-36 w-full bg-muted" />
+                      )}
+                      <CardHeader className="space-y-3">
+                        <CardTitle className="text-lg leading-tight">
+                          <Link to={`/blog/${post.slug}`} className="hover:underline">
+                            {post.title}
+                          </Link>
+                        </CardTitle>
+                        {post.excerpt && (
+                          <CardDescription className="line-clamp-3 text-sm text-muted-foreground">
+                            {post.excerpt}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {remainingPosts.length > 0 && (
+                <div className="space-y-6">
+                  <h3 className="text-lg font-semibold text-muted-foreground">More articles</h3>
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {remainingPosts.map((post) => (
+                      <Card key={post.id} className="overflow-hidden border-border/70">
+                        {post.cover_image_url ? (
+                          <img src={post.cover_image_url} alt={post.title} className="h-40 w-full object-cover" />
+                        ) : (
+                          <div className="h-40 w-full bg-muted" />
+                        )}
+                        <CardHeader className="space-y-2">
+                          <CardTitle className="line-clamp-2 text-lg">
+                            <Link to={`/blog/${post.slug}`} className="hover:underline">
+                              {post.title}
+                            </Link>
+                          </CardTitle>
+                        </CardHeader>
+                        {post.excerpt && (
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground line-clamp-3">{post.excerpt}</p>
+                          </CardContent>
+                        )}
+                        {(post.tags || []).length > 0 && (
+                          <CardFooter className="flex flex-wrap gap-2">
+                            {(post.tags || []).slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="secondary">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </CardFooter>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Card className="border-dashed border-border/70">
+              <CardHeader className="items-center space-y-2 text-center">
+                <CardTitle className="text-xl">No results yet</CardTitle>
+                <CardDescription>
+                  We couldn’t find an article that matches “{q}”. Try another keyword or explore the playbooks below.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      <section className="border-y bg-muted/30 py-12 sm:py-16">
+        <div className="container mx-auto px-4 space-y-8">
+          <div className="space-y-3 text-center">
+            <h2 className="text-2xl font-semibold">Playbooks, insights & guides</h2>
+            <p className="text-sm text-muted-foreground">
+              Select a pathway to access curated resources tailored to students, certified agents, and partner universities.
+            </p>
+          </div>
+
+          <Tabs defaultValue="students" className="w-full">
+            <TabsList className="grid gap-2 sm:grid-cols-3">
+              {playbookSections.map((section) => (
+                <TabsTrigger
+                  key={section.value}
+                  value={section.value}
+                  className="flex items-start gap-3 rounded-xl border border-transparent bg-background px-4 py-3 text-left data-[state=active]:border-primary/30 data-[state=active]:bg-primary/5"
+                >
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <section.icon className="h-5 w-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold">{section.label}</p>
+                    <p className="text-xs text-muted-foreground">{section.headline}</p>
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {playbookSections.map((section) => (
+              <TabsContent key={section.value} value={section.value} className="space-y-6">
+                <Card className="border-border/70">
+                  <CardHeader className="space-y-4">
+                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <section.icon className="h-6 w-6" />
+                    </div>
+                    <div className="space-y-2">
+                      <CardTitle className="text-xl">{section.headline}</CardTitle>
+                      <CardDescription className="text-sm leading-relaxed">{section.description}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardFooter>
+                    <Button asChild className="gap-2">
+                      <Link to={section.cta.href}>
+                        {section.cta.label}
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  {section.resources.map((resource) => (
+                    <Card key={resource.title} className="h-full border-border/70">
+                      <CardHeader className="flex flex-row items-start gap-3">
+                        <div className="mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                          <resource.icon className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">{resource.type}</Badge>
+                            <span className="text-xs text-muted-foreground">Playbook resource</span>
+                          </div>
+                          <CardTitle className="text-base leading-tight">{resource.title}</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">{resource.description}</p>
+                      </CardContent>
+                      <CardFooter>
+                        <Button asChild variant="ghost" className="justify-start gap-2 px-0 text-sm font-medium">
+                          <Link to={resource.href}>
+                            View resource
+                            <ArrowUpRight className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
+      </section>
+
+      <section className="container mx-auto px-4 py-12 sm:py-16">
         <div className="grid gap-6 lg:grid-cols-2">
           {quickLinks.map((section) => (
             <Card key={section.title} className="h-full border-border/70 bg-card/60 backdrop-blur-sm">
@@ -188,124 +483,6 @@ export default function Blog() {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        <Separator className="my-12" />
-
-        <div className="space-y-6">
-          <div className="flex flex-col gap-2 text-center">
-            <h2 className="text-2xl font-semibold">Featured playbooks</h2>
-            <p className="text-sm text-muted-foreground">
-              Curated guides that walk you through the most requested workflows on Global Education Gateway.
-            </p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {featuredCollections.map((collection) => (
-              <Card key={collection.title} className="relative overflow-hidden border-border/70">
-                <CardHeader className="space-y-3">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <collection.icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-xl">{collection.title}</CardTitle>
-                  <CardDescription className="text-sm leading-relaxed">{collection.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-wrap gap-2">
-                  {collection.tags.map((tag) => (
-                    <Badge key={tag} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full justify-center gap-2" variant="secondary">
-                    <Link to={collection.cta.href}>
-                      {collection.cta.label}
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-muted/30 py-12 sm:py-16">
-        <div className="container mx-auto px-4 space-y-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Latest insights</h2>
-              <p className="text-sm text-muted-foreground">
-                Fresh perspectives from our research team, admissions experts, and partner network.
-              </p>
-            </div>
-            <Button variant="ghost" className="w-full justify-start gap-2 sm:w-auto" asChild>
-              <Link to="/blog">
-                Browse all articles
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-
-          {isLoading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <Skeleton className="h-40 w-full" />
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4" />
-                  </CardHeader>
-                  <CardContent>
-                    <Skeleton className="h-4 w-full mb-2" />
-                    <Skeleton className="h-4 w-5/6" />
-                  </CardContent>
-                  <CardFooter>
-                    <Skeleton className="h-5 w-24" />
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : filtered.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((post) => (
-                <Card key={post.id} className="overflow-hidden border-border/70">
-                  {post.cover_image_url ? (
-                    <img src={post.cover_image_url} alt="" className="h-40 w-full object-cover" />
-                  ) : (
-                    <div className="h-40 w-full bg-muted" />
-                  )}
-                  <CardHeader>
-                    <CardTitle className="line-clamp-2">
-                      <Link to={`/blog/${post.slug}`} className="hover:underline">
-                        {post.title}
-                      </Link>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {post.excerpt && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">{post.excerpt}</p>
-                    )}
-                  </CardContent>
-                  <CardFooter className="flex items-center gap-2 flex-wrap">
-                    {(post.tags || []).slice(0, 3).map((t) => (
-                      <Badge key={t} variant="secondary">
-                        {t}
-                      </Badge>
-                    ))}
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-dashed border-border/70">
-              <CardHeader className="items-center space-y-2 text-center">
-                <CardTitle className="text-xl">No results yet</CardTitle>
-                <CardDescription>
-                  We couldn’t find an article that matches “{q}”. Try another keyword or explore our featured playbooks above.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
         </div>
       </section>
     </div>
