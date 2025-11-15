@@ -233,7 +233,7 @@ export default function StaffDashboard() {
         <div className="space-y-8 p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <BackButton to="/dashboard" label="Back" />
+            <BackButton fallback="/dashboard" label="Back" />
             <h1 className="text-3xl font-bold tracking-tight">Staff Command Centre</h1>
             <p className="text-sm text-muted-foreground">Manage operations and monitor commissions.</p>
           </div>
