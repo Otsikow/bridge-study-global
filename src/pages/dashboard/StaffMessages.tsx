@@ -199,7 +199,7 @@ export default function StaffMessages() {
       try {
         const trimmed = query.trim();
         const { data, error } = await supabase.rpc("search_agent_contacts", {
-          p_search: trimmed || null,
+          search_query: trimmed || null,
         });
         if (error) throw error;
         // @ts-expect-error - Type conversion from RPC result
@@ -337,7 +337,7 @@ export default function StaffMessages() {
 
   if (messagingError) {
     return (
-      <DashboardLayout title="Staff Messages">
+      <DashboardLayout>
         <div className="space-y-4">
           <BackButton variant="ghost" />
           <MessagingUnavailable

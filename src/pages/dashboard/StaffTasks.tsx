@@ -14,7 +14,7 @@ export default function StaffTasks() {
     <DashboardLayout>
       <StaffTaskComposerProvider>
         <div className="space-y-6 p-4 sm:p-6 lg:p-8">
-          <BackButton to="/dashboard" label="Back" />
+          <BackButton fallback="/dashboard" label="Back" />
           <div className="grid gap-6">
             <StaffTaskOverview />
             <StaffTaskAutomationPanel />

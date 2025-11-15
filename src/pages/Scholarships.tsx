@@ -235,7 +235,6 @@ const ScholarshipsPage = () => {
       <SEO
         title="AI Scholarship Finder — Global Education Gateway"
         description="Discover AI-curated scholarships with smart filters, real-time deadlines, and personalised recommendations."
-        path="/scholarships"
       />
       <div className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
