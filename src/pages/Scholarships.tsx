@@ -45,6 +45,7 @@ const DEFAULT_FILTERS: ScholarshipSearchFilters = {
 };
 
 const STORAGE_KEY = "geg-saved-scholarships";
+const ALERTS_STORAGE_KEY = "geg-scholarship-alerts-enabled";
 
 const detectProfileTags = (saved: ScholarshipSearchResult[]): string[] => {
   const tagSet = new Set<string>();
@@ -95,6 +96,7 @@ const ScholarshipsPage = () => {
   const [savedScholarshipIds, setSavedScholarshipIds] = useState<string[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [savedRegistry, setSavedRegistry] = useState<Record<string, ScholarshipSearchResult>>({});
+  const [alertsEnabled, setAlertsEnabled] = useState(false);
 
   const debouncedQuery = useDebounce(query, 400);
   const savedScholarships = useMemo(() => Object.values(savedRegistry), [savedRegistry]);
@@ -118,11 +120,24 @@ const ScholarshipsPage = () => {
         console.error("Failed to parse saved scholarships", storageError);
       }
     }
+
+    const storedAlerts = localStorage.getItem(ALERTS_STORAGE_KEY);
+    if (storedAlerts) {
+      try {
+        setAlertsEnabled(JSON.parse(storedAlerts) as boolean);
+      } catch (storageError) {
+        console.error("Failed to parse scholarship alerts setting", storageError);
+      }
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(savedScholarshipIds));
   }, [savedScholarshipIds]);
+
+  useEffect(() => {
+    localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(alertsEnabled));
+  }, [alertsEnabled]);
 
   useEffect(() => {
     setSavedRegistry((prev) => {
@@ -149,9 +164,48 @@ const ScholarshipsPage = () => {
   }, [results, savedRegistry, savedScholarshipIds]);
 
   const handleToggleSave = (id: string) => {
-    setSavedScholarshipIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
-    );
+    setSavedScholarshipIds((prev) => {
+      const isAlreadySaved = prev.includes(id);
+
+      setSavedRegistry((registry) => {
+        if (isAlreadySaved) {
+          if (!registry[id]) return registry;
+          const { [id]: _removed, ...rest } = registry;
+          return rest;
+        }
+
+        const scholarship =
+          results.find((item) => item.id === id) ?? registry[id] ?? null;
+
+        if (!scholarship) {
+          return registry;
+        }
+
+        return {
+          ...registry,
+          [id]: scholarship,
+        };
+      });
+
+      if (isAlreadySaved) {
+        return prev.filter((item) => item !== id);
+      }
+
+      return [...prev, id];
+    });
+  };
+
+  const handleToggleAlerts = () => {
+    setAlertsEnabled((prev) => {
+      const next = !prev;
+      toast({
+        title: next ? "Alerts enabled" : "Alerts disabled",
+        description: next
+          ? "We will notify you when new scholarships match your filters."
+          : "You will no longer receive alerts for matching scholarships.",
+      });
+      return next;
+    });
   };
 
   const handleShare = async (scholarship: ScholarshipSearchResult) => {
@@ -458,8 +512,12 @@ const ScholarshipsPage = () => {
               <p className="mt-3 text-sm text-muted-foreground">
                 Turn on notifications to get instant updates when new scholarships match your filters.
               </p>
-              <Button variant="outline" className="mt-4 w-full">
-                Enable alerts
+              <Button
+                variant={alertsEnabled ? "secondary" : "outline"}
+                className="mt-4 w-full"
+                onClick={handleToggleAlerts}
+              >
+                {alertsEnabled ? "Alerts enabled" : "Enable alerts"}
               </Button>
             </div>
           </aside>
