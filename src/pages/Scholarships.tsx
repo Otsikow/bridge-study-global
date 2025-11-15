@@ -9,6 +9,7 @@ import { LoadingState } from "@/components/LoadingState";
 import { ScholarshipFilters } from "@/components/scholarships/ScholarshipFilters";
 import { ScholarshipCard } from "@/components/scholarships/ScholarshipCard";
 import { ScholarshipDetailDialog } from "@/components/scholarships/ScholarshipDetailDialog";
+import { ScholarshipShareDialog } from "@/components/scholarships/ScholarshipShareDialog";
 import { useScholarshipSearch } from "@/hooks/useScholarshipSearch";
 import type {
   ScholarshipSearchFilters,
@@ -95,6 +96,8 @@ const ScholarshipsPage = () => {
   const [savedScholarshipIds, setSavedScholarshipIds] = useState<string[]>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [savedRegistry, setSavedRegistry] = useState<Record<string, ScholarshipSearchResult>>({});
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<ScholarshipSearchResult | null>(null);
 
   const debouncedQuery = useDebounce(query, 400);
   const savedScholarships = useMemo(() => Object.values(savedRegistry), [savedRegistry]);
@@ -154,28 +157,48 @@ const ScholarshipsPage = () => {
     );
   };
 
+  const openShareDialog = (scholarship: ScholarshipSearchResult, notify = false) => {
+    setShareTarget(scholarship);
+    setShareDialogOpen(true);
+
+    if (notify) {
+      toast({
+        title: "Manual share options", 
+        description: "Copy the link or send a polished message in seconds.",
+      });
+    }
+  };
+
   const handleShare = async (scholarship: ScholarshipSearchResult) => {
     const shareText = `${scholarship.title} — ${scholarship.awardAmount}\nDeadline: ${scholarship.deadlineLabel}\nApply: ${scholarship.officialLink}`;
 
-    try {
-      if (navigator.share) {
+    const canUseNavigatorShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+    if (canUseNavigatorShare) {
+      try {
         await navigator.share({
           title: scholarship.title,
           text: shareText,
           url: scholarship.officialLink,
         });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareText);
-        toast({ title: "Link copied", description: "Scholarship details copied to clipboard." });
+        toast({
+          title: "Shared", 
+          description: "Scholarship details sent via your device's share menu.",
+        });
+        return;
+      } catch (shareError) {
+        const aborted = shareError instanceof DOMException && shareError.name === "AbortError";
+        if (aborted) {
+          return;
+        }
+
+        console.error("Failed to use native share", shareError);
+        openShareDialog(scholarship, true);
+        return;
       }
-    } catch (shareError) {
-      console.error("Failed to share scholarship", shareError);
-      toast({
-        title: "Unable to share",
-        description: "We couldn't share this scholarship automatically. Try copying the link manually.",
-        variant: "destructive",
-      });
     }
+
+    openShareDialog(scholarship, true);
   };
 
   const handleSubmitPrompt = () => {
@@ -477,6 +500,16 @@ const ScholarshipsPage = () => {
         onSelectScholarship={(scholarship) => {
           setSelectedScholarship(scholarship);
         }}
+      />
+      <ScholarshipShareDialog
+        open={shareDialogOpen && Boolean(shareTarget)}
+        onOpenChange={(open) => {
+          setShareDialogOpen(open);
+          if (!open) {
+            setShareTarget(null);
+          }
+        }}
+        scholarship={shareTarget}
       />
     </div>
   );
