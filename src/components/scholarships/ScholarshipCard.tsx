@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 interface ScholarshipCardProps {
   scholarship: ScholarshipSearchResult;
-  onToggleSave: (scholarshipId: string) => void;
+  onToggleSave: (scholarship: ScholarshipSearchResult) => void;
   isSaved: boolean;
   onSelect?: (scholarship: ScholarshipSearchResult) => void;
   onViewDetails?: () => void;
@@ -64,7 +64,7 @@ export const ScholarshipCard = ({
 
   const handleSave = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    onToggleSave(scholarship.id);
+    onToggleSave(scholarship);
   };
 
   const handleShare = (event: MouseEvent<HTMLButtonElement>) => {
@@ -177,7 +177,7 @@ export const ScholarshipCard = ({
         ) : null}
 
         <div className="flex flex-wrap gap-2">
-          {scholarship.tags.slice(0, 6).map((tag) => (
+          {(scholarship.tags ?? []).slice(0, 6).map((tag) => (
             <Badge key={tag} variant="secondary" className="rounded-full">
               #{tag}
             </Badge>

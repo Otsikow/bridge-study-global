@@ -50,8 +50,46 @@ const ALERTS_STORAGE_KEY = "geg-scholarship-alerts-enabled";
 
 const detectProfileTags = (saved: ScholarshipSearchResult[]): string[] => {
   const tagSet = new Set<string>();
-  saved.forEach((s) => s.tags.forEach((tag) => tagSet.add(tag)));
+  saved.forEach((scholarship) => {
+    (scholarship.tags ?? []).forEach((tag) => tagSet.add(tag));
+  });
   return Array.from(tagSet);
+};
+
+const normalizeScholarship = (
+  scholarship: ScholarshipSearchResult,
+): ScholarshipSearchResult => ({
+  ...scholarship,
+  tags: Array.isArray(scholarship.tags) ? scholarship.tags : [],
+  matchReasons: Array.isArray(scholarship.matchReasons)
+    ? scholarship.matchReasons
+    : [],
+});
+
+const sanitizeSavedScholarships = (
+  value: unknown,
+): Record<string, ScholarshipSearchResult> => {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const entries = value as Record<string, unknown>;
+  const sanitized: Record<string, ScholarshipSearchResult> = {};
+
+  Object.entries(entries).forEach(([id, entry]) => {
+    if (!entry || typeof entry !== "object") {
+      return;
+    }
+
+    const candidate = entry as ScholarshipSearchResult;
+    if (typeof candidate.id !== "string") {
+      return;
+    }
+
+    sanitized[id] = normalizeScholarship(candidate);
+  });
+
+  return sanitized;
 };
 
 const inferFiltersFromPrompt = (
@@ -142,8 +180,12 @@ const ScholarshipsPage = () => {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        setSavedRegistry(parsed);
-        setSavedScholarshipIds(Object.keys(parsed));
+        const sanitized = sanitizeSavedScholarships(parsed);
+        setSavedRegistry(sanitized);
+        setSavedScholarshipIds(Object.keys(sanitized));
+        if (Object.keys(sanitized).length !== Object.keys(parsed || {}).length) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
+        }
       } catch (e) {
         console.error("Error loading saved scholarships:", e);
       }
@@ -156,23 +198,24 @@ const ScholarshipsPage = () => {
   }, []);
 
   const toggleSave = (scholarship: ScholarshipSearchResult) => {
+    const normalizedScholarship = normalizeScholarship(scholarship);
     setSavedRegistry((prev) => {
       const newRegistry = { ...prev };
-      if (newRegistry[scholarship.id]) {
-        delete newRegistry[scholarship.id];
-        setSavedScholarshipIds((ids) => ids.filter((id) => id !== scholarship.id));
+      if (newRegistry[normalizedScholarship.id]) {
+        delete newRegistry[normalizedScholarship.id];
+        setSavedScholarshipIds((ids) =>
+          ids.filter((id) => id !== normalizedScholarship.id),
+        );
         toast({
           title: "Removed from saved",
-          // @ts-expect-error - Type mismatch with scholarship structure
-          description: `${scholarship.name} removed from your saved scholarships.`,
+          description: `${normalizedScholarship.title} removed from your saved scholarships.`,
         });
       } else {
-        newRegistry[scholarship.id] = scholarship;
-        setSavedScholarshipIds((ids) => [...ids, scholarship.id]);
+        newRegistry[normalizedScholarship.id] = normalizedScholarship;
+        setSavedScholarshipIds((ids) => [...ids, normalizedScholarship.id]);
         toast({
           title: "Saved!",
-          // @ts-expect-error - Type mismatch with scholarship structure
-          description: `${scholarship.name} added to your saved scholarships.`,
+          description: `${normalizedScholarship.title} added to your saved scholarships.`,
         });
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newRegistry));
@@ -210,8 +253,13 @@ const ScholarshipsPage = () => {
 
   const allResults = useMemo(() => {
     if (loading) return [];
-    if (error) return FALLBACK_SCHOLARSHIPS;
-    return results.length > 0 ? results : FALLBACK_SCHOLARSHIPS;
+    const base = error
+      ? FALLBACK_SCHOLARSHIPS
+      : results.length > 0
+        ? results
+        : FALLBACK_SCHOLARSHIPS;
+
+    return base.map(normalizeScholarship);
   }, [results, loading, error]);
 
   return (
@@ -313,7 +361,7 @@ const ScholarshipsPage = () => {
                         key={scholarship.id}
                         scholarship={scholarship as any}
                         isSaved={savedScholarshipIds.includes(scholarship.id)}
-                        onToggleSave={toggleSave as any}
+                        onToggleSave={toggleSave}
                         onViewDetails={() => setSelectedScholarship(scholarship as any)}
                         onShare={() => handleShare(scholarship as any)}
                       />
@@ -341,7 +389,7 @@ const ScholarshipsPage = () => {
                       key={scholarship.id}
                       scholarship={scholarship as any}
                       isSaved={savedScholarshipIds.includes(scholarship.id)}
-                      onToggleSave={toggleSave as any}
+                      onToggleSave={toggleSave}
                       onViewDetails={() => setSelectedScholarship(scholarship as any)}
                       onShare={() => handleShare(scholarship as any)}
                     />
@@ -359,7 +407,7 @@ const ScholarshipsPage = () => {
           open={!!selectedScholarship}
           onOpenChange={(open) => !open && setSelectedScholarship(null)}
           isSaved={savedScholarshipIds.includes(selectedScholarship.id)}
-          onToggleSave={toggleSave as any}
+          onToggleSave={toggleSave}
         />
       )}
 
