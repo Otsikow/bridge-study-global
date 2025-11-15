@@ -4,6 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Sparkles,
@@ -20,7 +26,7 @@ import {
   Loader2,
   Bookmark,
   ExternalLink,
-  MessageSquareQuote,
+  Plus,
   Maximize2,
   Minimize2,
   AlertCircle,
@@ -70,28 +76,6 @@ const { url: SUPABASE_URL, functionsUrl: SUPABASE_FUNCTIONS_URL } =
 const SUPABASE_FUNCTIONS_BASE = (
   SUPABASE_FUNCTIONS_URL ?? `${SUPABASE_URL}/functions/v1`
 ).replace(/\/+$/, "");
-
-const SUGGESTED_PROMPTS: { label: string; prompt: string }[] = [
-  {
-    label: "Scholarship guidance",
-    prompt:
-      "Can you outline scholarship options for international master’s students heading to Canada?",
-  },
-  {
-    label: "Visa timeline",
-    prompt:
-      "What documents do I need for a student visa and when should I apply?",
-  },
-  {
-    label: "Partner onboarding",
-    prompt:
-      "What steps do new university partners follow to launch a program with GEG?",
-  },
-  {
-    label: "Agent compliance",
-    prompt: "Which compliance documents must a new recruitment agent submit?",
-  },
-];
 
 function sanitizeInline(text: string) {
   return DOMPurify.sanitize(text, {
@@ -244,7 +228,6 @@ export default function ZoeChatbot() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [hasConversationStarted, setHasConversationStarted] = useState(false);
-  const [suggestions, setSuggestions] = useState(SUGGESTED_PROMPTS);
   const [errorState, setErrorState] = useState<ZoeErrorState | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -299,102 +282,6 @@ export default function ZoeChatbot() {
     });
   }, [messages, isLoading, hasConversationStarted]);
 
-  const generateSuggestions = useCallback((history: Message[]) => {
-    const lastUserMessage = [...history]
-      .reverse()
-      .find(
-        (message) =>
-          message.role === "user" && message.content.trim().length > 0,
-      );
-
-    if (!lastUserMessage) {
-      return SUGGESTED_PROMPTS;
-    }
-
-    const text = lastUserMessage.content.toLowerCase();
-    const dynamic: { label: string; prompt: string }[] = [];
-
-    const addSuggestion = (label: string, prompt: string) => {
-      if (!dynamic.some((item) => item.label === label)) {
-        dynamic.push({ label, prompt });
-      }
-    };
-
-    if (/(visa|immigration|permit|embassy)/.test(text)) {
-      addSuggestion(
-        "Visa checklist",
-        "Can you provide a visa preparation checklist specific to my intake?",
-      );
-      addSuggestion(
-        "Interview prep",
-        "What common visa interview questions should I prepare for?",
-      );
-    }
-
-    if (/(scholar|funding|financial aid|tuition)/.test(text)) {
-      addSuggestion(
-        "Funding comparison",
-        "Could you compare scholarships and grants that fit my background?",
-      );
-    }
-
-    if (/(partner|university|institution|campus)/.test(text)) {
-      addSuggestion(
-        "Partner onboarding",
-        "What milestones should a new university partner expect in the first 90 days?",
-      );
-    }
-
-    if (/(agent|compliance|training|certification)/.test(text)) {
-      addSuggestion(
-        "Compliance overview",
-        "What compliance documents should our agents review this quarter?",
-      );
-    }
-
-    if (/(application|apply|admission|document)/.test(text)) {
-      addSuggestion(
-        "Application tracker",
-        "How can I track outstanding documents for my application?",
-      );
-    }
-
-    if (/(timeline|deadline|schedule)/.test(text)) {
-      addSuggestion(
-        "Timeline planning",
-        "Can you build a milestone timeline so I stay on track?",
-      );
-    }
-
-    if ((lastUserMessage.attachments?.length ?? 0) > 0) {
-      addSuggestion(
-        "Attachment summary",
-        "Can you summarize the key points from the files I shared?",
-      );
-    }
-
-    if (!dynamic.length) {
-      addSuggestion(
-        "Explore services",
-        "What else can you help me with regarding my study abroad plans?",
-      );
-      addSuggestion(
-        "Talk to an advisor",
-        "How do I schedule time with a human advisor if I need deeper support?",
-      );
-    }
-
-    const filled = [...dynamic];
-    for (const fallback of SUGGESTED_PROMPTS) {
-      if (filled.length >= 4) break;
-      if (!filled.some((item) => item.label === fallback.label)) {
-        filled.push(fallback);
-      }
-    }
-
-    return filled.slice(0, 4);
-  }, []);
-
   const interpretError = useCallback((error: unknown): ZoeErrorState => {
     const base: ZoeErrorState = {
       title: "Zoe is unavailable",
@@ -448,14 +335,6 @@ export default function ZoeChatbot() {
 
     return base;
   }, []);
-
-  useEffect(() => {
-    if (!hasConversationStarted) {
-      setSuggestions(SUGGESTED_PROMPTS);
-      return;
-    }
-    setSuggestions(generateSuggestions(messages));
-  }, [messages, hasConversationStarted, generateSuggestions]);
 
   const playNotification = useCallback(async () => {
     if (typeof window === "undefined") return;
@@ -714,7 +593,6 @@ export default function ZoeChatbot() {
     const updatedHistory = [...sanitizedHistory, userMessage];
 
     setMessages(updatedHistory);
-    setSuggestions(generateSuggestions(updatedHistory));
     setHasConversationStarted(true);
     setInput("");
     setAttachments([]);
@@ -905,7 +783,6 @@ export default function ZoeChatbot() {
     }
   }, [
     attachments,
-    generateSuggestions,
     input,
     isLoading,
     messages,
@@ -922,17 +799,6 @@ export default function ZoeChatbot() {
     if (!input.trim()) return;
     void sendMessage();
   }, [input, isLoading, sendMessage]);
-
-  const quickPromptHandler = useCallback(
-    (prompt: string) => {
-      setInput(prompt);
-      if (!isOpen) {
-        setIsExpanded(false);
-        setIsOpen(true);
-      }
-    },
-    [isOpen],
-  );
 
   if (!isOpen) {
     return (
@@ -1022,23 +888,6 @@ export default function ZoeChatbot() {
             </Button>
           </div>
         </div>
-        {suggestions.length > 0 && input.trim().length === 0 ? (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {suggestions.map(({ label, prompt }) => (
-              <Button
-                key={label}
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-9 rounded-full bg-primary/10 text-xs font-medium text-primary shadow-inner transition hover:bg-primary/20"
-                onClick={() => quickPromptHandler(prompt)}
-              >
-                <MessageSquareQuote className="mr-1.5 h-3.5 w-3.5" />
-                {label}
-              </Button>
-            ))}
-          </div>
-        ) : null}
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-0">
@@ -1062,7 +911,7 @@ export default function ZoeChatbot() {
                     size="sm"
                     variant="outline"
                     onClick={handleRetry}
-                    disabled={isLoading}
+                    disabled={isLoading || isUploading}
                     className="border-destructive/40 text-destructive hover:bg-destructive/10"
                   >
                     Try again
@@ -1200,51 +1049,17 @@ export default function ZoeChatbot() {
             </div>
           )}
 
-          <div className="mb-3 flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx,.txt"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-10 w-10 rounded-xl"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || isUploading}
-              title="Upload files"
-            >
-              {isUploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4" />
-              )}
-            </Button>
-
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-10 w-10 rounded-xl"
-              onClick={isRecording ? stopRecording : startRecording}
-              disabled={isLoading}
-              title={isRecording ? "Stop recording" : "Voice to text"}
-            >
-              {isRecording ? (
-                <MicOff className="h-4 w-4 text-destructive" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,.pdf,.doc,.docx,.txt"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
 
           <form
-            className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
+            className={`flex items-end gap-3 rounded-2xl border px-4 py-3 transition duration-150 ${
               isDragOver
                 ? "border-primary bg-primary/5 shadow-inner"
                 : "border-border bg-card/40"
@@ -1279,18 +1094,66 @@ export default function ZoeChatbot() {
               />
             </div>
 
-            <Button
-              type="submit"
-              size="icon"
-              disabled={
-                isLoading ||
-                isUploading ||
-                (!input.trim() && attachments.length === 0)
-              }
-              className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 rounded-xl"
+                    disabled={isLoading}
+                    aria-label="Attach files or audio"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={isLoading || isUploading}
+                  >
+                    <Upload className="mr-2 h-4 w-4" /> Upload a file
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      if (isRecording) {
+                        stopRecording();
+                      } else {
+                        void startRecording();
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    {isRecording ? (
+                      <MicOff className="mr-2 h-4 w-4 text-destructive" />
+                    ) : (
+                      <Mic className="mr-2 h-4 w-4" />
+                    )}
+                    {isRecording ? "Stop recording" : "Audio to text"}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                type="submit"
+                size="icon"
+                disabled={
+                  isLoading ||
+                  isUploading ||
+                  (!input.trim() && attachments.length === 0)
+                }
+                className="h-10 w-10 rounded-xl bg-primary text-primary-foreground shadow-lg transition hover:shadow-xl"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </form>
 
           <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
