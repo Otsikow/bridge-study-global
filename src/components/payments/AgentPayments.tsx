@@ -397,8 +397,8 @@ export function AgentPayments() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1.5 min-w-0">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
             Commission Tracker
@@ -407,23 +407,23 @@ export function AgentPayments() {
             Track your earnings and request payouts
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap flex-shrink-0">
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:flex-wrap">
           <Button
             variant="outline"
-            className="gap-2 hover-scale whitespace-nowrap"
+            className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto"
             disabled={stats.totalApproved === 0 || requestingPayout}
             onClick={requestPayout}
           >
             <CreditCard className="h-4 w-4" /> {requestingPayout ? 'Processing...' : 'Request Payout'}
           </Button>
-          <Button className="gap-2 hover-scale whitespace-nowrap">
+          <Button className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto">
             <Download className="h-4 w-4" /> Export
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         <Card className="rounded-xl border shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
@@ -495,7 +495,7 @@ export function AgentPayments() {
           <CardDescription>Choose how you would like to receive your payouts and provide verified details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-[minmax(0,280px)_1fr]">
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-[minmax(0,320px)_1fr]">
             <div className="space-y-4">
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">Preferred payout method</p>
@@ -641,8 +641,8 @@ export function AgentPayments() {
 
       {/* Commissions Table */}
       <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <TabsList>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <TabsList className="flex flex-wrap gap-2">
             <TabsTrigger value="all" onClick={() => setFilterStatus('all')}>
               All
             </TabsTrigger>

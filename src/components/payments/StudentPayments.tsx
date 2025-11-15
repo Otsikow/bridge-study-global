@@ -166,8 +166,8 @@ export function StudentPayments() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1.5 min-w-0">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
             Payments
@@ -176,17 +176,21 @@ export function StudentPayments() {
             Manage your invoices and payment methods
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap flex-shrink-0">
-          <Button variant="outline" className="gap-2 hover-scale whitespace-nowrap" onClick={initiatePayment}>
+        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:flex-wrap">
+          <Button
+            variant="outline"
+            className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto"
+            onClick={initiatePayment}
+          >
             <CreditCard className="h-4 w-4" /> <span className="hidden sm:inline">Add Payment</span>
           </Button>
-          <Button className="gap-2 hover-scale whitespace-nowrap">
+          <Button className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto">
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
         <Card className="rounded-xl border shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Outstanding Balance</CardTitle>
