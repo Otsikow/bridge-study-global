@@ -1,13 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, Calendar, CreditCard, Download, ExternalLink } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { LoadingState } from '@/components/LoadingState';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  DollarSign,
+  Calendar,
+  CreditCard,
+  Download,
+  ExternalLink,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { LoadingState } from "@/components/LoadingState";
+import { useToast } from "@/hooks/use-toast";
 
 interface Payment {
   id: string;
@@ -32,7 +50,7 @@ interface Payment {
 export function StudentPayments() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,35 +61,29 @@ export function StudentPayments() {
     try {
       setLoading(true);
 
-      // Get student ID first
       const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('id')
-        .eq('profile_id', user?.id)
+        .from("students")
+        .select("id")
+        .eq("profile_id", user?.id)
         .single();
 
-      if (studentError) {
-        console.error('Error fetching student:', studentError);
+      if (studentError || !studentData) {
+        console.error("Error fetching student:", studentError);
         setLoading(false);
         return;
       }
 
-      // Fetch applications for this student
-      const { data: applicationsData, error: applicationsError } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('student_id', studentData.id);
+      const { data: applicationsData } = await supabase
+        .from("applications")
+        .select("id")
+        .eq("student_id", studentData.id);
 
-      if (applicationsError) {
-        console.error('Error fetching applications:', applicationsError);
-      }
+      const applicationIds = applicationsData?.map((a) => a.id) || [];
 
-      const applicationIds = applicationsData?.map(app => app.id) || [];
-
-      // Fetch payments for these applications
       const { data, error } = await supabase
-        .from('payments')
-        .select(`
+        .from("payments")
+        .select(
+          `
           *,
           applications (
             programs (
@@ -81,81 +93,85 @@ export function StudentPayments() {
               )
             )
           )
-        `)
-        .in('application_id', applicationIds)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .in("application_id", applicationIds)
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching payments:', error);
+        console.error("Error fetching payments:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load payments',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load payments",
+          variant: "destructive",
         });
       } else {
         setPayments(data || []);
       }
     } catch (err) {
-      console.error('Unexpected error:', err);
+      console.error("Unexpected error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   const initiatePayment = async () => {
-    // Placeholder for Stripe payment integration
     toast({
-      title: 'Payment Gateway',
-      description: 'Stripe payment integration will be implemented here',
+      title: "Payment Gateway",
+      description: "Stripe integration will be added here",
     });
   };
 
-  const formatAmount = (cents: number, currency: string) => {
-    const amount = cents / 100;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-    }).format(amount);
-  };
+  const formatAmount = (cents: number, currency: string) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+    }).format(cents / 100);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
-  };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-      succeeded: 'default',
-      pending: 'secondary',
-      failed: 'destructive',
-      refunded: 'outline',
+    const variants: Record<
+      string,
+      "default" | "secondary" | "destructive" | "outline"
+    > = {
+      succeeded: "default",
+      pending: "secondary",
+      failed: "destructive",
+      refunded: "outline",
     };
-    return <Badge variant={variants[status] || 'secondary'}>{status.toUpperCase()}</Badge>;
+    return (
+      <Badge variant={variants[status] || "secondary"}>
+        {status.toUpperCase()}
+      </Badge>
+    );
   };
 
   const getPurposeLabel = (purpose: string) => {
     const labels: Record<string, string> = {
-      application_fee: 'Application Fee',
-      service_fee: 'Service Fee',
-      deposit: 'Deposit',
-      tuition: 'Tuition',
-      other: 'Other',
+      application_fee: "Application Fee",
+      service_fee: "Service Fee",
+      deposit: "Deposit",
+      tuition: "Tuition",
+      other: "Other",
     };
     return labels[purpose] || purpose;
   };
 
   const totalPaid = payments
-    .filter((p) => p.status === 'succeeded')
+    .filter((p) => p.status === "succeeded")
     .reduce((sum, p) => sum + p.amount_cents, 0);
 
   const totalPending = payments
-    .filter((p) => p.status === 'pending')
+    .filter((p) => p.status === "pending")
     .reduce((sum, p) => sum + p.amount_cents, 0);
 
-  const nextDueDate = payments.find((p) => p.status === 'pending');
+  const nextDueDate = payments.find((p) => p.status === "pending");
 
   if (loading) {
     return (
@@ -166,77 +182,131 @@ export function StudentPayments() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto px-1 sm:px-0">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1.5 min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
-            Payments
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Manage your invoices and payment methods
+    <div className="flex w-full flex-col gap-8 max-w-6xl mx-auto px-3 sm:px-6">
+      {/* HEADER */}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="rounded-2xl border border-border/60 bg-background/80 p-6 shadow-sm backdrop-blur">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">
+            Billing Center
           </p>
+          <h1 className="text-2xl font-bold sm:text-3xl lg:text-4xl">
+            Payments Overview
+          </h1>
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            View invoices, track payments, and download receipts.
+          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4">
+              <DollarSign className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">
+                  Total Paid
+                </p>
+                <p className="text-lg font-semibold text-success">
+                  {formatAmount(totalPaid, payments[0]?.currency || "USD")}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-4">
+              <Calendar className="h-5 w-5 text-success" />
+              <div>
+                <p className="text-xs uppercase text-muted-foreground">
+                  Next Due
+                </p>
+                <p className="text-lg font-semibold">
+                  {nextDueDate
+                    ? formatDate(nextDueDate.created_at)
+                    : "No pending payments"}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-2 w-full sm:flex-row sm:flex-wrap sm:justify-end lg:w-auto">
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Button
             variant="outline"
-            className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto"
+            className="group flex items-center gap-2 rounded-xl"
             onClick={initiatePayment}
           >
-            <CreditCard className="h-4 w-4" /> <span className="hidden sm:inline">Add Payment</span>
+            <CreditCard className="h-4 w-4 group-hover:scale-110" />
+            Make a Payment
           </Button>
-          <Button className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto">
-            <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
+
+          <Button className="group flex items-center gap-2 rounded-xl">
+            <Download className="h-4 w-4 group-hover:scale-110" />
+            Export History
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-6">
-        <Card className="rounded-xl border shadow-card h-full">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Outstanding Balance</CardTitle>
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <Card className="rounded-2xl border border-border/60 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Outstanding Balance
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
-              {formatAmount(totalPending, payments[0]?.currency || 'USD')}
-            </div>
+            <p className="text-3xl font-bold">
+              {formatAmount(totalPending, payments[0]?.currency || "USD")}
+            </p>
             <p className="text-sm text-muted-foreground">
-              {payments.filter((p) => p.status === 'pending').length} pending payment(s)
+              {payments.filter((p) => p.status === "pending").length} pending
             </p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border shadow-card h-full">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Total Paid</CardTitle>
+
+        <Card className="rounded-2xl border border-border/60 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Total Paid
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-success">
-              {formatAmount(totalPaid, payments[0]?.currency || 'USD')}
-            </div>
+            <p className="text-3xl font-bold text-success">
+              {formatAmount(totalPaid, payments[0]?.currency || "USD")}
+            </p>
             <p className="text-sm text-muted-foreground">
-              Across {payments.filter((p) => p.status === 'succeeded').length} invoice(s)
+              {
+                payments.filter((p) => p.status === "succeeded").length
+              }{" "}
+              invoices paid
             </p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border shadow-card h-full">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Next Due Date</CardTitle>
+
+        <Card className="rounded-2xl border border-border/60 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-sm text-muted-foreground">
+              Next Due Date
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {nextDueDate ? (
-              <>
-                <div className="flex items-center gap-2 text-foreground">
-                  <Calendar className="h-5 w-5" /> {formatDate(nextDueDate.created_at)}
-                </div>
-                <p className="text-sm text-muted-foreground">{getPurposeLabel(nextDueDate.purpose)}</p>
-              </>
+              <div>
+                <p className="flex items-center gap-2 text-foreground">
+                  <Calendar className="h-5 w-5 text-success" />
+                  {formatDate(nextDueDate.created_at)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {getPurposeLabel(nextDueDate.purpose)}
+                </p>
+              </div>
             ) : (
-              <div className="text-sm text-muted-foreground">No pending payments</div>
+              <p className="text-sm text-muted-foreground">
+                No pending payments
+              </p>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card className="rounded-xl border shadow-card">
+      {/* PAYMENT HISTORY */}
+      <Card className="rounded-2xl border border-border/60 shadow-xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" /> Payment History
@@ -245,7 +315,7 @@ export function StudentPayments() {
         <CardContent>
           {payments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>No payment history yet</p>
+              No transactions yet
             </div>
           ) : (
             <div className="w-full overflow-x-auto">
@@ -259,32 +329,44 @@ export function StudentPayments() {
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {payments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>{formatDate(payment.created_at)}</TableCell>
+
                       <TableCell className="min-w-[240px]">
                         <div>
-                          <div className="font-medium">{getPurposeLabel(payment.purpose)}</div>
+                          <div className="font-medium">
+                            {getPurposeLabel(payment.purpose)}
+                          </div>
                           {payment.applications?.programs && (
                             <div className="text-sm text-muted-foreground">
-                              {payment.applications.programs.name} at{' '}
+                              {payment.applications.programs.name} —{" "}
                               {payment.applications.programs.universities?.name}
                             </div>
                           )}
                         </div>
                       </TableCell>
+
                       <TableCell className="text-right font-medium">
-                        {formatAmount(payment.amount_cents, payment.currency)}
+                        {formatAmount(
+                          payment.amount_cents,
+                          payment.currency
+                        )}
                       </TableCell>
+
                       <TableCell>{getStatusBadge(payment.status)}</TableCell>
+
                       <TableCell className="text-right">
                         {payment.receipt_url && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={() => window.open(payment.receipt_url!, '_blank')}
+                            onClick={() =>
+                              window.open(payment.receipt_url!, "_blank")
+                            }
                           >
                             Receipt <ExternalLink className="h-3 w-3" />
                           </Button>
