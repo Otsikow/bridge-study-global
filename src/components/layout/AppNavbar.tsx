@@ -45,12 +45,14 @@ const navLinks: Array<{
   { id: "contact", to: "/contact", icon: MessageCircle },
 ];
 
+const HIDDEN_BACK_BUTTON_PATHS = new Set(["/", "/search", "/courses", "/scholarships", "/contact"]);
+
 const AppNavbar = () => {
   const { profile, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
-  const showBackButton = location.pathname !== "/";
+  const showBackButton = !HIDDEN_BACK_BUTTON_PATHS.has(location.pathname);
 
   const getInitials = (name: string) =>
     name
