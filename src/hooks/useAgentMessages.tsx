@@ -16,6 +16,8 @@ const noopTyping = async (_conversationId?: string) => undefined;
 const noopSendMessage = async (_conversationId: string, _payload: SendMessagePayload) => undefined;
 const noopGetOrCreateConversation = async (_otherUserId: string) => null;
 const noopFetchConversations = async () => undefined;
+const noopMarkAsRead = async (_conversationId: string) => undefined;
+const noopRemoveConversation = async (_conversationId: string) => undefined;
 
 export function useAgentMessages() {
   const { profile } = useAuth();
@@ -33,6 +35,8 @@ export function useAgentMessages() {
     stopTyping,
     getOrCreateConversation,
     fetchConversations,
+    markConversationAsRead,
+    removeConversation,
     error,
   } = messaging;
 
@@ -57,5 +61,7 @@ export function useAgentMessages() {
     stopTyping: enabled ? stopTyping : noopTyping,
     getOrCreateConversation: enabled ? getOrCreateConversation : noopGetOrCreateConversation,
     fetchConversations: enabled ? fetchConversations : noopFetchConversations,
+    markConversationAsRead: enabled ? markConversationAsRead : noopMarkAsRead,
+    removeConversation: enabled ? removeConversation : noopRemoveConversation,
   };
 }

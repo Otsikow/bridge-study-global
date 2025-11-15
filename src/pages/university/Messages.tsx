@@ -6,7 +6,6 @@ import { useMessages, type SendMessagePayload } from "@/hooks/useMessages";
 import { usePresence } from "@/hooks/usePresence";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +45,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { withUniversityCardStyles } from "@/components/university/common/cardStyles";
+import { searchDirectoryProfiles, type DirectoryProfile } from "@/lib/messaging/directory";
+import { DEFAULT_TENANT_ID } from "@/lib/messaging/data";
 
 const UniversityZoeAssistant = lazy(() =>
   import("@/components/university/UniversityZoeAssistant")
@@ -77,13 +78,7 @@ const ZoeAssistantErrorState = () => (
   </div>
 );
 
-interface ContactRecord {
-  id: string;
-  full_name: string;
-  email: string;
-  avatar_url: string | null;
-  role: string;
-}
+type ContactRecord = DirectoryProfile;
 
 const CONTACT_ROLES = ["agent", "staff", "admin", "partner"];
 
@@ -102,6 +97,8 @@ function UniversityMessagesPage() {
     stopTyping,
     getOrCreateConversation,
     fetchConversations,
+    markConversationAsRead,
+    removeConversation,
     error,
   } = useMessages();
 
@@ -207,31 +204,17 @@ function UniversityMessagesPage() {
   /* ------------------------------- Contact search ------------------------------- */
   const searchContacts = useCallback(
     async (queryText: string) => {
-      if (!profile?.tenant_id) {
-        toast({
-          title: "Profile not ready",
-          description: "We could not determine your tenant. Please try again later.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       setIsSearchingContacts(true);
       try {
-        const trimmed = queryText.trim();
-        let query = supabase
-          .from("profiles")
-          .select("id, full_name, email, avatar_url, role")
-          .eq("tenant_id", profile.tenant_id)
-          .neq("id", user?.id)
-          .in("role", CONTACT_ROLES)
-          .order("full_name", { ascending: true })
-          .limit(40);
-
-        if (trimmed) query = query.or(`full_name.ilike.%${trimmed}%,email.ilike.%${trimmed}%`);
-        const { data, error } = await query;
-        if (error) throw error;
-        setContacts((data ?? []) as ContactRecord[]);
+        const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
+        const excludeIds = [user?.id, profile?.id].filter(Boolean) as string[];
+        const results = await searchDirectoryProfiles(queryText, {
+          tenantId: tenant,
+          roles: CONTACT_ROLES as DirectoryProfile["role"][],
+          excludeIds,
+          limit: 40,
+        });
+        setContacts(results);
       } catch (error) {
         console.error("Error searching contacts", error);
         toast({
@@ -243,7 +226,7 @@ function UniversityMessagesPage() {
         setIsSearchingContacts(false);
       }
     },
-    [profile?.tenant_id, toast, user?.id]
+    [profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {
@@ -311,11 +294,7 @@ function UniversityMessagesPage() {
       return;
     }
     try {
-      const { error } = await supabase.rpc("mark_conversation_read", {
-        conversation_uuid: currentConversation,
-      });
-      if (error) throw error;
-      await fetchConversations();
+      await markConversationAsRead(currentConversation);
       toast({
         title: "Conversation marked as read",
         description: "All messages are now marked as read for you.",
@@ -328,10 +307,10 @@ function UniversityMessagesPage() {
         variant: "destructive",
       });
     }
-  }, [currentConversation, fetchConversations, toast]);
+  }, [currentConversation, markConversationAsRead, toast]);
 
   const handleDeleteConversation = useCallback(async () => {
-    if (!currentConversation || !user?.id) {
+    if (!currentConversation) {
       toast({
         title: "No conversation selected",
         description: "Choose a conversation first.",
@@ -339,13 +318,8 @@ function UniversityMessagesPage() {
       return;
     }
     try {
-      await supabase
-        .from("conversation_participants")
-        .delete()
-        .eq("conversation_id", currentConversation)
-        .eq("user_id", user.id);
+      await removeConversation(currentConversation);
       setCurrentConversation(null);
-      await fetchConversations();
       toast({
         title: "Conversation removed",
         description: "The conversation has been removed from your inbox.",
@@ -360,7 +334,7 @@ function UniversityMessagesPage() {
     } finally {
       setShowDeleteDialog(false);
     }
-  }, [currentConversation, fetchConversations, setCurrentConversation, toast, user?.id]);
+  }, [currentConversation, removeConversation, setCurrentConversation, toast]);
 
   /* ------------------------------- UI Layout ------------------------------- */
   return (

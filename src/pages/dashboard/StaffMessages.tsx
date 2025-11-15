@@ -31,10 +31,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import AIChatbot from "@/components/ai/AIChatbot";
 import { Skeleton } from "@/components/ui/skeleton";
 import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
+import { searchDirectoryProfiles, type DirectoryProfile } from "@/lib/messaging/directory";
+import { DEFAULT_TENANT_ID } from "@/lib/messaging/data";
 
 type TabValue = "zoe" | "partners" | "staff" | "insights";
 
@@ -197,13 +198,30 @@ export default function StaffMessages() {
       if (!canStartInternalChat) return;
       setLoadingContacts(true);
       try {
-        const trimmed = query.trim();
-        const { data, error } = await supabase.rpc("search_agent_contacts", {
-          search_query: trimmed || null,
+        const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
+        const results = await searchDirectoryProfiles(query, {
+          tenantId: tenant,
+          excludeIds: [profile?.id].filter(Boolean) as string[],
+          roles: [
+            "student",
+            "agent",
+            "partner",
+            "staff",
+            "admin",
+            "counselor",
+            "school_rep",
+          ] as DirectoryProfile["role"][],
+          limit: 40,
         });
-        if (error) throw error;
-        // @ts-expect-error - Type conversion from RPC result
-        setContacts((data || []) as AgentContact[]);
+        const mapped: AgentContact[] = results.map((record) => ({
+          profile_id: record.id,
+          full_name: record.full_name,
+          email: record.email,
+          avatar_url: record.avatar_url,
+          role: record.role,
+          contact_type: record.role === "student" ? "student" : "staff",
+        }));
+        setContacts(mapped);
       } catch (error) {
         console.error("Error fetching contacts:", error);
         toast({
@@ -215,7 +233,7 @@ export default function StaffMessages() {
         setLoadingContacts(false);
       }
     },
-    [canStartInternalChat, toast]
+    [canStartInternalChat, profile?.id, profile?.tenant_id, toast]
   );
 
   const handleNewChatDialogChange = useCallback(
