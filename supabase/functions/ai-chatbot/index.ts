@@ -54,6 +54,18 @@ interface AuthContext {
   payload: Record<string, unknown>;
 }
 
+interface AttachmentPayload {
+  name: string | null;
+  type: string | null;
+  url: string;
+}
+
+interface AttachmentDescription extends AttachmentPayload {
+  description: string | null;
+}
+
+const MAX_ATTACHMENT_DESCRIPTIONS = 3;
+
 function decodeJwtPayload(token: string): Record<string, unknown> | null {
   try {
     const parts = token.split(".");
@@ -214,6 +226,122 @@ function buildKnowledgeContext(matches: Array<Record<string, unknown>>): {
   };
 }
 
+function normalizeAttachments(value: unknown): AttachmentPayload[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const record = item as Record<string, unknown>;
+      const url = typeof record.url === "string" ? record.url : null;
+      if (!url) return null;
+
+      const name =
+        typeof record.name === "string"
+          ? record.name.slice(0, 200)
+          : null;
+      const type =
+        typeof record.type === "string"
+          ? record.type.slice(0, 100)
+          : null;
+      return { url, name, type };
+    })
+    .filter((item): item is AttachmentPayload => Boolean(item));
+}
+
+async function describeImageAttachment(
+  attachment: AttachmentPayload,
+): Promise<string | null> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text:
+                "You are assisting Zoe, our admissions copilot. Provide a concise description of this attachment, highlighting any text, data, or scene elements that could be useful when the user asks about it.",
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: attachment.url,
+                detail: "high",
+              },
+            },
+          ],
+        } as any,
+      ],
+    });
+
+    const messageContent = completion.choices?.[0]?.message?.content;
+    if (!messageContent) return null;
+    if (typeof messageContent === "string") {
+      return messageContent.trim() || null;
+    }
+    if (Array.isArray(messageContent)) {
+      const textChunk = messageContent.find(
+        (chunk: { type?: string; text?: string }) => chunk?.type === "text",
+      );
+      if (textChunk?.text) {
+        return textChunk.text.trim() || null;
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Failed to describe image attachment ${attachment.url}`,
+      error,
+    );
+  }
+  return null;
+}
+
+async function buildAttachmentIntelligence(attachments: AttachmentPayload[]):
+  Promise<{ context: string | null; descriptions: AttachmentDescription[] }> {
+  if (!attachments.length) {
+    return { context: null, descriptions: [] };
+  }
+
+  const descriptions: AttachmentDescription[] = attachments.map((attachment) => ({
+    ...attachment,
+    description: null,
+  }));
+  const limited = descriptions.slice(0, MAX_ATTACHMENT_DESCRIPTIONS);
+
+  const details: string[] = [];
+  for (const attachment of limited) {
+    if (attachment.type?.startsWith("image/")) {
+      attachment.description = await describeImageAttachment(attachment);
+    }
+
+    if (attachment.description) {
+      details.push(
+        `• ${attachment.name ?? "Image attachment"} (${attachment.type ?? "image"}): ${attachment.description}`,
+      );
+    } else {
+      details.push(
+        `• ${attachment.name ?? attachment.url} (${attachment.type ?? "file"}) was provided. Ask the user for specifics or review the linked file directly if more detail is required.`,
+      );
+    }
+  }
+
+  if (attachments.length > limited.length) {
+    details.push(
+      `Only the first ${MAX_ATTACHMENT_DESCRIPTIONS} attachments are summarized here. Ask the user if you need details about the remaining files.`,
+    );
+  }
+
+  const context = details.length
+    ? `Attachment intelligence derived from the user's uploads:\n${details.join("\n")}\nUse this information when responding to related questions.`
+    : null;
+
+  return { context, descriptions };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -244,6 +372,14 @@ serve(async (req) => {
       role: message.role === "assistant" ? "assistant" : "user",
       content: message.content.trim(),
     }));
+
+    const attachmentsValue =
+      body.metadata && typeof body.metadata === "object"
+        ? (body.metadata as Record<string, unknown>).attachments
+        : undefined;
+    const attachments = normalizeAttachments(attachmentsValue);
+    const { context: attachmentContext, descriptions: attachmentDescriptions } =
+      await buildAttachmentIntelligence(attachments);
 
     const lastUserMessage = [...rawMessages].reverse().find((msg) => msg.role === "user");
     if (!lastUserMessage) {
@@ -337,7 +473,8 @@ serve(async (req) => {
             audience: audienceFilter,
             locale: preferredLocale,
             timezone: body.timezone ?? null,
-            attachments: body.metadata?.attachments ?? null,
+            attachments: attachments.length ? attachments : null,
+            attachment_context: attachmentContext,
           },
         });
       } catch (error) {
@@ -355,6 +492,13 @@ serve(async (req) => {
       { role: "system" as const, content: systemPrompt },
       { role: "system" as const, content: formattingPrompt },
       { role: "system" as const, content: knowledgePrompt },
+      ...(attachmentContext
+        ? [{
+            role: "system" as const,
+            content:
+              `${attachmentContext}\nWhen the user references an attachment, rely on this summary instead of attempting to fetch the file yourself.`,
+          }]
+        : []),
       ...rawMessages,
     ];
 
@@ -404,6 +548,9 @@ serve(async (req) => {
                   sources,
                   audience: audienceFilter,
                   locale: preferredLocale,
+                  attachments: attachments.length ? attachments : null,
+                  attachment_context: attachmentContext,
+                  attachment_descriptions: attachmentDescriptions,
                 },
               });
 
