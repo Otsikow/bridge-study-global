@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+import { AppFooter } from "@/components/layout/AppFooter";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface DashboardLayoutProps {
@@ -22,6 +23,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </header>
           <main className="flex-1 animate-fade-in">{children}</main>
+          <AppFooter />
         </div>
       </div>
     </SidebarProvider>

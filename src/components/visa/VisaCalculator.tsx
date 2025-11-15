@@ -479,115 +479,107 @@ export default function VisaCalculator() {
       </div>
 
       <Dialog open={compareDialogOpen} onOpenChange={setCompareDialogOpen}>
-        <DialogContent
-          className="w-full max-w-[min(1200px,95vw)] sm:max-w-6xl lg:max-w-7xl h-[calc(100vh-4rem)] sm:h-[90vh] p-0 sm:p-6"
-        >
-          <div className="flex h-full flex-col overflow-hidden">
-            <DialogHeader className="px-4 py-4 sm:px-6 sm:py-0">
-              <DialogTitle>Compare Visa Requirements</DialogTitle>
-              <DialogDescription>
-                Select up to {MAX_COMPARISON_COUNTRIES} countries to view their visa requirements side by side.
-              </DialogDescription>
-            </DialogHeader>
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[85vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Compare Visa Requirements</DialogTitle>
+            <DialogDescription>
+              Select up to {MAX_COMPARISON_COUNTRIES} countries to view their visa requirements side by side.
+            </DialogDescription>
+          </DialogHeader>
 
-            <ScrollArea className="flex-1 px-4 pb-6 sm:px-6">
-              <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(260px,320px)_1fr] lg:items-start lg:gap-8">
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Countries</Label>
-                  <ScrollArea className="max-h-64 rounded-md border">
-                    <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-1">
-                      {Object.entries(VISA_REQUIREMENTS).map(([countryKey, requirement]) => {
-                        const isSelected = comparisonCountries.includes(countryKey);
+          <div className="space-y-6 overflow-y-auto pr-1 max-h-[72vh]">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Countries</Label>
+              <ScrollArea className="h-48 rounded-md border">
+                <div className="grid gap-2 p-3 sm:grid-cols-2">
+                  {Object.entries(VISA_REQUIREMENTS).map(([countryKey, requirement]) => {
+                    const isSelected = comparisonCountries.includes(countryKey);
 
-                        return (
-                          <label
-                            key={countryKey}
-                            htmlFor={`compare-${countryKey}`}
-                            className={`flex items-center justify-between gap-3 rounded-md border p-3 text-sm transition hover:border-primary ${isSelected ? 'border-primary bg-primary/5' : ''}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Checkbox
-                                id={`compare-${countryKey}`}
-                                checked={isSelected}
-                                onCheckedChange={(checked) => handleCountryToggle(countryKey, checked)}
-                              />
-                              <span className="font-medium">{requirement.country}</span>
-                            </div>
-                            {isSelected && <Badge variant="secondary">Selected</Badge>}
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  {comparisonData.length === 0 ? (
-                    <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
-                      Select at least one country to start a comparison.
-                    </div>
-                  ) : (
-                    <>
-                      {comparisonData.length >= 2 && (
-                        <div className="grid gap-3 sm:grid-cols-3">
-                          {insights.map((insight) => (
-                            <div key={insight.key} className="rounded-lg border bg-muted/40 p-4">
-                              <div className="flex items-center gap-2 text-sm font-medium">
-                                <insight.icon className="h-4 w-4 text-primary" />
-                                <span>{insight.title}</span>
-                              </div>
-                              <p className="mt-2 text-xs text-muted-foreground">{insight.description}</p>
-                            </div>
-                          ))}
+                    return (
+                      <label
+                        key={countryKey}
+                        htmlFor={`compare-${countryKey}`}
+                        className={`flex items-center justify-between gap-3 rounded-md border p-3 text-sm transition hover:border-primary ${isSelected ? 'border-primary bg-primary/5' : ''}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox
+                            id={`compare-${countryKey}`}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleCountryToggle(countryKey, checked)}
+                          />
+                          <span className="font-medium">{requirement.country}</span>
                         </div>
-                      )}
+                        {isSelected && <Badge variant="secondary">Selected</Badge>}
+                      </label>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            </div>
 
-                      <div className="flex-1 rounded-md border">
-                        <div className="overflow-auto lg:max-h-full">
-                          <Table className="min-w-[640px]">
-                            <TableHeader>
-                              <TableRow>
-                                <TableHead>Requirement</TableHead>
-                                {comparisonData.map(({ key, requirements }) => (
-                                  <TableHead key={key} className="text-right">
-                                    {requirements.country}
-                                  </TableHead>
-                                ))}
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {COMPARISON_METRICS.map((metric) => {
-                                const bestValue = getMetricBestValue(metric.key, metric.better);
+            {comparisonData.length === 0 ? (
+              <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                Select at least one country to start a comparison.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {comparisonData.length >= 2 && (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    {insights.map((insight) => (
+                      <div key={insight.key} className="rounded-lg border bg-muted/40 p-4">
+                        <div className="flex items-center gap-2 text-sm font-medium">
+                          <insight.icon className="h-4 w-4 text-primary" />
+                          <span>{insight.title}</span>
+                        </div>
+                        <p className="mt-2 text-xs text-muted-foreground">{insight.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="rounded-md border">
+                  <div className="max-h-[55vh] overflow-auto">
+                    <Table className="min-w-[640px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Requirement</TableHead>
+                          {comparisonData.map(({ key, requirements }) => (
+                            <TableHead key={key} className="text-right">
+                              {requirements.country}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {COMPARISON_METRICS.map((metric) => {
+                          const bestValue = getMetricBestValue(metric.key, metric.better);
+
+                          return (
+                            <TableRow key={metric.key}>
+                              <TableCell className="font-medium">{metric.label}</TableCell>
+                              {comparisonData.map(({ key, requirements }) => {
+                                const value = requirements[metric.key];
+                                const displayValue = metric.format ? metric.format(requirements) : value;
+                                const isBest = typeof bestValue === 'number' && value === bestValue;
 
                                 return (
-                                  <TableRow key={metric.key}>
-                                    <TableCell className="font-medium">{metric.label}</TableCell>
-                                    {comparisonData.map(({ key, requirements }) => {
-                                      const value = requirements[metric.key];
-                                      const displayValue = metric.format ? metric.format(requirements) : value;
-                                      const isBest = typeof bestValue === 'number' && value === bestValue;
-
-                                      return (
-                                        <TableCell
-                                          key={key}
-                                          className={`text-right text-sm ${isBest ? 'font-semibold text-success' : ''}`}
-                                        >
-                                          {displayValue}
-                                        </TableCell>
-                                      );
-                                    })}
-                                  </TableRow>
+                                  <TableCell
+                                    key={key}
+                                    className={`text-right text-sm ${isBest ? 'font-semibold text-success' : ''}`}
+                                  >
+                                    {displayValue}
+                                  </TableCell>
                                 );
                               })}
-                            </TableBody>
-                          </Table>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
-            </ScrollArea>
+            )}
           </div>
         </DialogContent>
       </Dialog>
