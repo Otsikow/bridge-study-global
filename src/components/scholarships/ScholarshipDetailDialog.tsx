@@ -38,7 +38,7 @@ interface ScholarshipDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   scholarship: ScholarshipSearchResult | null;
   isSaved: boolean;
-  onToggleSave: (scholarshipId: string) => void;
+  onToggleSave: (scholarship: ScholarshipSearchResult) => void;
   onShare?: (scholarship: ScholarshipSearchResult) => void;
   similarScholarships?: ScholarshipSearchResult[];
   onSelectScholarship?: (scholarship: ScholarshipSearchResult) => void;
@@ -66,7 +66,7 @@ export const ScholarshipDetailDialog = ({
 }: ScholarshipDetailDialogProps) => {
   if (!scholarship) return null;
 
-  const handleSave = () => onToggleSave(scholarship.id);
+  const handleSave = () => onToggleSave(scholarship);
   const handleShare = () => onShare?.(scholarship);
 
   const deadlineDate = scholarship.deadline ? format(new Date(scholarship.deadline), "PPP") : "Rolling";
@@ -262,10 +262,10 @@ export const ScholarshipDetailDialog = ({
               </Section>
             ) : null}
 
-            {scholarship.tags.length ? (
+            {scholarship.tags?.length ? (
               <Section title="Tags & focus areas">
                 <div className="flex flex-wrap gap-2">
-                  {scholarship.tags.map((tag) => (
+                  {(scholarship.tags ?? []).map((tag) => (
                     <Badge key={tag} variant="outline" className="rounded-full">
                       #{tag}
                     </Badge>
