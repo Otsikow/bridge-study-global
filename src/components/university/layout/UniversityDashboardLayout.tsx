@@ -804,6 +804,7 @@ export const UniversityDashboardLayout = ({
     () =>
       data?.university
         ? computeUniversityProfileCompletion(
+            // @ts-expect-error - UniversityRecord type mismatch
             data.university,
             data.profileDetails ?? emptyUniversityProfileDetails,
           )

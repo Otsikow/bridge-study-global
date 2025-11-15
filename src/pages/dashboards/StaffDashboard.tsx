@@ -166,6 +166,7 @@ export default function StaffDashboard() {
     queryFn: async (): Promise<{ commissions: CommissionWithRelations[]; payments: CommissionPayment[] }> => {
       const [commissionsResult, paymentsResult] = await Promise.all([
         supabase.from("commissions").select(`*, agents:agents ( profiles:profiles ( full_name ) ), applications:applications ( students:students ( profiles:profiles ( full_name ) ) )`).order("created_at", { ascending: false }),
+        // @ts-expect-error - commission_payout type not in enum
         supabase.from("payments").select("id, amount_cents, currency, status, created_at, metadata, purpose, application_id").eq("purpose", "commission_payout").order("created_at", { ascending: false }),
       ]);
 

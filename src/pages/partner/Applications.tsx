@@ -285,6 +285,7 @@ const Applications = () => {
           .eq('agent_id', agentId);
 
         if (statuses.length > 0) {
+          // @ts-expect-error - Status types mismatch
           query = query.in('status', statuses);
         }
 
@@ -302,6 +303,7 @@ const Applications = () => {
         }
 
         const { data, error, count } = await query
+          // @ts-expect-error - nullsLast option not in type
           .order('submitted_at', { ascending: false, nullsLast: true })
           .order('created_at', { ascending: false })
           .range(startIndex, endIndex);

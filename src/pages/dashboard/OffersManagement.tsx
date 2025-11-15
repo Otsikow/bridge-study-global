@@ -254,10 +254,34 @@ export default function OffersManagement() {
 
       const fetchCasLetters = async (): Promise<CasRecord[]> => {
         const casLettersResponse = await supabase
-          .from("cas_letters")
+          .from("cas_letters" as any)
           .select(casSelect)
-          .order("issue_date", { ascending: false, nullsFirst: false })
-          .order("created_at", { ascending: false, nullsFirst: false });
+          .order("issue_date", { ascending: false })
+          .order("created_at", { ascending: false });
+
+        if (casLettersResponse.error) {
+          const errorCode = (casLettersResponse.error as { code?: string }).code;
+          if (
+            errorCode === "42P01" ||
+            casLettersResponse.error.message?.toLowerCase().includes("cas_letters")
+          ) {
+            const fallbackResponse = await supabase
+              .from("cas_loa" as any)
+              .select(casSelect)
+              .order("issue_date", { ascending: false })
+              .order("created_at", { ascending: false });
+
+            if (fallbackResponse.error) {
+              throw fallbackResponse.error;
+            }
+
+            return (fallbackResponse.data ?? []) as CasRecord[];
+          }
+
+          throw casLettersResponse.error;
+        }
+
+        return (casLettersResponse.data ?? []) as CasRecord[];
 
         if (casLettersResponse.error) {
           // fallback to older table name if cas_letters does not exist

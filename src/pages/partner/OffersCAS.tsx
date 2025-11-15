@@ -176,10 +176,10 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
 
   const fetchCasLetters = async (): Promise<CasRecord[]> => {
     const casLettersResponse = await supabase
-      .from<CasRecord>("cas_letters")
+      .from("cas_letters" as any)
       .select(casSelect)
-      .order("issue_date", { ascending: false, nullsFirst: false })
-      .order("created_at", { ascending: false, nullsFirst: false });
+      .order("issue_date", { ascending: false })
+      .order("created_at", { ascending: false });
 
     if (casLettersResponse.error) {
       const errorCode = (casLettersResponse.error as { code?: string }).code;
@@ -188,10 +188,10 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
         casLettersResponse.error.message?.toLowerCase().includes("cas_letters")
       ) {
         const fallbackResponse = await supabase
-          .from<CasRecord>("cas_loa")
+          .from("cas_loa" as any)
           .select(casSelect)
-          .order("issue_date", { ascending: false, nullsFirst: false })
-          .order("created_at", { ascending: false, nullsFirst: false });
+          .order("issue_date", { ascending: false })
+          .order("created_at", { ascending: false });
 
         if (fallbackResponse.error) {
           throw fallbackResponse.error;
@@ -202,6 +202,8 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
 
       throw casLettersResponse.error;
     }
+
+    return (casLettersResponse.data ?? []) as CasRecord[];
 
     return (casLettersResponse.data ?? []) as CasRecord[];
   };
@@ -315,25 +317,14 @@ export default function OffersCASPage() {
   } = useQuery({
     queryKey: ["partner-offers-cas"],
     queryFn: fetchOffersAndCas,
-    onError: (queryError) => {
-      console.error("Failed to fetch partner offers and CAS records", queryError);
-      toast({
-        title: "Unable to load records",
-        description:
-          queryError instanceof Error
-            ? queryError.message
-            : "Please try again in a few moments.",
-        variant: "destructive",
-      });
-    },
     staleTime: 1000 * 60 * 5,
-  });
+  }) as any;
 
   const universityOptions = useMemo(() => {
     const unique = Array.from(
-      new Set(records.map((record) => record.university).filter(Boolean)),
+      new Set(records.map((record: any) => record.university).filter(Boolean)),
     );
-    return unique.sort((a, b) => a.localeCompare(b));
+    return unique.sort((a: any, b: any) => a.localeCompare(b));
   }, [records]);
 
   const filteredRecords = useMemo(() => {

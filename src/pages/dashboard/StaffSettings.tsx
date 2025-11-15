@@ -200,7 +200,7 @@ export default function StaffSettings() {
                         <Button
                           variant={previewTheme === theme.id ? "default" : "outline"}
                           size="sm"
-                          onClick={() => handleThemePreview(theme.id)}
+                          onClick={() => handleThemePreview(theme.id as "dark" | "light")}
                         >
                           Preview
                         </Button>

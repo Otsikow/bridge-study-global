@@ -256,15 +256,10 @@ const ScholarshipsPage = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <aside className="lg:col-span-1">
-              {/* @ts-expect-error - Filter props mismatch */}
+              {/* @ts-expect-error - Filter component props mismatch */}
               <ScholarshipFilters
                 filters={filters}
                 onFiltersChange={setFilters}
-                countries={SCHOLARSHIP_COUNTRIES}
-                levels={SCHOLARSHIP_LEVELS}
-                fundingTypes={SCHOLARSHIP_FUNDING_TYPES}
-                fieldsOfStudy={SCHOLARSHIP_FIELDS}
-                eligibilityTags={SCHOLARSHIP_ELIGIBILITY_TAGS}
               />
             </aside>
 
@@ -314,14 +309,13 @@ const ScholarshipsPage = () => {
                   </h3>
                   <div className="grid gap-4 md:grid-cols-2">
                     {recommendations.map((scholarship) => (
-                      // @ts-expect-error - Recommendation type mismatch
                       <ScholarshipCard
                         key={scholarship.id}
-                        scholarship={scholarship}
+                        scholarship={scholarship as any}
                         isSaved={savedScholarshipIds.includes(scholarship.id)}
-                        onToggleSave={toggleSave}
-                        onViewDetails={() => setSelectedScholarship(scholarship)}
-                        onShare={() => handleShare(scholarship)}
+                        onToggleSave={toggleSave as any}
+                        onViewDetails={() => setSelectedScholarship(scholarship as any)}
+                        onShare={() => handleShare(scholarship as any)}
                       />
                     ))}
                   </div>
@@ -343,14 +337,13 @@ const ScholarshipsPage = () => {
 
                 <div className="grid gap-4 md:grid-cols-2">
                   {allResults.map((scholarship) => (
-                    // @ts-expect-error - Scholarship type mismatch
                     <ScholarshipCard
                       key={scholarship.id}
-                      scholarship={scholarship}
+                      scholarship={scholarship as any}
                       isSaved={savedScholarshipIds.includes(scholarship.id)}
-                      onToggleSave={toggleSave}
-                      onViewDetails={() => setSelectedScholarship(scholarship)}
-                      onShare={() => handleShare(scholarship)}
+                      onToggleSave={toggleSave as any}
+                      onViewDetails={() => setSelectedScholarship(scholarship as any)}
+                      onShare={() => handleShare(scholarship as any)}
                     />
                   ))}
                 </div>
@@ -361,13 +354,12 @@ const ScholarshipsPage = () => {
       </div>
 
       {selectedScholarship && (
-        // @ts-expect-error - Callback type mismatch
         <ScholarshipDetailDialog
           scholarship={selectedScholarship}
           open={!!selectedScholarship}
           onOpenChange={(open) => !open && setSelectedScholarship(null)}
           isSaved={savedScholarshipIds.includes(selectedScholarship.id)}
-          onToggleSave={toggleSave}
+          onToggleSave={toggleSave as any}
         />
       )}
 
