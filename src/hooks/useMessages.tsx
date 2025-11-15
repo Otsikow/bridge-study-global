@@ -13,6 +13,7 @@ import {
   initializeMockMessagingState,
   sortConversations,
 } from "@/lib/messaging/mockService";
+import { getMessagingContactIds } from "@/lib/messaging/relationships";
 import type {
   Conversation,
   ConversationParticipant,
@@ -132,6 +133,11 @@ export function useMessages() {
 
   const tenantId = profile?.tenant_id ?? resolvedProfile.tenant_id ?? DEFAULT_TENANT_ID;
   const currentUserId = resolvedProfile.id;
+
+  const allowedContacts = useMemo(() => {
+    const ids = getMessagingContactIds(resolvedProfile);
+    return ids.length > 0 ? new Set(ids) : null;
+  }, [resolvedProfile]);
 
   const aliasMap = useMemo(() => {
     const placeholder = getPlaceholderIdForRole(resolvedProfile.role);
@@ -306,6 +312,15 @@ export function useMessages() {
       const otherProfile = findDirectoryProfileById(otherUserId);
       if (!otherProfile) return null;
 
+      if (allowedContacts && !allowedContacts.has(otherUserId)) {
+        toast({
+          title: "Messaging restricted",
+          description: "You can only start conversations with contacts linked to your account.",
+          variant: "destructive",
+        });
+        return null;
+      }
+
       const existing = conversationsRef.current.find((conversation) => {
         if (conversation.is_group) return false;
         const participants = conversation.participants ?? [];
@@ -359,7 +374,7 @@ export function useMessages() {
       });
       return conversationId;
     },
-    [currentUserId, resolvedProfile, setCurrentConversation, tenantId, toast],
+    [allowedContacts, currentUserId, resolvedProfile, setCurrentConversation, tenantId, toast],
   );
 
   const fetchConversations = useCallback(async () => {

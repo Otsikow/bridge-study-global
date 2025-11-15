@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ChatList } from '@/components/messages/ChatList';
 import { ChatArea } from '@/components/messages/ChatArea';
 import { MessagingUnavailable } from '@/components/messages/MessagingUnavailable';
@@ -20,8 +20,13 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { searchDirectoryProfiles, type DirectoryProfile } from '@/lib/messaging/directory';
+import {
+  findDirectoryProfileById,
+  searchDirectoryProfiles,
+  type DirectoryProfile,
+} from '@/lib/messaging/directory';
 import { DEFAULT_TENANT_ID } from '@/lib/messaging/data';
+import { getMessagingContactIds } from '@/lib/messaging/relationships';
 
 type ProfileRecord = DirectoryProfile;
 
@@ -52,6 +57,22 @@ export default function Messages() {
   const currentConversationData = conversations.find(
     (c) => c.id === currentConversation
   );
+
+  const messagingProfile = useMemo(() => {
+    if (profile?.id) {
+      return findDirectoryProfileById(profile.id) ?? null;
+    }
+    if (user?.id) {
+      return findDirectoryProfileById(user.id) ?? null;
+    }
+    return null;
+  }, [profile?.id, user?.id]);
+
+  const allowedProfileIds = useMemo(() => {
+    if (!messagingProfile) return undefined;
+    const ids = getMessagingContactIds(messagingProfile);
+    return ids.length > 0 ? new Set(ids) : undefined;
+  }, [messagingProfile]);
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversation(conversationId);
@@ -89,6 +110,7 @@ export default function Messages() {
           tenantId: tenant,
           excludeIds,
           roles: ['agent', 'partner', 'staff', 'admin', 'counselor', 'school_rep'],
+          allowedProfileIds,
           limit: 20,
         });
         setProfiles(results);
@@ -103,7 +125,7 @@ export default function Messages() {
         setSearchingProfiles(false);
       }
     },
-    [profile?.id, profile?.tenant_id, toast, user?.id]
+    [allowedProfileIds, profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {
