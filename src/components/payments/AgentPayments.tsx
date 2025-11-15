@@ -397,96 +397,124 @@ export function AgentPayments() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1.5 min-w-0">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
-            Commission Tracker
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Track your earnings and request payouts
-          </p>
+    <div className="flex w-full flex-col gap-8">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-background/80 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/70">
+          <div className="pointer-events-none absolute -top-20 right-0 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+          <div className="space-y-2 relative">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary/70">Commission Hub</p>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Commission Tracker</h1>
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Monitor your earnings, review payout-ready commissions, and manage preferred payment methods for your agency.
+            </p>
+          </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/40 p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+                <TrendingUp className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Month Growth</p>
+                <p className="text-lg font-semibold text-foreground">
+                  {monthlyGrowth > 0 ? `+${monthlyGrowth.toFixed(1)}%` : `${monthlyGrowth.toFixed(1)}%`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/40 p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Ready for Payout</p>
+                <p className="text-lg font-semibold text-primary">
+                  {formatAmount(stats.totalApproved, stats.currency)}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
           <Button
             variant="outline"
-            className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto"
+            className="group flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl border-primary/40 bg-primary/5 text-primary transition hover:border-primary/60 hover:bg-primary/10 sm:w-auto"
             disabled={stats.totalApproved === 0 || requestingPayout}
             onClick={requestPayout}
           >
-            <CreditCard className="h-4 w-4" /> {requestingPayout ? 'Processing...' : 'Request Payout'}
+            <CreditCard className="h-4 w-4 transition-transform group-hover:scale-110" />
+            {requestingPayout ? 'Processing...' : 'Request Payout'}
           </Button>
-          <Button className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto">
-            <Download className="h-4 w-4" /> Export
+          <Button className="group flex w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl sm:w-auto">
+            <Download className="h-4 w-4 transition-transform group-hover:scale-110" />
+            Export Statement
           </Button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-        <Card className="rounded-xl border shadow-card">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <DollarSign className="h-4 w-4 text-success" />
               Total Earned
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             <div className="text-3xl font-bold text-success">
               {formatAmount(stats.totalEarned, stats.currency)}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground">
               {commissions.filter((c) => c.status === 'paid').length} payment(s)
             </p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <TrendingUp className="h-4 w-4 text-primary" />
               Approved
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-600">
+          <CardContent className="space-y-1">
+            <div className="text-3xl font-bold text-primary">
               {formatAmount(stats.totalApproved, stats.currency)}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Ready for payout</p>
+            <p className="text-sm text-muted-foreground">Ready for payout</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <Calendar className="h-4 w-4 text-warning" />
               Pending
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-600">
+          <CardContent className="space-y-1">
+            <div className="text-3xl font-bold text-warning">
               {formatAmount(stats.totalPending, stats.currency)}
             </div>
-            <p className="text-sm text-muted-foreground mt-1">Awaiting approval</p>
+            <p className="text-sm text-muted-foreground">Awaiting approval</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-              <Users className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <Users className="h-4 w-4 text-foreground" />
               Students Referred
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-1">
             <div className="text-3xl font-bold">{stats.studentsReferred}</div>
-            <p className="text-sm text-muted-foreground mt-1">Total referrals</p>
+            <p className="text-sm text-muted-foreground">Total referrals</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Payment Preferences */}
-      <Card className="rounded-xl border shadow-card">
+      <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
         <CardHeader className="space-y-1">
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
@@ -516,7 +544,7 @@ export function AgentPayments() {
                 </Select>
               </div>
 
-              <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+              <div className="space-y-3 rounded-xl border border-border/50 bg-muted/40 p-4">
                 <div className="flex items-center gap-3">
                   {selectedMethod && (() => {
                     const Icon = selectedMethod.icon;
@@ -553,7 +581,7 @@ export function AgentPayments() {
                   value={currentPaymentDetails}
                   onChange={(event) => handlePaymentDetailChange(event.target.value)}
                   rows={10}
-                  className="resize-none"
+                  className="resize-none rounded-lg border-border/40 bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/50"
                   placeholder={selectedMethod.placeholder}
                 />
                 <p className="text-xs text-muted-foreground">{selectedMethod.helper}</p>
@@ -577,7 +605,7 @@ export function AgentPayments() {
       </Card>
 
       {/* Monthly Trend Chart */}
-      <Card className="rounded-xl border shadow-card">
+      <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -658,7 +686,7 @@ export function AgentPayments() {
           </TabsList>
         </div>
 
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-2xl border border-border/60 bg-card/80 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-card/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
@@ -717,7 +745,7 @@ export function AgentPayments() {
       </Tabs>
 
       {/* Stripe Connect Information */}
-      <Card className="rounded-xl border shadow-card bg-muted/50">
+      <Card className="rounded-2xl border border-border/60 bg-muted/60 shadow-xl backdrop-blur supports-[backdrop-filter]:bg-muted/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <CreditCard className="h-5 w-5" />
