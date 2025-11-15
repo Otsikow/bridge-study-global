@@ -13,7 +13,12 @@ import DocumentsTab from '@/components/settings/DocumentsTab';
 import NotificationsTab from '@/components/settings/NotificationsTab';
 import PasswordSecurityTab from '@/components/settings/PasswordSecurityTab';
 import AccountTab from '@/components/settings/AccountTab';
-import { calculateProfileCompletion } from '@/lib/profileCompletion';
+import {
+  AgentProfileDetails,
+  calculateProfileCompletion,
+  ProfileRoleData,
+  StudentProfileDetails,
+} from '@/lib/profileCompletion';
 import { generateReferralLink } from '@/lib/referrals';
 import { useSearchParams } from 'react-router-dom';
 
@@ -35,7 +40,7 @@ export default function ProfileSettings() {
   const referralLink = profile ? generateReferralLink(profile.username) : '';
 
   // Fetch additional profile data based on role
-  const { data: roleData, isLoading: roleDataLoading } = useQuery({
+  const { data: roleData, isLoading: roleDataLoading } = useQuery<ProfileRoleData | null>({
     queryKey: ['roleData', profile?.id, profile?.role],
     queryFn: async () => {
       if (!profile?.id) return null;
@@ -46,18 +51,20 @@ export default function ProfileSettings() {
           .select('*')
           .eq('profile_id', profile.id)
           .single();
-        
+
         if (error) throw error;
-        return { type: 'agent', data };
+        if (!data) return null;
+        return { type: 'agent', data: data as AgentProfileDetails };
       } else if (profile.role === 'student') {
         const { data, error } = await supabase
           .from('students')
           .select('*')
           .eq('profile_id', profile.id)
           .single();
-        
+
         if (error) throw error;
-        return { type: 'student', data };
+        if (!data) return null;
+        return { type: 'student', data: data as StudentProfileDetails };
       }
 
       return null;
@@ -148,7 +155,7 @@ export default function ProfileSettings() {
   // Calculate profile completion percentage
   useEffect(() => {
     if (profile && roleData) {
-      const percentage = calculateProfileCompletion(profile, roleData as any);
+      const percentage = calculateProfileCompletion(profile, roleData);
       setCompletionPercentage(percentage);
     }
   }, [profile, roleData]);

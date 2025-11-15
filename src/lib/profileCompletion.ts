@@ -1,20 +1,43 @@
 interface Profile {
-  full_name?: string;
-  email?: string;
-  phone?: string;
-  country?: string;
-  avatar_url?: string;
-  role?: string;
+  full_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  country?: string | null;
+  avatar_url?: string | null;
+  role?: string | null;
 }
 
-interface RoleData {
-  type: 'student' | 'agent' | null;
-  data?: any;
+export interface StudentProfileDetails {
+  id?: string;
+  date_of_birth?: string | null;
+  nationality?: string | null;
+  passport_number?: string | null;
+  address?: string | null;
+  education_history?: Record<string, unknown> | null;
 }
+
+export interface AgentProfileDetails {
+  id?: string;
+  company_name?: string | null;
+  verification_status?: 'pending' | 'approved' | 'rejected' | null;
+  referral_code?: string | null;
+}
+
+export type ProfileRoleData =
+  | { type: 'student'; data: StudentProfileDetails }
+  | { type: 'agent'; data: AgentProfileDetails };
+
+const isNonEmptyString = (value?: string | null): value is string => {
+  return typeof value === 'string' && value.trim() !== '';
+};
+
+const isPopulatedObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null && Object.keys(value).length > 0;
+};
 
 export const calculateProfileCompletion = (
   profile: Profile,
-  roleData?: RoleData | null
+  roleData?: ProfileRoleData | null
 ): number => {
   let totalFields = 0;
   let completedFields = 0;
@@ -29,7 +52,7 @@ export const calculateProfileCompletion = (
   ];
 
   totalFields += basicFields.length;
-  completedFields += basicFields.filter((field) => field && field.trim() !== '').length;
+  completedFields += basicFields.filter((field) => isNonEmptyString(field)).length;
 
   // Role-specific fields (60% weight)
   if (roleData?.type === 'student' && roleData.data) {
@@ -43,11 +66,9 @@ export const calculateProfileCompletion = (
 
     totalFields += studentFields.length;
     completedFields += studentFields.filter((field) => {
-      if (typeof field === 'string') return field.trim() !== '';
-      if (typeof field === 'object' && field !== null) {
-        return Object.keys(field).length > 0;
-      }
-      return !!field;
+      if (isNonEmptyString(field)) return true;
+      if (isPopulatedObject(field)) return true;
+      return Boolean(field);
     }).length;
   } else if (roleData?.type === 'agent' && roleData.data) {
     const agentFields = [
@@ -57,7 +78,7 @@ export const calculateProfileCompletion = (
     ];
 
     totalFields += agentFields.length;
-    completedFields += agentFields.filter((field) => !!field).length;
+    completedFields += agentFields.filter((field) => Boolean(field)).length;
   }
 
   if (totalFields === 0) return 0;
