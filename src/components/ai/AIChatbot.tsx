@@ -71,6 +71,7 @@ interface ZoeErrorState {
 }
 
 const STORAGE_KEY = "zoe-chat-session-id";
+const CHAT_UPLOAD_BUCKET = "chat-uploads";
 const { url: SUPABASE_URL, functionsUrl: SUPABASE_FUNCTIONS_URL } =
   getSupabaseBrowserConfig();
 const SUPABASE_FUNCTIONS_BASE = (
@@ -478,14 +479,16 @@ export default function ZoeChatbot() {
 
         const extension = file.name.split(".").pop();
         const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
-        const path = `chat-uploads/${user.id}/${name}`;
+        const path = `${user.id}/${name}`;
 
         const { error } = await supabase.storage
-          .from("public")
+          .from(CHAT_UPLOAD_BUCKET)
           .upload(path, file, { cacheControl: "3600", upsert: false });
         if (error) throw error;
 
-        const { data } = supabase.storage.from("public").getPublicUrl(path);
+        const { data } = supabase.storage
+          .from(CHAT_UPLOAD_BUCKET)
+          .getPublicUrl(path);
         if (!data?.publicUrl) throw new Error("Unable to retrieve file URL");
 
         const attachment: Attachment = {
