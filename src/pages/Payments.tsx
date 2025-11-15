@@ -19,7 +19,7 @@ export default function Payments() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-8">
+      <div className="p-4 md:p-8 max-w-6xl mx-auto w-full">
         {profile?.role === 'student' ? <StudentPayments /> : <AgentPayments />}
       </div>
     </DashboardLayout>
