@@ -113,7 +113,6 @@ export default function BackButton({
         )}
         onClick={handlePrimaryClick}
       >
-        <ArrowLeft className="h-4 w-4" />
         <span className={labelClassName}>{label ?? t("common.actions.goBack")}</span>
       </Button>
       {showHistoryMenu ? (
