@@ -48,7 +48,7 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
       "Historic academic excellence with a strong record of welcoming international scholars.",
     featured_highlight: "Personalized onboarding for postgraduate programs",
     featured_image_url:
-      "https://images.unsplash.com/photo-1521996319423-5650972f7195?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1528747045269-390fe33c19d4?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "fallback-toronto",
@@ -65,7 +65,7 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
       "Leading research university known for industry partnerships and co-op opportunities.",
     featured_highlight: "Career pathways across technology and business",
     featured_image_url:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "fallback-mit",
@@ -81,7 +81,7 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
       "World-leading hub for engineering, computing, and science with deep industry partnerships.",
     featured_highlight: "Hands-on labs advancing AI, robotics, and climate tech",
     featured_image_url:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
+      "https://upload.wikimedia.org/wikipedia/commons/0/02/MIT_Building_10_and_the_Great_Dome%2C_April_2017.jpg",
   },
   {
     id: "fallback-melbourne",
@@ -98,7 +98,7 @@ const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
       "Vibrant campus culture with deep ties to Asia-Pacific innovation ecosystems.",
     featured_highlight: "Global internships spanning research and industry",
     featured_image_url:
-      "https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=1200&q=80",
+      "https://upload.wikimedia.org/wikipedia/commons/5/5f/The_University_of_Melbourne_Parkville_Campus.jpg",
   },
 ];
 

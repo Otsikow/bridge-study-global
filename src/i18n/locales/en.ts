@@ -570,7 +570,7 @@ const en = {
         description:
           "Institutions that consistently deliver an exceptional onboarding experience for Global Education Gateway students.",
         network: {
-          label: "Featured network",
+          label: "Featured Universities",
           summary: "{{count}} institutions selected by our partnerships team",
         },
         badges: {
