@@ -1078,6 +1078,52 @@ export default function ZoeChatbot() {
             }}
             onDrop={handleDrop}
           >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-xl"
+                  disabled={isLoading}
+                  aria-label="Attach files or audio"
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    fileInputRef.current?.click();
+                  }}
+                  disabled={isLoading || isUploading}
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Upload a file
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    if (isRecording) {
+                      stopRecording();
+                    } else {
+                      void startRecording();
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  {isRecording ? (
+                    <MicOff className="mr-2 h-4 w-4 text-destructive" />
+                  ) : (
+                    <Mic className="mr-2 h-4 w-4" />
+                  )}
+                  {isRecording ? "Stop recording" : "Audio to text"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <div className="flex-1">
               <Textarea
                 value={input}
@@ -1095,52 +1141,6 @@ export default function ZoeChatbot() {
             </div>
 
             <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-10 w-10 rounded-xl"
-                    disabled={isLoading}
-                    aria-label="Attach files or audio"
-                  >
-                    {isUploading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="h-4 w-4" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      fileInputRef.current?.click();
-                    }}
-                    disabled={isLoading || isUploading}
-                  >
-                    <Upload className="mr-2 h-4 w-4" /> Upload a file
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      if (isRecording) {
-                        stopRecording();
-                      } else {
-                        void startRecording();
-                      }
-                    }}
-                    disabled={isLoading}
-                  >
-                    {isRecording ? (
-                      <MicOff className="mr-2 h-4 w-4 text-destructive" />
-                    ) : (
-                      <Mic className="mr-2 h-4 w-4" />
-                    )}
-                    {isRecording ? "Stop recording" : "Audio to text"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <Button
                 type="submit"
                 size="icon"
