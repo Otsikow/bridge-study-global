@@ -28,10 +28,11 @@ import { cn } from "@/lib/utils";
 
 interface ScholarshipCardProps {
   scholarship: ScholarshipSearchResult;
-  onSelect: (scholarship: ScholarshipSearchResult) => void;
   onToggleSave: (scholarshipId: string) => void;
-  onShare?: (scholarship: ScholarshipSearchResult) => void;
   isSaved: boolean;
+  onSelect?: (scholarship: ScholarshipSearchResult) => void;
+  onViewDetails?: () => void;
+  onShare?: () => void;
   className?: string;
 }
 
@@ -45,14 +46,20 @@ const getDeadlineVariant = (days: number | null | undefined) => {
 
 export const ScholarshipCard = ({
   scholarship,
-  onSelect,
   onToggleSave,
-  onShare,
   isSaved,
+  onSelect,
+  onViewDetails,
+  onShare,
   className,
 }: ScholarshipCardProps) => {
   const handleCardClick = () => {
-    onSelect(scholarship);
+    if (onViewDetails) {
+      onViewDetails();
+      return;
+    }
+
+    onSelect?.(scholarship);
   };
 
   const handleSave = (event: MouseEvent<HTMLButtonElement>) => {
@@ -62,7 +69,7 @@ export const ScholarshipCard = ({
 
   const handleShare = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    onShare?.(scholarship);
+    onShare?.();
   };
 
   return (
@@ -73,7 +80,12 @@ export const ScholarshipCard = ({
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onSelect(scholarship);
+          if (onViewDetails) {
+            onViewDetails();
+            return;
+          }
+
+          onSelect?.(scholarship);
         }
       }}
       className={cn("flex flex-col h-full cursor-pointer transition-transform hover:-translate-y-1", className)}
