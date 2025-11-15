@@ -18,17 +18,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Search, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { searchDirectoryProfiles, type DirectoryProfile } from '@/lib/messaging/directory';
+import { DEFAULT_TENANT_ID } from '@/lib/messaging/data';
 
-interface Profile {
-  id: string;
-  full_name: string;
-  email: string;
-  avatar_url: string | null;
-  role: string;
-}
+type ProfileRecord = DirectoryProfile;
 
 export default function Messages() {
   const { user, profile } = useAuth();
@@ -51,7 +46,7 @@ export default function Messages() {
 
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileRecord[]>([]);
   const [searchingProfiles, setSearchingProfiles] = useState(false);
 
   const currentConversationData = conversations.find(
@@ -86,29 +81,17 @@ export default function Messages() {
 
   const searchProfiles = useCallback(
     async (queryText: string) => {
-      const trimmedQuery = queryText.trim();
       setSearchingProfiles(true);
       try {
-        let query = supabase
-          .from('profiles')
-          .select('id, full_name, email, avatar_url, role')
-          .neq('id', user?.id)
-          .limit(20);
-
-        if (trimmedQuery) {
-          query = query.or(
-            `full_name.ilike.%${trimmedQuery}%,email.ilike.%${trimmedQuery}%`
-          );
-        }
-
-        if (profile?.tenant_id) {
-          query = query.eq('tenant_id', profile.tenant_id);
-        }
-
-        const { data, error } = await query;
-
-        if (error) throw error;
-        setProfiles(data || []);
+        const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
+        const excludeIds = [user?.id, profile?.id].filter(Boolean) as string[];
+        const results = await searchDirectoryProfiles(queryText, {
+          tenantId: tenant,
+          excludeIds,
+          roles: ['agent', 'partner', 'staff', 'admin', 'counselor', 'school_rep'],
+          limit: 20,
+        });
+        setProfiles(results);
       } catch (error) {
         console.error('Error searching profiles:', error);
         toast({
@@ -120,7 +103,7 @@ export default function Messages() {
         setSearchingProfiles(false);
       }
     },
-    [profile?.tenant_id, toast, user?.id]
+    [profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {
