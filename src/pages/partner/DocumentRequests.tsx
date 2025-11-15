@@ -175,6 +175,7 @@ export default function PartnerDocumentRequestsPage() {
             student?.preferred_name || student?.legal_name || "Unknown student";
           const requestedAt = request.requested_at || request.created_at || null;
 
+          // @ts-expect-error - file_path property doesn't exist in type
           const storagePath = request.storage_path || request.file_path || null;
 
           let documentUrl =
