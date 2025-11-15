@@ -166,9 +166,9 @@ export function StudentPayments() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto">
+    <div className="space-y-6 animate-fade-in max-w-6xl w-full mx-auto px-1 sm:px-0">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1.5 min-w-0">
+        <div className="space-y-1.5 min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
             Payments
           </h1>
@@ -176,7 +176,7 @@ export function StudentPayments() {
             Manage your invoices and payment methods
           </p>
         </div>
-        <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col gap-2 w-full sm:flex-row sm:flex-wrap sm:justify-end lg:w-auto">
           <Button
             variant="outline"
             className="gap-2 hover-scale whitespace-nowrap w-full sm:w-auto"
@@ -190,8 +190,8 @@ export function StudentPayments() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-        <Card className="rounded-xl border shadow-card">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 xl:gap-6">
+        <Card className="rounded-xl border shadow-card h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Outstanding Balance</CardTitle>
           </CardHeader>
@@ -204,7 +204,7 @@ export function StudentPayments() {
             </p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-xl border shadow-card h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Total Paid</CardTitle>
           </CardHeader>
@@ -217,7 +217,7 @@ export function StudentPayments() {
             </p>
           </CardContent>
         </Card>
-        <Card className="rounded-xl border shadow-card">
+        <Card className="rounded-xl border shadow-card h-full">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">Next Due Date</CardTitle>
           </CardHeader>
