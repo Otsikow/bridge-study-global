@@ -2,25 +2,15 @@ import VisaCalculator from "@/components/visa/VisaCalculator";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import BackButton from "@/components/BackButton";
 import { SEO } from "@/components/SEO";
-
 export default function VisaCalculatorPage() {
-  return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <SEO
-        title="Student Visa Calculator - Global Education Gateway"
-        description="Estimate the requirements and timeline for your student visa application. Our tool helps you prepare for a successful visa process for your study abroad journey."
-        keywords="student visa calculator, visa requirements, study abroad visa, visa application timeline, international student visa, university visa support"
-      />
+  return <div className="min-h-screen bg-gradient-subtle">
+      <SEO title="Student Visa Calculator - Global Education Gateway" description="Estimate the requirements and timeline for your student visa application. Our tool helps you prepare for a successful visa process for your study abroad journey." keywords="student visa calculator, visa requirements, study abroad visa, visa application timeline, international student visa, university visa support" />
       {/* Lightweight header with theme toggle */}
       <div className="border-b bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <BackButton variant="ghost" size="sm" fallback="/" />
-          <ThemeToggle />
-        </div>
+        
       </div>
       <div className="container mx-auto px-4 py-8">
         <VisaCalculator />
       </div>
-    </div>
-  );
+    </div>;
 }
