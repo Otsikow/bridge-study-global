@@ -175,6 +175,7 @@ const StudentMessages = lazyWithErrorHandling(() => import("./pages/student/Mess
 const VisaEligibility = lazyWithErrorHandling(() => import("./pages/student/VisaEligibility"));
 const SopGenerator = lazyWithErrorHandling(() => import("./pages/student/SopGenerator"));
 const Notifications = lazyWithErrorHandling(() => import("./pages/student/Notifications"));
+const StudentPaymentsPage = lazyWithErrorHandling(() => import("./pages/student/StudentPayments"));
 const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 
 // Admin
@@ -333,7 +334,7 @@ const App = () => {
                           <Route path="visa-eligibility" element={<VisaEligibility />} />
                           <Route path="sop-generator" element={<SopGenerator />} />
                           <Route path="notifications" element={<Notifications />} />
-                          <Route path="payments" element={<Payments />} />
+                          <Route path="payments" element={<StudentPaymentsPage />} />
                           <Route path="*" element={<Navigate to="applications" replace />} />
                         </Route>
 
