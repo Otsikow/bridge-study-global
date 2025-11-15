@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import {
   findDirectoryProfileById,
+  getDirectoryProfiles,
   searchDirectoryProfiles,
   type DirectoryProfile,
 } from '@/lib/messaging/directory';
@@ -29,6 +30,15 @@ import { DEFAULT_TENANT_ID } from '@/lib/messaging/data';
 import { getMessagingContactIds } from '@/lib/messaging/relationships';
 
 type ProfileRecord = DirectoryProfile;
+
+const MESSAGING_DIRECTORY_ROLES: DirectoryProfile['role'][] = [
+  'agent',
+  'partner',
+  'staff',
+  'admin',
+  'counselor',
+  'school_rep',
+];
 
 export default function Messages() {
   const { user, profile } = useAuth();
@@ -74,6 +84,34 @@ export default function Messages() {
     return ids.length > 0 ? new Set(ids) : undefined;
   }, [messagingProfile]);
 
+  const defaultProfiles = useMemo(() => {
+    const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
+    const directoryById = new Map<string, ProfileRecord>();
+
+    if (allowedProfileIds && allowedProfileIds.size > 0) {
+      for (const id of allowedProfileIds) {
+        const match = findDirectoryProfileById(id);
+        if (
+          match &&
+          match.tenant_id === tenant &&
+          MESSAGING_DIRECTORY_ROLES.includes(match.role)
+        ) {
+          directoryById.set(match.id, match);
+        }
+      }
+    }
+
+    if (directoryById.size === 0) {
+      for (const record of getDirectoryProfiles(tenant)) {
+        if (MESSAGING_DIRECTORY_ROLES.includes(record.role)) {
+          directoryById.set(record.id, record);
+        }
+      }
+    }
+
+    return Array.from(directoryById.values());
+  }, [allowedProfileIds, profile?.tenant_id]);
+
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversation(conversationId);
   };
@@ -102,14 +140,21 @@ export default function Messages() {
 
   const searchProfiles = useCallback(
     async (queryText: string) => {
+      const trimmedQuery = queryText.trim();
+      if (!trimmedQuery) {
+        setProfiles(defaultProfiles);
+        setSearchingProfiles(false);
+        return;
+      }
+
       setSearchingProfiles(true);
       try {
         const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
         const excludeIds = [user?.id, profile?.id].filter(Boolean) as string[];
-        const results = await searchDirectoryProfiles(queryText, {
+        const results = await searchDirectoryProfiles(trimmedQuery, {
           tenantId: tenant,
           excludeIds,
-          roles: ['agent', 'partner', 'staff', 'admin', 'counselor', 'school_rep'],
+          roles: MESSAGING_DIRECTORY_ROLES,
           allowedProfileIds,
           limit: 20,
         });
@@ -125,14 +170,26 @@ export default function Messages() {
         setSearchingProfiles(false);
       }
     },
-    [allowedProfileIds, profile?.id, profile?.tenant_id, toast, user?.id]
+    [
+      allowedProfileIds,
+      defaultProfiles,
+      profile?.id,
+      profile?.tenant_id,
+      toast,
+      user?.id,
+    ]
   );
 
   useEffect(() => {
-    if (showNewChatDialog) {
-      searchProfiles('');
+    if (!showNewChatDialog) return;
+
+    if (!searchQuery.trim()) {
+      setProfiles(defaultProfiles);
+      return;
     }
-  }, [searchProfiles, showNewChatDialog]);
+
+    void searchProfiles(searchQuery);
+  }, [defaultProfiles, searchProfiles, searchQuery, showNewChatDialog]);
 
   const handleSelectProfile = async (profileId: string) => {
     const conversationId = await getOrCreateConversation(profileId);
@@ -140,6 +197,7 @@ export default function Messages() {
       setCurrentConversation(conversationId);
       setShowNewChatDialog(false);
       setSearchQuery('');
+      setProfiles(defaultProfiles);
     }
   };
 
@@ -183,6 +241,10 @@ export default function Messages() {
       </div>
     );
   }
+
+  const displayProfiles = profiles.length > 0 ? profiles : defaultProfiles;
+  const noMatches = searchQuery.trim().length > 0 && profiles.length === 0;
+  const hasDisplayProfiles = displayProfiles.length > 0;
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
@@ -266,13 +328,13 @@ export default function Messages() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
-                    searchProfiles(searchQuery);
+                    void searchProfiles(searchQuery);
                   }
                 }}
                 className="pl-9"
               />
               <Button
-                onClick={() => searchProfiles(searchQuery)}
+                onClick={() => void searchProfiles(searchQuery)}
                 className="absolute right-1 top-1/2 transform -translate-y-1/2"
                 size="sm"
                 disabled={searchingProfiles}
@@ -286,14 +348,15 @@ export default function Messages() {
             </div>
 
             <ScrollArea className="h-96">
-              {profiles.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No users found</p>
-                  <p className="text-sm mt-1">Try searching by name</p>
-                </div>
-              ) : (
+              {hasDisplayProfiles ? (
                 <div className="space-y-2">
-                  {profiles.map((profile) => (
+                  {noMatches ? (
+                    <div className="px-1 text-sm text-muted-foreground">
+                      No users matched your search. Showing recommended
+                      contacts instead.
+                    </div>
+                  ) : null}
+                  {displayProfiles.map((profile) => (
                     <button
                       key={profile.id}
                       onClick={() => handleSelectProfile(profile.id)}
@@ -323,6 +386,13 @@ export default function Messages() {
                       </Badge>
                     </button>
                   ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No messaging contacts are available yet.</p>
+                  <p className="text-sm mt-1">
+                    Please check back later or contact support for help.
+                  </p>
                 </div>
               )}
             </ScrollArea>
