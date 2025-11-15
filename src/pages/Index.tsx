@@ -154,7 +154,7 @@ const Index = () => {
                   <div className="relative h-48 overflow-hidden sm:h-56">
                     <img src={cta.image} alt={cta.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                    <Badge className="absolute left-4 top-4 bg-background/90 text-primary shadow-sm">
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-white shadow-sm">
                       {cta.badge}
                     </Badge>
                   </div>
