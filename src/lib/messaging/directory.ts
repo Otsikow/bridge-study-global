@@ -36,6 +36,7 @@ export interface SearchDirectoryOptions {
   excludeIds?: string[];
   roles?: DirectoryProfile["role"][];
   limit?: number;
+  allowedProfileIds?: Iterable<string> | null;
 }
 
 const normalize = (value: unknown) =>
@@ -58,6 +59,25 @@ const matchProfile = (
     return false;
   }
 
+  if (options.allowedProfileIds) {
+    if (options.allowedProfileIds instanceof Set) {
+      if (!options.allowedProfileIds.has(profile.id)) {
+        return false;
+      }
+    } else {
+      let isAllowed = false;
+      for (const id of options.allowedProfileIds) {
+        if (id === profile.id) {
+          isAllowed = true;
+          break;
+        }
+      }
+      if (!isAllowed) {
+        return false;
+      }
+    }
+  }
+
   if (!query) return true;
 
   const haystack = `${profile.full_name} ${profile.email} ${profile.headline ?? ""}`.toLowerCase();
@@ -71,7 +91,19 @@ export const searchDirectoryProfiles = async (
   const normalizedQuery = normalize(query);
   const tenantId = options.tenantId ?? DEFAULT_TENANT_ID;
   const profiles = getDirectoryProfiles(tenantId);
-  const matches = profiles.filter((profile) => matchProfile(profile, normalizedQuery, { ...options, tenantId }));
+  const allowedProfileIds = options.allowedProfileIds
+    ? options.allowedProfileIds instanceof Set
+      ? options.allowedProfileIds
+      : new Set(options.allowedProfileIds)
+    : null;
+
+  const matches = profiles.filter((profile) =>
+    matchProfile(profile, normalizedQuery, {
+      ...options,
+      tenantId,
+      allowedProfileIds,
+    }),
+  );
   const limited = typeof options.limit === "number" ? matches.slice(0, Math.max(options.limit, 0)) : matches;
 
   return new Promise((resolve) => {

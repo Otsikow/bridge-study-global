@@ -45,8 +45,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { withUniversityCardStyles } from "@/components/university/common/cardStyles";
-import { searchDirectoryProfiles, type DirectoryProfile } from "@/lib/messaging/directory";
+import {
+  findDirectoryProfileById,
+  searchDirectoryProfiles,
+  type DirectoryProfile,
+} from "@/lib/messaging/directory";
 import { DEFAULT_TENANT_ID } from "@/lib/messaging/data";
+import { getMessagingContactIds } from "@/lib/messaging/relationships";
 
 const UniversityZoeAssistant = lazy(() =>
   import("@/components/university/UniversityZoeAssistant")
@@ -80,7 +85,7 @@ const ZoeAssistantErrorState = () => (
 
 type ContactRecord = DirectoryProfile;
 
-const CONTACT_ROLES = ["agent", "staff", "admin", "partner"];
+const CONTACT_ROLES = ["agent", "staff", "admin", "partner", "student"];
 
 function UniversityMessagesPage() {
   const { user, profile } = useAuth();
@@ -202,6 +207,22 @@ function UniversityMessagesPage() {
   }, []);
 
   /* ------------------------------- Contact search ------------------------------- */
+  const messagingProfile = useMemo(() => {
+    if (profile?.id) {
+      return findDirectoryProfileById(profile.id) ?? null;
+    }
+    if (user?.id) {
+      return findDirectoryProfileById(user.id) ?? null;
+    }
+    return null;
+  }, [profile?.id, user?.id]);
+
+  const allowedProfileIds = useMemo(() => {
+    if (!messagingProfile) return undefined;
+    const ids = getMessagingContactIds(messagingProfile);
+    return ids.length > 0 ? new Set(ids) : undefined;
+  }, [messagingProfile]);
+
   const searchContacts = useCallback(
     async (queryText: string) => {
       setIsSearchingContacts(true);
@@ -212,6 +233,7 @@ function UniversityMessagesPage() {
           tenantId: tenant,
           roles: CONTACT_ROLES as DirectoryProfile["role"][],
           excludeIds,
+          allowedProfileIds,
           limit: 40,
         });
         setContacts(results);
@@ -226,7 +248,7 @@ function UniversityMessagesPage() {
         setIsSearchingContacts(false);
       }
     },
-    [profile?.id, profile?.tenant_id, toast, user?.id]
+    [allowedProfileIds, profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {

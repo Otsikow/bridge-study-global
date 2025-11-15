@@ -34,8 +34,13 @@ import { useToast } from "@/hooks/use-toast";
 import AIChatbot from "@/components/ai/AIChatbot";
 import { Skeleton } from "@/components/ui/skeleton";
 import StaffMessagesTable from "@/components/staff/StaffMessagesTable";
-import { searchDirectoryProfiles, type DirectoryProfile } from "@/lib/messaging/directory";
+import {
+  findDirectoryProfileById,
+  searchDirectoryProfiles,
+  type DirectoryProfile,
+} from "@/lib/messaging/directory";
 import { DEFAULT_TENANT_ID } from "@/lib/messaging/data";
+import { getMessagingContactIds } from "@/lib/messaging/relationships";
 
 type TabValue = "zoe" | "partners" | "staff" | "insights";
 
@@ -103,6 +108,19 @@ export default function StaffMessages() {
 
   const canStartInternalChat =
     profile?.role === "staff" || profile?.role === "admin";
+
+  const messagingProfile = useMemo(() => {
+    if (profile?.id) {
+      return findDirectoryProfileById(profile.id) ?? null;
+    }
+    return null;
+  }, [profile?.id]);
+
+  const allowedProfileIds = useMemo(() => {
+    if (!messagingProfile) return undefined;
+    const ids = getMessagingContactIds(messagingProfile);
+    return ids.length > 0 ? new Set(ids) : undefined;
+  }, [messagingProfile]);
 
   const partnerCurrentConversation = useMemo(
     () =>
@@ -211,6 +229,7 @@ export default function StaffMessages() {
             "counselor",
             "school_rep",
           ] as DirectoryProfile["role"][],
+          allowedProfileIds,
           limit: 40,
         });
         const mapped: AgentContact[] = results.map((record) => ({
@@ -233,7 +252,7 @@ export default function StaffMessages() {
         setLoadingContacts(false);
       }
     },
-    [canStartInternalChat, profile?.id, profile?.tenant_id, toast]
+    [allowedProfileIds, canStartInternalChat, profile?.id, profile?.tenant_id, toast]
   );
 
   const handleNewChatDialogChange = useCallback(
