@@ -402,6 +402,8 @@ const en = {
             previewLabel: "Sample",
             highlightsHeading: "What the AI prepares for you",
           },
+          zoeAlt: "Portrait of Zoe, the Bridge intelligence guide",
+          zoeCaption: "Meet Zoe – the friendly face guiding every insight and recommendation.",
           focusAreas: [
             {
               key: "stem",

@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { Bot, CheckCircle2, Sparkles } from "lucide-react";
 
+import zoePortrait from "@/assets/professional-consultant.png";
+
 interface FocusArea {
   key: string;
   label: string;
@@ -280,6 +282,27 @@ export function AIPoweredSearchSection() {
               </CardHeader>
 
               <CardContent className="space-y-6">
+                <div className="relative overflow-hidden rounded-[28px] border border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background p-6 shadow-inner">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.16),_transparent_55%)]" />
+                  <div className="relative flex flex-col items-center gap-4 text-center">
+                    <img
+                      src={zoePortrait}
+                      alt={t("pages.index.aiSearch.zoeAlt", "Portrait of Zoe, the Bridge intelligence guide")}
+                      className="h-auto w-full max-w-[320px] rounded-2xl object-cover drop-shadow-xl"
+                      loading="lazy"
+                    />
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-primary">Zoe, your intelligence companion</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t(
+                          "pages.index.aiSearch.zoeCaption",
+                          "Meet Zoe – the friendly face guiding every insight and recommendation."
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex flex-wrap gap-2">
                   {focusAreas.map((area) => (
                     <button
