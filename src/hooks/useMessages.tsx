@@ -835,6 +835,10 @@ export function useMessages() {
       if (!conversationId || !user?.id) return;
 
       try {
+        console.log('[useMessages] Sending message to conversation:', conversationId);
+        console.log('[useMessages] User ID:', user.id);
+        console.log('[useMessages] Message content:', payload.content);
+        
         const { data, error } = await supabase
           .from("conversation_messages")
           .insert([{
@@ -862,7 +866,12 @@ export function useMessages() {
           )
           .single();
 
-        if (error) throw error;
+        console.log('[useMessages] Insert result:', { data, error });
+        
+        if (error) {
+          console.error('[useMessages] Error sending message:', error);
+          throw error;
+        }
 
         if (data) {
           const message = transformMessage(data as RawMessage);
