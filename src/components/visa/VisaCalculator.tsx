@@ -479,7 +479,7 @@ export default function VisaCalculator() {
       </div>
 
       <Dialog open={compareDialogOpen} onOpenChange={setCompareDialogOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="w-[95vw] max-w-5xl max-h-[85vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Compare Visa Requirements</DialogTitle>
             <DialogDescription>
@@ -487,7 +487,7 @@ export default function VisaCalculator() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-y-auto pr-1 max-h-[72vh]">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Countries</Label>
               <ScrollArea className="h-48 rounded-md border">
@@ -537,45 +537,47 @@ export default function VisaCalculator() {
                   </div>
                 )}
 
-                <ScrollArea className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Requirement</TableHead>
-                        {comparisonData.map(({ key, requirements }) => (
-                          <TableHead key={key} className="text-right">
-                            {requirements.country}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {COMPARISON_METRICS.map((metric) => {
-                        const bestValue = getMetricBestValue(metric.key, metric.better);
+                <div className="rounded-md border">
+                  <div className="max-h-[55vh] overflow-auto">
+                    <Table className="min-w-[640px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Requirement</TableHead>
+                          {comparisonData.map(({ key, requirements }) => (
+                            <TableHead key={key} className="text-right">
+                              {requirements.country}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {COMPARISON_METRICS.map((metric) => {
+                          const bestValue = getMetricBestValue(metric.key, metric.better);
 
-                        return (
-                          <TableRow key={metric.key}>
-                            <TableCell className="font-medium">{metric.label}</TableCell>
-                            {comparisonData.map(({ key, requirements }) => {
-                              const value = requirements[metric.key];
-                              const displayValue = metric.format ? metric.format(requirements) : value;
-                              const isBest = typeof bestValue === 'number' && value === bestValue;
+                          return (
+                            <TableRow key={metric.key}>
+                              <TableCell className="font-medium">{metric.label}</TableCell>
+                              {comparisonData.map(({ key, requirements }) => {
+                                const value = requirements[metric.key];
+                                const displayValue = metric.format ? metric.format(requirements) : value;
+                                const isBest = typeof bestValue === 'number' && value === bestValue;
 
-                              return (
-                                <TableCell
-                                  key={key}
-                                  className={`text-right text-sm ${isBest ? 'font-semibold text-success' : ''}`}
-                                >
-                                  {displayValue}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </ScrollArea>
+                                return (
+                                  <TableCell
+                                    key={key}
+                                    className={`text-right text-sm ${isBest ? 'font-semibold text-success' : ''}`}
+                                  >
+                                    {displayValue}
+                                  </TableCell>
+                                );
+                              })}
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               </div>
             )}
           </div>
