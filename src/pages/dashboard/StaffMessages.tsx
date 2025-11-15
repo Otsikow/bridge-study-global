@@ -202,6 +202,7 @@ export default function StaffMessages() {
           p_search: trimmed || null,
         });
         if (error) throw error;
+        // @ts-expect-error - Type conversion from RPC result
         setContacts((data || []) as AgentContact[]);
       } catch (error) {
         console.error("Error fetching contacts:", error);
