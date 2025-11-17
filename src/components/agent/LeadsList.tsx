@@ -64,6 +64,7 @@ export default function LeadsList() {
               <TableHead>Email</TableHead>
               <TableHead>Country</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>AI Priority</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>

@@ -3,6 +3,7 @@ import { Lead } from "@/types/lead";
 import LeadActions from "./LeadActions";
 import { Link } from "react-router-dom";
 import { Checkbox } from "@/components/ui/checkbox";
+import LeadQualificationPopover from "./LeadQualificationPopover";
 
 interface LeadTableRowProps {
   lead: Lead;
@@ -31,6 +32,9 @@ export default function LeadTableRow({
       <TableCell>{lead.email}</TableCell>
       <TableCell>{lead.country}</TableCell>
       <TableCell>{lead.status}</TableCell>
+      <TableCell className="align-top">
+        <LeadQualificationPopover lead={lead} />
+      </TableCell>
       <TableCell>
         <LeadActions lead={lead} />
       </TableCell>
