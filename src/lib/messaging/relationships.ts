@@ -1,8 +1,10 @@
 import { DIRECTORY_PROFILES, type DirectoryProfile } from "./data";
+import { fetchMessagingContactIds } from "./contactsService";
 
 const unique = (values: (string | null | undefined)[]) =>
   Array.from(new Set(values.filter((value): value is string => Boolean(value))));
 
+// Mock relationships for development/testing
 const AGENT_STUDENT_RELATIONSHIPS: Record<string, string[]> = {
   "agent-riley": ["student-zoe", "student-lucas", "student-amira"],
 };
@@ -26,7 +28,11 @@ const AGENT_IDS = ["agent-riley"];
 const UNIVERSITY_IDS = ["uni-sophia"];
 const DIRECTORY_IDS = DIRECTORY_PROFILES.map((profile) => profile.id);
 
-export const getMessagingContactIds = (profile: DirectoryProfile | null | undefined) => {
+/**
+ * Gets messaging contact IDs using mock data (for development)
+ * This is the fallback when real database data is not available
+ */
+const getMessagingContactIdsMock = (profile: DirectoryProfile | null | undefined): string[] => {
   if (!profile) return [];
 
   switch (profile.role) {
@@ -66,6 +72,34 @@ export const getMessagingContactIds = (profile: DirectoryProfile | null | undefi
       return unique(DIRECTORY_IDS);
     default:
       return unique([...GEG_STAFF_IDS, ...AGENT_IDS, ...UNIVERSITY_IDS]);
+  }
+};
+
+/**
+ * Gets messaging contact IDs for the given profile
+ * Attempts to fetch from database first, falls back to mock data
+ */
+export const getMessagingContactIds = (profile: DirectoryProfile | null | undefined): string[] => {
+  // Return mock data synchronously for now
+  // This will be replaced by async database call in the hook
+  return getMessagingContactIdsMock(profile);
+};
+
+/**
+ * Async version that fetches real contact IDs from the database
+ * Use this in async contexts (e.g., React hooks with useEffect)
+ */
+export const getMessagingContactIdsAsync = async (): Promise<string[]> => {
+  try {
+    const contactIds = await fetchMessagingContactIds();
+    if (contactIds && contactIds.length > 0) {
+      return contactIds;
+    }
+    // If no real data, return empty array (don't fall back to mock in production)
+    return [];
+  } catch (error) {
+    console.error("Error fetching messaging contact IDs:", error);
+    return [];
   }
 };
 

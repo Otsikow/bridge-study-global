@@ -217,6 +217,7 @@ export default function StaffMessages() {
       setLoadingContacts(true);
       try {
         const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
+        // Don't pass allowedProfileIds to let the database function handle permissions
         const results = await searchDirectoryProfiles(query, {
           tenantId: tenant,
           excludeIds: [profile?.id].filter(Boolean) as string[],
@@ -229,7 +230,6 @@ export default function StaffMessages() {
             "counselor",
             "school_rep",
           ] as DirectoryProfile["role"][],
-          allowedProfileIds,
           limit: 40,
         });
         const mapped: AgentContact[] = results.map((record) => ({
@@ -252,7 +252,7 @@ export default function StaffMessages() {
         setLoadingContacts(false);
       }
     },
-    [allowedProfileIds, canStartInternalChat, profile?.id, profile?.tenant_id, toast]
+    [canStartInternalChat, profile?.id, profile?.tenant_id, toast]
   );
 
   const handleNewChatDialogChange = useCallback(
