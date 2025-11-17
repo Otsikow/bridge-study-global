@@ -17,6 +17,39 @@ const it = {
     ...en.pages,
     index: {
       ...(en.pages?.index ?? {}),
+      aiDocumentChecker: {
+          badge: "AI Document Checker",
+          heading: "Let AI review every document in seconds",
+          description:
+            "Automatically review and approve passports, WAEC/NECO results, transcripts, recommendation letters, and bank statements without manual back-and-forth.",
+          tagline: "This saves you HOURS.",
+          approvals: {
+            heading: "Automatically review & approve",
+            description: "Every required file is scored, classified, and approved before it reaches your desk.",
+            items: [
+              "Passport",
+              "WAEC/NECO",
+              "Transcripts",
+              "Recommendation letters",
+              "Bank statements",
+            ],
+          },
+          detections: {
+            heading: "AI instantly flags",
+            description: "The checker stops risky submissions before they delay a student's visa or offer.",
+            items: [
+              "Missing pages",
+              "Unclear images",
+              "Wrong document type",
+              "Fraud signs",
+            ],
+          },
+          stats: [
+            { value: "60s", label: "Average review time" },
+            { value: "5 docs", label: "Checked simultaneously" },
+            { value: "24/7", label: "Automated monitoring" },
+          ],
+        },
       aiSearch: {
         badge: "Ricerca università e borse di studio con IA",
         heading: "Trova il programma giusto con un'intelligenza in tempo reale",
