@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
@@ -45,7 +44,6 @@ export const ContactForm = () => {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { session } = useAuth();
   const { t } = useTranslation();
 
   const contactSchema = useMemo(() => createContactSchema(t), [t]);
@@ -54,16 +52,6 @@ export const ContactForm = () => {
     e.preventDefault();
 
     try {
-      if (!session?.access_token) {
-        toast({
-          title: t("components.contactForm.notifications.signInRequiredTitle"),
-          description: t(
-            "components.contactForm.notifications.signInRequiredDescription",
-          ),
-          variant: "destructive",
-        });
-        return;
-      }
       // Validate input
       const validatedData = contactSchema.parse({
         name,
@@ -75,7 +63,6 @@ export const ContactForm = () => {
       setIsSubmitting(true);
 
       const { error } = await invokeEdgeFunction("send-contact-email", {
-        accessToken: session.access_token,
         body: validatedData,
       });
 
