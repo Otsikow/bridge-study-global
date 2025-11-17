@@ -16,39 +16,6 @@ function escapeHtml(input: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const json = atob(payload.padEnd(payload.length + (4 - (payload.length % 4)) % 4, '='));
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
-function requireAuthenticatedUser(req: Request): Response | null {
-  const authHeader = req.headers.get('authorization') || req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return new Response(JSON.stringify({ error: 'Missing or invalid Authorization header' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-  const token = authHeader.slice(7);
-  const payload = decodeJwtPayload(token);
-  const role = (payload?.role || payload?.['user_role']) as string | undefined;
-  const sub = payload?.sub as string | undefined;
-  if (!payload || role !== 'authenticated' || !sub) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-      status: 401,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-  return null;
-}
-
 const contactEmailSchema = z.object({
   name: z
     .string({ required_error: "Name is required" })
@@ -107,9 +74,6 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-
-  const authError = requireAuthenticatedUser(req);
-  if (authError) return authError;
 
   try {
     let body: unknown;
