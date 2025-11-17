@@ -110,7 +110,7 @@ const formatRoleLabel = (role?: string | null) =>
   role ? role.replace(/_/g, " ") : "User";
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { profile, signOut } = useAuth();
   const { primaryRole, loading: rolesLoading } = useUserRoles();
   const { unreadCount } = useNotifications();
@@ -173,6 +173,11 @@ export function AppSidebar() {
                           ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-all duration-200 hover:shadow-md"
                           : "hover:bg-accent transition-all duration-200 hover:translate-x-1"
                       }
+                      onClick={() => {
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
                     >
                       <div className="relative">
                         <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
