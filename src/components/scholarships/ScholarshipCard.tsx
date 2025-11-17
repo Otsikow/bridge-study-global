@@ -22,6 +22,7 @@ import {
   Share2,
   ShieldCheck,
   Clock,
+  Zap,
 } from "lucide-react";
 import type { ScholarshipSearchResult } from "@/types/scholarship";
 import { cn } from "@/lib/utils";
@@ -136,6 +137,15 @@ export const ScholarshipCard = ({
             <Sparkles className="h-3.5 w-3.5" />
             AI match {scholarship.aiScore ?? 80}%
           </Badge>
+          {typeof scholarship.profileMatchScore === "number" ? (
+            <Badge
+              variant={scholarship.qualifiesBasedOnProfile ? "secondary" : "outline"}
+              className="gap-1"
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Profile match {scholarship.profileMatchScore}%
+            </Badge>
+          ) : null}
           <Badge variant={getDeadlineVariant(scholarship.deadlineDaysRemaining)} className="gap-1">
             <CalendarDays className="h-3.5 w-3.5" />
             {scholarship.deadlineLabel}

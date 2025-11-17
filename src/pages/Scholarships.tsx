@@ -10,10 +10,12 @@ import { ScholarshipFilters } from "@/components/scholarships/ScholarshipFilters
 import { ScholarshipCard } from "@/components/scholarships/ScholarshipCard";
 import { ScholarshipDetailDialog } from "@/components/scholarships/ScholarshipDetailDialog";
 import { ScholarshipShareDialog } from "@/components/scholarships/ScholarshipShareDialog";
+import { ScholarshipAIFinder } from "@/components/scholarships/ScholarshipAIFinder";
 import { useScholarshipSearch } from "@/hooks/useScholarshipSearch";
 import type {
   ScholarshipSearchFilters,
   ScholarshipSearchResult,
+  ScholarshipMatchProfile,
 } from "@/types/scholarship";
 import {
   FALLBACK_SCHOLARSHIPS,
@@ -32,6 +34,8 @@ import {
   Filter,
   Bell,
   CalendarDays,
+  Brain,
+  Zap,
 } from "lucide-react";
 import { formatDistanceToNowStrict } from "date-fns";
 import BackButton from "@/components/BackButton";
@@ -148,6 +152,7 @@ const ScholarshipsPage = () => {
   >({});
 
   const [aiPrompt, setAiPrompt] = useState("");
+  const [matchProfile, setMatchProfile] = useState<ScholarshipMatchProfile | null>(null);
 
   // BOTH FEATURES ENABLED
   const [alertsEnabled, setAlertsEnabled] = useState(false);
@@ -173,6 +178,7 @@ const ScholarshipsPage = () => {
       query: debouncedQuery,
       filters,
       profileTags,
+      matchProfile,
     });
 
   useEffect(() => {
@@ -251,6 +257,43 @@ const ScholarshipsPage = () => {
     setShareDialogOpen(true);
   };
 
+  const applyProfileFilters = (profile: ScholarshipMatchProfile) => {
+    setMatchProfile(profile);
+    setFilters((prev) => ({
+      ...prev,
+      countries: profile.country ? [profile.country] : prev.countries,
+      levels: profile.programLevel ? [profile.programLevel] : prev.levels,
+      fundingTypes:
+        profile.fundingNeed && profile.fundingNeed !== "any"
+          ? [profile.fundingNeed === "full" ? "Full" : "Partial"]
+          : prev.fundingTypes,
+      fieldsOfStudy: profile.fieldOfStudy ? [profile.fieldOfStudy] : prev.fieldsOfStudy,
+      deadline:
+        profile.deadlinePreference === "flexible"
+          ? "flexible"
+          : profile.deadlinePreference
+            ? "upcoming"
+            : prev.deadline,
+    }));
+
+    const aiQueryParts = [
+      profile.fieldOfStudy,
+      profile.programLevel,
+      profile.country,
+      profile.fundingNeed === "full" ? "fully funded" : undefined,
+    ].filter(Boolean);
+    if (aiQueryParts.length) {
+      const nextQuery = aiQueryParts.join(" ");
+      setQuery(nextQuery);
+      setAiPrompt(nextQuery);
+    }
+
+    toast({
+      title: "AI match profile updated",
+      description: "Showing scholarships tailored to your background.",
+    });
+  };
+
   const allResults = useMemo(() => {
     if (loading) return [];
     const base = error
@@ -261,6 +304,13 @@ const ScholarshipsPage = () => {
 
     return base.map(normalizeScholarship);
   }, [results, loading, error]);
+
+  const topProfileMatches = useMemo(() => {
+    if (!matchProfile) return [];
+    return allResults
+      .filter((scholarship) => (scholarship.profileMatchScore ?? 0) >= 60)
+      .slice(0, 3);
+  }, [allResults, matchProfile]);
 
   return (
     <>
@@ -296,28 +346,31 @@ const ScholarshipsPage = () => {
             {stats && (
               <Badge variant="secondary">
                 <CalendarDays className="mr-1 h-3 w-3" />
-                {/* @ts-expect-error - Stats type mismatch */}
-                {stats.deadlinesSoon || stats.closingSoon} Closing Soon
+                {stats.closingSoon} Closing Soon
               </Badge>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <aside className="lg:col-span-1">
-              {/* @ts-expect-error - Filter component props mismatch */}
               <ScholarshipFilters
                 filters={filters}
                 onFiltersChange={setFilters}
+                countryOptions={SCHOLARSHIP_COUNTRIES}
+                levelOptions={SCHOLARSHIP_LEVELS}
+                fundingTypeOptions={SCHOLARSHIP_FUNDING_TYPES}
+                fieldOptions={SCHOLARSHIP_FIELDS}
+                eligibilityOptions={SCHOLARSHIP_ELIGIBILITY_TAGS}
               />
             </aside>
 
             <main className="lg:col-span-3">
               <div className="mb-6 space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search scholarships..."
-                    value={query}
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search scholarships..."
+                  value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     className="pl-9"
                   />
@@ -338,6 +391,12 @@ const ScholarshipsPage = () => {
                     Apply AI Filters
                   </Button>
                 </div>
+
+                <ScholarshipAIFinder
+                  onApplyProfile={applyProfileFilters}
+                  activeProfile={matchProfile}
+                  loading={loading}
+                />
               </div>
 
               {loading && <LoadingState message="Searching scholarships..." />}
@@ -347,6 +406,65 @@ const ScholarshipsPage = () => {
                   <AlertTitle>Error</AlertTitle>
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
+              )}
+
+              {matchProfile && (
+                <div className="mb-6 rounded-2xl border bg-gradient-to-r from-primary/5 via-primary/10 to-transparent p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-primary">
+                        <Brain className="h-4 w-4" /> Daily AI Matches
+                      </p>
+                      <h3 className="text-2xl font-bold">Personalized opportunities</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Based on your GPA, goals, and experience, Zoe monitors scholarships every day.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {typeof matchProfile.gpa === "number" && (
+                        <Badge variant="secondary">GPA {matchProfile.gpa.toFixed(2)}</Badge>
+                      )}
+                      {matchProfile.country && <Badge variant="outline">{matchProfile.country}</Badge>}
+                      {matchProfile.programLevel && <Badge variant="outline">{matchProfile.programLevel}</Badge>}
+                      {matchProfile.fundingNeed && matchProfile.fundingNeed !== "any" && (
+                        <Badge variant="secondary">{matchProfile.fundingNeed === "full" ? "Full funding" : "Partial funding"}</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  {topProfileMatches.length ? (
+                    <div className="mt-4 grid gap-4 md:grid-cols-3">
+                      {topProfileMatches.map((match) => (
+                        <div key={match.id} className="rounded-xl border bg-background/60 p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold leading-snug line-clamp-2">{match.title}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {match.profileMatchReasons?.[0] ?? match.matchReasons?.[0] ?? "High compatibility"}
+                              </p>
+                            </div>
+                            <Badge variant="secondary" className="gap-1">
+                              <Zap className="h-3.5 w-3.5" />
+                              {match.profileMatchScore ?? match.aiScore}%
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="mt-3"
+                            onClick={() => setSelectedScholarship(match)}
+                          >
+                            View details
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Zoe is learning your preferences. Save scholarships you like and check back daily for refreshed matches.
+                    </p>
+                  )}
+                </div>
               )}
 
               {recommendations.length > 0 && (
@@ -359,11 +477,11 @@ const ScholarshipsPage = () => {
                     {recommendations.map((scholarship) => (
                       <ScholarshipCard
                         key={scholarship.id}
-                        scholarship={scholarship as any}
+                        scholarship={scholarship}
                         isSaved={savedScholarshipIds.includes(scholarship.id)}
                         onToggleSave={toggleSave}
-                        onViewDetails={() => setSelectedScholarship(scholarship as any)}
-                        onShare={() => handleShare(scholarship as any)}
+                        onViewDetails={() => setSelectedScholarship(scholarship)}
+                        onShare={() => handleShare(scholarship)}
                       />
                     ))}
                   </div>
@@ -387,11 +505,11 @@ const ScholarshipsPage = () => {
                   {allResults.map((scholarship) => (
                     <ScholarshipCard
                       key={scholarship.id}
-                      scholarship={scholarship as any}
+                      scholarship={scholarship}
                       isSaved={savedScholarshipIds.includes(scholarship.id)}
                       onToggleSave={toggleSave}
-                      onViewDetails={() => setSelectedScholarship(scholarship as any)}
-                      onShare={() => handleShare(scholarship as any)}
+                      onViewDetails={() => setSelectedScholarship(scholarship)}
+                      onShare={() => handleShare(scholarship)}
                     />
                   ))}
                 </div>
