@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import SoPGenerator from '@/components/ai/SoPGenerator';
+import SopCvMaker from '@/components/ai/SopCvMaker';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -365,6 +366,8 @@ export default function SopGenerator() {
           )}
         </CardContent>
       </Card>
+
+      <SopCvMaker />
     </div>
   );
 }

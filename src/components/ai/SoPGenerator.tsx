@@ -33,6 +33,7 @@ import {
   BookOpen,
   GraduationCap,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,7 @@ export default function SoPGenerator({
     null,
   );
   const [saving, setSaving] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -202,6 +204,72 @@ export default function SoPGenerator({
   const handleEdit = (value: string) => {
     setEditedSOP(value);
     analyzeSOP(value);
+  };
+
+  const enhanceSOP = () => {
+    if (!editedSOP.trim()) {
+      toast({
+        title: "Add content",
+        description: "Write or generate a statement before enhancing it",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setEnhancing(true);
+
+    setTimeout(() => {
+      const paragraphs = editedSOP
+        .split(/\n{2,}/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean);
+
+      const enrichedParagraphs = paragraphs.map((paragraph, index) => {
+        let enhanced = paragraph;
+
+        if (!/impact|contribut/i.test(paragraph)) {
+          enhanced +=
+            " This experience sharpened my ability to translate insights into measurable impact for the communities I serve.";
+        }
+
+        if (
+          index === 0 &&
+          !paragraph.toLowerCase().includes("motivat") &&
+          formData.motivation
+        ) {
+          enhanced += ` It stems from ${formData.motivation.trim()}.`;
+        }
+
+        if (
+          index === paragraphs.length - 1 &&
+          (formData.programInterest || formData.universityInterest)
+        ) {
+          const programLabel = formData.programInterest || "this programme";
+          const universityLabel =
+            formData.universityInterest || "your university";
+          enhanced += ` I am ready to contribute meaningfully to ${programLabel} at ${universityLabel} and leverage its resources to advance my career goals.`;
+        }
+
+        return enhanced;
+      });
+
+      if (enrichedParagraphs.length === 0) {
+        enrichedParagraphs.push(editedSOP.trim());
+      }
+
+      const enhancedText = enrichedParagraphs.join("\n\n");
+
+      setEditedSOP(enhancedText);
+      analyzeSOP(enhancedText);
+
+      toast({
+        title: "Stronger narrative created",
+        description:
+          "We reinforced your motivation, impact, and institutional fit.",
+      });
+
+      setEnhancing(false);
+    }, 500);
   };
 
   const copyToClipboard = () => {
@@ -525,6 +593,18 @@ export default function SoPGenerator({
                   <Button variant="outline" onClick={downloadSOP}>
                     <Download className="h-4 w-4 mr-2" />
                     Download
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={enhanceSOP}
+                    disabled={enhancing || !editedSOP.trim()}
+                  >
+                    {enhancing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    {enhancing ? "Enhancing..." : "Make this stronger"}
                   </Button>
                   <Button onClick={saveSOP} disabled={saving}>
                     {saving ? (
