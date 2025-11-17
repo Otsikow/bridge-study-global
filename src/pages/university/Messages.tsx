@@ -229,11 +229,11 @@ function UniversityMessagesPage() {
       try {
         const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
         const excludeIds = [user?.id, profile?.id].filter(Boolean) as string[];
+        // Don't pass allowedProfileIds to let the database function handle permissions
         const results = await searchDirectoryProfiles(queryText, {
           tenantId: tenant,
           roles: CONTACT_ROLES as DirectoryProfile["role"][],
           excludeIds,
-          allowedProfileIds,
           limit: 40,
         });
         setContacts(results);
@@ -248,7 +248,7 @@ function UniversityMessagesPage() {
         setIsSearchingContacts(false);
       }
     },
-    [allowedProfileIds, profile?.id, profile?.tenant_id, toast, user?.id]
+    [profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {

@@ -88,6 +88,33 @@ export const searchDirectoryProfiles = async (
   query: string,
   options: SearchDirectoryOptions = {},
 ): Promise<DirectoryProfile[]> => {
+  // Try to fetch from database first if we have real contacts
+  // This happens when allowedProfileIds is null (meaning we should fetch from DB)
+  // or when it's provided but we want to validate against DB
+  if (!options.allowedProfileIds) {
+    try {
+      const { fetchMessagingContacts } = await import("./contactsService");
+      const dbContacts = await fetchMessagingContacts(query, options.limit || 50);
+
+      if (dbContacts && dbContacts.length > 0) {
+        // Filter by roles if specified
+        const filtered = options.roles && options.roles.length > 0
+          ? dbContacts.filter(profile => options.roles!.includes(profile.role))
+          : dbContacts;
+
+        // Filter by excludeIds if specified
+        const finalResults = options.excludeIds && options.excludeIds.length > 0
+          ? filtered.filter(profile => !options.excludeIds!.includes(profile.id))
+          : filtered;
+
+        return finalResults;
+      }
+    } catch (error) {
+      console.warn("Failed to fetch from database, falling back to mock data:", error);
+    }
+  }
+
+  // Fallback to mock data
   const normalizedQuery = normalize(query);
   const tenantId = options.tenantId ?? DEFAULT_TENANT_ID;
   const profiles = getDirectoryProfiles(tenantId);

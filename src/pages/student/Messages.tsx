@@ -85,32 +85,9 @@ export default function Messages() {
   }, [messagingProfile]);
 
   const defaultProfiles = useMemo(() => {
-    const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
-    const directoryById = new Map<string, ProfileRecord>();
-
-    if (allowedProfileIds && allowedProfileIds.size > 0) {
-      for (const id of allowedProfileIds) {
-        const match = findDirectoryProfileById(id);
-        if (
-          match &&
-          match.tenant_id === tenant &&
-          MESSAGING_DIRECTORY_ROLES.includes(match.role)
-        ) {
-          directoryById.set(match.id, match);
-        }
-      }
-    }
-
-    if (directoryById.size === 0) {
-      for (const record of getDirectoryProfiles(tenant)) {
-        if (MESSAGING_DIRECTORY_ROLES.includes(record.role)) {
-          directoryById.set(record.id, record);
-        }
-      }
-    }
-
-    return Array.from(directoryById.values());
-  }, [allowedProfileIds, profile?.tenant_id]);
+    // Return empty array initially - will be populated by search or database fetch
+    return [];
+  }, []);
 
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversation(conversationId);
@@ -151,11 +128,11 @@ export default function Messages() {
       try {
         const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
         const excludeIds = [user?.id, profile?.id].filter(Boolean) as string[];
+        // Don't pass allowedProfileIds to let the database function handle permissions
         const results = await searchDirectoryProfiles(trimmedQuery, {
           tenantId: tenant,
           excludeIds,
           roles: MESSAGING_DIRECTORY_ROLES,
-          allowedProfileIds,
           limit: 20,
         });
         setProfiles(results);
@@ -171,7 +148,6 @@ export default function Messages() {
       }
     },
     [
-      allowedProfileIds,
       defaultProfiles,
       profile?.id,
       profile?.tenant_id,
@@ -183,13 +159,14 @@ export default function Messages() {
   useEffect(() => {
     if (!showNewChatDialog) return;
 
+    // Fetch default contacts when dialog opens
     if (!searchQuery.trim()) {
-      setProfiles(defaultProfiles);
+      void searchProfiles(''); // Fetch all available contacts
       return;
     }
 
     void searchProfiles(searchQuery);
-  }, [defaultProfiles, searchProfiles, searchQuery, showNewChatDialog]);
+  }, [searchProfiles, searchQuery, showNewChatDialog]);
 
   const handleSelectProfile = async (profileId: string) => {
     const conversationId = await getOrCreateConversation(profileId);
