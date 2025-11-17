@@ -19,6 +19,7 @@ import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniver
 import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
+import { AICommunicationTemplatesSection } from "@/components/landing/AICommunicationTemplatesSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
 const Index = () => {
@@ -191,6 +192,8 @@ const Index = () => {
             </Card>)}
         </div>
       </section>
+
+      <AICommunicationTemplatesSection />
 
       <AIDocumentCheckerSection />
 

@@ -260,6 +260,41 @@ const de = {
           },
         },
       },
+        aiCommunication: {
+          badge: "AI Communication Templates",
+          heading: "AI-ready templates for staff and agents",
+          description:
+            "Let teams type natural requests—“Write an email to this university asking about application status”—and instantly receive a polished outreach draft.",
+          promptLabel: "Staff request",
+          responseLabel: "Instant AI draft",
+          promptExample: "\"Write an email to this university asking about application status.\"",
+          generatedEmail: [
+            "Hello Admissions Team,",
+            "I hope you're well. I'm writing on behalf of our student, [Student Name], who submitted an application on [Date].",
+            "Could you please share an update on the current review stage or any additional requirements needed to move forward?",
+            "We want to ensure all materials are complete and support your timelines.",
+            "Thank you for your partnership and guidance.",
+            "Best regards,",
+            "[Your Name]",
+            "Global Education Gateway",
+          ],
+          highlightsHeading: "What your team gains",
+          highlights: [
+            {
+              title: "Consistent tone",
+              description: "Every email mirrors your brand voice—no rushed or unprofessional drafts.",
+            },
+            {
+              title: "Faster follow-ups",
+              description: "Staff type natural language prompts and ship polished outreach within seconds.",
+            },
+            {
+              title: "Compliance ready",
+              description: "Templates include the right context, deadlines, and disclosures automatically.",
+            },
+          ],
+          footnote: "Saves hours of editing and protects your reputation on every channel.",
+        },
         aiDocumentChecker: {
           badge: "AI Document Checker",
           heading: "Let AI review every document in seconds",
