@@ -9,6 +9,7 @@ import type {
   ScholarshipSearchFilters,
   ScholarshipSearchResult,
   ScholarshipAIRecommendation,
+  ScholarshipMatchProfile,
 } from "@/types/scholarship";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -16,6 +17,7 @@ interface ScholarshipSearchOptions {
   query: string;
   filters: ScholarshipSearchFilters;
   profileTags?: string[];
+  matchProfile?: ScholarshipMatchProfile | null;
   limit?: number;
 }
 
@@ -279,23 +281,146 @@ const scoreScholarship = (
   return { score, reasons };
 };
 
+const parseGpaRequirement = (value?: string | null) => {
+  if (!value) return null;
+  const match = String(value).match(/(\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : null;
+};
+
+const evaluateProfileMatch = (
+  scholarship: Scholarship,
+  profile?: ScholarshipMatchProfile | null,
+): { score: number | null; reasons: string[]; qualifies: boolean } => {
+  if (!profile) {
+    return { score: null, reasons: [], qualifies: false };
+  }
+
+  let score = 45;
+  const reasons: string[] = [];
+
+  if (typeof profile.gpa === "number") {
+    const requirement = parseGpaRequirement(scholarship.eligibility.gpa);
+    if (!requirement || profile.gpa >= requirement) {
+      score += 15;
+      reasons.push(
+        requirement
+          ? `Your GPA ${profile.gpa.toFixed(2)} meets the ${requirement.toFixed(2)} requirement`
+          : `Strong GPA (${profile.gpa.toFixed(2)}) for competitive awards`,
+      );
+    } else {
+      score -= 8;
+      reasons.push(`Requires GPA ${requirement.toFixed(2)}+`);
+    }
+  }
+
+  if (profile.country) {
+    if (normalise(scholarship.country) === normalise(profile.country)) {
+      score += 15;
+      reasons.push(`Available in ${profile.country}`);
+    } else if (normalise(scholarship.country) === "global") {
+      score += 8;
+      reasons.push("Global eligibility fits your location");
+    } else {
+      score -= 6;
+    }
+  }
+
+  if (profile.programLevel) {
+    if (normalise(scholarship.level).includes(normalise(profile.programLevel))) {
+      score += 12;
+      reasons.push(`${scholarship.level} program matches your goal`);
+    } else {
+      score -= 4;
+    }
+  }
+
+  if (profile.fieldOfStudy && scholarship.eligibility.fieldOfStudy?.length) {
+    const matchesField = scholarship.eligibility.fieldOfStudy.some((field) =>
+      normalise(field).includes(normalise(profile.fieldOfStudy!)),
+    );
+    if (matchesField) {
+      score += 10;
+      reasons.push(`${profile.fieldOfStudy} is prioritised`);
+    }
+  }
+
+  if (profile.deadlinePreference) {
+    const { daysRemaining } = computeDeadlineMeta(scholarship.deadline);
+    if (
+      profile.deadlinePreference === "next30" &&
+      typeof daysRemaining === "number" &&
+      daysRemaining >= 0 &&
+      daysRemaining <= 30
+    ) {
+      score += 8;
+      reasons.push("Deadline within the next 30 days");
+    } else if (
+      profile.deadlinePreference === "thisYear" &&
+      scholarship.deadline &&
+      new Date(scholarship.deadline).getFullYear() === new Date().getFullYear()
+    ) {
+      score += 6;
+      reasons.push("Applications open this year");
+    } else if (profile.deadlinePreference === "flexible" && !scholarship.deadline) {
+      score += 6;
+      reasons.push("Flexible/rolling deadline");
+    }
+  }
+
+  if (profile.fundingNeed && profile.fundingNeed !== "any") {
+    if (normalise(scholarship.fundingType) === normalise(profile.fundingNeed === "full" ? "Full" : "Partial")) {
+      score += 12;
+      reasons.push(`${scholarship.fundingType} funding covers your need`);
+    } else {
+      score -= 8;
+    }
+  }
+
+  if (profile.workExperience && scholarship.eligibility.experience) {
+    const experienceRequirement = normalise(scholarship.eligibility.experience);
+    if (
+      profile.workExperience === "3+" &&
+      (experienceRequirement.includes("3") || experienceRequirement.includes("professional"))
+    ) {
+      score += 5;
+      reasons.push("Relevant work experience noted");
+    } else if (profile.workExperience === "none" && experienceRequirement.includes("none")) {
+      score += 5;
+      reasons.push("Open to applicants without experience");
+    }
+  }
+
+  if (profile.contextNote) {
+    const snippet = profile.contextNote.length > 80 ? `${profile.contextNote.slice(0, 77)}...` : profile.contextNote;
+    reasons.push(`Considers your goal: ${snippet}`);
+  }
+
+  const boundedScore = Math.max(10, Math.min(100, Math.round(score)));
+  return { score: boundedScore, reasons, qualifies: boundedScore >= 60 };
+};
+
 const enhanceScholarships = (
   scholarships: Scholarship[],
   query: string,
   filters: ScholarshipSearchFilters,
   profileTags: string[] | undefined,
+  matchProfile?: ScholarshipMatchProfile | null,
 ): ScholarshipSearchResult[] => {
   return scholarships
     .filter((scholarship) => matchesFilter(scholarship, filters))
     .map((scholarship) => {
       const meta = computeDeadlineMeta(scholarship.deadline);
       const { score, reasons } = scoreScholarship(scholarship, query, profileTags);
+      const profileMatch = evaluateProfileMatch(scholarship, matchProfile);
       return {
         ...scholarship,
         deadlineDaysRemaining: meta.daysRemaining,
         deadlineLabel: meta.label,
-        matchReasons: reasons,
+        matchReasons: Array.from(new Set([...(reasons ?? []), ...(profileMatch.reasons ?? [])])),
         aiScore: Math.round(score),
+        profileMatchScore: profileMatch.score,
+        profileMatchReasons: profileMatch.reasons,
+        qualifiesBasedOnProfile: profileMatch.qualifies,
       };
     })
     .sort((a, b) => {
@@ -310,6 +435,8 @@ const enhanceScholarships = (
           return 1;
         }
       }
+      const profileScoreDiff = (b.profileMatchScore ?? 0) - (a.profileMatchScore ?? 0);
+      if (profileScoreDiff !== 0) return profileScoreDiff;
       return (b.aiScore ?? 0) - (a.aiScore ?? 0);
     });
 };
@@ -320,10 +447,12 @@ const deriveRecommendations = (
   return results
     .slice(0, 6)
     .map((result) => ({
-      id: result.id,
-      title: result.title,
-      reason: result.matchReasons?.[0] ?? "Strong alignment with your profile",
-      score: result.aiScore ?? 75,
+      ...result,
+      recommendationReason:
+        result.profileMatchReasons?.[0] ??
+        result.matchReasons?.[0] ??
+        "Strong alignment with your profile",
+      recommendationScore: result.profileMatchScore ?? result.aiScore ?? 75,
     }))
     .slice(0, 3);
 };
@@ -332,18 +461,19 @@ export const useScholarshipSearch = ({
   query,
   filters,
   profileTags,
+  matchProfile,
   limit = DEFAULT_LIMIT,
 }: ScholarshipSearchOptions): ScholarshipSearchHookResult => {
   const { data, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ["scholarship-search", query, filters, profileTags, limit],
+    queryKey: ["scholarship-search", query, filters, profileTags, matchProfile, limit],
     queryFn: () => fetchScholarships(query, filters, limit),
     staleTime: 5 * 60 * 1000,
     placeholderData: (previousData) => previousData,
   });
 
   const enhancedResults = useMemo(
-    () => enhanceScholarships(data ?? FALLBACK_SCHOLARSHIPS, query, filters, profileTags),
-    [data, query, filters, profileTags],
+    () => enhanceScholarships(data ?? FALLBACK_SCHOLARSHIPS, query, filters, profileTags, matchProfile),
+    [data, query, filters, profileTags, matchProfile],
   );
 
   const stats = useMemo(() => {
