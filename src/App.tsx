@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { PublicLayout } from "@/components/layout/PublicLayout";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -244,6 +244,12 @@ const StudentDetailsPage = lazyWithErrorHandling(() => import("./pages/agent/Stu
 /* -------------------------------------------------------------------------- */
 /* ✅ Main App Component                                                      */
 /* -------------------------------------------------------------------------- */
+const LegacySignupRedirect = () => {
+  const location = useLocation();
+  const destination = `/auth/signup${location.search}${location.hash}`;
+  return <Navigate to={destination} replace />;
+};
+
 const App = () => {
   const { t } = useTranslation();
 
@@ -275,6 +281,7 @@ const App = () => {
                         <Route path="/legal/terms" element={<PublicLayout><LegalTerms /></PublicLayout>} />
                         <Route path="/auth/login" element={<PublicLayout><Login /></PublicLayout>} />
                         <Route path="/auth/signup" element={<PublicLayout><Signup /></PublicLayout>} />
+                        <Route path="/signup" element={<LegacySignupRedirect />} />
                         <Route path="/verify-email" element={<PublicLayout><VerifyEmail /></PublicLayout>} />
                         <Route path="/auth/forgot-password" element={<PublicLayout><ForgotPassword /></PublicLayout>} />
                         <Route path="/auth/reset-password" element={<PublicLayout><ResetPassword /></PublicLayout>} />

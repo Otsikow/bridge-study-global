@@ -65,25 +65,16 @@ const isUsernameCheckUnsupported = (error: PostgrestError | null) => {
 };
 
 const BASE_COUNTRY_OPTIONS = [
-  "United States", "United Kingdom", "Canada", "Australia", "New Zealand",
-  "India", "China", "Japan", "Germany", "France", "Spain", "Italy",
-  "Netherlands", "Sweden", "Norway", "Denmark", "Singapore", "Malaysia",
-  "UAE", "Saudi Arabia", "South Africa", "Brazil", "Mexico", "Argentina",
-  "South Korea", "Pakistan", "Bangladesh", "Nigeria", "Kenya", "Other",
+  "United Kingdom",
+  "Germany",
+  "Australia",
+  "United States",
+  "Canada",
+  "Netherlands",
+  "Ireland",
 ];
 
-const POPULAR_AFRICAN_COUNTRIES = [
-  "Ghana", "Egypt", "Morocco", "Ethiopia", "Uganda", "Tanzania", "Rwanda",
-  "Zimbabwe", "Zambia", "Cameroon", "Cote d'Ivoire", "Senegal", "Algeria",
-  "Tunisia", "Botswana",
-];
-
-const buildCountryOptions = (role: UserRole) => {
-  if (role !== "agent") return BASE_COUNTRY_OPTIONS;
-  const baseWithoutOther = BASE_COUNTRY_OPTIONS.filter((c) => c !== "Other");
-  const deduped = Array.from(new Set([...baseWithoutOther, ...POPULAR_AFRICAN_COUNTRIES]));
-  return [...deduped, "Other"];
-};
+const buildCountryOptions = () => BASE_COUNTRY_OPTIONS;
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -117,7 +108,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const countryOptions = useMemo(() => buildCountryOptions(role), [role]);
+  const countryOptions = useMemo(() => buildCountryOptions(), []);
 
   // Redirect logged-in user
   useEffect(() => {
