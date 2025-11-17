@@ -81,6 +81,16 @@ type EmailTemplate = {
   sendAutomatically: boolean;
 };
 
+type EmailAutomationTrigger = {
+  id: string;
+  title: string;
+  audience: "students" | "universities" | "both";
+  description: string;
+  cadence: string;
+  sampleSubject: string;
+  defaultEnabled: boolean;
+};
+
 type Integration = {
   id: string;
   name: string;
@@ -168,6 +178,59 @@ const emailTemplateSeed: Record<EmailTemplateKey, EmailTemplate> = {
   },
 };
 
+const emailAutomationTriggers: EmailAutomationTrigger[] = [
+  {
+    id: "missing-documents",
+    title: "Missing documents reminder",
+    audience: "students",
+    description:
+      "Automatically nudges applicants when outstanding transcripts, scores, or recommendations are detected in their checklist.",
+    cadence: "Every 72 hours until resolved",
+    sampleSubject: "Action needed: upload your missing documents",
+    defaultEnabled: true,
+  },
+  {
+    id: "application-submitted",
+    title: "Application submitted",
+    audience: "both",
+    description:
+      "Confirms receipt to students and CCs their university liaison with the full submission fingerprint.",
+    cadence: "Instant",
+    sampleSubject: "We’ve received your application",
+    defaultEnabled: true,
+  },
+  {
+    id: "offer-received",
+    title: "Offer received",
+    audience: "students",
+    description:
+      "Celebrates new offers with program highlights while alerting the partner university to update their CRM.",
+    cadence: "Instant",
+    sampleSubject: "🎉 Offer received for {{program_name}}",
+    defaultEnabled: true,
+  },
+  {
+    id: "deposit-deadline",
+    title: "Deposit deadline approaching",
+    audience: "both",
+    description:
+      "Escalates upcoming payment deadlines with a summary of remaining balance and finance contacts.",
+    cadence: "7, 3, and 1 day prior",
+    sampleSubject: "Reminder: secure your seat before the deadline",
+    defaultEnabled: true,
+  },
+  {
+    id: "visa-interview",
+    title: "Visa interview reminder",
+    audience: "students",
+    description:
+      "Delivers embassy checklist guidance and nudges partner universities when students confirm interview slots.",
+    cadence: "Weekly until interview date",
+    sampleSubject: "Visa interview prep checklist",
+    defaultEnabled: true,
+  },
+];
+
 const integrationSeed: Integration[] = [
   {
     id: "stripe",
@@ -224,6 +287,18 @@ const createInitialLocalization = (): LocalizationSettings => ({
   fallbackCurrency: "USD",
 });
 
+const automationAudienceLabels: Record<EmailAutomationTrigger["audience"], string> = {
+  students: "Students",
+  universities: "Universities",
+  both: "Students & universities",
+};
+
+const automationAudienceTone: Record<EmailAutomationTrigger["audience"], string> = {
+  students: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-50",
+  universities: "bg-sky-100 text-sky-800 dark:bg-sky-500/20 dark:text-sky-50",
+  both: "bg-purple-100 text-purple-800 dark:bg-purple-500/20 dark:text-purple-50",
+};
+
 /* -------------------------------------------------------------------------- */
 /* ✅ Component                                                               */
 /* -------------------------------------------------------------------------- */
@@ -233,6 +308,12 @@ const AdminSettings = () => {
 
   const [permissions, setPermissions] = useState<Permission[]>(permissionSeed);
   const [emailTemplates, setEmailTemplates] = useState<Record<EmailTemplateKey, EmailTemplate>>(emailTemplateSeed);
+  const [automationToggles, setAutomationToggles] = useState<Record<string, boolean>>(() =>
+    emailAutomationTriggers.reduce((acc, trigger) => {
+      acc[trigger.id] = trigger.defaultEnabled;
+      return acc;
+    }, {} as Record<string, boolean>),
+  );
   const [integrations, setIntegrations] = useState<Integration[]>(integrationSeed);
   const [localization, setLocalization] = useState<LocalizationSettings>(createInitialLocalization);
   const [autoBackups, setAutoBackups] = useState(true);
@@ -254,6 +335,16 @@ const AdminSettings = () => {
     toast({
       title: t("admin.settings.saved", { defaultValue: "Settings saved" }),
       description: t("admin.settings.savedDesc", { defaultValue: "Your changes have been successfully saved." }),
+    });
+  };
+
+  const handleAutomationToggle = (id: string, enabled: boolean) => {
+    setAutomationToggles((prev) => ({ ...prev, [id]: enabled }));
+    toast({
+      title: enabled ? "Automation enabled" : "Automation paused",
+      description: enabled
+        ? "Zoe will continue sending this touchpoint without supervision."
+        : "This workflow will stop emailing until re-enabled.",
     });
   };
 
@@ -394,6 +485,83 @@ const AdminSettings = () => {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="emails">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr,1.4fr]">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>AI email automation</CardTitle>
+                <CardDescription>
+                  Emails triggered automatically to students and universities.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5 text-sm text-muted-foreground">
+                <p>
+                  You don’t have to babysit anything. Zoe watches the admissions lifecycle,
+                  reacts to every milestone, and keeps both audiences informed without
+                  manual follow-up.
+                </p>
+                <div className="rounded-lg border p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Active workflows
+                  </p>
+                  <ul className="mt-3 space-y-2 text-foreground">
+                    {emailAutomationTriggers.map((trigger) => (
+                      <li key={trigger.id} className="flex items-center gap-2 text-sm">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span className="font-medium">{trigger.title}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <p>
+                  Each template is localized, branded, and logged in audit history so your team can
+                  prove compliance with partner SLAs.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Automated touchpoints</CardTitle>
+                <CardDescription>
+                  Toggle workflows or inspect cadence and subject lines before they go out.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {emailAutomationTriggers.map((trigger) => (
+                  <div key={trigger.id} className="rounded-lg border p-4 shadow-sm">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold text-foreground">{trigger.title}</p>
+                        <p className="text-sm text-muted-foreground">{trigger.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary" className={automationAudienceTone[trigger.audience]}>
+                          {automationAudienceLabels[trigger.audience]}
+                        </Badge>
+                        <Switch
+                          checked={automationToggles[trigger.id]}
+                          onCheckedChange={(checked) => handleAutomationToggle(trigger.id, checked)}
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Cadence</p>
+                        <p className="font-medium text-foreground">{trigger.cadence}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Sample subject</p>
+                        <p className="font-medium text-foreground">{trigger.sampleSubject}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="audit">
