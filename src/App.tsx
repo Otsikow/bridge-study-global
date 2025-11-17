@@ -288,6 +288,7 @@ const App = () => {
                         <Route path="/search" element={<Navigate to="/courses?view=programs" replace />} />
                         <Route path="/courses" element={<PublicLayout><CourseDiscovery /></PublicLayout>} />
                         <Route path="/scholarships" element={<PublicLayout><Scholarships /></PublicLayout>} />
+                        <Route path="/intake-form" element={<PublicLayout><IntakeForm /></PublicLayout>} />
                         <Route path="/blog" element={<PublicLayout><Blog /></PublicLayout>} />
                         <Route path="/blog/:slug" element={<PublicLayout><BlogPost /></PublicLayout>} />
                         <Route path="/universities" element={<PublicLayout><UniversityDirectory /></PublicLayout>} />
