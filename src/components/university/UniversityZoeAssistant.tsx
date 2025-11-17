@@ -10,6 +10,8 @@ import { Sparkles, Send, Bot, User, Loader2, MessageSquareQuote } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
+import { isSupabaseConfigured } from "@/integrations/supabase/client";
+import { generateZoeMockChunks } from "@/lib/zoe/mockResponse";
 import ZoeTypingIndicator from "@/components/ai/ZoeTypingIndicator";
 
 type AssistantRole = "user" | "assistant";
@@ -225,6 +227,28 @@ export function UniversityZoeAssistant() {
       setActiveSuggestion(null);
       setIsLoading(true);
 
+      const respondWithMock = (notice: string) => {
+        const fallback = generateZoeMockChunks({
+          prompt: trimmed,
+          context: { focus: "messages", surface: "university-messages-sidebar" },
+          audience,
+          surface: "university-messages-sidebar",
+        });
+        const chunks = fallback.chunks.length ? fallback.chunks : [fallback.markdown];
+        chunks.forEach((chunk) => {
+          updateAssistantMessage(assistantMessageId, chunk + (chunk.endsWith("\n") ? "" : "\n\n"));
+        });
+        toast({
+          title: "Zoe is in demo mode",
+          description: notice,
+        });
+      };
+
+      if (!isSupabaseConfigured) {
+        respondWithMock("Edge Functions aren't available in this environment, so I'm sharing cached insights.");
+        return;
+      }
+
       try {
         const payloadHistory = nextHistory
           .filter((message) => message.id !== assistantMessageId)
@@ -297,16 +321,7 @@ export function UniversityZoeAssistant() {
         }
       } catch (error) {
         console.error("Zoe assistant error", error);
-        updateAssistantMessage(
-          nextHistory[nextHistory.length - 1].id,
-          error instanceof Error ? error.message : "Zoe is unavailable right now. Please try again later.",
-        );
-        toast({
-          title: "Zoe is unavailable",
-          description:
-            error instanceof Error ? error.message : "Something went wrong while contacting Zoe.",
-          variant: "destructive",
-        });
+        respondWithMock("Using cached insights while we reconnect to Zoe's Edge Function.");
       } finally {
         setIsLoading(false);
       }
