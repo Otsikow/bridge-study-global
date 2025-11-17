@@ -9,6 +9,8 @@ import { Sparkles, Send, Bot, User, Loader2, MessageSquareQuote } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
+import { isSupabaseConfigured } from "@/integrations/supabase/client";
+import { generateZoeMockChunks } from "@/lib/zoe/mockResponse";
 import ZoeTypingIndicator from "@/components/ai/ZoeTypingIndicator";
 
 type AssistantRole = "user" | "assistant";
@@ -137,12 +139,34 @@ export function PartnerZoeAssistant() {
     setActiveSuggestion(null);
     setIsLoading(true);
 
-    try {
-      const payloadHistory = nextHistory
-        .filter((message) => message.id !== assistantMessageId)
-        .map((message) => ({
-          role: message.role,
-          content: message.content,
+      const respondWithMock = (notice: string) => {
+        const fallback = generateZoeMockChunks({
+          prompt: trimmed,
+          context: { focus: "messages", surface: "partner-messages-sidebar" },
+          audience,
+          surface: "partner-messages-sidebar",
+        });
+        const chunks = fallback.chunks.length ? fallback.chunks : [fallback.markdown];
+        chunks.forEach((chunk) => {
+          updateAssistantMessage(assistantMessageId, chunk + (chunk.endsWith("\n") ? "" : "\n\n"));
+        });
+        toast({
+          title: "Zoe is in demo mode",
+          description: notice,
+        });
+      };
+
+      if (!isSupabaseConfigured) {
+        respondWithMock("Edge Functions are not configured in this preview, so I'm sharing cached insights.");
+        return;
+      }
+
+      try {
+        const payloadHistory = nextHistory
+          .filter((message) => message.id !== assistantMessageId)
+          .map((message) => ({
+            role: message.role,
+            content: message.content,
         }));
 
       const response = await fetch(`${FUNCTIONS_BASE}/ai-chatbot`, {
@@ -210,17 +234,7 @@ export function PartnerZoeAssistant() {
       }
     } catch (error) {
       console.error("Zoe assistant error", error);
-      updateAssistantMessage(
-        assistantMessageId,
-        error instanceof Error
-          ? `\n\nSorry, I ran into an issue: ${error.message}`
-          : "\n\nSorry, I ran into an unexpected issue.",
-      );
-      toast({
-        title: "Zoe is unavailable",
-        description: "Please try again in a few seconds.",
-        variant: "destructive",
-      });
+      respondWithMock("Using cached insights while we reconnect to Zoe's Edge Function.");
     } finally {
       setIsLoading(false);
     }

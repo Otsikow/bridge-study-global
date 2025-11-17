@@ -33,11 +33,12 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "@/lib/supabaseClientConfig";
 import zoeAvatar from "@/assets/professional-consultant.png";
 import { cn } from "@/lib/utils";
 import ZoeTypingIndicator from "@/components/ai/ZoeTypingIndicator";
+import { generateZoeMockResponse } from "@/lib/zoe/mockResponse";
 
 interface Attachment {
   id: string;
@@ -603,6 +604,34 @@ export default function ZoeChatbot() {
     notificationPlayedRef.current = false;
     setErrorState(null);
 
+    const respondWithMock = (notice: string) => {
+      const fallback = generateZoeMockResponse({
+        prompt: userContent || "Summarize my inbox",
+        context: { focus: "messages", surface: "global-ai-chat" },
+        audience: profile?.role ?? null,
+        surface: "global-ai-chat",
+      });
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: fallback.markdown,
+      };
+      const historyWithAssistant = [...updatedHistory, assistantMessage];
+      setMessages(historyWithAssistant);
+      setHasConversationStarted(true);
+      setSuggestions(generateSuggestions(historyWithAssistant));
+      setErrorState(null);
+      toast({
+        title: "Zoe is in demo mode",
+        description: notice,
+      });
+    };
+
+    if (!isSupabaseConfigured) {
+      respondWithMock("Edge Functions aren't configured here, so I'm sharing cached insights.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const chatUrl = `${SUPABASE_FUNCTIONS_BASE}/ai-chatbot`;
       const audience = profile?.role ?? undefined;
@@ -756,30 +785,31 @@ export default function ZoeChatbot() {
     } catch (error) {
       console.error("Zoe chat error", error);
       const friendly = interpretError(error);
-      const inlineError =
-        friendly.title === "Session expired"
-          ? "Please sign in again to continue this conversation."
-          : friendly.description;
-      const failedHistory = [
-        ...sanitizedHistory,
-        {
-          ...userMessage,
-          error: inlineError,
-        },
-      ];
+      if (friendly.title !== "Session expired") {
+        respondWithMock("Using cached insights while we restore Zoe's connection.");
+      } else {
+        const inlineError = "Please sign in again to continue this conversation.";
+        const failedHistory = [
+          ...sanitizedHistory,
+          {
+            ...userMessage,
+            error: inlineError,
+          },
+        ];
 
-      setMessages(failedHistory);
-      setHasConversationStarted(true);
-      setSuggestions(generateSuggestions(failedHistory));
-      setInput(userContent);
-      setAttachments(previousAttachments);
-      setErrorState(friendly);
+        setMessages(failedHistory);
+        setHasConversationStarted(true);
+        setSuggestions(generateSuggestions(failedHistory));
+        setInput(userContent);
+        setAttachments(previousAttachments);
+        setErrorState(friendly);
 
-      toast({
-        title: friendly.title,
-        description: friendly.description,
-        variant: "destructive",
-      });
+        toast({
+          title: friendly.title,
+          description: friendly.description,
+          variant: "destructive",
+        });
+      }
     } finally {
       notificationPlayedRef.current = false;
       setIsLoading(false);

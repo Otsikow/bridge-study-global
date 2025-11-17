@@ -1,9 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { generateZoeMockResponse } from "@/lib/zoe/mockResponse";
 
 export interface ZoePromptPayload {
   prompt: string;
@@ -26,28 +27,52 @@ export const useZoeAI = () => {
 
   return useMutation({
     mutationFn: async ({ prompt, context }: ZoePromptPayload): Promise<ZoeStructuredAnswer> => {
-      const { data, error } = await supabase.functions.invoke("zoe-staff-prompt", {
-        body: {
+      const buildMockResponse = () => {
+        const fallback = generateZoeMockResponse({
           prompt,
-          context: {
-            tenantId: profile?.tenant_id,
-            userId: profile?.id,
-            role: profile?.role,
-            ...context,
+          context: { ...context, focus: context?.focus ?? "messages" },
+          audience: profile?.role ?? null,
+          surface: context?.surface as string | undefined,
+        });
+        const markdown = DOMPurify.sanitize(formatMarkdown(fallback.markdown));
+        return {
+          answer: fallback.markdown,
+          markdown,
+          metadata: { ...fallback.metadata, source: "mock" },
+        } satisfies ZoeStructuredAnswer;
+      };
+
+      if (!isSupabaseConfigured) {
+        return buildMockResponse();
+      }
+
+      try {
+        const { data, error } = await supabase.functions.invoke("zoe-staff-prompt", {
+          body: {
+            prompt,
+            context: {
+              tenantId: profile?.tenant_id,
+              userId: profile?.id,
+              role: profile?.role,
+              ...context,
+            },
           },
-        },
-      });
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const answer = data?.answer ?? "";
-      const markdown = DOMPurify.sanitize(formatMarkdown(answer));
+        const answer = data?.answer ?? "";
+        const markdown = DOMPurify.sanitize(formatMarkdown(answer));
 
-      return {
-        answer,
-        markdown,
-        metadata: data?.metadata ?? {},
-      } satisfies ZoeStructuredAnswer;
+        return {
+          answer,
+          markdown,
+          metadata: data?.metadata ?? {},
+        } satisfies ZoeStructuredAnswer;
+      } catch (error) {
+        console.warn("Falling back to mock Zoe response", error);
+        return buildMockResponse();
+      }
     },
   });
 };
