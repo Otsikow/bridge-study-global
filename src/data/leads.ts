@@ -1,7 +1,39 @@
-import { supabase } from "@/integrations/supabase/client";
-import { Lead } from "@/types/lead";
+import { supabase, isSupabaseConfigured } from "@/integrations/supabase/client";
+import { Lead, LeadCore } from "@/types/lead";
+import { enrichLeadWithQualification } from "@/lib/leadQualification";
+
+const MOCK_LEADS: LeadCore[] = [
+  {
+    id: "mock-aisha",
+    first_name: "Aisha",
+    last_name: "Rahman",
+    email: "aisha.rahman@example.com",
+    country: "India",
+    status: "documents_pending",
+  },
+  {
+    id: "mock-diego",
+    first_name: "Diego",
+    last_name: "Morales",
+    email: "diego.morales@example.com",
+    country: "Mexico",
+    status: "offer_ready",
+  },
+  {
+    id: "mock-hana",
+    first_name: "Hana",
+    last_name: "Nguyen",
+    email: "hana.nguyen@example.com",
+    country: "Vietnam",
+    status: "nurture",
+  },
+];
 
 export const getLeads = async (): Promise<Lead[]> => {
+  if (!isSupabaseConfigured) {
+    return MOCK_LEADS.map((lead) => enrichLeadWithQualification(lead));
+  }
+
   const { data, error } = await supabase
     .from("students")
     .select(
@@ -29,7 +61,7 @@ export const getLeads = async (): Promise<Lead[]> => {
     const nameParts = (student.legal_name || student.preferred_name || "").split(" ");
     const firstName = nameParts.shift() || "";
     const lastName = nameParts.join(" ");
-    return {
+    const baseLead: LeadCore = {
       id: student.id,
       first_name: firstName,
       last_name: lastName,
@@ -37,10 +69,16 @@ export const getLeads = async (): Promise<Lead[]> => {
       country: student.current_country || "",
       status: student.agent_student_links[0]?.status || "unknown",
     };
+    return enrichLeadWithQualification(baseLead);
   }) as Lead[];
 };
 
 export const getStudent = async (studentId: string): Promise<Lead> => {
+  if (!isSupabaseConfigured) {
+    const mockLead = MOCK_LEADS.find((lead) => lead.id === studentId) || MOCK_LEADS[0];
+    return enrichLeadWithQualification(mockLead);
+  }
+
   const { data, error } = await supabase
     .from("students")
     .select(
@@ -67,14 +105,15 @@ export const getStudent = async (studentId: string): Promise<Lead> => {
   const nameParts = (student.legal_name || student.preferred_name || "").split(" ");
   const firstName = nameParts.shift() || "";
   const lastName = nameParts.join(" ");
-  return {
+  const baseLead: LeadCore = {
     id: student.id,
     first_name: firstName,
     last_name: lastName,
     email: student.contact_email || "",
     country: student.current_country || "",
     status: student.agent_student_links[0]?.status || "unknown",
-  } as Lead;
+  };
+  return enrichLeadWithQualification(baseLead) as Lead;
 };
 
 export const getApplicationDrafts = async (studentId: string): Promise<any[]> => {
