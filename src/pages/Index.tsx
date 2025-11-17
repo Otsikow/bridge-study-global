@@ -18,6 +18,7 @@ import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
+import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
 const Index = () => {
@@ -190,6 +191,8 @@ const Index = () => {
             </Card>)}
         </div>
       </section>
+
+      <AIDocumentCheckerSection />
 
       {/* VISA CALCULATOR */}
       <section className="relative py-24">
