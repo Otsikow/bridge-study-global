@@ -34,12 +34,11 @@ import universityBuildings from "@/assets/university-buildings.png";
 import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
-import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
-import { ZoeMultiroleSection } from "@/components/landing/ZoeMultiroleSection";
 import { AICommunicationTemplatesSection } from "@/components/landing/AICommunicationTemplatesSection";
 import { AIFeeCalculator } from "@/components/landing/AIFeeCalculator";
+import { ZoeExperienceSection } from "@/components/landing/ZoeExperienceSection";
 
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
@@ -308,8 +307,7 @@ const Index = () => {
 
       <AIFeeCalculator />
 
-      <AIPoweredSearchSection />
-      <ZoeMultiroleSection />
+      <ZoeExperienceSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
