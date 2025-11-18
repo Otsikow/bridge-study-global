@@ -17,7 +17,7 @@ const it = {
     ...en.pages,
     index: {
       ...(en.pages?.index ?? {}),
-      aiDocumentChecker: {
+        aiDocumentChecker: {
           badge: "AI Document Checker",
           heading: "Let AI review every document in seconds",
           description:
@@ -43,6 +43,17 @@ const it = {
               "Wrong document type",
               "Fraud signs",
             ],
+          },
+          riskMonitoring: {
+            heading: "AI detects fake tutors & fake agents",
+            description: "AI flags suspicious behaviour:",
+            items: [
+              "Same passport used for multiple accounts",
+              "Students buying fabricated bank statements",
+              "Uploading fake WAEC results",
+              "Agents sending unrealistic profiles",
+            ],
+            footnote: "This protects your reputation.",
           },
           stats: [
             { value: "60s", label: "Average review time" },
