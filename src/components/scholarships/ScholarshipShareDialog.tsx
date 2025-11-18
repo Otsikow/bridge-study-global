@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import type { ScholarshipSearchResult } from "@/types/scholarship";
+import { buildScholarshipShareLink } from "@/lib/site";
 
 export interface ScholarshipShareDialogProps {
   open: boolean;
@@ -27,6 +28,11 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
     setCopiedField(null);
   }, [scholarship, open]);
 
+  const shareLink = useMemo(() => {
+    if (!scholarship) return "";
+    return buildScholarshipShareLink(scholarship);
+  }, [scholarship]);
+
   const shareSummary = useMemo(() => {
     if (!scholarship) return "";
 
@@ -34,11 +40,11 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
       scholarship.title,
       scholarship.awardAmount,
       scholarship.deadlineLabel ? `Deadline: ${scholarship.deadlineLabel}` : undefined,
-      scholarship.officialLink,
+      shareLink ? `Explore via Global Education Gateway: ${shareLink}` : undefined,
     ].filter(Boolean);
 
     return parts.join("\n");
-  }, [scholarship]);
+  }, [scholarship, shareLink]);
 
   const shareSubject = scholarship ? `Scholarship opportunity: ${scholarship.title}` : "Scholarship opportunity";
 
@@ -62,7 +68,7 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
 
       setCopiedField(field);
       toast({
-        title: "Copied", 
+        title: "Copied",
         description: field === "link" ? "Scholarship link copied to clipboard." : "Scholarship overview copied to clipboard.",
       });
 
@@ -70,7 +76,7 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
     } catch (error) {
       console.error("Failed to copy share content", error);
       toast({
-        title: "Unable to copy", 
+        title: "Unable to copy",
         description: "We couldn't copy that automatically. Try copying it manually.",
         variant: "destructive",
       });
@@ -99,20 +105,21 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
           <div className="space-y-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">{scholarship.title}</p>
-              <p className="text-sm text-muted-foreground">{scholarship.institution} \u2022 {scholarship.country}</p>
+              <p className="text-sm text-muted-foreground">{scholarship.institution} • {scholarship.country}</p>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="share-link" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Direct link
+                Global Education Gateway link
               </Label>
               <div className="flex items-center gap-2">
-                <Input id="share-link" value={scholarship.officialLink} readOnly className="font-mono text-xs" />
+                <Input id="share-link" value={shareLink} readOnly className="font-mono text-xs" />
                 <Button
                   type="button"
                   variant="secondary"
                   className="shrink-0"
-                  onClick={() => handleCopy(scholarship.officialLink, "link")}
+                  onClick={() => handleCopy(shareLink, "link")}
+                  disabled={!shareLink}
                 >
                   {copiedField === "link" ? <CheckCircle2 className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
                 </Button>
@@ -131,6 +138,7 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
                   size="sm"
                   onClick={() => handleCopy(shareSummary, "message")}
                   className="gap-2"
+                  disabled={!shareSummary}
                 >
                   {copiedField === "message" ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   Copy message
