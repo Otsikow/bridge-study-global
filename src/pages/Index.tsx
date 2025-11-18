@@ -37,8 +37,10 @@ import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniver
 import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
+import { ZoeMultiroleSection } from "@/components/landing/ZoeMultiroleSection";
 import { AICommunicationTemplatesSection } from "@/components/landing/AICommunicationTemplatesSection";
 import { AIFeeCalculator } from "@/components/landing/AIFeeCalculator";
+
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
 
@@ -77,9 +79,7 @@ const Index = () => {
 
   const heroTitleParts = useMemo(
     () =>
-      t("pages.index.hero.title", {
-        returnObjects: true
-      }) as {
+      t("pages.index.hero.title", { returnObjects: true }) as {
         prefix: string;
         highlight: string;
         suffix?: string;
@@ -183,8 +183,8 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <SEO
         title="Global Education Gateway - Your Path to International Education"
-        description="Connect with top universities worldwide. Streamline your study abroad journey with expert guidance, application tracking, and comprehensive support."
-        keywords="study abroad, international education, visa, scholarship search, global universities"
+        description="Connect with top universities worldwide. Streamline your study abroad journey with expert guidance, AI tools, tracking, and full support."
+        keywords="study abroad, university applications, international education, AI tools, visa calculator"
       />
 
       {/* HERO */}
@@ -209,15 +209,16 @@ const Index = () => {
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
             {heroCtas.map((cta) => (
               <Link key={cta.key} to={cta.href} className="block h-full">
-                <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <Card className="group flex h-full flex-col overflow-hidden rounded-3xl border border-primary/10 shadow-xl transition hover:-translate-y-1 hover:shadow-2xl">
                   <div className="relative h-48 overflow-hidden sm:h-56">
                     <img
                       src={cta.image}
                       alt={cta.title}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover transition group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
-                    <Badge className="absolute left-4 top-4 bg-background/90 text-white shadow-sm">
+
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-white">
                       {cta.badge}
                     </Badge>
                   </div>
@@ -256,6 +257,7 @@ const Index = () => {
                 >
                   <f.icon className="h-8 w-8 text-white" />
                 </div>
+
                 <h3 className="text-2xl font-bold mb-2">{f.title}</h3>
                 <p className="text-muted-foreground">{f.description}</p>
               </CardContent>
@@ -264,6 +266,7 @@ const Index = () => {
         </div>
       </section>
 
+      {/* AI Sections */}
       <AICommunicationTemplatesSection />
       <AIDocumentCheckerSection />
 
@@ -296,7 +299,7 @@ const Index = () => {
           <div className="relative">
             <img
               src={visaEligibilityImage}
-              alt="Student using laptop to check visa eligibility"
+              alt="Student checking visa eligibility"
               className="w-full h-auto rounded-2xl shadow-2xl"
             />
           </div>
@@ -306,6 +309,7 @@ const Index = () => {
       <AIFeeCalculator />
 
       <AIPoweredSearchSection />
+      <ZoeMultiroleSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
@@ -322,9 +326,9 @@ const Index = () => {
             </p>
 
             <div className="flex justify-center gap-1 mb-6">
-              {[
-                ...Array(testimonials[currentTestimonial].rating).keys()
-              ].map((i) => (
+              {Array.from({
+                length: testimonials[currentTestimonial].rating
+              }).map((_, i) => (
                 <Star
                   key={i}
                   className="h-5 w-5 fill-primary text-primary"
@@ -346,6 +350,7 @@ const Index = () => {
           <Button variant="ghost" size="icon" onClick={prevTestimonial}>
             <ChevronLeft className="h-6 w-6" />
           </Button>
+
           <Button variant="ghost" size="icon" onClick={nextTestimonial}>
             <ChevronRight className="h-6 w-6" />
           </Button>
@@ -361,10 +366,7 @@ const Index = () => {
 
         <div className="max-w-4xl mx-auto space-y-12">
           {faqs.map((section, sectionIndex) => (
-            <div
-              key={`${sectionIndex}-${section.audience}`}
-              className="space-y-6"
-            >
+            <div key={sectionIndex} className="space-y-6">
               <h3 className="text-2xl font-semibold text-left">
                 {t("pages.index.faq.audienceHeading", {
                   audience: section.audience
@@ -374,13 +376,14 @@ const Index = () => {
               <Accordion type="single" collapsible className="space-y-4">
                 {section.items.map((faq, faqIndex) => (
                   <AccordionItem
-                    key={`${sectionIndex}-${faqIndex}`}
+                    key={faqIndex}
                     value={`item-${sectionIndex}-${faqIndex}`}
                     className="border rounded-lg bg-card"
                   >
                     <AccordionTrigger className="py-6 px-4 font-semibold text-left">
                       {faq.question}
                     </AccordionTrigger>
+
                     <AccordionContent className="px-4 pb-6 text-muted-foreground">
                       {faq.answer}
                     </AccordionContent>
