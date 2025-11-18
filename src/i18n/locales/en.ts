@@ -510,6 +510,57 @@ const en = {
             },
           ],
         },
+        zoeMultiRole: {
+          badge: "Meet Zoe",
+          heading: "AI chat assistant — but smarter",
+          description:
+            "Zoe switches between students, agents, and university teams to provide context-aware answers the moment you need them.",
+          note: "Zoe is multi-role. Very few competitors do this.",
+          highlightsHeading: "What Zoe handles for you",
+          highlights: [
+            "Answers every study-abroad question with region-aware visa and policy context.",
+            "Guides you through the entire GEG app so timelines, dashboards, and automations stay on track.",
+            "Reads uploaded documents to recommend schools, scholarships, and next steps instantly.",
+          ],
+          roles: [
+            {
+              key: "students",
+              title: "Students & families",
+              description:
+                "Zoe is a study-abroad counsellor that walks every applicant through the full GEG experience.",
+              capabilities: [
+                "Answers any study-abroad question instantly in plain language.",
+                "Guides you through every task inside the GEG app so nothing is missed.",
+                "Reviews uploaded transcripts, essays, and proof of funds to suggest best-fit schools.",
+                "Shares personalised counselling recommendations informed by your goals.",
+              ],
+            },
+            {
+              key: "agents",
+              title: "Agents & counsellors",
+              description:
+                "Training, coaching, and on-demand answers are built into the same workspace that powers your agency.",
+              capabilities: [
+                "Delivers bite-sized training refreshers for new advisors and support staff.",
+                "Turns shared student documents into quick school shortlists you can review with clients.",
+                "Drafts outreach scripts, follow-up plans, and counselling recommendations automatically.",
+                "Flags opportunities to improve conversion using agent analytics pulled from Zoe Intelligence.",
+              ],
+            },
+            {
+              key: "universities",
+              title: "Universities & partners",
+              description:
+                "Zoe lives inside the university dashboard to keep recruitment, compliance, and service teams aligned.",
+              capabilities: [
+                "Surfaces partner health alerts and suggested actions directly in the dashboard.",
+                "Summarises applicant pipelines by region with notes about policy differences.",
+                "Provides training snippets for staff onboarding so teams can self-serve answers.",
+                "Escalates issues that need human attention so you can focus on strategic relationships.",
+              ],
+            },
+          ],
+        },
       journeyRibbon: {
         items: {
           discover: {

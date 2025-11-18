@@ -19,6 +19,7 @@ import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniver
 import { AIPoweredSearchSection } from "@/components/landing/AIPoweredSearchSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
+import { ZoeMultiroleSection } from "@/components/landing/ZoeMultiroleSection";
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
 const Index = () => {
@@ -218,6 +219,7 @@ const Index = () => {
       </section>
 
       <AIPoweredSearchSection />
+      <ZoeMultiroleSection />
       <FeaturedUniversitiesSection />
       <StoryboardSection />
 
