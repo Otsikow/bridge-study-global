@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,18 +9,22 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  GraduationCap, 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  Star, 
-  TrendingUp, 
+import { Textarea } from '@/components/ui/textarea';
+import {
+  GraduationCap,
+  MapPin,
+  DollarSign,
+  Clock,
+  Star,
   Filter,
-  Search,
   Brain,
   Shield,
-  Target
+  Target,
+  Sparkles,
+  Briefcase,
+  Globe,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import { useAIRecommendations, StudentProfile } from '@/hooks/useAIRecommendations';
 import { Link } from 'react-router-dom';
@@ -61,30 +65,211 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
   // Student profile state
   const [profile, setProfile] = useState<StudentProfile>({
     academic_scores: {
-      gpa: 3.5,
-      ielts: 7.0,
-      toefl: 100
+      gpa: 3.6,
+      ielts: 7.5,
+      toefl: 102
+    },
+    experience: {
+      years: 2,
+      internships: 1,
+      leadership_roles: true
     },
     preferences: {
       countries: ['Canada', 'United Kingdom', 'Australia'],
-      budget_range: [20000, 80000],
+      budget_range: [25000, 75000],
       program_level: ['Postgraduate', 'Undergraduate'],
       disciplines: ['Computer Science', 'Business', 'Engineering']
     },
+    career_goal: 'Build AI-powered products for healthcare innovation',
     education_history: {}
   });
+  const [profileDirty, setProfileDirty] = useState(false);
 
   const countries = ['Canada', 'United States', 'United Kingdom', 'Australia', 'Germany', 'Netherlands', 'Sweden', 'Norway'];
   const programLevels = ['Undergraduate', 'Postgraduate', 'PHD'];
   const disciplines = ['Computer Science', 'Business', 'Engineering', 'Medicine', 'Law', 'Arts', 'Sciences', 'Education'];
+  const goalSuggestions = [
+    'Launch a fintech startup',
+    'Become a data scientist',
+    'Work in global public policy',
+    'Drive sustainable energy innovation',
+    'Build AI research career'
+  ];
 
-  useEffect(() => {
-    generateRecommendations(profile);
-  }, []);
+  type AcademicScoreKey = keyof StudentProfile['academic_scores'];
+
+  const handleProfileUpdate = (updater: (prev: StudentProfile) => StudentProfile) => {
+    setProfile(prev => updater(prev));
+    setProfileDirty(true);
+  };
+
+  const handleAcademicScoreChange = (key: AcademicScoreKey, value: string) => {
+    handleProfileUpdate(prev => ({
+      ...prev,
+      academic_scores: {
+        ...prev.academic_scores,
+        [key]: value === '' || Number.isNaN(parseFloat(value)) ? undefined : parseFloat(value)
+      }
+    }));
+  };
 
   const handleFilterChange = <K extends keyof Filters>(key: K, value: Filters[K]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
+
+  const handleExperienceChange = (value: number[]) => {
+    handleProfileUpdate(prev => ({
+      ...prev,
+      experience: {
+        ...prev.experience,
+        years: value[0]
+      }
+    }));
+  };
+
+  const updateBudgetRange = (range: [number, number]) => {
+    handleProfileUpdate(prev => ({
+      ...prev,
+      preferences: {
+        ...prev.preferences,
+        budget_range: range
+      }
+    }));
+    handleFilterChange('budgetRange', range);
+  };
+
+  const toggleCountryPreference = (country: string, checked: boolean) => {
+    handleProfileUpdate(prev => {
+      const existing = new Set(prev.preferences.countries);
+      if (checked) {
+        existing.add(country);
+      } else {
+        existing.delete(country);
+      }
+
+      const countriesArray = Array.from(existing);
+
+      handleFilterChange('countries', countriesArray);
+
+      return {
+        ...prev,
+        preferences: {
+          ...prev.preferences,
+          countries: countriesArray
+        }
+      };
+    });
+  };
+
+  const handleGoalSuggestion = (goal: string) => {
+    handleProfileUpdate(prev => ({ ...prev, career_goal: goal }));
+  };
+
+  const totalEligibilityScore = useMemo(() => {
+    const gpa = profile.academic_scores.gpa ?? 0;
+    const experienceYears = profile.experience?.years ?? 0;
+    const budgetCeiling = profile.preferences.budget_range[1];
+    const countryCount = profile.preferences.countries.length;
+    const hasGoal = profile.career_goal?.trim().length ? 1 : 0.4;
+
+    const normalizedGpa = Math.min(gpa / 4, 1);
+    const normalizedExperience = Math.min(experienceYears / 5, 1);
+    const normalizedBudget = Math.min(budgetCeiling / 80000, 1);
+    const normalizedCountries = Math.min(countryCount / 3, 1);
+
+    return Math.round(
+      normalizedGpa * 30 +
+        normalizedExperience * 20 +
+        normalizedBudget * 15 +
+        normalizedCountries * 20 +
+        hasGoal * 15
+    );
+  }, [profile]);
+
+  type EligibilitySignal = {
+    label: string;
+    status: 'strong' | 'ok' | 'weak';
+    description: string;
+  };
+
+  const eligibilitySignals = useMemo<EligibilitySignal[]>(() => {
+    const gpa = profile.academic_scores.gpa ?? 0;
+    const experienceYears = profile.experience?.years ?? 0;
+    const budgetCeiling = profile.preferences.budget_range[1];
+    const countryCount = profile.preferences.countries.length;
+    const goal = profile.career_goal?.trim();
+
+    const gradeStatus = gpa >= 3.6 ? 'strong' : gpa >= 3.0 ? 'ok' : 'weak';
+    const experienceStatus = experienceYears >= 3 ? 'strong' : experienceYears >= 1 ? 'ok' : 'weak';
+    const budgetStatus = budgetCeiling >= 45000 ? 'strong' : budgetCeiling >= 25000 ? 'ok' : 'weak';
+    const countryStatus = countryCount >= 2 ? 'strong' : countryCount === 1 ? 'ok' : 'weak';
+    const goalStatus = goal ? 'strong' : 'ok';
+
+    return [
+      {
+        label: `Grades • ${gpa ? gpa.toFixed(2) : 'N/A'} GPA`,
+        status: gradeStatus,
+        description:
+          gradeStatus === 'strong'
+            ? 'Competitive GPA for top universities'
+            : gradeStatus === 'ok'
+              ? 'Meets minimum GPA for many partners'
+              : 'Consider boosting GPA or targeting flexible programmes'
+      },
+      {
+        label: `Experience • ${experienceYears} yrs`,
+        status: experienceStatus,
+        description:
+          experienceStatus === 'strong'
+            ? 'Great professional history for advanced programmes'
+            : experienceStatus === 'ok'
+              ? 'Solid foundation; highlight projects in SOP'
+              : 'Add internships or volunteering to strengthen profile'
+      },
+      {
+        label: `Budget • up to $${budgetCeiling.toLocaleString()}`,
+        status: budgetStatus,
+        description:
+          budgetStatus === 'strong'
+            ? 'Wide access to flagship programmes'
+            : budgetStatus === 'ok'
+              ? 'Balanced range; scholarships can unlock more options'
+              : 'Focus on scholarship-heavy or lower tuition destinations'
+      },
+      {
+        label: `Country focus • ${countryCount || 'No'} selected`,
+        status: countryStatus,
+        description:
+          countryStatus === 'strong'
+            ? 'Multiple preferred countries give the AI more room to match'
+            : countryStatus === 'ok'
+              ? 'Single country selected—AI will prioritize top fits there'
+              : 'Add at least one preferred country to guide matching'
+      },
+      {
+        label: goal ? 'Career goal defined' : 'Career goal needed',
+        status: goalStatus,
+        description: goal
+          ? 'AI will align recommendations to this trajectory'
+          : 'Share a desired role so we can tailor programmes'
+      }
+    ];
+  }, [profile]);
+
+  const eligibilityStatusClasses: Record<EligibilitySignal['status'], string> = {
+    strong: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200',
+    ok: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
+    weak: 'bg-destructive/10 text-destructive'
+  };
+
+  const handleRunMatching = () => {
+    generateRecommendations(profile);
+    setProfileDirty(false);
+  };
+
+  useEffect(() => {
+    generateRecommendations(profile);
+  }, []);
 
   const filteredRecommendations = recommendations.filter(rec => {
     if (filters.countries.length > 0 && !filters.countries.includes(rec.university.country)) return false;
@@ -139,12 +324,181 @@ export default function ProgramRecommendations({ onProgramSelect }: ProgramRecom
             <Filter className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Filters</span>
           </Button>
-          <Button onClick={() => generateRecommendations(profile)} className="flex-1 sm:flex-initial">
-            <Search className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
+          <Button onClick={handleRunMatching} className="flex-1 sm:flex-initial gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span className="hidden sm:inline">Run AI Match</span>
           </Button>
         </div>
       </div>
+
+      {/* AI Program Finder */}
+      <Card className="border-primary/10 bg-muted/30">
+        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Sparkles className="h-4 w-4 text-primary" />
+              AI Program Finder
+            </CardTitle>
+            <CardDescription>
+              Share your academic profile and goals to unlock hyper-relevant university matches.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            {profileDirty && (
+              <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200">
+                Profile updated — rerun to refresh matches
+              </Badge>
+            )}
+            <Button onClick={handleRunMatching} disabled={loading} className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              {loading ? 'Analyzing...' : 'Update recommendations'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <GraduationCap className="h-4 w-4 text-primary" /> Grades (GPA)
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={4}
+                    step={0.1}
+                    value={profile.academic_scores.gpa ?? ''}
+                    onChange={(e) => handleAcademicScoreChange('gpa', e.target.value)}
+                    placeholder="3.5"
+                  />
+                  <p className="text-xs text-muted-foreground">On a 4.0 scale</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>IELTS Overall</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={9}
+                    step={0.5}
+                    value={profile.academic_scores.ielts ?? ''}
+                    onChange={(e) => handleAcademicScoreChange('ielts', e.target.value)}
+                    placeholder="7.0"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>TOEFL</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={120}
+                    step={1}
+                    value={profile.academic_scores.toefl ?? ''}
+                    onChange={(e) => handleAcademicScoreChange('toefl', e.target.value)}
+                    placeholder="100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-primary" /> Work Experience ({profile.experience?.years ?? 0} yrs)
+                  </Label>
+                  <Slider
+                    value={[profile.experience?.years ?? 0]}
+                    onValueChange={handleExperienceChange}
+                    max={10}
+                    min={0}
+                    step={0.5}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label>Budget Range (per year)</Label>
+                  <Slider
+                    value={profile.preferences.budget_range}
+                    onValueChange={(value) => updateBudgetRange(value as [number, number])}
+                    max={100000}
+                    min={5000}
+                    step={1000}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    ${profile.preferences.budget_range[0].toLocaleString()} - ${profile.preferences.budget_range[1].toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Globe className="h-4 w-4 text-primary" /> Country Preferences
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
+                    {countries.map(country => (
+                      <label key={country} className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm">
+                        <Checkbox
+                          checked={profile.preferences.countries.includes(country)}
+                          onCheckedChange={(checked) => toggleCountryPreference(country, !!checked)}
+                          id={`pref-${country}`}
+                        />
+                        {country}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Career Goal</Label>
+                  <Textarea
+                    placeholder="e.g. Build AI solutions for healthcare systems"
+                    value={profile.career_goal ?? ''}
+                    onChange={(e) => handleProfileUpdate(prev => ({ ...prev, career_goal: e.target.value }))}
+                    rows={3}
+                  />
+                  <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    {goalSuggestions.map(goal => (
+                      <Badge
+                        key={goal}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => handleGoalSuggestion(goal)}
+                      >
+                        {goal}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-background/60 p-4 space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Eligibility projection</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold">{totalEligibilityScore}%</span>
+                  <span className="text-xs uppercase tracking-wide text-muted-foreground">match readiness</span>
+                </div>
+                <Progress value={totalEligibilityScore} className="h-2" />
+              </div>
+              <div className="space-y-3">
+                {eligibilitySignals.map(signal => (
+                  <div key={signal.label} className="flex items-start gap-3">
+                    <div className={`rounded-full p-1 ${eligibilityStatusClasses[signal.status]}`}>
+                      {signal.status === 'weak' ? (
+                        <AlertTriangle className="h-4 w-4" />
+                      ) : (
+                        <CheckCircle2 className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold leading-tight">{signal.label}</p>
+                      <p className="text-xs text-muted-foreground">{signal.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filters */}
       {showFilters && (

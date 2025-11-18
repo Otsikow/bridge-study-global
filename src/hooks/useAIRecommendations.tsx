@@ -36,14 +36,44 @@ export interface StudentProfile {
     gre?: number;
     gmat?: number;
   };
+  experience?: {
+    years?: number;
+    internships?: number;
+    leadership_roles?: boolean;
+  };
   preferences: {
     countries: string[];
     budget_range: [number, number];
     program_level: string[];
     disciplines: string[];
   };
+  career_goal?: string;
   education_history: Record<string, unknown>;
 }
+
+interface ProgramEntryRequirements {
+  min_gpa?: number;
+  min_ielts?: number;
+  min_toefl?: number;
+  min_experience_years?: number;
+  focus_areas?: string[];
+  preferred_backgrounds?: string[];
+  career_paths?: string[];
+}
+
+const parseEntryRequirements = (entryRequirements: unknown): ProgramEntryRequirements => {
+  if (!entryRequirements) return {};
+  if (typeof entryRequirements === 'object') return entryRequirements as ProgramEntryRequirements;
+  if (typeof entryRequirements === 'string') {
+    try {
+      return JSON.parse(entryRequirements) as ProgramEntryRequirements;
+    } catch (error) {
+      console.warn('Failed to parse entry requirements', error);
+      return {};
+    }
+  }
+  return {};
+};
 
 export const useAIRecommendations = () => {
   const [recommendations, setRecommendations] = useState<ProgramRecommendation[]>([]);
@@ -107,55 +137,105 @@ export const useAIRecommendations = () => {
       const scoredPrograms = programs?.map(program => {
         let score = 0;
         const reasons: string[] = [];
+        const requirements = parseEntryRequirements(program.entry_requirements);
 
-        // Country preference matching (40% weight)
+        const addScore = (value: number, reason?: string) => {
+          score += value;
+          if (reason) reasons.push(reason);
+        };
+
+        // Country preference matching (25% weight)
         if (profile.preferences.countries.includes(program.university.country)) {
-          score += 40;
-          reasons.push(`Matches your preferred country: ${program.university.country}`);
+          addScore(25, `Matches your preferred country: ${program.university.country}`);
         }
 
-        // Program level matching (20% weight)
+        // Program level matching (10% weight)
         if (profile.preferences.program_level.includes(program.level)) {
-          score += 20;
-          reasons.push(`Matches your preferred level: ${program.level}`);
+          addScore(10, `Preferred study level: ${program.level}`);
         }
 
-        // Discipline matching (20% weight)
-        if (profile.preferences.disciplines.some(d => 
+        // Discipline matching (15% weight)
+        if (profile.preferences.disciplines.some(d =>
           program.discipline.toLowerCase().includes(d.toLowerCase()) ||
           d.toLowerCase().includes(program.discipline.toLowerCase())
         )) {
-          score += 20;
-          reasons.push(`Matches your field of interest: ${program.discipline}`);
+          addScore(15, `Matches your field of interest: ${program.discipline}`);
         }
 
-        // Budget matching (10% weight)
+        // Budget matching (15% weight)
         const [minBudget, maxBudget] = profile.preferences.budget_range;
         if (program.tuition_amount >= minBudget && program.tuition_amount <= maxBudget) {
-          score += 10;
-          reasons.push(`Fits your budget range`);
+          addScore(15, 'Fits your budget range');
         }
 
-        // Academic requirements matching (10% weight)
-        if (profile.academic_scores.ielts && program.ielts_overall) {
-          if (profile.academic_scores.ielts >= program.ielts_overall) {
-            score += 5;
-            reasons.push(`Meets IELTS requirements`);
+        // Academic requirements matching (up to 20% weight)
+        let academicScore = 0;
+        const gpa = profile.academic_scores.gpa;
+        const requiredGpa = requirements.min_gpa;
+
+        if (typeof gpa === 'number') {
+          if (requiredGpa && gpa >= requiredGpa) {
+            academicScore += 8;
+            reasons.push(`Meets minimum GPA of ${requiredGpa}`);
+          } else if (!requiredGpa && gpa >= 3.5) {
+            academicScore += 6;
+            reasons.push('Strong GPA for competitive programmes');
+          } else if (gpa >= 3.0) {
+            academicScore += 4;
+            reasons.push('Solid academic record for eligibility');
           }
         }
 
-        if (profile.academic_scores.toefl && program.toefl_overall) {
-          if (profile.academic_scores.toefl >= program.toefl_overall) {
-            score += 5;
-            reasons.push(`Meets TOEFL requirements`);
+        const requiredIELTS = program.ielts_overall ?? requirements.min_ielts;
+        if (profile.academic_scores.ielts && requiredIELTS) {
+          if (profile.academic_scores.ielts >= requiredIELTS) {
+            academicScore += 6;
+            reasons.push('Meets IELTS requirements');
+          }
+        }
+
+        const requiredTOEFL = program.toefl_overall ?? requirements.min_toefl;
+        if (profile.academic_scores.toefl && requiredTOEFL) {
+          if (profile.academic_scores.toefl >= requiredTOEFL) {
+            academicScore += 6;
+            reasons.push('Meets TOEFL requirements');
+          }
+        }
+
+        addScore(Math.min(academicScore, 20));
+
+        // Work experience matching (10% weight)
+        const experienceYears = profile.experience?.years ?? 0;
+        if (requirements.min_experience_years) {
+          if (experienceYears >= requirements.min_experience_years) {
+            addScore(10, `Meets experience requirement (${requirements.min_experience_years}+ years)`);
+          }
+        } else if (experienceYears >= 2) {
+          addScore(8, 'Relevant work experience strengthens your profile');
+        }
+
+        // Career goal alignment (5% weight)
+        if (profile.career_goal) {
+          const goalText = profile.career_goal.toLowerCase();
+          const requirementKeywords = [
+            ...(requirements.focus_areas || []),
+            ...(requirements.preferred_backgrounds || []),
+            ...(requirements.career_paths || []),
+            program.discipline,
+            program.name,
+          ]
+            .map((item) => item?.toLowerCase?.() ?? '')
+            .filter(Boolean);
+
+          if (requirementKeywords.some((keyword) => goalText.includes(keyword))) {
+            addScore(5, 'Aligns with your stated career goal');
           }
         }
 
         // University ranking bonus
         const ranking = program.university.ranking as UniversityRanking | undefined;
         if (ranking && typeof ranking.world_rank === 'number' && ranking.world_rank <= 100) {
-          score += 5;
-          reasons.push(`Top-ranked university`);
+          addScore(5, 'Top-ranked university match');
         }
 
         return {
@@ -165,7 +245,7 @@ export const useAIRecommendations = () => {
             ranking: program.university.ranking as UniversityRanking | undefined
           },
           match_score: Math.min(score, 100),
-          match_reasons: reasons
+          match_reasons: Array.from(new Set(reasons))
         };
       }) || [];
 
