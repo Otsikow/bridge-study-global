@@ -445,6 +445,17 @@ const en = {
               "Fraud signs",
             ],
           },
+          riskMonitoring: {
+            heading: "AI detects fake tutors & fake agents",
+            description: "AI flags suspicious behaviour:",
+            items: [
+              "Same passport used for multiple accounts",
+              "Students buying fabricated bank statements",
+              "Uploading fake WAEC results",
+              "Agents sending unrealistic profiles",
+            ],
+            footnote: "This protects your reputation.",
+          },
           stats: [
             { value: "60s", label: "Average review time" },
             { value: "5 docs", label: "Checked simultaneously" },

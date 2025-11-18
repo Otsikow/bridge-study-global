@@ -5,7 +5,14 @@ import { useTranslation } from "react-i18next";
 import { AlertTriangle, CheckCircle2, ShieldCheck } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface StatItem {
   value: string;
@@ -25,6 +32,13 @@ const fallbackDetections = [
   "Unclear images",
   "Wrong document type",
   "Fraud signs",
+];
+
+const fallbackRiskSignals = [
+  "Same passport used for multiple accounts",
+  "Students buying fabricated bank statements",
+  "Uploading fake WAEC results",
+  "Agents sending unrealistic profiles",
 ];
 
 const fallbackStats: StatItem[] = [
@@ -65,6 +79,9 @@ export function AIDocumentCheckerSection() {
   const tagline = t("pages.index.aiDocumentChecker.tagline");
   const approvalsHeading = t("pages.index.aiDocumentChecker.approvals.heading");
   const detectionsHeading = t("pages.index.aiDocumentChecker.detections.heading");
+  const riskHeading = t("pages.index.aiDocumentChecker.riskMonitoring.heading");
+  const riskDescription = t("pages.index.aiDocumentChecker.riskMonitoring.description");
+  const riskFootnote = t("pages.index.aiDocumentChecker.riskMonitoring.footnote");
 
   const approvals = useMemo(
     () =>
@@ -93,6 +110,16 @@ export function AIDocumentCheckerSection() {
           returnObjects: true,
         }) as unknown,
       ) ?? fallbackStats,
+    [t],
+  );
+
+  const riskSignals = useMemo(
+    () =>
+      parseStringArray(
+        t("pages.index.aiDocumentChecker.riskMonitoring.items", {
+          returnObjects: true,
+        }) as unknown,
+      ) ?? fallbackRiskSignals,
     [t],
   );
 
@@ -167,6 +194,35 @@ export function AIDocumentCheckerSection() {
           </Card>
         ))}
       </div>
+
+      <Card className="mt-8 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-primary/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-2xl">
+            <ShieldCheck className="h-6 w-6 text-primary" /> {riskHeading}
+          </CardTitle>
+          <CardDescription className="text-base text-foreground">
+            {riskDescription}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-3">
+            {riskSignals.map((signal) => (
+              <li
+                key={signal}
+                className="flex items-center gap-3 rounded-2xl border border-primary/10 bg-background/80 p-3"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <ShieldCheck className="h-4 w-4 text-primary" />
+                </span>
+                <span className="text-base font-medium text-foreground">{signal}</span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+        <CardFooter>
+          <p className="text-sm font-medium text-primary">{riskFootnote}</p>
+        </CardFooter>
+      </Card>
     </section>
   );
 }
