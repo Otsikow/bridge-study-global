@@ -24,6 +24,7 @@ import UsersTab from '@/components/dashboard/UsersTab';
 import ApplicationsTab from '@/components/dashboard/ApplicationsTab';
 import PaymentsTab from '@/components/dashboard/PaymentsTab';
 import ReportsTab from '@/components/dashboard/ReportsTab';
+import { AIPerformanceDashboardSection } from "@/components/landing/AIPerformanceDashboardSection";
 
 interface DashboardMetrics {
   totalStudents: number;
@@ -209,6 +210,10 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+          <AIPerformanceDashboardSection />
         </div>
 
         {/* Main Content Tabs */}
