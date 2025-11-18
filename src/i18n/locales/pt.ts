@@ -383,6 +383,41 @@ const pt = {
             },
           },
         },
+        aiCommunication: {
+          badge: "Modelos de comunicação com IA",
+          heading: "Modelos prontos para equipes e agentes",
+          description:
+            "Basta digitar pedidos naturais — “Escreva um e-mail para esta universidade perguntando sobre o status da candidatura” — e receba instantaneamente um rascunho profissional.",
+          promptLabel: "Solicitação da equipe",
+          responseLabel: "Rascunho instantâneo da IA",
+          promptExample: "\"Escreva um e-mail para esta universidade perguntando sobre o status da candidatura.\"",
+          generatedEmail: [
+            "Olá, equipe de admissões,",
+            "Espero que estejam bem. Escrevo em nome do nosso estudante, [Nome do Estudante], que enviou uma candidatura em [Data].",
+            "Poderiam compartilhar uma atualização sobre a fase atual de análise ou quaisquer documentos adicionais necessários para avançar?",
+            "Queremos garantir que todo o material esteja completo e alinhado aos seus prazos.",
+            "Obrigado pela parceria e orientação.",
+            "Atenciosamente,",
+            "[Seu Nome]",
+            "Global Education Gateway",
+          ],
+          highlightsHeading: "O que sua equipe ganha",
+          highlights: [
+            {
+              title: "Tom consistente",
+              description: "Cada e-mail reflete a voz da marca — nada de rascunhos apressados.",
+            },
+            {
+              title: "Follow-up mais rápido",
+              description: "A equipe escreve em linguagem natural e envia mensagens refinadas em segundos.",
+            },
+            {
+              title: "Conformidade garantida",
+              description: "Modelos trazem automaticamente contexto, prazos e avisos necessários.",
+            },
+          ],
+          footnote: "Economiza horas de edição e protege a reputação em todos os canais.",
+        },
         aiDocumentChecker: {
           badge: "AI Document Checker",
           heading: "Let AI review every document in seconds",
@@ -636,6 +671,46 @@ const pt = {
           description:
             "Nossa Calculadora de Elegibilidade de Visto analisa seu perfil em instantes para que você foque nos países e programas com maior afinidade.",
           cta: "Explorar a calculadora de visto",
+        },
+        feeCalculator: {
+          badge: "Calculadora de custos com IA",
+          title: "Obtenha um panorama financeiro completo em instantes",
+          description:
+            "A Zoe AI detalha mensalidades, moradia, custo de vida e despesas ocultas para você saber exatamente quanto precisa reservar antes de aplicar.",
+          formTitle: "Custos anuais projetados",
+          confidenceLabel: "Confiança da IA: {{value}}%",
+          calculatingLabel: "Calculando...",
+          cta: "Recalcular com IA",
+          highlights: [
+            "Mensalidades, acomodação, custo de vida, seguro, transporte, visto e extras no mesmo painel.",
+            "Totais atualizados em tempo real conforme você ajusta países, bolsas ou câmbio.",
+            "Resumo pronto para compartilhar com estudantes, pais ou patrocinadores.",
+            "Veja orçamento anual e mensal sem planilhas.",
+          ],
+          insights: {
+            title: "Notas estratégicas da IA",
+            items: [
+              "Estudantes internacionais destinam entre 45% e 55% do orçamento para mensalidades.",
+              "Moradia + custo de vida costumam representar cerca de um terço dos gastos.",
+              "Reserve ao menos 10% para seguro, transporte e taxas de visto.",
+            ],
+          },
+          fields: {
+            tuition: { label: "Mensalidades", placeholder: "ex.: 26.000" },
+            accommodation: { label: "Acomodação", placeholder: "ex.: 12.000" },
+            living: { label: "Custo de vida", placeholder: "ex.: 6.500" },
+            insurance: { label: "Seguro", placeholder: "ex.: 1.200" },
+            transportation: { label: "Transporte", placeholder: "ex.: 1.800" },
+            visa: { label: "Taxas de visto", placeholder: "ex.: 600" },
+            misc: { label: "Outros", placeholder: "ex.: 1.500" },
+          },
+          summary: {
+            subtitle: "Total estimado para o primeiro ano",
+            monthlyLabel: "Orçamento mensal aproximado",
+            confidenceHelper: "Projeção baseada em orçamentos semelhantes com {{value}}% de confiança.",
+            disclaimer:
+              "Valores ilustrativos em USD. Os custos reais variam conforme universidade, bolsas e câmbio.",
+          },
         },
         testimonials: {
           heading: "Histórias de sucesso",
