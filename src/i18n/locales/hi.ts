@@ -232,6 +232,64 @@ const hi = {
             { value: "24/7", label: "Automated monitoring" },
           ],
         },
+        aiExecutiveDashboard: {
+          badge: "Executive performance view",
+          title: {
+            prefix: "AI Performance Dashboard",
+            highlight: "for You as CEO",
+            suffix: "",
+          },
+          description:
+            "Zoe Intelligence watches every funnel and flags the moves that change revenue so you never have to chase agents for updates.",
+          ceoPromise: "This keeps you in your CEO position—not chasing agents.",
+          insightsTitle: "You get automated insights on:",
+          insights: [
+            "Applications this week",
+            "Conversion rate",
+            "Best-performing agents",
+            "Countries with the most leads",
+            "Pipeline forecast",
+            "Expected revenue this month",
+          ],
+          metrics: [
+            {
+              label: "Applications this week",
+              value: "248",
+              helper: "+18% vs last week",
+              trend: "up",
+            },
+            {
+              label: "Conversion rate",
+              value: "42%",
+              helper: "+6 pts since automation",
+              trend: "up",
+            },
+            {
+              label: "Best-performing agents",
+              value: "Rivera · Kalu · Chen",
+              helper: "Average CSAT 4.9/5",
+              trend: "neutral",
+            },
+            {
+              label: "Countries with the most leads",
+              value: "India · Nigeria · Vietnam",
+              helper: "68% of total pipeline",
+              trend: "neutral",
+            },
+            {
+              label: "Pipeline forecast",
+              value: "$12.4M",
+              helper: "Weighted 90-day outlook",
+              trend: "up",
+            },
+            {
+              label: "Expected revenue this month",
+              value: "$940K",
+              helper: "+22% vs plan",
+              trend: "up",
+            },
+          ],
+        },
       aiSearch: {
         badge: "एआई संचालित विश्वविद्यालय और छात्रवृत्ति खोज",
         heading: "रीयल-टाइम इंटेलिजेंस के साथ सही कार्यक्रम खोजें",
