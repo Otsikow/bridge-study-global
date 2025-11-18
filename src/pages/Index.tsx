@@ -36,7 +36,6 @@ import visaEligibilityImage from "@/assets/visa-eligibility-checklist.png";
 import { FeaturedUniversitiesSection } from "@/components/landing/FeaturedUniversitiesSection";
 import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
-import { AICommunicationTemplatesSection } from "@/components/landing/AICommunicationTemplatesSection";
 import { AIFeeCalculator } from "@/components/landing/AIFeeCalculator";
 import { ZoeExperienceSection } from "@/components/landing/ZoeExperienceSection";
 
@@ -266,7 +265,6 @@ const Index = () => {
       </section>
 
       {/* AI Sections */}
-      <AICommunicationTemplatesSection />
       <AIDocumentCheckerSection />
 
       {/* VISA CALCULATOR */}
