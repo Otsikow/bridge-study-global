@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,9 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle, FileText, GraduationCap, Award, DollarSign, FileCheck } from 'lucide-react';
+import {
+  CheckCircle,
+  FileText,
+  GraduationCap,
+  Award,
+  DollarSign,
+  FileCheck,
+  Passport,
+  ScrollText,
+  School,
+  CreditCard,
+  ShieldCheck,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
+import { NextStepNavigator, type NavigatorStep } from '@/components/student/NextStepNavigator';
 
 interface ChecklistItem {
   id: string;
@@ -20,8 +33,148 @@ interface ChecklistItem {
   link: string;
 }
 
+type StudentDocumentSummary = Pick<
+  Tables<'student_documents'>,
+  'id' | 'document_type' | 'created_at' | 'updated_at'
+>;
+
+type ApplicationSummary = Pick<
+  Tables<'applications'>,
+  'id' | 'status' | 'updated_at' | 'created_at' | 'submitted_at'
+>;
+
+type PaymentSummary = Pick<
+  Tables<'payments'>,
+  'id' | 'status' | 'purpose' | 'application_id' | 'created_at' | 'updated_at'
+>;
+
 const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'geg';
 const DEFAULT_TENANT_ID = import.meta.env.VITE_DEFAULT_TENANT_ID ?? '00000000-0000-0000-0000-000000000001';
+
+const getRecordTimestamp = (record?: { updated_at: string | null; created_at: string | null } | null) =>
+  record?.updated_at ?? record?.created_at ?? null;
+
+const buildNavigatorSteps = (
+  documents: StudentDocumentSummary[],
+  applications: ApplicationSummary[],
+  payments: PaymentSummary[],
+): NavigatorStep[] => {
+  const findDoc = (type: string) => documents.find((doc) => doc.document_type === type);
+  const passportDoc = findDoc('passport');
+  const transcriptDoc = findDoc('transcript');
+  const sopDoc = findDoc('personal_statement');
+  const visaDoc = findDoc('financial_document');
+  const hasApplications = applications.length > 0;
+  const latestApplication = applications.reduce<ApplicationSummary | null>((latest, current) => {
+    if (!latest) return current;
+    const latestTs = new Date(getRecordTimestamp(latest) ?? 0).getTime();
+    const currentTs = new Date(getRecordTimestamp(current) ?? 0).getTime();
+    return currentTs > latestTs ? current : latest;
+  }, null);
+
+  const sortedPayments = [...payments].sort((a, b) => {
+    const aTs = new Date(getRecordTimestamp(a) ?? 0).getTime();
+    const bTs = new Date(getRecordTimestamp(b) ?? 0).getTime();
+    return bTs - aTs;
+  });
+  const successfulPayment = sortedPayments.find((payment) => payment.status === 'succeeded');
+  const pendingPayment = sortedPayments.find((payment) => payment.status === 'pending');
+  const hasPaidFee = Boolean(successfulPayment);
+  const hasPaymentAttempt = Boolean(pendingPayment || successfulPayment || sortedPayments.length);
+
+  const steps: NavigatorStep[] = [
+    {
+      id: 'passport',
+      title: 'Upload passport',
+      description: 'Add a clear scan so AI can verify your identity before submissions.',
+      completed: Boolean(passportDoc),
+      status: passportDoc ? 'complete' : 'pending',
+      aiHint: passportDoc
+        ? 'Passport synced with admissions bots for quick KYC checks.'
+        : 'AI is waiting for a passport scan to pre-verify your applications.',
+      actionLabel: passportDoc ? 'View documents' : 'Upload passport',
+      actionHref: '/student/documents',
+      icon: Passport,
+      lastUpdated: getRecordTimestamp(passportDoc ?? null),
+    },
+    {
+      id: 'transcript',
+      title: 'Upload transcript',
+      description: 'Share your latest academic transcript for eligibility checks.',
+      completed: Boolean(transcriptDoc),
+      status: transcriptDoc ? 'complete' : 'pending',
+      aiHint: transcriptDoc
+        ? 'AI matched your grades to partner programme requirements.'
+        : 'AI can recommend better-fit schools once a transcript is uploaded.',
+      actionLabel: transcriptDoc ? 'View transcript' : 'Upload transcript',
+      actionHref: '/student/documents',
+      icon: FileText,
+      lastUpdated: getRecordTimestamp(transcriptDoc ?? null),
+    },
+    {
+      id: 'sop',
+      title: 'Complete SOP',
+      description: 'Craft your statement of purpose using the AI writer.',
+      completed: Boolean(sopDoc),
+      status: sopDoc ? 'complete' : 'pending',
+      aiHint: sopDoc
+        ? 'AI stored your SOP so agents can annotate instantly.'
+        : 'AI will coach you through each paragraph once you start writing.',
+      actionLabel: sopDoc ? 'Review SOP' : 'Launch SOP generator',
+      actionHref: '/student/sop-generator',
+      icon: ScrollText,
+      lastUpdated: getRecordTimestamp(sopDoc ?? null),
+    },
+    {
+      id: 'universities',
+      title: 'Select universities',
+      description: 'Choose programmes so AI can unlock personalised nudges.',
+      completed: hasApplications,
+      status: hasApplications ? 'complete' : 'pending',
+      aiHint: hasApplications
+        ? 'AI is tracking your submissions for interview or document asks.'
+        : 'AI suggests adding at least one university to activate reminders.',
+      actionLabel: hasApplications ? 'View applications' : 'Select universities',
+      actionHref: hasApplications ? '/student/applications' : '/student/applications/new',
+      icon: School,
+      lastUpdated: getRecordTimestamp(latestApplication ?? null),
+    },
+    {
+      id: 'payment',
+      title: 'Pay application fee',
+      description: 'Secure your seat by clearing at least one application fee.',
+      completed: hasPaidFee,
+      status: hasPaidFee ? 'complete' : hasPaymentAttempt ? 'active' : 'pending',
+      aiHint: hasPaidFee
+        ? 'AI filed the receipt with every university workspace.'
+        : hasPaymentAttempt
+        ? 'AI is monitoring the payment gateway—no manual refresh needed.'
+        : hasApplications
+        ? 'AI recommends clearing one fee to keep reviews on track.'
+        : 'Pick universities first and AI will watch your payment timeline.',
+      actionLabel: hasPaidFee ? 'View payments' : 'Go to payments',
+      actionHref: '/student/payments',
+      icon: CreditCard,
+      lastUpdated: getRecordTimestamp(successfulPayment ?? pendingPayment ?? sortedPayments[0] ?? null),
+    },
+    {
+      id: 'visa',
+      title: 'Prepare visa documents',
+      description: 'Upload financial proofs so AI can pre-check visa readiness.',
+      completed: Boolean(visaDoc),
+      status: visaDoc ? 'complete' : 'pending',
+      aiHint: visaDoc
+        ? 'AI marked your finances as visa-ready in the background.'
+        : 'AI will stage your embassy checklist once finances are uploaded.',
+      actionLabel: visaDoc ? 'Review visa docs' : 'Upload visa docs',
+      actionHref: '/student/documents',
+      icon: ShieldCheck,
+      lastUpdated: getRecordTimestamp(visaDoc ?? null),
+    },
+  ];
+
+  return steps;
+};
 
 export default function StudentOnboarding() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -30,6 +183,9 @@ export default function StudentOnboarding() {
   const [student, setStudent] = useState<Tables<'students'> | null>(null);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [completeness, setCompleteness] = useState(0);
+  const [navigatorSteps, setNavigatorSteps] = useState<NavigatorStep[]>([]);
+  const [navigatorUpdatedAt, setNavigatorUpdatedAt] = useState<string | null>(null);
+  const applicationIdsRef = useRef<string[]>([]);
 
   const resolveTenantId = useCallback(async (): Promise<string | null> => {
     try {
@@ -117,12 +273,15 @@ export default function StudentOnboarding() {
       let educationCount = 0;
       let testScoresCount = 0;
       let documentsCount = 0;
+      let documentsList: StudentDocumentSummary[] = [];
+      let applicationsList: ApplicationSummary[] = [];
+      let paymentsList: PaymentSummary[] = [];
 
       if (currentStudent?.id) {
         const [
           { count: educationCountResult, error: educationError },
           { count: testScoresCountResult, error: testScoresError },
-          { count: documentsCountResult, error: documentsError },
+          { data: documentsData, error: documentsError },
         ] = await Promise.all([
           supabase
             .from('education_records')
@@ -134,8 +293,9 @@ export default function StudentOnboarding() {
             .eq('student_id', currentStudent.id),
           supabase
             .from('student_documents')
-            .select('*', { count: 'exact', head: true })
-            .eq('student_id', currentStudent.id),
+            .select('id, document_type, created_at, updated_at')
+            .eq('student_id', currentStudent.id)
+            .order('created_at', { ascending: false }),
         ]);
 
         if (educationError) throw educationError;
@@ -144,7 +304,32 @@ export default function StudentOnboarding() {
 
         educationCount = educationCountResult ?? 0;
         testScoresCount = testScoresCountResult ?? 0;
-        documentsCount = documentsCountResult ?? 0;
+        documentsList = documentsData ?? [];
+        documentsCount = documentsList.length;
+
+        const { data: applicationsData, error: applicationsError } = await supabase
+          .from('applications')
+          .select('id, status, updated_at, created_at, submitted_at')
+          .eq('student_id', currentStudent.id)
+          .order('created_at', { ascending: false });
+
+        if (applicationsError) throw applicationsError;
+
+        applicationsList = applicationsData ?? [];
+        applicationIdsRef.current = applicationsList.map((app) => app.id);
+
+        if (applicationIdsRef.current.length > 0) {
+          const { data: paymentsData, error: paymentsError } = await supabase
+            .from('payments')
+            .select('id, status, purpose, application_id, created_at, updated_at')
+            .eq('purpose', 'application_fee')
+            .in('application_id', applicationIdsRef.current);
+
+          if (paymentsError) throw paymentsError;
+          paymentsList = paymentsData ?? [];
+        } else {
+          applicationIdsRef.current = [];
+        }
       }
 
       // Build checklist
@@ -207,6 +392,21 @@ export default function StudentOnboarding() {
       const percentage = Math.round((completedItems / items.length) * 100);
       setCompleteness(percentage);
 
+      const navigator = buildNavigatorSteps(documentsList, applicationsList, paymentsList);
+      setNavigatorSteps(navigator);
+      const latestNavigatorTimestamp = navigator.reduce<number | null>((latest, step) => {
+        if (!step.lastUpdated) return latest;
+        const ts = new Date(step.lastUpdated).getTime();
+        if (Number.isNaN(ts)) return latest;
+        if (latest === null || ts > latest) {
+          return ts;
+        }
+        return latest;
+      }, null);
+      setNavigatorUpdatedAt(
+        latestNavigatorTimestamp ? new Date(latestNavigatorTimestamp).toISOString() : null,
+      );
+
       // Update profile completeness in database
       if (currentStudent && currentStudent.profile_completeness !== percentage) {
         await supabase
@@ -241,6 +441,45 @@ export default function StudentOnboarding() {
       setLoading(false);
     }
   }, [authLoading, user, fetchStudentData]);
+
+  useEffect(() => {
+    if (!student?.id) return;
+
+    const channel = supabase
+      .channel(`student-onboarding-${student.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'student_documents', filter: `student_id=eq.${student.id}` },
+        () => {
+          fetchStudentData();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'applications', filter: `student_id=eq.${student.id}` },
+        () => {
+          fetchStudentData();
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'payments', filter: 'purpose=eq.application_fee' },
+        (payload) => {
+          const applicationId =
+            ((payload as any)?.new?.application_id as string | undefined) ??
+            ((payload as any)?.old?.application_id as string | undefined);
+
+          if (applicationId && applicationIdsRef.current.includes(applicationId)) {
+            fetchStudentData();
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [student?.id, fetchStudentData]);
 
   if (loading) {
     return (
@@ -310,6 +549,8 @@ export default function StudentOnboarding() {
             )}
           </CardContent>
         </Card>
+
+        <NextStepNavigator steps={navigatorSteps} updatedAt={navigatorUpdatedAt} />
 
         {/* Onboarding Checklist */}
         <div className="space-y-4 animate-fade-in">
