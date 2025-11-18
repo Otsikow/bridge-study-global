@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import {
+  AlertCircle,
   CheckCircle2,
   ClipboardList,
   FileText,
@@ -40,8 +41,92 @@ import {
   Loader2,
   MailCheck,
   MessageCircle,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles,
+  UploadCloud
 } from 'lucide-react';
+
+type ExtractedDocumentFields = {
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  address?: string;
+  grades?: string;
+  schoolName?: string;
+};
+
+const MONTH_MAP: Record<string, string> = {
+  january: '01',
+  february: '02',
+  march: '03',
+  april: '04',
+  may: '05',
+  june: '06',
+  july: '07',
+  august: '08',
+  september: '09',
+  october: '10',
+  november: '11',
+  december: '12'
+};
+
+const normalizeWhitespace = (value?: string | null) =>
+  value ? value.replace(/\s+/g, ' ').trim() : undefined;
+
+const toIsoDate = (value?: string | null) => {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  const isoMatch = trimmed.match(/(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  const dmyMatch = trimmed.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+  if (dmyMatch) {
+    const [, day, month, year] = dmyMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  const monthNameMatch = trimmed.match(/([A-Za-z]+)\s+(\d{1,2}),?\s*(\d{4})/);
+  if (monthNameMatch) {
+    const [, monthName, day, year] = monthNameMatch;
+    const month = MONTH_MAP[monthName.toLowerCase()];
+    if (month) {
+      return `${year}-${month}-${day.padStart(2, '0')}`;
+    }
+  }
+  return undefined;
+};
+
+const splitName = (value?: string | null) => {
+  if (!value) return {};
+  const sanitized = value.replace(/[^A-Za-z\s'.-]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!sanitized) return {};
+  const parts = sanitized.split(' ');
+  if (parts.length === 1) {
+    return { firstName: parts[0] };
+  }
+  const [firstName, ...rest] = parts;
+  return { firstName, lastName: rest.join(' ') };
+};
+
+const extractDocumentFields = (content: string): ExtractedDocumentFields => {
+  const normalized = content.replace(/\r/g, '');
+  const nameMatch = normalized.match(/(?:Student\s+Name|Full\s+Name|Name)\s*[:-]\s*([^\n]+)/i);
+  const dobMatch = normalized.match(/(?:Date\s+of\s+Birth|DOB)\s*[:-]\s*([^\n]+)/i);
+  const addressMatch = normalized.match(/(?:Address|Residence)\s*[:-]\s*([^\n]+)/i);
+  const gradeMatch = normalized.match(/(?:GPA|Grade(?:s)?|Average)\s*[:-]\s*([^\n]+)/i);
+  const schoolMatch = normalized.match(/(?:School\s+Name|High\s+School|Institution)\s*[:-]\s*([^\n]+)/i);
+
+  const nameParts = splitName(nameMatch?.[1]);
+
+  return {
+    ...nameParts,
+    dateOfBirth: toIsoDate(dobMatch?.[1]),
+    address: normalizeWhitespace(addressMatch?.[1]),
+    grades: normalizeWhitespace(gradeMatch?.[1]),
+    schoolName: normalizeWhitespace(schoolMatch?.[1])
+  };
+};
 
 const studentIntakeSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -54,6 +139,8 @@ const studentIntakeSchema = z.object({
   preferredContact: z.enum(['email', 'phone', 'whatsapp']),
   highestEducation: z.string().min(1, 'Select your highest completed education'),
   fieldOfStudy: z.string().min(1, 'Tell us your most recent field of study'),
+  schoolName: z.string().max(120, 'Please keep the school name under 120 characters').optional(),
+  gradeAverage: z.string().max(60, 'Please shorten the grade details').optional(),
   graduationYear: z
     .string()
     .regex(/^\d{4}$/, 'Enter the year you graduated (YYYY)'),
@@ -125,6 +212,10 @@ export default function StudentIntakeForm() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedData, setSubmittedData] = useState<StudentIntakeFormValues | null>(null);
+  const [autofillStatus, setAutofillStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [autofillResult, setAutofillResult] = useState<ExtractedDocumentFields | null>(null);
+  const [autofillError, setAutofillError] = useState<string | null>(null);
+  const documentInputRef = useRef<HTMLInputElement | null>(null);
 
   const currentYear = new Date().getFullYear();
   const yearOptions = useMemo(
@@ -148,6 +239,8 @@ export default function StudentIntakeForm() {
       preferredContact: 'email',
       highestEducation: '',
       fieldOfStudy: '',
+      schoolName: '',
+      gradeAverage: '',
       graduationYear: graduationYears[0] ?? currentYear.toString(),
       gpaScale: '4.0',
       englishProficiency: 'advanced',
@@ -297,6 +390,54 @@ export default function StudentIntakeForm() {
   const selectedDestinations = watchAllFields.preferredDestinations ?? [];
   const requestedServices = watchAllFields.supportServices ?? [];
 
+  const handleAutofillUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    setAutofillStatus('processing');
+    setAutofillError(null);
+    try {
+      const text = await file.text();
+      const extracted = extractDocumentFields(text);
+
+      if (extracted.firstName) {
+        form.setValue('firstName', extracted.firstName, { shouldDirty: true, shouldTouch: true });
+      }
+      if (extracted.lastName) {
+        form.setValue('lastName', extracted.lastName, { shouldDirty: true, shouldTouch: true });
+      }
+      if (extracted.dateOfBirth) {
+        form.setValue('dateOfBirth', extracted.dateOfBirth, { shouldDirty: true, shouldTouch: true });
+      }
+      if (extracted.address) {
+        form.setValue('currentLocation', extracted.address, { shouldDirty: true, shouldTouch: true });
+      }
+      if (extracted.schoolName) {
+        form.setValue('schoolName', extracted.schoolName, { shouldDirty: true });
+      }
+      if (extracted.grades) {
+        form.setValue('gradeAverage', extracted.grades, { shouldDirty: true });
+      }
+
+      setAutofillResult(extracted);
+      setAutofillStatus('success');
+      toast({
+        title: 'Document scanned',
+        description: 'We filled in the details we could extract. Please confirm they look correct.'
+      });
+    } catch (error) {
+      console.error('Failed to process document for autofill', error);
+      setAutofillStatus('error');
+      setAutofillError('We could not read that file. Please upload a clear PDF, DOCX, or text document.');
+      toast({
+        title: 'Autofill unavailable',
+        description: 'We ran into an issue processing your document.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-[2fr_1fr] items-start">
       <Card className="order-2 lg:order-1">
@@ -330,6 +471,100 @@ export default function StudentIntakeForm() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <section className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-base font-semibold">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                      AI document autofill
+                      <Badge variant="secondary" className="text-xs">
+                        Beta
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Upload a transcript, government ID, or proof of enrollment and we will pre-fill the matching fields
+                      for you.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <input
+                      ref={documentInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt,.rtf,.json,.png,.jpg,.jpeg"
+                      className="hidden"
+                      onChange={handleAutofillUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => documentInputRef.current?.click()}
+                      disabled={autofillStatus === 'processing'}
+                    >
+                      {autofillStatus === 'processing' ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <UploadCloud className="mr-2 h-4 w-4" />
+                      )}
+                      {autofillStatus === 'processing' ? 'Analyzing...' : 'Upload document'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        setAutofillResult(null);
+                        setAutofillStatus('idle');
+                        setAutofillError(null);
+                      }}
+                      disabled={!autofillResult && autofillStatus !== 'error'}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                </div>
+                {autofillStatus === 'error' && autofillError && (
+                  <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    {autofillError}
+                  </div>
+                )}
+                <div className="rounded-md border border-dashed bg-background/80 p-4 text-sm">
+                  {autofillResult ? (
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-foreground">We captured:</p>
+                      <ul className="grid gap-2 text-muted-foreground sm:grid-cols-2">
+                        <li>
+                          <span className="font-medium text-foreground">Name:</span>{' '}
+                          {autofillResult.firstName || autofillResult.lastName
+                            ? [autofillResult.firstName, autofillResult.lastName].filter(Boolean).join(' ')
+                            : 'Not detected'}
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">Date of birth:</span>{' '}
+                          {autofillResult.dateOfBirth ?? 'Not detected'}
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">Address:</span>{' '}
+                          {autofillResult.address ?? 'Not detected'}
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">Grades:</span>{' '}
+                          {autofillResult.grades ?? 'Not detected'}
+                        </li>
+                        <li>
+                          <span className="font-medium text-foreground">School:</span>{' '}
+                          {autofillResult.schoolName ?? 'Not detected'}
+                        </li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No document uploaded yet. We never store your files—everything stays on this device until you submit
+                      the form.
+                    </p>
+                  )}
+                </div>
+              </section>
+
               <section className="space-y-4">
                 <div className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
@@ -512,6 +747,20 @@ export default function StudentIntakeForm() {
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="schoolName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Most recent school</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Sunrise International School" {...field} />
+                        </FormControl>
+                        <FormDescription>Optional—help us understand where you studied last.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <FormField
@@ -587,6 +836,20 @@ export default function StudentIntakeForm() {
                     )}
                   />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="gradeAverage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recent grades or GPA</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 3.8 GPA / 92%" {...field} />
+                      </FormControl>
+                      <FormDescription>We will only use this to match scholarships and academic programs.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}

@@ -383,6 +383,41 @@ const pt = {
             },
           },
         },
+        aiCommunication: {
+          badge: "Modelos de comunicação com IA",
+          heading: "Modelos prontos para equipes e agentes",
+          description:
+            "Basta digitar pedidos naturais — “Escreva um e-mail para esta universidade perguntando sobre o status da candidatura” — e receba instantaneamente um rascunho profissional.",
+          promptLabel: "Solicitação da equipe",
+          responseLabel: "Rascunho instantâneo da IA",
+          promptExample: "\"Escreva um e-mail para esta universidade perguntando sobre o status da candidatura.\"",
+          generatedEmail: [
+            "Olá, equipe de admissões,",
+            "Espero que estejam bem. Escrevo em nome do nosso estudante, [Nome do Estudante], que enviou uma candidatura em [Data].",
+            "Poderiam compartilhar uma atualização sobre a fase atual de análise ou quaisquer documentos adicionais necessários para avançar?",
+            "Queremos garantir que todo o material esteja completo e alinhado aos seus prazos.",
+            "Obrigado pela parceria e orientação.",
+            "Atenciosamente,",
+            "[Seu Nome]",
+            "Global Education Gateway",
+          ],
+          highlightsHeading: "O que sua equipe ganha",
+          highlights: [
+            {
+              title: "Tom consistente",
+              description: "Cada e-mail reflete a voz da marca — nada de rascunhos apressados.",
+            },
+            {
+              title: "Follow-up mais rápido",
+              description: "A equipe escreve em linguagem natural e envia mensagens refinadas em segundos.",
+            },
+            {
+              title: "Conformidade garantida",
+              description: "Modelos trazem automaticamente contexto, prazos e avisos necessários.",
+            },
+          ],
+          footnote: "Economiza horas de edição e protege a reputação em todos os canais.",
+        },
         aiDocumentChecker: {
           badge: "AI Document Checker",
           heading: "Let AI review every document in seconds",

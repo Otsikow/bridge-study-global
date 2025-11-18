@@ -30,6 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { GraduationCap, Stamp, Clock3, Eye, Download, RefreshCw } from "lucide-react";
 import emptyStateIllustration from "@/assets/university-application.png";
+import { AIOfferLetterChecker } from "@/components/university/offers/AIOfferLetterChecker";
 
 type OfferType = "conditional" | "unconditional";
 type RecordStatus = "issued" | "pending";
@@ -385,6 +386,16 @@ const OffersCASPage = () => {
     };
   }, [records]);
 
+  const aiInsightsSource = useMemo(
+    () =>
+      records.map((record) => ({
+        id: record.id,
+        studentName: record.studentName,
+        courseName: record.courseName,
+      })),
+    [records],
+  );
+
   const handleOpenLink = (url?: string, fallbackMessage?: string) => {
     if (!url) {
       toast({
@@ -440,6 +451,8 @@ const OffersCASPage = () => {
           tone="warning"
         />
       </section>
+
+      <AIOfferLetterChecker records={aiInsightsSource} isLoading={isLoading || isFetching} />
 
       <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">

@@ -48,11 +48,23 @@ export interface ScholarshipSearchResult extends Scholarship {
   matchReasons?: string[];
   deadlineDaysRemaining?: number | null;
   deadlineLabel?: string;
+  profileMatchScore?: number | null;
+  profileMatchReasons?: string[];
+  qualifiesBasedOnProfile?: boolean;
 }
 
-export interface ScholarshipAIRecommendation {
-  id: string;
-  title: string;
-  reason: string;
-  score: number;
+export interface ScholarshipAIRecommendation extends ScholarshipSearchResult {
+  recommendationReason: string;
+  recommendationScore: number;
+}
+
+export interface ScholarshipMatchProfile {
+  gpa?: number;
+  country?: string;
+  programLevel?: string;
+  fieldOfStudy?: string;
+  deadlinePreference?: "next30" | "thisYear" | "flexible";
+  fundingNeed?: "full" | "partial" | "any";
+  workExperience?: "none" | "1-2" | "3+";
+  contextNote?: string;
 }
