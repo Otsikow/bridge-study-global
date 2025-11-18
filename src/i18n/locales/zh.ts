@@ -347,6 +347,46 @@ const zh = {
             "签证资格评估工具即时分析您的个人情况，帮您聚焦最适合的国家与项目。",
           cta: "了解签证计算器",
         },
+        feeCalculator: {
+          badge: "AI 费用计算器",
+          title: "即刻掌握完整留学预算",
+          description:
+            "Zoe AI 将学费、住宿、生活与隐藏费用全部拆解，让你在申请前就清楚需要准备多少预算。",
+          formTitle: "年度费用预测",
+          confidenceLabel: "AI 可信度：{{value}}%",
+          calculatingLabel: "正在计算...",
+          cta: "使用 AI 重新估算",
+          highlights: [
+            "学费、住宿、生活、保险、交通、签证与其他开支集中展示。",
+            "调整国家、奖学金或汇率时，总额会即时更新。",
+            "可与学生、家长或资助人共享的清晰拆分。",
+            "同时查看年度与月度预算，无需表格。",
+          ],
+          insights: {
+            title: "AI 规划提示",
+            items: [
+              "大多数国际学生会将 45%-55% 的预算用于学费。",
+              "住宿与日常生活通常占到总支出的三分之一左右。",
+              "至少预留 10% 作为保险、交通与签证办理的缓冲。",
+            ],
+          },
+          fields: {
+            tuition: { label: "学费", placeholder: "如：26,000" },
+            accommodation: { label: "住宿", placeholder: "如：12,000" },
+            living: { label: "生活费", placeholder: "如：6,500" },
+            insurance: { label: "保险", placeholder: "如：1,200" },
+            transportation: { label: "交通", placeholder: "如：1,800" },
+            visa: { label: "签证费用", placeholder: "如：600" },
+            misc: { label: "其他", placeholder: "如：1,500" },
+          },
+          summary: {
+            subtitle: "首年预计总费用",
+            monthlyLabel: "每月预算（约）",
+            confidenceHelper: "基于相似学生预算的 AI 预测，可信度 {{value}}%。",
+            disclaimer:
+              "以上为美元示例，实际费用会因学校选择、奖学金与汇率变动而不同。",
+          },
+        },
         testimonials: {
           heading: "成功故事",
           items: [

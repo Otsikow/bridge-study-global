@@ -674,6 +674,46 @@ const en = {
             "Our Visa Eligibility Calculator analyses your profile instantly so you can focus on the countries and programmes that welcome you the most.",
           cta: "Explore the Visa Calculator",
         },
+        feeCalculator: {
+          badge: "AI Fee Calculator",
+          title: "Get a complete financial picture instantly",
+          description:
+            "Zoe AI breaks down tuition, housing, everyday living, and hidden expenses so you always know how much to budget before applying.",
+          formTitle: "Projected annual costs",
+          confidenceLabel: "AI confidence: {{value}}%",
+          calculatingLabel: "Calculating...",
+          cta: "Recalculate with AI",
+          highlights: [
+            "Tuition, accommodation, living, insurance, transportation, visa, and miscellaneous costs in one view.",
+            "Instant totals update as you tweak assumptions for countries, scholarships, or currency shifts.",
+            "Share-ready breakdown designed for students, parents, or sponsors.",
+            "See annual and monthly budgets without spreadsheets.",
+          ],
+          insights: {
+            title: "AI planning notes",
+            items: [
+              "Most international students allocate 45-55% of their budget to tuition fees.",
+              "Accommodation plus everyday living often equals one-third of the total spend.",
+              "Keep at least 10% reserved for insurance, transport, and visa processing buffers.",
+            ],
+          },
+          fields: {
+            tuition: { label: "Tuition", placeholder: "e.g. 26,000" },
+            accommodation: { label: "Accommodation", placeholder: "e.g. 12,000" },
+            living: { label: "Living expenses", placeholder: "e.g. 6,500" },
+            insurance: { label: "Insurance", placeholder: "e.g. 1,200" },
+            transportation: { label: "Transportation", placeholder: "e.g. 1,800" },
+            visa: { label: "Visa fees", placeholder: "e.g. 600" },
+            misc: { label: "Miscellaneous", placeholder: "e.g. 1,500" },
+          },
+          summary: {
+            subtitle: "Estimated total for your first year",
+            monthlyLabel: "Approx. monthly budget",
+            confidenceHelper: "AI projection informed by similar student budgets with {{value}}% confidence.",
+            disclaimer:
+              "Illustrative USD estimates. Actual figures depend on university choice, scholarship decisions, and currency movement.",
+          },
+        },
         testimonials: {
           heading: "Success Stories",
           items: [

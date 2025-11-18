@@ -560,6 +560,46 @@ const de = {
           "Unser Visa-Eignungsrechner analysiert Ihr Profil sofort, damit Sie sich auf die Länder und Programme konzentrieren können, die Sie am meisten willkommen heißen.",
         cta: "Visa-Rechner entdecken",
       },
+      feeCalculator: {
+        badge: "KI-Kostenrechner",
+        title: "Erhalten Sie sofort einen vollständigen Finanzüberblick",
+        description:
+          "Zoe KI zerlegt Studiengebühren, Wohnen, Lebenshaltung und versteckte Ausgaben, damit Sie vor der Bewerbung wissen, wie viel Budget Sie benötigen.",
+        formTitle: "Prognostizierte Jahreskosten",
+        confidenceLabel: "KI-Vertrauen: {{value}}%",
+        calculatingLabel: "Berechnung läuft...",
+        cta: "Mit KI neu berechnen",
+        highlights: [
+          "Studiengebühren, Unterkunft, Lebenshaltung, Versicherung, Transport, Visum und Sonstiges in einer Ansicht.",
+          "Gesamtsummen aktualisieren sich sofort, wenn Sie Länder, Stipendien oder Wechselkurse anpassen.",
+          "Teilbare Aufschlüsselung für Studierende, Eltern oder Sponsoren.",
+          "Jahres- und Monatsbudget ohne Tabellenkalkulation sehen.",
+        ],
+        insights: {
+          title: "KI-Planungshinweise",
+          items: [
+            "Die meisten internationalen Studierenden investieren 45–55 % ihres Budgets in Studiengebühren.",
+            "Unterkunft plus Lebenshaltung machen oft ein Drittel der Gesamtausgaben aus.",
+            "Mindestens 10 % sollten für Versicherung, Transport und Visa-Puffer reserviert werden.",
+          ],
+        },
+        fields: {
+          tuition: { label: "Studiengebühren", placeholder: "z. B. 26.000" },
+          accommodation: { label: "Unterkunft", placeholder: "z. B. 12.000" },
+          living: { label: "Lebenshaltung", placeholder: "z. B. 6.500" },
+          insurance: { label: "Versicherung", placeholder: "z. B. 1.200" },
+          transportation: { label: "Transport", placeholder: "z. B. 1.800" },
+          visa: { label: "Visagebühren", placeholder: "z. B. 600" },
+          misc: { label: "Sonstiges", placeholder: "z. B. 1.500" },
+        },
+        summary: {
+          subtitle: "Geschätzte Gesamtkosten für Ihr erstes Jahr",
+          monthlyLabel: "Monatliches Budget (ca.)",
+          confidenceHelper: "KI-Prognose basierend auf ähnlichen Budgets mit {{value}} % Vertrauen.",
+          disclaimer:
+            "Beispielhafte USD-Beträge. Tatsächliche Kosten variieren nach Universität, Stipendium und Wechselkurs.",
+        },
+      },
       testimonials: {
         heading: "Erfolgsgeschichten",
         items: [
