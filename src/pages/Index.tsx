@@ -38,6 +38,7 @@ import { StoryboardSection } from "@/components/landing/StoryboardSection";
 import { AIDocumentCheckerSection } from "@/components/landing/AIDocumentCheckerSection";
 import { AIFeeCalculator } from "@/components/landing/AIFeeCalculator";
 import { ZoeExperienceSection } from "@/components/landing/ZoeExperienceSection";
+import { LandingHeader } from "@/components/landing/LandingHeader";
 
 import { JourneyRibbon } from "@/components/JourneyRibbon";
 import { SEO } from "@/components/SEO";
@@ -185,8 +186,10 @@ const Index = () => {
         keywords="study abroad, university applications, international education, AI tools, visa calculator"
       />
 
+      <LandingHeader />
+
       {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-16">
         <div className="container mx-auto px-4 py-24 text-center">
           <img
             src={gegLogo}
