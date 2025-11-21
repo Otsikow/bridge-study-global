@@ -1,11 +1,12 @@
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useStudent } from "@/hooks/useStudent";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ApplicationProgress from "@/components/agent/ApplicationProgress";
 import Chat from "@/components/agent/Chat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LeadQualificationDetails from "@/components/agent/LeadQualificationDetails";
+import { Button } from "@/components/ui/button";
 
 export default function StudentDetailsPage() {
   const { studentId } = useParams<{ studentId: string }>();
@@ -56,7 +57,14 @@ export default function StudentDetailsPage() {
             {student && <LeadQualificationDetails lead={student} />}
           </div>
           <div className="space-y-6">
-            {studentId && <ApplicationProgress studentId={studentId} />}
+            <div className="space-y-4">
+              {studentId && <ApplicationProgress studentId={studentId} />}
+              <Button asChild className="w-full" variant="default">
+                <Link to={`/dashboard/applications/new?studentId=${studentId}`}>
+                  Submit Application
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
         <div>{studentId && <Chat studentId={studentId} />}</div>

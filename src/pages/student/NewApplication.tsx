@@ -219,6 +219,7 @@ export default function NewApplication() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const programIdFromUrl = searchParams.get('program');
+  const studentIdFromUrl = searchParams.get('studentId') || searchParams.get('student');
   const { user, profile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -227,10 +228,12 @@ export default function NewApplication() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
+  const [agentId, setAgentId] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
+  const isAgentFlow = profile?.role === 'agent' || profile?.role === 'staff' || profile?.role === 'admin';
 
   const hasHydratedFromDraft = useRef(false);
   const hasAttemptedLegacyMigration = useRef(false);
@@ -272,16 +275,36 @@ export default function NewApplication() {
   // Fetch student data and pre-fill personal info
   const fetchStudentData = useCallback(async () => {
     try {
-      if (!user?.id) {
+      const actingAsStudent = profile?.role === 'student';
+      const targetStudentId = actingAsStudent ? null : studentIdFromUrl;
+
+      if (!user?.id && !targetStudentId) {
         setLoading(false);
         return;
       }
 
-      // Get student record
+      if (!actingAsStudent && !targetStudentId) {
+        toast({
+          title: 'Student required',
+          description: 'Select a student before submitting an application.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data: studentData, error: studentError } = await supabase
         .from('students')
-        .select('*')
-        .eq('profile_id', user.id)
+        .select(
+          `*,
+          profile:profiles!students_profile_id_fkey(
+            full_name,
+            email,
+            phone
+          )
+        `,
+        )
+        .eq(actingAsStudent ? 'profile_id' : 'id', actingAsStudent ? user?.id : targetStudentId)
         .maybeSingle();
 
       if (studentError) throw studentError;
@@ -292,7 +315,9 @@ export default function NewApplication() {
           description: 'Please complete your student profile first.',
           variant: 'destructive',
         });
-        navigate('/student/onboarding');
+        if (actingAsStudent) {
+          navigate('/student/onboarding');
+        }
         return;
       }
 
@@ -302,9 +327,9 @@ export default function NewApplication() {
       setFormData((prev) => ({
         ...prev,
         personalInfo: {
-          fullName: studentData.legal_name || profile?.full_name || '',
-          email: studentData.contact_email || profile?.email || '',
-          phone: studentData.contact_phone || profile?.phone || '',
+          fullName: studentData.legal_name || profile?.full_name || studentData.profile?.full_name || '',
+          email: studentData.contact_email || profile?.email || studentData.profile?.email || '',
+          phone: studentData.contact_phone || profile?.phone || studentData.profile?.phone || '',
           dateOfBirth: studentData.date_of_birth || '',
           nationality: studentData.nationality || '',
           passportNumber: studentData.passport_number || '',
@@ -343,7 +368,28 @@ export default function NewApplication() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, profile, navigate, toast]);
+  }, [user?.id, profile, navigate, toast, studentIdFromUrl]);
+
+  useEffect(() => {
+    const loadAgentId = async () => {
+      if (profile?.role !== 'agent' || !user?.id) return;
+
+      const { data, error } = await supabase
+        .from('agents')
+        .select('id')
+        .eq('profile_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        logError(error, 'NewApplication.loadAgentId');
+        return;
+      }
+
+      setAgentId(data?.id ?? null);
+    };
+
+    void loadAgentId();
+  }, [profile?.role, user?.id]);
 
   useEffect(() => {
     if (user) {
@@ -644,6 +690,9 @@ export default function NewApplication() {
       return;
     }
 
+    const submittedByAgent = profile?.role === 'agent' && Boolean(agentId);
+    const submissionChannel = submittedByAgent ? 'agent_portal' : 'student_portal';
+
     setSubmitting(true);
     try {
       // Create application
@@ -659,6 +708,9 @@ export default function NewApplication() {
           notes: formData.notes || null,
           tenant_id: tenantId,
           submitted_at: new Date().toISOString(),
+          agent_id: submittedByAgent ? agentId : null,
+          submitted_by_agent: submittedByAgent,
+          submission_channel: submissionChannel,
         })
         .select()
         .single();
@@ -763,6 +815,10 @@ export default function NewApplication() {
   };
 
   const progressPercentage = (currentStep / STEPS.length) * 100;
+  const applicationsListUrl = isAgentFlow ? '/dashboard/applications' : '/student/applications';
+  const viewApplicationUrl = isAgentFlow || !applicationId
+    ? applicationsListUrl
+    : `/student/applications/${applicationId}`;
 
   if (isInitialLoading) {
     return (
@@ -936,14 +992,14 @@ export default function NewApplication() {
           </DialogHeader>
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
             <Button
-              onClick={() => navigate(`/student/applications/${applicationId}`)}
+              onClick={() => navigate(viewApplicationUrl)}
               className="flex-1"
             >
               View Application
             </Button>
             <Button
               variant="outline"
-              onClick={() => navigate('/student/applications')}
+              onClick={() => navigate(applicationsListUrl)}
               className="flex-1"
             >
               My Applications

@@ -339,6 +339,7 @@ export type Database = {
           notes: string | null
           program_id: string
           risk_flags_json: Json | null
+          submitted_by_agent: boolean
           status: Database["public"]["Enums"]["application_status"] | null
           student_id: string
           submission_channel: string | null
@@ -361,6 +362,7 @@ export type Database = {
           notes?: string | null
           program_id: string
           risk_flags_json?: Json | null
+          submitted_by_agent?: boolean
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id: string
           submission_channel?: string | null
@@ -383,6 +385,7 @@ export type Database = {
           notes?: string | null
           program_id?: string
           risk_flags_json?: Json | null
+          submitted_by_agent?: boolean
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id?: string
           submission_channel?: string | null
