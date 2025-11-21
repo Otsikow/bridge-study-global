@@ -200,6 +200,7 @@ const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLog
 const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 const BlogAdminPage = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const BuildPreviews = lazyWithErrorHandling(() => import("./pages/admin/BuildPreviews"));
 
 // Staff & Agents
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
@@ -317,6 +318,7 @@ const App = () => {
                         <Route path="/dashboard/reports" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffReports /></ProtectedRoute>} />
                         <Route path="/dashboard/blog" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffBlogManagement /></ProtectedRoute>} />
                         <Route path="/dashboard/applications" element={<ProtectedRoute allowedRoles={["staff","partner","admin","agent"]}><ApplicationsRouter /></ProtectedRoute>} />
+                        <Route path="/dashboard/applications/new" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><NewApplication /></ProtectedRoute>} />
                         <Route path="/dashboard/messages" element={<ProtectedRoute allowedRoles={["agent","staff","admin"]}><StaffMessages /></ProtectedRoute>} />
                         <Route path="/dashboard/ranking" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentRanking /></ProtectedRoute>} />
                         <Route path="/dashboard/payments" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentPayments /></ProtectedRoute>} />
@@ -392,6 +394,7 @@ const App = () => {
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
                           <Route path="blog" element={<BlogAdminPage />} />
+                          <Route path="build-previews" element={<BuildPreviews />} />
                         </Route>
 
                         {/* ✅ 404 Fallback */}

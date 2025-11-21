@@ -14,6 +14,7 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [resending, setResending] = useState(false);
+  const messageFromState = (location.state as { message?: string } | null)?.message;
 
   const emailFromState = (location.state as { email?: string } | null)?.email;
   const email = useMemo(() => emailFromState ?? user?.email ?? '', [emailFromState, user?.email]);
@@ -79,9 +80,10 @@ const VerifyEmail = () => {
           </div>
           <CardTitle className="text-2xl font-semibold">Verify your email</CardTitle>
           <CardDescription>
-            {email
-              ? `We sent a confirmation link to ${email}. Follow the link in your inbox to activate your account.`
-              : 'We sent a confirmation link to your email address. Follow the link in your inbox to activate your account.'}
+            {messageFromState ||
+              (email
+                ? `We sent a confirmation link to ${email}. Follow the link in your inbox to activate your account.`
+                : 'We sent a confirmation link to your email address. Follow the link in your inbox to activate your account.')}
           </CardDescription>
         </CardHeader>
 

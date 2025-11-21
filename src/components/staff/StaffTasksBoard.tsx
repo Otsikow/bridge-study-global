@@ -9,6 +9,7 @@ import { StaffTaskComposerButton } from "@/components/staff/StaffTaskComposerPro
 import { useStaffTasks, useUpdateTaskStatus, STAFF_PAGE_SIZE } from "@/hooks/useStaffData";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "outline" | "secondary" }> = {
   open: { label: "To do", variant: "secondary" },
@@ -28,6 +29,7 @@ export function StaffTasksBoard() {
   const [status, setStatus] = useState<string>("all");
   const [priority, setPriority] = useState<string>("all");
   const [updatingTaskId, setUpdatingTaskId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { data, isLoading, isFetching, isError, error, refetch } = useStaffTasks(page, { status, priority });
   const mutation = useUpdateTaskStatus();
@@ -69,6 +71,20 @@ export function StaffTasksBoard() {
     mutation.mutate(
       { taskId, status: nextStatus },
       {
+        onSuccess: () => {
+          const statusLabel = statusLabels[nextStatus]?.label ?? "Updated";
+          toast({
+            title: "Task updated",
+            description: `Status changed to ${statusLabel}.`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Update failed",
+            description: error instanceof Error ? error.message : "Please try again.",
+            variant: "destructive",
+          });
+        },
         onSettled: () => {
           setUpdatingTaskId(null);
         },
@@ -210,10 +226,16 @@ export function StaffTasksBoard() {
                           onClick={() => handleUpdateStatus(task.id, value)}
                           disabled={mutation.isPending}
                         >
-                          {isTaskUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />} {detail.label}
+                          {isTaskUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Filter className="h-4 w-4" />} 
+                          <span>{isTaskUpdating ? "Updating" : detail.label}</span>
                         </Button>
                       ))}
                   </div>
+                  {isTaskUpdating ? (
+                    <p className="mt-2 text-xs text-muted-foreground" aria-live="polite">
+                      Saving changes to this task…
+                    </p>
+                  ) : null}
                 </div>
               </div>
             );

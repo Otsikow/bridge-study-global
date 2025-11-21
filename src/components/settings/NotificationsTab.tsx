@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,40 +6,67 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Save, Bell, Mail, MessageSquare } from 'lucide-react';
+import { Loader2, Save, Mail, MessageSquare } from 'lucide-react';
 import { LoadingState } from '@/components/LoadingState';
 
 interface NotificationsTabProps {
   profile: any;
 }
 
+const DEFAULT_PREFERENCES = {
+  email_notifications: true,
+  sms_notifications: false,
+  marketing_emails: true,
+  application_updates: true,
+  document_reminders: true,
+};
+
 const NotificationsTab = ({ profile }: NotificationsTabProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [preferences, setPreferences] = useState({
-    email_notifications: true,
-    sms_notifications: false,
-    marketing_emails: true,
-    application_updates: true,
-    document_reminders: true,
-  });
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
 
-  // Note: notification_preferences table doesn't exist yet, using local state
-  const { data, isLoading } = useQuery({
-    queryKey: ['notificationPreferences', profile.id],
+  const preferencesQueryKey = useMemo(
+    () => ['notificationPreferences', profile.id],
+    [profile.id]
+  );
+
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: preferencesQueryKey,
+    enabled: !!profile.id,
     queryFn: async () => {
-      // Return default preferences for now
-      return {
-        email_notifications: true,
-        sms_notifications: false,
-        marketing_emails: true,
-        application_updates: true,
-        document_reminders: true,
-      };
+      if (!profile.id) return DEFAULT_PREFERENCES;
+
+      const { data: existingPreferences, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading notification preferences:', error);
+        throw error;
+      }
+
+      if (existingPreferences) {
+        return existingPreferences;
+      }
+
+      const { data: insertedPreferences, error: insertError } = await supabase
+        .from('notification_preferences')
+        .insert({ profile_id: profile.id, ...DEFAULT_PREFERENCES })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating notification preferences:', insertError);
+        throw insertError;
+      }
+
+      return insertedPreferences;
     },
   });
 
-  // Update local state when data is fetched
   useEffect(() => {
     if (data) {
       setPreferences({
@@ -52,18 +79,29 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
     }
   }, [data]);
 
-  // Update preferences mutation (currently just shows success message)
   const updateMutation = useMutation({
     mutationFn: async (newPreferences: typeof preferences) => {
-      // TODO: Implement notification_preferences table
-      // For now, just store in local state
-      return newPreferences;
+      if (!profile.id) throw new Error('Profile not found');
+
+      const { data: updatedPreferences, error } = await supabase
+        .from('notification_preferences')
+        .upsert({
+          profile_id: profile.id,
+          ...newPreferences,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return updatedPreferences;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notificationPreferences', profile.id] });
+    onSuccess: (savedPreferences) => {
+      setPreferences(savedPreferences);
+      queryClient.setQueryData(preferencesQueryKey, savedPreferences);
       toast({
         title: 'Success',
-        description: 'Notification preferences saved locally',
+        description: 'Notification preferences saved',
       });
     },
     onError: (error: any) => {
@@ -205,7 +243,7 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={updateMutation.isPending}>
+            <Button type="submit" disabled={isLoading || isFetching || updateMutation.isPending}>
               {updateMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

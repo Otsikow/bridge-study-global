@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { roles, loading: rolesLoading } = useUserRoles();
   const location = useLocation();
   const loading = authLoading || rolesLoading;
@@ -28,6 +28,22 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
 
   if (!user.email_confirmed_at) {
     return <Navigate to="/verify-email" replace state={{ from: location.pathname }} />;
+  }
+
+  const isPartner =
+    profile?.role === 'partner' || user.user_metadata?.role === 'partner';
+
+  if (isPartner && profile && !profile.partner_email_verified) {
+    return (
+      <Navigate
+        to="/verify-email"
+        replace
+        state={{
+          from: location.pathname,
+          message: 'Verify your email to proceed.',
+        }}
+      />
+    );
   }
 
   if (allowedRoles && allowedRoles.length > 0) {

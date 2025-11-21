@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { IconTooltip } from "./IconTooltip";
 import { 
   Upload, 
   FileText, 
@@ -442,17 +444,22 @@ export default function BulkImport() {
   };
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider delayDuration={100}>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Upload className="h-6 w-6 text-primary" />
+            <IconTooltip label="Bulk import students">
+              <Upload className="h-6 w-6 text-primary" />
+            </IconTooltip>
             Bulk Import Students
           </h2>
           <p className="text-muted-foreground">Import multiple students at once using a CSV file</p>
         </div>
         <Button variant="outline" onClick={downloadTemplate}>
-          <Download className="h-4 w-4 mr-2" />
+          <IconTooltip label="Download CSV template">
+            <Download className="h-4 w-4 mr-2" />
+          </IconTooltip>
           Download Template
         </Button>
       </div>
@@ -468,7 +475,9 @@ export default function BulkImport() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
-              <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <IconTooltip label="Upload CSV file">
+                <FileSpreadsheet className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              </IconTooltip>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Choose CSV file or drag and drop</p>
                 <p className="text-xs text-muted-foreground">Maximum file size: 10MB</p>
@@ -480,11 +489,13 @@ export default function BulkImport() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <Button 
+              <Button
                 onClick={() => fileInputRef.current?.click()}
                 className="mt-4"
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <IconTooltip label="Select CSV file">
+                  <Upload className="h-4 w-4 mr-2" />
+                </IconTooltip>
                 Select File
               </Button>
             </div>
@@ -492,12 +503,16 @@ export default function BulkImport() {
             {file && (
               <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
+                  <IconTooltip label="Chosen file">
+                    <FileText className="h-4 w-4" />
+                  </IconTooltip>
                   <span className="text-sm font-medium">{file.name}</span>
                   <Badge variant="outline">{(file.size / 1024).toFixed(1)} KB</Badge>
                 </div>
                 <Button size="sm" variant="ghost" onClick={resetImport}>
-                  <X className="h-4 w-4" />
+                  <IconTooltip label="Remove file">
+                    <X className="h-4 w-4" />
+                  </IconTooltip>
                 </Button>
               </div>
             )}
@@ -539,8 +554,10 @@ export default function BulkImport() {
                 </div>
               </div>
 
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
+            <Alert>
+                <IconTooltip label="CSV format reminder">
+                  <AlertCircle className="h-4 w-4" />
+                </IconTooltip>
                 <AlertDescription>
                   Make sure your CSV file uses commas as separators and has a header row. Column
                   names are matched case-insensitively, and spaces or hyphens in headers are
@@ -556,14 +573,16 @@ export default function BulkImport() {
       {showPreview && previewData.length > 0 && (
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Preview Data ({previewData.length} records)</CardTitle>
-                <CardDescription>Review the data before importing</CardDescription>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setShowPreview(false)}>
-                  <Eye className="h-4 w-4 mr-2" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Preview Data ({previewData.length} records)</CardTitle>
+                  <CardDescription>Review the data before importing</CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => setShowPreview(false)}>
+                  <IconTooltip label="Hide preview">
+                    <Eye className="h-4 w-4 mr-2" />
+                  </IconTooltip>
                   Hide Preview
                 </Button>
                 <Button onClick={processImport} disabled={isProcessing}>
@@ -629,9 +648,13 @@ export default function BulkImport() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {importResult.errors === 0 ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <IconTooltip label="Import finished successfully">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                </IconTooltip>
               ) : (
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <IconTooltip label="Import finished with issues">
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                </IconTooltip>
               )}
               Import Results
             </CardTitle>
@@ -676,6 +699,7 @@ export default function BulkImport() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
