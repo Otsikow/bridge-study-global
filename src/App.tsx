@@ -213,6 +213,7 @@ const AgentLeads = lazyWithErrorHandling(() => import("./pages/agent/MyLeads"));
 const AgentRanking = lazyWithErrorHandling(() => import("./pages/agent/Ranking"));
 const AgentImport = lazyWithErrorHandling(() => import("./pages/agent/Import"));
 const AgentResources = lazyWithErrorHandling(() => import("./pages/agent/Resources"));
+const AgentPartners = lazyWithErrorHandling(() => import("./pages/agent/Partners"));
 const AgentPayments = lazyWithErrorHandling(() => import("./pages/agent/Payments"));
 const AgentCommissions = lazyWithErrorHandling(() => import("./pages/agent/Commissions"));
 const StaffBlogManagement = lazyWithErrorHandling(() => import("./pages/dashboard/StaffBlog"));
@@ -322,6 +323,7 @@ const App = () => {
                         <Route path="/dashboard/commissions" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentCommissions /></ProtectedRoute>} />
                         <Route path="/dashboard/import" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentImport /></ProtectedRoute>} />
                         <Route path="/dashboard/resources" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentResources /></ProtectedRoute>} />
+                        <Route path="/dashboard/partners" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentPartners /></ProtectedRoute>} />
                         <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><StaffSettingsRouter /></ProtectedRoute>} />
                         <Route path="/dashboard/ai-insights" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffAIInsightsPage /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />

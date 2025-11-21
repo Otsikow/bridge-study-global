@@ -7,6 +7,7 @@ import AgentStudentsManager from "@/components/agent/AgentStudentsManager";
 import LeadsList from "@/components/agent/LeadsList";
 import ResourceHub from "@/components/agent/ResourceHub";
 import CommissionTracker from "@/components/agent/CommissionTracker";
+import { AgentPartnerDiscovery } from "@/components/agent/AgentPartnerDiscovery";
 import TaskManager from "@/components/ai/TaskManager";
 import BulkImport from "@/components/agent/BulkImport";
 import ApplicationTrackingSystem from "@/components/ats/ApplicationTrackingSystem";
@@ -24,6 +25,7 @@ import {
   DollarSign,
   Upload,
   GraduationCap,
+  Handshake,
 } from "lucide-react";
 import BackButton from '@/components/BackButton';
 
@@ -40,35 +42,38 @@ export default function AgentDashboard() {
     "ranking",
     "commissions",
     "import",
+    "partners",
     "resources",
   ] as const;
 
-    const tabToPath: Record<(typeof validTabs)[number], string> = {
-      overview: "/dashboard",
-      applications: "/dashboard/applications",
-      leads: "/dashboard/leads",
-      students: "/dashboard/students",
-      tasks: "/dashboard/tasks",
-      ranking: "/dashboard/ranking",
-      commissions: "/dashboard/commissions",
-      import: "/dashboard/import",
-      resources: "/dashboard/resources",
-    };
+  const tabToPath: Record<(typeof validTabs)[number], string> = {
+    overview: "/dashboard",
+    applications: "/dashboard/applications",
+    leads: "/dashboard/leads",
+    students: "/dashboard/students",
+    tasks: "/dashboard/tasks",
+    ranking: "/dashboard/ranking",
+    commissions: "/dashboard/commissions",
+    import: "/dashboard/import",
+    partners: "/dashboard/partners",
+    resources: "/dashboard/resources",
+  };
 
-    const pathToTab: Record<string, (typeof validTabs)[number]> = {
-      overview: "overview",
-      applications: "applications",
-      leads: "leads",
-      "my-leads": "leads",
-      students: "students",
-      "my-students": "students",
-      tasks: "tasks",
-      ranking: "ranking",
-      "my-ranking": "ranking",
-      commissions: "commissions",
-      import: "import",
-      resources: "resources",
-    };
+  const pathToTab: Record<string, (typeof validTabs)[number]> = {
+    overview: "overview",
+    applications: "applications",
+    leads: "leads",
+    "my-leads": "leads",
+    students: "students",
+    "my-students": "students",
+    tasks: "tasks",
+    ranking: "ranking",
+    "my-ranking": "ranking",
+    commissions: "commissions",
+    import: "import",
+    partners: "partners",
+    resources: "resources",
+  };
 
   const pathSegment = location.pathname.split("/")[2] || "overview";
   const currentTab = pathToTab[pathSegment] ?? "overview";
@@ -90,7 +95,7 @@ export default function AgentDashboard() {
         </div>
 
         <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-2">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 lg:grid-cols-10 gap-2">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
@@ -122,6 +127,10 @@ export default function AgentDashboard() {
             <TabsTrigger value="import" className="flex items-center gap-2">
               <Upload className="h-4 w-4" />
               Import
+            </TabsTrigger>
+            <TabsTrigger value="partners" className="flex items-center gap-2">
+              <Handshake className="h-4 w-4" />
+              Partners
             </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />
@@ -169,6 +178,11 @@ export default function AgentDashboard() {
           {/* Bulk Import */}
           <TabsContent value="import">
             <BulkImport />
+          </TabsContent>
+
+          {/* Partners */}
+          <TabsContent value="partners">
+            <AgentPartnerDiscovery />
           </TabsContent>
 
           {/* Resources */}
