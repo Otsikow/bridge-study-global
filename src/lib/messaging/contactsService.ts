@@ -6,7 +6,7 @@ interface DirectoryProfile {
   id: string;
   full_name: string;
   email: string;
-  avatar_url?: string;
+  avatar_url: string;
   role?: string;
   tenant_id: string;
 }
@@ -66,7 +66,7 @@ export async function fetchMessagingContacts(
       id: contact.id,
       full_name: contact.full_name,
       email: contact.email,
-      avatar_url: contact.avatar_url || undefined,
+      avatar_url: contact.avatar_url || '',
       role: contact.role,
       tenant_id: profileData.tenant_id,
     }));
@@ -122,7 +122,7 @@ export async function searchAgentContacts(
       id: contact.id,
       full_name: contact.full_name,
       email: contact.email,
-      avatar_url: contact.avatar_url || undefined,
+      avatar_url: contact.avatar_url || '',
       role: contact.role,
       tenant_id: profileData.tenant_id,
     }));

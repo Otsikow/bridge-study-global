@@ -1,5 +1,5 @@
 import { DIRECTORY_PROFILES, type DirectoryProfile } from "./data";
-import { fetchMessagingContactIds } from "./contactsService";
+import { fetchMessagingContacts } from "./contactsService";
 
 const unique = (values: (string | null | undefined)[]) =>
   Array.from(new Set(values.filter((value): value is string => Boolean(value))));
