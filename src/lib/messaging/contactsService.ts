@@ -1,7 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DirectoryProfile, MessagingContact } from "@/types/messaging";
 
 const DEFAULT_TENANT_ID = "default-tenant";
+
+interface DirectoryProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+  role?: string;
+  tenant_id: string;
+}
 
 /**
  * Fetch messaging contacts based on user role and relationships
