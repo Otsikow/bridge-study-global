@@ -91,9 +91,9 @@ export const getMessagingContactIds = (profile: DirectoryProfile | null | undefi
  */
 export const getMessagingContactIdsAsync = async (): Promise<string[]> => {
   try {
-    const contactIds = await fetchMessagingContactIds();
-    if (contactIds && contactIds.length > 0) {
-      return contactIds;
+    const contacts = await fetchMessagingContacts();
+    if (contacts && contacts.length > 0) {
+      return contacts.map(c => c.id);
     }
     // If no real data, return empty array (don't fall back to mock in production)
     return [];

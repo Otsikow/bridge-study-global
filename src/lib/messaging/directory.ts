@@ -99,7 +99,7 @@ export const searchDirectoryProfiles = async (
       if (dbContacts && dbContacts.length > 0) {
         // Filter by roles if specified
         const filtered = options.roles && options.roles.length > 0
-          ? dbContacts.filter(profile => options.roles!.includes(profile.role))
+          ? dbContacts.filter(profile => profile.role && options.roles!.includes(profile.role as any))
           : dbContacts;
 
         // Filter by excludeIds if specified
@@ -107,7 +107,7 @@ export const searchDirectoryProfiles = async (
           ? filtered.filter(profile => !options.excludeIds!.includes(profile.id))
           : filtered;
 
-        return finalResults;
+        return finalResults as any;
       }
     } catch (error) {
       console.warn("Failed to fetch from database, falling back to mock data:", error);
