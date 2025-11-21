@@ -14,11 +14,10 @@ import {
   Award,
   DollarSign,
   FileCheck,
-  Passport,
+  ShieldCheck,
   ScrollText,
   School,
   CreditCard,
-  ShieldCheck,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Tables } from '@/integrations/supabase/types';
