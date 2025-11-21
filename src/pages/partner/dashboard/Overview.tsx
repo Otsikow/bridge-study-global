@@ -229,7 +229,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .eq("tenant_id", tenantId)
       .in("status", [...ACTIVE_APPLICATION_STATUSES]),
     supabase
-      .from<OfferRow>(OFFERS_TABLE)
+      .from(OFFERS_TABLE)
       .select("id, applications!inner(tenant_id)", { count: "exact", head: true })
       .eq("applications.tenant_id", tenantId),
     supabase
