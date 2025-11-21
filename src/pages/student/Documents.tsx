@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { getErrorMessage, logError, formatErrorForToast } from '@/lib/errorUtils';
+import { validateFileUpload } from '@/lib/fileUpload';
 import { FileText, Upload, Download, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
@@ -115,49 +116,35 @@ export default function Documents() {
       return;
     }
 
-    if (selectedFile.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'Error',
-        description: 'File size must be less than 10MB',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-      'image/jpg',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
-
-    if (!allowedTypes.includes(selectedFile.type)) {
-      toast({
-        title: 'Error',
-        description: 'Unsupported file type. Please upload PDF, DOC, DOCX, JPG, or PNG files.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setUploading(true);
     try {
-      const fileExt = selectedFile.name.split('.').pop();
+      const { preparedFile, sanitizedFileName, detectedMimeType } = await validateFileUpload(selectedFile, {
+        allowedMimeTypes: [
+          'application/pdf',
+          'image/jpeg',
+          'image/png',
+          'image/jpg',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'],
+        maxSizeBytes: 10 * 1024 * 1024,
+      });
+
+      const fileExt = sanitizedFileName.split('.').pop();
       const filePath = `${studentId}/${documentType}_${Date.now()}.${fileExt}`;
 
       console.log('Uploading file:', {
         bucket: 'student-documents',
         path: filePath,
-        fileName: selectedFile.name,
-        size: selectedFile.size,
-        type: selectedFile.type,
+        fileName: sanitizedFileName,
+        size: preparedFile.size,
+        type: detectedMimeType,
       });
 
       const { error: uploadError } = await supabase.storage
         .from('student-documents')
-        .upload(filePath, selectedFile, { cacheControl: '3600', upsert: false });
+        .upload(filePath, preparedFile, { cacheControl: '3600', upsert: false, contentType: detectedMimeType });
 
       if (uploadError) throw new Error(uploadError.message);
 
@@ -166,9 +153,9 @@ export default function Documents() {
         .insert({
           student_id: studentId,
           document_type: documentType,
-          file_name: selectedFile.name,
-          file_size: selectedFile.size,
-          mime_type: selectedFile.type,
+          file_name: sanitizedFileName,
+          file_size: preparedFile.size,
+          mime_type: detectedMimeType,
           storage_path: filePath,
           verified_status: 'pending',
         });

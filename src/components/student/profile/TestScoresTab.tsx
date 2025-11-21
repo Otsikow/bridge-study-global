@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Award, Pencil, Trash2, Loader2, Eye } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
+import { validateFileUpload } from '@/lib/fileUpload';
 
 interface TestScoresTabProps {
   studentId: string;
@@ -77,16 +78,23 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       let certificatePath = existingCertificatePath ?? null;
 
       if (certificateFile) {
-        const extension = certificateFile.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const { preparedFile, sanitizedFileName, detectedMimeType } = await validateFileUpload(certificateFile, {
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
+          allowedExtensions: ['png', 'jpg', 'jpeg'],
+          maxSizeBytes: 10 * 1024 * 1024,
+        });
+
+        const extension = sanitizedFileName.split('.').pop()?.toLowerCase() || 'jpg';
         const safeTestType = formData.test_type ? formData.test_type.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'test';
         const fileName = `${studentId}/${safeTestType}-${Date.now()}.${extension}`;
         const filePath = `${CERTIFICATE_PREFIX}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from(CERTIFICATE_BUCKET)
-          .upload(filePath, certificateFile, {
+          .upload(filePath, preparedFile, {
             cacheControl: '3600',
-            upsert: false
+            upsert: false,
+            contentType: detectedMimeType
           });
 
         if (uploadError) throw uploadError;

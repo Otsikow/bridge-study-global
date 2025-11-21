@@ -35,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { validateFileUpload } from "@/lib/fileUpload";
 import {
   File as FileIcon,
   FileText,
@@ -371,14 +372,68 @@ const AdminResources = () => {
     try {
       let storagePath = selectedResource?.storagePath ?? "";
       let uploadedFile = selectedFile;
+      let validatedUpload = null as
+        | Awaited<ReturnType<typeof validateFileUpload>>
+        | null;
+
+      if (selectedFile) {
+        validatedUpload = await validateFileUpload(selectedFile, {
+          allowedMimeTypes: [
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "image/png",
+            "image/jpeg",
+            "image/jpg",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml",
+            "video/mp4",
+            "video/quicktime",
+            "video/x-msvideo",
+            "video/x-matroska",
+            "video/webm",
+            "text/csv",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+          ],
+          allowedExtensions: [
+            "pdf",
+            "doc",
+            "docx",
+            "png",
+            "jpg",
+            "jpeg",
+            "gif",
+            "webp",
+            "svg",
+            "mp4",
+            "mov",
+            "avi",
+            "mkv",
+            "webm",
+            "xls",
+            "xlsx",
+            "csv",
+            "ppt",
+            "pptx",
+          ],
+          maxSizeBytes: 50 * 1024 * 1024,
+        });
+
+        uploadedFile = validatedUpload.preparedFile;
+      }
 
       if (dialogMode === "upload" && selectedFile) {
-        storagePath = `${formState.type}/${Date.now()}_${selectedFile.name}`;
+        storagePath = `${formState.type}/${Date.now()}_${validatedUpload?.sanitizedFileName ?? selectedFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from(STORAGE_BUCKET)
-          .upload(storagePath, selectedFile, {
+          .upload(storagePath, uploadedFile!, {
             cacheControl: "3600",
             upsert: false,
+            contentType: validatedUpload?.detectedMimeType ?? selectedFile.type,
             metadata: {
               title: formState.title,
               description: formState.description,
@@ -394,12 +449,13 @@ const AdminResources = () => {
       }
 
       if (dialogMode === "edit" && selectedResource && selectedFile) {
-        const newStoragePath = `${formState.type}/${Date.now()}_${selectedFile.name}`;
+        const newStoragePath = `${formState.type}/${Date.now()}_${validatedUpload?.sanitizedFileName ?? selectedFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from(STORAGE_BUCKET)
-          .upload(newStoragePath, selectedFile, {
+          .upload(newStoragePath, uploadedFile!, {
             cacheControl: "3600",
             upsert: true,
+            contentType: validatedUpload?.detectedMimeType ?? selectedFile.type,
             metadata: {
               title: formState.title,
               description: formState.description,
@@ -433,9 +489,9 @@ const AdminResources = () => {
           access_level: formState.accessLevel,
           resource_type: formState.type,
           storage_path: storagePath,
-          file_name: selectedFile?.name ?? null,
-          file_extension: selectedFile?.name.split(".").pop()?.toLowerCase() ?? null,
-          file_size: selectedFile?.size ?? null,
+          file_name: uploadedFile?.name ?? null,
+          file_extension: uploadedFile?.name.split(".").pop()?.toLowerCase() ?? null,
+          file_size: uploadedFile?.size ?? null,
           created_by: profile?.id,
         } as any);
 

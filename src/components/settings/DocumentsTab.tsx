@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { validateFileUpload } from '@/lib/fileUpload';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText,
@@ -135,19 +136,22 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
       return;
     }
 
-    // Validate file size (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({
-        title: 'File too large',
-        description: 'Please upload a file smaller than 10MB',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setIsUploading(true);
 
     try {
+      const { preparedFile, sanitizedFileName, detectedMimeType } = await validateFileUpload(file, {
+        allowedMimeTypes: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'image/png',
+          'image/jpeg',
+          'image/jpg',
+        ],
+        allowedExtensions: ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg'],
+        maxSizeBytes: 10 * 1024 * 1024,
+      });
+
       // Get student ID first
       const { data: studentData, error: studentError } = await supabase
         .from('students')
@@ -158,14 +162,15 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
       if (studentError) throw studentError;
 
       // Upload to storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = sanitizedFileName.split('.').pop();
       const fileName = `${profile.id}/${Date.now()}-${documentType}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('student-documents')
-        .upload(fileName, file, {
+        .upload(fileName, preparedFile, {
           cacheControl: '3600',
           upsert: false,
+          contentType: detectedMimeType,
         });
 
       if (uploadError) throw uploadError;
@@ -179,10 +184,10 @@ const DocumentsTab = ({ profile }: DocumentsTabProps) => {
       const { error: dbError } = await supabase.from('student_documents').insert({
         student_id: studentData.id,
         document_type: documentType,
-        file_name: file.name,
+        file_name: sanitizedFileName,
         storage_path: fileName,
-        file_size: file.size,
-        mime_type: file.type,
+        file_size: preparedFile.size,
+        mime_type: detectedMimeType,
       });
 
       if (dbError) throw dbError;
