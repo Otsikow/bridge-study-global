@@ -200,6 +200,7 @@ const AdminLogsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminLog
 const UserManagement = lazyWithErrorHandling(() => import("./pages/admin/UserManagement"));
 const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"));
 const BlogAdminPage = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
+const BuildPreviews = lazyWithErrorHandling(() => import("./pages/admin/BuildPreviews"));
 
 // Staff & Agents
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
@@ -391,6 +392,7 @@ const App = () => {
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
                           <Route path="blog" element={<BlogAdminPage />} />
+                          <Route path="build-previews" element={<BuildPreviews />} />
                         </Route>
 
                         {/* ✅ 404 Fallback */}
