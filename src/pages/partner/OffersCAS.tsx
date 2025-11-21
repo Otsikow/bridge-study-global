@@ -207,7 +207,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
   };
 
   const [offersResponse, casLetters] = await Promise.all([
-    supabase.from<OfferRecord>("offers").select(offerSelect).order("created_at", {
+    supabase.from("offers").select(offerSelect).order("created_at", {
       ascending: false,
       nullsFirst: false,
     }),
@@ -218,7 +218,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
     throw offersResponse.error;
   }
 
-  const offers = (offersResponse.data ?? []) as OfferRecord[];
+  const offers = (offersResponse.data ?? []) as unknown as OfferRecord[];
 
   const combinedMap = new Map<string, CombinedRecord>();
 
