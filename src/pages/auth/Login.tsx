@@ -43,7 +43,18 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error, requiresEmailVerification, email: userEmail } = await signIn(email, password);
+    setLoading(false);
+
+    if (requiresEmailVerification) {
+      toast({
+        variant: 'destructive',
+        title: 'Verify your email to continue',
+        description: 'Please confirm your email address before signing in.',
+      });
+      navigate('/verify-email', { state: { email: userEmail ?? email } });
+      return;
+    }
 
     if (error) {
       toast({
@@ -51,7 +62,6 @@ const Login = () => {
         title: 'Login failed',
         description: error instanceof Error ? error.message : 'An error occurred during login',
       });
-      setLoading(false);
     } else {
       toast({
         title: 'Welcome back!',

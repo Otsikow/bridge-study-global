@@ -49,7 +49,10 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ error: unknown; requiresEmailVerification?: boolean; email?: string }>;
   signUp: (params: SignUpParams) => Promise<{ error: unknown }>;
   signOut: (options?: { redirectTo?: string }) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -324,6 +327,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase.auth.signOut();
         return {
           error: new Error('Please verify your email before signing in.'),
+          requiresEmailVerification: true,
+          email: data.user.email,
         };
       }
 
