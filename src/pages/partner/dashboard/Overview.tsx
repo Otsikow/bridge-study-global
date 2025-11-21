@@ -169,7 +169,7 @@ const isMissingTableError = (error: PostgrestError | null) =>
 
 const fetchPendingDocumentsCount = async (tenantId: string) => {
   const { count, error } = await supabase
-    .from<DocumentsRow>(DOCUMENTS_TABLE)
+    .from(DOCUMENTS_TABLE)
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)
     .eq("status", "pending");
