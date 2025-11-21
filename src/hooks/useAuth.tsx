@@ -30,6 +30,7 @@ interface Profile {
   username: string;
   referrer_id?: string | null;
   referred_by?: string | null;
+  partner_email_verified?: boolean | null;
 }
 
 interface SignUpParams {
@@ -64,7 +65,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchProfile = async (userId: string) => {
+  const ensurePartnerEmailVerification = async (
+    profileData: Profile,
+    currentUser: User | null,
+  ): Promise<Profile> => {
+    if (profileData.role !== 'partner') return profileData;
+
+    const isVerified = Boolean(profileData.partner_email_verified);
+    if (isVerified) return profileData;
+
+    if (!currentUser?.email_confirmed_at) return profileData;
+
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('profiles')
+      .update({ partner_email_verified: true })
+      .eq('id', profileData.id)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      console.error('Failed to persist partner email verification status:', updateError);
+      return profileData;
+    }
+
+    return {
+      ...updatedProfile,
+      partner_email_verified: true,
+    } as Profile;
+  };
+
+  const fetchProfile = async (userId: string, currentUser: User | null = user) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -96,7 +126,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile(null);
         }
       } else {
-        setProfile(data);
+        const normalizedProfile: Profile = {
+          ...data,
+          partner_email_verified: data.partner_email_verified ?? false,
+        };
+
+        const profileWithVerification = await ensurePartnerEmailVerification(
+          normalizedProfile,
+          currentUser,
+        );
+
+        setProfile(profileWithVerification);
       }
     } catch (err) {
       console.error('Unexpected error fetching profile:', err);
@@ -250,7 +290,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Fetch profile only if user has changed
       if (currentUserId && currentUserId !== lastUserId) {
-        await fetchProfile(currentUserId);
+        await fetchProfile(currentUserId, currentUser);
       } else if (!currentUserId) {
         setProfile(null);
       }
@@ -322,8 +362,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data?.user && !data.user.email_confirmed_at) {
         console.warn('Sign-in blocked: email address is not verified yet.');
         await supabase.auth.signOut();
+
+        const role = data.user.user_metadata?.role;
+        const verifyMessage = role === 'partner'
+          ? 'Verify your email to proceed.'
+          : 'Please verify your email before signing in.';
+
         return {
-          error: new Error('Please verify your email before signing in.'),
+          error: new Error(verifyMessage),
         };
       }
 
