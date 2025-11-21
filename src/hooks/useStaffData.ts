@@ -831,7 +831,7 @@ export const useCreateTask = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: staffTasksKey(tenantId, 1, profile?.id) });
+      queryClient.invalidateQueries({ queryKey: ["staff", "tasks"] });
       queryClient.invalidateQueries({ queryKey: staffTaskSummaryKey(tenantId, profile?.id) });
       queryClient.invalidateQueries({ queryKey: staffTaskAssigneesKey(tenantId, profile?.id) });
     },
