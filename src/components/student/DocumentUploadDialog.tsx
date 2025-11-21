@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { logError, formatErrorForToast } from '@/lib/errorUtils';
+import { validateFileUpload } from '@/lib/fileUpload';
 import {
   Dialog,
   DialogContent,
@@ -73,16 +74,30 @@ export function DocumentUploadDialog({
     try {
       setUploading(true);
 
+      const { preparedFile, sanitizedFileName, detectedMimeType } = await validateFileUpload(file, {
+        allowedMimeTypes: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'image/png',
+          'image/jpeg',
+          'image/jpg',
+        ],
+        allowedExtensions: ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg'],
+        maxSizeBytes: 10 * 1024 * 1024,
+      });
+
       // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
+      const fileExt = sanitizedFileName.split('.').pop();
       const fileName = `${applicationId}/${documentType}_${Date.now()}.${fileExt}`;
       const filePath = `documents/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('application-documents')
-        .upload(filePath, file, {
+        .upload(filePath, preparedFile, {
           cacheControl: '3600',
           upsert: false,
+          contentType: detectedMimeType,
         });
 
       if (uploadError) throw uploadError;
@@ -94,8 +109,8 @@ export function DocumentUploadDialog({
           application_id: applicationId,
           document_type: documentType,
           storage_path: filePath,
-          mime_type: file.type,
-          file_size: file.size,
+          mime_type: detectedMimeType,
+          file_size: preparedFile.size,
         });
 
       if (dbError) throw dbError;
