@@ -183,7 +183,7 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
   }
 
   const { count: applicationDocumentsCount, error: applicationDocumentsError } = await supabase
-    .from<ApplicationDocumentsRow>(APPLICATION_DOCUMENTS_TABLE)
+    .from(APPLICATION_DOCUMENTS_TABLE)
     .select("id, verified, applications!inner(tenant_id)", { count: "exact", head: true })
     .eq("applications.tenant_id", tenantId)
     .eq("verified", false);
