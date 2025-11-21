@@ -169,7 +169,7 @@ const isMissingTableError = (error: PostgrestError | null) =>
 
 const fetchPendingDocumentsCount = async (tenantId: string) => {
   const { count, error } = await supabase
-    .from<DocumentsRow>(DOCUMENTS_TABLE)
+    .from(DOCUMENTS_TABLE)
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)
     .eq("status", "pending");
@@ -183,7 +183,7 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
   }
 
   const { count: applicationDocumentsCount, error: applicationDocumentsError } = await supabase
-    .from<ApplicationDocumentsRow>(APPLICATION_DOCUMENTS_TABLE)
+    .from(APPLICATION_DOCUMENTS_TABLE)
     .select("id, verified, applications!inner(tenant_id)", { count: "exact", head: true })
     .eq("applications.tenant_id", tenantId)
     .eq("verified", false);
@@ -229,7 +229,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .eq("tenant_id", tenantId)
       .in("status", [...ACTIVE_APPLICATION_STATUSES]),
     supabase
-      .from<OfferRow>(OFFERS_TABLE)
+      .from(OFFERS_TABLE)
       .select("id, applications!inner(tenant_id)", { count: "exact", head: true })
       .eq("applications.tenant_id", tenantId),
     supabase

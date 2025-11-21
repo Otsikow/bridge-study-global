@@ -308,7 +308,7 @@ const ApplicationsPage = () => {
           .eq("program.university_id", universityId);
 
         if (statuses.length > 0) {
-          query = query.in("status", statuses);
+          query = query.in("status", statuses as any);
         }
 
         if (searchValue) {
@@ -326,7 +326,7 @@ const ApplicationsPage = () => {
         }
 
         const { data: rows, error, count } = await query
-          .order("submitted_at", { ascending: false, nullsLast: true })
+          .order("submitted_at", { ascending: false })
           .order("created_at", { ascending: false })
           .range(startIndex, endIndex);
 
@@ -462,7 +462,7 @@ const ApplicationsPage = () => {
 
         const detailed: DetailedApplication = {
           ...(applicationRow as ApplicationRow),
-          documents: (documentsData ?? []) as ApplicationDocument[],
+          documents: (documentsData ?? []) as unknown as ApplicationDocument[],
         };
 
         detailsCacheRef.current[applicationId] = detailed;

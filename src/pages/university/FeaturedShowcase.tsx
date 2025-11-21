@@ -72,7 +72,7 @@ const FEATURED_PLANS = [
 type FeaturedPlan = (typeof FEATURED_PLANS)[number];
 
 const ORDER_STATUS_LABELS: Record<
-  Database["public"]["Enums"]["featured_listing_status"],
+  string,
   { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
   inactive: { label: "Inactive", variant: "secondary" },
@@ -176,19 +176,10 @@ const FeaturedShowcase = () => {
     if (!university?.id) return;
     setLoadingOrders(true);
     try {
-      const { data: orderRows, error } = await supabase
-        .from("featured_listing_orders")
-        .select(
-          "id, plan_code, status, amount_cents, currency, created_at, activated_at, expires_at, summary, highlight, image_url, priority",
-        )
-        .eq("university_id", university.id)
-        .order("created_at", { ascending: false });
+      // Mock featured orders since table doesn't exist yet
+      const orderRows: FeaturedListingOrder[] = [];
 
-      if (error) {
-        throw error;
-      }
-
-      setOrders((orderRows ?? []) as FeaturedListingOrder[]);
+      setOrders(orderRows);
     } catch (error) {
       console.error("Failed to load featured orders", error);
       toast({

@@ -5,6 +5,9 @@ export interface DirectoryProfile {
   full_name: string;
   email: string;
   avatar_url: string | null;
+  role: 'student' | 'agent' | 'partner' | 'staff' | 'admin' | 'counselor' | 'verifier' | 'finance' | 'school_rep';
+  tenant_id: string;
+  headline?: string;
 }
 
 export interface StudentContact {
@@ -17,16 +20,27 @@ export interface StudentContact {
 }
 
 export async function fetchMessagingContacts(
-  userId: string,
-  userRole: string
+  query?: string,
+  limit?: number
 ): Promise<DirectoryProfile[]> {
   try {
-    if (userRole === 'agent') {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) return [];
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role, tenant_id')
+      .eq('id', userData.user.id)
+      .single();
+
+    if (!profileData) return [];
+
+    if (profileData.role === 'agent') {
       // Get students linked to this agent
       const { data: agentData } = await supabase
         .from('agents')
         .select('id')
-        .eq('profile_id', userId)
+        .eq('profile_id', userData.user.id)
         .single();
 
       if (!agentData) return [];
@@ -38,7 +52,7 @@ export async function fetchMessagingContacts(
           students!inner(
             id,
             profile_id,
-            profiles!inner(id, full_name, email, avatar_url)
+            profiles!inner(id, full_name, email, avatar_url, role, tenant_id)
           )
         `)
         .eq('agent_id', agentData.id);
@@ -55,17 +69,29 @@ export async function fetchMessagingContacts(
             full_name: student.profiles.full_name,
             email: student.profiles.email,
             avatar_url: student.profiles.avatar_url,
+            role: student.profiles.role,
+            tenant_id: student.profiles.tenant_id,
           };
         })
         .filter((p: any): p is DirectoryProfile => p !== null);
     }
 
     // For other roles, return staff/admin profiles
-    const { data: profiles } = await supabase
+    let queryBuilder = supabase
       .from('profiles')
-      .select('id, full_name, email, avatar_url')
+      .select('id, full_name, email, avatar_url, role, tenant_id')
       .in('role', ['admin', 'staff'])
-      .limit(50);
+      .eq('tenant_id', profileData.tenant_id);
+
+    if (query) {
+      queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,email.ilike.%${query}%`);
+    }
+
+    if (limit) {
+      queryBuilder = queryBuilder.limit(limit);
+    }
+
+    const { data: profiles } = await queryBuilder;
 
     return (profiles || []) as DirectoryProfile[];
   } catch (error) {
@@ -76,18 +102,7 @@ export async function fetchMessagingContacts(
 
 export async function fetchMessagingContactIds(): Promise<string[]> {
   try {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData?.user) return [];
-    
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userData.user.id)
-      .single();
-
-    if (!profileData) return [];
-    
-    const contacts = await fetchMessagingContacts(userData.user.id, profileData.role);
+    const contacts = await fetchMessagingContacts();
     return contacts.map((contact) => contact.id);
   } catch (error) {
     console.error("Error fetching messaging contact IDs:", error);

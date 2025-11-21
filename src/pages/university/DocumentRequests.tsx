@@ -113,7 +113,7 @@ const buildDocumentRequestItem = (
   const studentName =
     student?.preferred_name ?? student?.legal_name ?? "Unknown student";
 
-  const storagePath = raw.storage_path ?? raw.file_path ?? null;
+  const storagePath = raw.storage_path ?? (raw as any).file_path ?? null;
   let documentUrl =
     raw.document_url ?? raw.uploaded_file_url ?? raw.file_url ?? null;
 
@@ -165,24 +165,24 @@ const UniversityDocumentRequestsPage = () => {
 
       try {
         const { data: rows, error } = await supabase
-          .from<DocumentRequestRow>("document_requests")
+          .from("document_requests")
           .select(
-            "id, student_id, request_type, status, requested_at, created_at, document_url, uploaded_file_url, file_url, storage_path, file_path",
+            "id, student_id, request_type, status, requested_at, created_at, document_url, uploaded_file_url, file_url, storage_path",
           )
-          .eq("university_id", universityId)
+          .eq("tenant_id", universityId)
           .order("requested_at", { ascending: false });
 
         if (error) {
           throw error;
         }
 
-        const documentRows = rows ?? [];
+        const documentRows = (rows ?? []) as any[];
 
         const studentIds = Array.from(
           new Set(
             documentRows
-              .map((row) => row.student_id)
-              .filter((id): id is string => Boolean(id)),
+              .map((row: any) => row.student_id)
+              .filter((id: any): id is string => Boolean(id)),
           ),
         );
 
@@ -208,8 +208,8 @@ const UniversityDocumentRequestsPage = () => {
           }
         }
 
-        const mapped = documentRows.map((row) =>
-          buildDocumentRequestItem(row, studentsMap),
+        const mapped = documentRows.map((row: any) =>
+          buildDocumentRequestItem(row as DocumentRequestRow, studentsMap),
         );
 
         setDocumentRequests(mapped);

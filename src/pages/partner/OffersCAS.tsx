@@ -207,9 +207,8 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
   };
 
   const [offersResponse, casLetters] = await Promise.all([
-    supabase.from<OfferRecord>("offers").select(offerSelect).order("created_at", {
+    supabase.from("offers").select(offerSelect).order("created_at", {
       ascending: false,
-      nullsFirst: false,
     }),
     fetchCasLetters(),
   ]);
@@ -218,7 +217,7 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
     throw offersResponse.error;
   }
 
-  const offers = (offersResponse.data ?? []) as OfferRecord[];
+  const offers = (offersResponse.data ?? []) as unknown as OfferRecord[];
 
   const combinedMap = new Map<string, CombinedRecord>();
 
@@ -607,11 +606,11 @@ export default function OffersCASPage() {
                       <University className="mr-2 h-4 w-4 text-slate-400" />
                       <SelectValue placeholder="All universities" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-64 overflow-y-auto bg-slate-950 text-slate-100">
+                      <SelectContent className="max-h-64 overflow-y-auto bg-slate-950 text-slate-100">
                       <SelectItem value="all">All universities</SelectItem>
-                      {universityOptions.map((university) => (
-                        <SelectItem key={university} value={university}>
-                          {university}
+                      {universityOptions.map((university, idx) => (
+                        <SelectItem key={university || `uni-${idx}`} value={String(university)}>
+                          {String(university)}
                         </SelectItem>
                       ))}
                     </SelectContent>
