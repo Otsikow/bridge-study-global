@@ -14,7 +14,7 @@ import {
   Award,
   DollarSign,
   FileCheck,
-  Passport,
+  IdCard,
   ScrollText,
   School,
   CreditCard,
@@ -94,7 +94,7 @@ const buildNavigatorSteps = (
         : 'AI is waiting for a passport scan to pre-verify your applications.',
       actionLabel: passportDoc ? 'View documents' : 'Upload passport',
       actionHref: '/student/documents',
-      icon: Passport,
+      icon: IdCard,
       lastUpdated: getRecordTimestamp(passportDoc ?? null),
     },
     {
