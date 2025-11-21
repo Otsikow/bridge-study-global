@@ -339,7 +339,6 @@ export type Database = {
           notes: string | null
           program_id: string
           risk_flags_json: Json | null
-          submitted_by_agent: boolean
           status: Database["public"]["Enums"]["application_status"] | null
           student_id: string
           submission_channel: string | null
@@ -362,7 +361,6 @@ export type Database = {
           notes?: string | null
           program_id: string
           risk_flags_json?: Json | null
-          submitted_by_agent?: boolean
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id: string
           submission_channel?: string | null
@@ -385,7 +383,6 @@ export type Database = {
           notes?: string | null
           program_id?: string
           risk_flags_json?: Json | null
-          submitted_by_agent?: boolean
           status?: Database["public"]["Enums"]["application_status"] | null
           student_id?: string
           submission_channel?: string | null
@@ -1613,7 +1610,6 @@ export type Database = {
           id: string
           locale: string | null
           onboarded: boolean | null
-          partner_email_verified: boolean | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
           tenant_id: string
@@ -1631,7 +1627,6 @@ export type Database = {
           id: string
           locale?: string | null
           onboarded?: boolean | null
-          partner_email_verified?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tenant_id: string
@@ -1649,7 +1644,6 @@ export type Database = {
           id?: string
           locale?: string | null
           onboarded?: boolean | null
-          partner_email_verified?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tenant_id?: string
