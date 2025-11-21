@@ -1,17 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Save, Mail, MessageSquare } from 'lucide-react';
-import { LoadingState } from '@/components/LoadingState';
 
 interface NotificationsTabProps {
   profile: any;
 }
+
+const STORAGE_KEY = 'notification_preferences';
 
 const DEFAULT_PREFERENCES = {
   email_notifications: true,
@@ -23,243 +22,156 @@ const DEFAULT_PREFERENCES = {
 
 const NotificationsTab = ({ profile }: NotificationsTabProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
-
-  const preferencesQueryKey = useMemo(
-    () => ['notificationPreferences', profile.id],
-    [profile.id]
-  );
-
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: preferencesQueryKey,
-    enabled: !!profile.id,
-    queryFn: async () => {
-      if (!profile.id) return DEFAULT_PREFERENCES;
-
-      const { data: existingPreferences, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading notification preferences:', error);
-        throw error;
-      }
-
-      if (existingPreferences) {
-        return existingPreferences;
-      }
-
-      const { data: insertedPreferences, error: insertError } = await supabase
-        .from('notification_preferences')
-        .insert({ profile_id: profile.id, ...DEFAULT_PREFERENCES })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error creating notification preferences:', insertError);
-        throw insertError;
-      }
-
-      return insertedPreferences;
-    },
-  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (data) {
-      setPreferences({
-        email_notifications: data.email_notifications,
-        sms_notifications: data.sms_notifications,
-        marketing_emails: data.marketing_emails,
-        application_updates: data.application_updates,
-        document_reminders: data.document_reminders,
-      });
+    // Load preferences from localStorage
+    const stored = localStorage.getItem(`${STORAGE_KEY}_${profile.id}`);
+    if (stored) {
+      try {
+        setPreferences(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse stored preferences:', e);
+      }
     }
-  }, [data]);
+  }, [profile.id]);
 
-  const updateMutation = useMutation({
-    mutationFn: async (newPreferences: typeof preferences) => {
-      if (!profile.id) throw new Error('Profile not found');
-
-      const { data: updatedPreferences, error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          profile_id: profile.id,
-          ...newPreferences,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return updatedPreferences;
-    },
-    onSuccess: (savedPreferences) => {
-      setPreferences(savedPreferences);
-      queryClient.setQueryData(preferencesQueryKey, savedPreferences);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Save to localStorage
+      localStorage.setItem(`${STORAGE_KEY}_${profile.id}`, JSON.stringify(preferences));
+      
       toast({
-        title: 'Success',
-        description: 'Notification preferences saved',
+        title: 'Preferences saved',
+        description: 'Your notification preferences have been updated.',
       });
-    },
-    onError: (error: any) => {
+    } catch (error) {
+      console.error('Error saving preferences:', error);
       toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update preferences',
+        title: 'Error',
+        description: 'Failed to save notification preferences.',
         variant: 'destructive',
       });
-    },
-  });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  const handleToggle = (key: keyof typeof preferences) => {
-    setPreferences((prev) => ({
+  const handlePreferenceChange = (key: keyof typeof preferences) => {
+    setPreferences(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate(preferences);
-  };
-
-  if (isLoading) {
-    return <LoadingState message="Loading notification preferences..." />;
-  }
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Notification Preferences</CardTitle>
-        <CardDescription>
-          Manage how you receive notifications and updates
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Email Notifications Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Mail className="h-5 w-5 text-muted-foreground" />
-              <h3 className="font-semibold">Email Notifications</h3>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Email Notifications
+          </CardTitle>
+          <CardDescription>
+            Manage how you receive email notifications
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="email-notifications">Email notifications</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive important updates via email
+              </p>
             </div>
-
-            <div className="space-y-4 pl-7">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="email_notifications">Email Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive general email notifications
-                  </p>
-                </div>
-                <Switch
-                  id="email_notifications"
-                  checked={preferences.email_notifications}
-                  onCheckedChange={() => handleToggle('email_notifications')}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="application_updates">Application Updates</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified about application status changes
-                  </p>
-                </div>
-                <Switch
-                  id="application_updates"
-                  checked={preferences.application_updates}
-                  onCheckedChange={() => handleToggle('application_updates')}
-                  disabled={!preferences.email_notifications}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="document_reminders">Document Reminders</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive reminders about pending documents
-                  </p>
-                </div>
-                <Switch
-                  id="document_reminders"
-                  checked={preferences.document_reminders}
-                  onCheckedChange={() => handleToggle('document_reminders')}
-                  disabled={!preferences.email_notifications}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="marketing_emails">Marketing Emails</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive updates about new features and promotions
-                  </p>
-                </div>
-                <Switch
-                  id="marketing_emails"
-                  checked={preferences.marketing_emails}
-                  onCheckedChange={() => handleToggle('marketing_emails')}
-                  disabled={!preferences.email_notifications}
-                />
-              </div>
-            </div>
+            <Switch
+              id="email-notifications"
+              checked={preferences.email_notifications}
+              onCheckedChange={() => handlePreferenceChange('email_notifications')}
+            />
           </div>
 
-          {/* SMS Notifications Section */}
-          <div className="border-t pt-6 space-y-4">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="h-5 w-5 text-muted-foreground" />
-              <h3 className="font-semibold">SMS Notifications</h3>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="application-updates">Application updates</Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified about your application status changes
+              </p>
             </div>
-
-            <div className="space-y-4 pl-7">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="sms_notifications">SMS Notifications</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Receive important updates via SMS
-                  </p>
-                </div>
-                <Switch
-                  id="sms_notifications"
-                  checked={preferences.sms_notifications}
-                  onCheckedChange={() => handleToggle('sms_notifications')}
-                />
-              </div>
-
-              {!profile.phone && preferences.sms_notifications && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    Please add your phone number in the Profile tab to receive SMS
-                    notifications.
-                  </p>
-                </div>
-              )}
-            </div>
+            <Switch
+              id="application-updates"
+              checked={preferences.application_updates}
+              onCheckedChange={() => handlePreferenceChange('application_updates')}
+            />
           </div>
 
-          {/* Submit Button */}
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isLoading || isFetching || updateMutation.isPending}>
-              {updateMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Preferences
-                </>
-              )}
-            </Button>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="document-reminders">Document reminders</Label>
+              <p className="text-sm text-muted-foreground">
+                Reminders for pending document submissions
+              </p>
+            </div>
+            <Switch
+              id="document-reminders"
+              checked={preferences.document_reminders}
+              onCheckedChange={() => handlePreferenceChange('document_reminders')}
+            />
           </div>
-        </form>
-      </CardContent>
-    </Card>
+
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="marketing-emails">Marketing emails</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive updates about new features and offers
+              </p>
+            </div>
+            <Switch
+              id="marketing-emails"
+              checked={preferences.marketing_emails}
+              onCheckedChange={() => handlePreferenceChange('marketing_emails')}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            SMS Notifications
+          </CardTitle>
+          <CardDescription>
+            Manage SMS notification preferences
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="sms-notifications">SMS notifications</Label>
+              <p className="text-sm text-muted-foreground">
+                Receive urgent notifications via SMS
+              </p>
+            </div>
+            <Switch
+              id="sms-notifications"
+              checked={preferences.sms_notifications}
+              onCheckedChange={() => handlePreferenceChange('sms_notifications')}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving}>
+          {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          <Save className="mr-2 h-4 w-4" />
+          Save Preferences
+        </Button>
+      </div>
+    </div>
   );
 };
 

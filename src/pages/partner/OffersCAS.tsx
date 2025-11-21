@@ -197,15 +197,13 @@ const fetchOffersAndCas = async (): Promise<ProcessedRecord[]> => {
           throw fallbackResponse.error;
         }
 
-        return (fallbackResponse.data ?? []) as CasRecord[];
+        return (fallbackResponse.data ?? []) as unknown as CasRecord[];
       }
 
       throw casLettersResponse.error;
     }
 
-    return (casLettersResponse.data ?? []) as CasRecord[];
-
-    return (casLettersResponse.data ?? []) as CasRecord[];
+    return (casLettersResponse.data ?? []) as unknown as CasRecord[];
   };
 
   const [offersResponse, casLetters] = await Promise.all([
