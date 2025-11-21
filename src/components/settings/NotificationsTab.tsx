@@ -1,13 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Save, Mail, MessageSquare } from 'lucide-react';
-import { LoadingState } from '@/components/LoadingState';
 
 interface NotificationsTabProps {
   profile: any;
@@ -23,95 +20,22 @@ const DEFAULT_PREFERENCES = {
 
 const NotificationsTab = ({ profile }: NotificationsTabProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const preferencesQueryKey = useMemo(
-    () => ['notificationPreferences', profile.id],
-    [profile.id]
-  );
-
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: preferencesQueryKey,
-    enabled: !!profile.id,
-    queryFn: async () => {
-      if (!profile.id) return DEFAULT_PREFERENCES;
-
-      const { data: existingPreferences, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error loading notification preferences:', error);
-        throw error;
-      }
-
-      if (existingPreferences) {
-        return existingPreferences;
-      }
-
-      const { data: insertedPreferences, error: insertError } = await supabase
-        .from('notification_preferences')
-        .insert({ profile_id: profile.id, ...DEFAULT_PREFERENCES })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error creating notification preferences:', insertError);
-        throw insertError;
-      }
-
-      return insertedPreferences;
-    },
-  });
-
+  // Load preferences from localStorage on mount
   useEffect(() => {
-    if (data) {
-      setPreferences({
-        email_notifications: data.email_notifications,
-        sms_notifications: data.sms_notifications,
-        marketing_emails: data.marketing_emails,
-        application_updates: data.application_updates,
-        document_reminders: data.document_reminders,
-      });
+    const storageKey = `notification_preferences_${profile.id}`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setPreferences(parsed);
+      } catch (error) {
+        console.error('Error parsing stored preferences:', error);
+      }
     }
-  }, [data]);
-
-  const updateMutation = useMutation({
-    mutationFn: async (newPreferences: typeof preferences) => {
-      if (!profile.id) throw new Error('Profile not found');
-
-      const { data: updatedPreferences, error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          profile_id: profile.id,
-          ...newPreferences,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return updatedPreferences;
-    },
-    onSuccess: (savedPreferences) => {
-      setPreferences(savedPreferences);
-      queryClient.setQueryData(preferencesQueryKey, savedPreferences);
-      toast({
-        title: 'Success',
-        description: 'Notification preferences saved',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update preferences',
-        variant: 'destructive',
-      });
-    },
-  });
+  }, [profile.id]);
 
   const handleToggle = (key: keyof typeof preferences) => {
     setPreferences((prev) => ({
@@ -122,12 +46,20 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate(preferences);
+    setIsSaving(true);
+    
+    // Save to localStorage
+    const storageKey = `notification_preferences_${profile.id}`;
+    localStorage.setItem(storageKey, JSON.stringify(preferences));
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: 'Success',
+        description: 'Notification preferences saved',
+      });
+    }, 500);
   };
-
-  if (isLoading) {
-    return <LoadingState message="Loading notification preferences..." />;
-  }
 
   return (
     <Card>
@@ -243,8 +175,8 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isLoading || isFetching || updateMutation.isPending}>
-              {updateMutation.isPending ? (
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...

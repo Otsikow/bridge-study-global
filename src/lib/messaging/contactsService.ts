@@ -1,83 +1,93 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DirectoryProfile } from "./directory";
-import { DEFAULT_TENANT_ID } from "./data";
 
-export interface MessagingContact {
-  profile_id: string;
+export interface DirectoryProfile {
+  id: string;
   full_name: string;
   email: string;
   avatar_url: string | null;
-  role: DirectoryProfile["role"];
-  contact_type: string;
-  headline?: string | null;
 }
 
-/**
- * Fetches messaging contacts from the database based on the current user's role
- * @param searchQuery Optional search query to filter contacts
- * @param limit Maximum number of contacts to return
- * @returns Array of messaging contacts
- */
+export interface StudentContact {
+  student_id: string;
+  application_count: number;
+  student: {
+    profile_id: string;
+    profile: DirectoryProfile;
+  };
+}
+
 export async function fetchMessagingContacts(
-  searchQuery?: string,
-  limit: number = 50
+  userId: string,
+  userRole: string
 ): Promise<DirectoryProfile[]> {
   try {
-    const { data, error } = await supabase.rpc("get_messaging_contacts", {
-      p_search: searchQuery || null,
-      p_limit: limit,
-    });
-
-    if (error) {
-      console.error("Error fetching messaging contacts:", error);
-      throw error;
-    }
-
-    if (!data) {
-      return [];
-    }
-
-    // Get the current user's tenant_id
-    const { data: userData } = await supabase.auth.getUser();
-    let tenantId = DEFAULT_TENANT_ID;
-
-    if (userData?.user) {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("tenant_id")
-        .eq("id", userData.user.id)
+    if (userRole === 'agent') {
+      // Get students linked to this agent
+      const { data: agentData } = await supabase
+        .from('agents')
+        .select('id')
+        .eq('profile_id', userId)
         .single();
 
-      if (profileData?.tenant_id) {
-        tenantId = profileData.tenant_id;
-      }
+      if (!agentData) return [];
+
+      const { data: links } = await supabase
+        .from('agent_student_links')
+        .select(`
+          student_id,
+          students!inner(
+            id,
+            profile_id,
+            profiles!inner(id, full_name, email, avatar_url)
+          )
+        `)
+        .eq('agent_id', agentData.id);
+
+      if (!links) return [];
+
+      // Transform the data
+      return links
+        .map((link: any) => {
+          const student = link.students;
+          if (!student?.profiles) return null;
+          return {
+            id: student.profiles.id,
+            full_name: student.profiles.full_name,
+            email: student.profiles.email,
+            avatar_url: student.profiles.avatar_url,
+          };
+        })
+        .filter((p: any): p is DirectoryProfile => p !== null);
     }
 
-    // Transform database results to DirectoryProfile format
-    const contacts: DirectoryProfile[] = data.map((contact: MessagingContact) => ({
-      id: contact.profile_id,
-      full_name: contact.full_name,
-      email: contact.email,
-      avatar_url: contact.avatar_url,
-      role: contact.role,
-      headline: contact.headline || undefined,
-      tenant_id: tenantId,
-    }));
+    // For other roles, return staff/admin profiles
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, avatar_url')
+      .in('role', ['admin', 'staff'])
+      .limit(50);
 
-    return contacts;
+    return (profiles || []) as DirectoryProfile[];
   } catch (error) {
-    console.error("Error in fetchMessagingContacts:", error);
+    console.error('Error fetching messaging contacts:', error);
     return [];
   }
 }
 
-/**
- * Gets the list of user IDs that the current user can message
- * @returns Array of user IDs
- */
 export async function fetchMessagingContactIds(): Promise<string[]> {
   try {
-    const contacts = await fetchMessagingContacts("", 200);
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) return [];
+    
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userData.user.id)
+      .single();
+
+    if (!profileData) return [];
+    
+    const contacts = await fetchMessagingContacts(userData.user.id, profileData.role);
     return contacts.map((contact) => contact.id);
   } catch (error) {
     console.error("Error fetching messaging contact IDs:", error);
