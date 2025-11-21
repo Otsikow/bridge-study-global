@@ -137,6 +137,11 @@ const optionalImageUrlSchema = z
     return trimmed.length > 0 ? trimmed : null;
   });
 
+const PROGRAM_IMAGE_BUCKET = "public";
+const PROGRAM_IMAGE_FOLDER = "program-images";
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const programSchema = z.object({
   name: z.string().min(2, "Programme name is required"),
   level: z.string().min(2, "Level is required"),
@@ -171,6 +176,7 @@ interface ProgramFormProps {
   submitLabel: string;
   levelOptions: string[];
   tenantId: string | null;
+  userId: string | null;
 }
 
 const defaultFormValues: ProgramFormValues = {
@@ -211,6 +217,7 @@ const ProgramForm = ({
   submitLabel,
   levelOptions,
   tenantId,
+  userId,
 }: ProgramFormProps) => {
   const { toast } = useToast();
   const form = useForm<ProgramFormValues>({
@@ -263,6 +270,15 @@ const ProgramForm = ({
       return;
     }
 
+    if (!userId) {
+      toast({
+        title: "Sign-in required",
+        description: "Please sign in again before uploading programme images.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Unsupported file",
@@ -272,8 +288,16 @@ const ProgramForm = ({
       return;
     }
 
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast({
+        title: "Unsupported format",
+        description: "Please upload a JPG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
       toast({
         title: "Image too large",
         description: "Programme images must be smaller than 5MB.",
@@ -288,21 +312,24 @@ const ProgramForm = ({
 
     try {
       const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-      const objectPath = `programs/${tenantId}/${Date.now()}-${Math.random()
+      const objectPath = `${userId}/${PROGRAM_IMAGE_FOLDER}/${tenantId}/${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}.${extension}`;
 
-      const { error: uploadError } = await supabase.storage.from("public").upload(objectPath, file, {
-        cacheControl: "3600",
-        upsert: true,
-      });
+      const { error: uploadError } = await supabase.storage
+        .from(PROGRAM_IMAGE_BUCKET)
+        .upload(objectPath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
 
       if (uploadError) {
         throw uploadError;
       }
 
       const { data: publicUrlData, error: publicUrlError } = supabase.storage
-        .from("public")
+        .from(PROGRAM_IMAGE_BUCKET)
         .getPublicUrl(objectPath);
 
       if (publicUrlError || !publicUrlData?.publicUrl) {
@@ -311,7 +338,11 @@ const ProgramForm = ({
 
       const publicUrl = publicUrlData.publicUrl;
 
-      form.setValue("imageUrl", publicUrl, { shouldDirty: true, shouldTouch: true });
+      form.setValue("imageUrl", publicUrl, {
+        shouldDirty: true,
+        shouldTouch: true,
+        shouldValidate: true,
+      });
 
       if (previousUrl && previousUrl !== publicUrl) {
         await removeImageFromStorage(previousUrl);
@@ -326,7 +357,11 @@ const ProgramForm = ({
       toast({
         title: "Upload failed",
         description:
-          error instanceof Error ? error.message : "We could not upload the selected image. Please try again.",
+          error instanceof Error
+            ? error.message.includes("fetch")
+              ? "We couldn't reach storage. Check your connection and try again."
+              : error.message
+            : "We could not upload the selected image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -804,7 +839,7 @@ const parseEntryRequirements = (value?: string) => {
 const ProgramsPage = () => {
   const { data, refetch, isLoading, isRefetching } = useUniversityDashboard();
   const { toast } = useToast();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("all");
@@ -1358,6 +1393,7 @@ const ProgramsPage = () => {
             submitLabel="Create programme"
             levelOptions={availableLevelOptions}
             tenantId={tenantId}
+            userId={user?.id ?? null}
           />
         </DialogContent>
       </Dialog>
@@ -1379,6 +1415,7 @@ const ProgramsPage = () => {
               submitLabel="Save changes"
               levelOptions={availableLevelOptions}
               tenantId={tenantId}
+              userId={user?.id ?? null}
             />
           ) : null}
         </DialogContent>
