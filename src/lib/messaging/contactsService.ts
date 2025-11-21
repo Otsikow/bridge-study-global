@@ -1,32 +1,48 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { DirectoryProfile } from "./directory";
-import { DEFAULT_TENANT_ID } from "./data";
+import { DirectoryProfile, MessagingContact } from "@/types/messaging";
 
-export interface MessagingContact {
-  profile_id: string;
-  full_name: string;
-  email: string;
-  avatar_url: string | null;
-  role: DirectoryProfile["role"];
-  contact_type: string;
-  headline?: string | null;
-}
+const DEFAULT_TENANT_ID = "default-tenant";
 
 /**
- * Fetches messaging contacts from the database based on the current user's role
- * @param searchQuery Optional search query to filter contacts
- * @param limit Maximum number of contacts to return
- * @returns Array of messaging contacts
+ * Fetch messaging contacts based on user role and relationships
+ * Simplified version using direct queries instead of RPC
  */
 export async function fetchMessagingContacts(
   searchQuery?: string,
   limit: number = 50
 ): Promise<DirectoryProfile[]> {
   try {
-    const { data, error } = await supabase.rpc("get_messaging_contacts", {
-      p_search: searchQuery || null,
-      p_limit: limit,
-    });
+    // Get the current user
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      return [];
+    }
+
+    // Get user's profile and tenant
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("tenant_id, role")
+      .eq("id", userData.user.id)
+      .single();
+
+    if (!profileData) {
+      return [];
+    }
+
+    // Build query for profiles in the same tenant
+    let query = supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url, role")
+      .eq("tenant_id", profileData.tenant_id)
+      .neq("id", userData.user.id) // Exclude self
+      .limit(limit);
+
+    // Add search filter if provided
+    if (searchQuery && searchQuery.trim()) {
+      query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Error fetching messaging contacts:", error);
@@ -37,31 +53,14 @@ export async function fetchMessagingContacts(
       return [];
     }
 
-    // Get the current user's tenant_id
-    const { data: userData } = await supabase.auth.getUser();
-    let tenantId = DEFAULT_TENANT_ID;
-
-    if (userData?.user) {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("tenant_id")
-        .eq("id", userData.user.id)
-        .single();
-
-      if (profileData?.tenant_id) {
-        tenantId = profileData.tenant_id;
-      }
-    }
-
-    // Transform database results to DirectoryProfile format
-    const contacts: DirectoryProfile[] = data.map((contact: MessagingContact) => ({
-      id: contact.profile_id,
+    // Transform to DirectoryProfile format
+    const contacts: DirectoryProfile[] = data.map((contact: any) => ({
+      id: contact.id,
       full_name: contact.full_name,
       email: contact.email,
-      avatar_url: contact.avatar_url,
+      avatar_url: contact.avatar_url || undefined,
       role: contact.role,
-      headline: contact.headline || undefined,
-      tenant_id: tenantId,
+      tenant_id: profileData.tenant_id,
     }));
 
     return contacts;
@@ -72,15 +71,55 @@ export async function fetchMessagingContacts(
 }
 
 /**
- * Gets the list of user IDs that the current user can message
- * @returns Array of user IDs
+ * Search for agents by name or email
  */
-export async function fetchMessagingContactIds(): Promise<string[]> {
+export async function searchAgentContacts(
+  searchQuery: string,
+  limit: number = 20
+): Promise<DirectoryProfile[]> {
   try {
-    const contacts = await fetchMessagingContacts("", 200);
-    return contacts.map((contact) => contact.id);
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      return [];
+    }
+
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("tenant_id")
+      .eq("id", userData.user.id)
+      .single();
+
+    if (!profileData) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, avatar_url, role")
+      .eq("tenant_id", profileData.tenant_id)
+      .eq("role", "agent")
+      .or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+      .limit(limit);
+
+    if (error) {
+      console.error("Error searching agent contacts:", error);
+      throw error;
+    }
+
+    if (!data) {
+      return [];
+    }
+
+    return data.map((contact: any) => ({
+      id: contact.id,
+      full_name: contact.full_name,
+      email: contact.email,
+      avatar_url: contact.avatar_url || undefined,
+      role: contact.role,
+      tenant_id: profileData.tenant_id,
+    }));
   } catch (error) {
-    console.error("Error fetching messaging contact IDs:", error);
+    console.error("Error in searchAgentContacts:", error);
     return [];
   }
 }
