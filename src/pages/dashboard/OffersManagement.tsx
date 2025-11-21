@@ -275,13 +275,13 @@ export default function OffersManagement() {
               throw fallbackResponse.error;
             }
 
-            return (fallbackResponse.data ?? []) as CasRecord[];
+            return (fallbackResponse.data ?? []) as unknown as CasRecord[];
           }
 
           throw casLettersResponse.error;
         }
 
-        return (casLettersResponse.data ?? []) as CasRecord[];
+        return (casLettersResponse.data ?? []) as unknown as CasRecord[];
 
         if (casLettersResponse.error) {
           // fallback to older table name if cas_letters does not exist

@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   LogOut,
   Menu,
+  Sparkles,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
