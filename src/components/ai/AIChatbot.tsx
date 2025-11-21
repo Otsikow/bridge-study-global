@@ -618,7 +618,6 @@ export default function ZoeChatbot() {
       const historyWithAssistant = [...updatedHistory, assistantMessage];
       setMessages(historyWithAssistant);
       setHasConversationStarted(true);
-      setSuggestions(generateSuggestions(historyWithAssistant));
       setErrorState(null);
       toast({
         title: "Zoe is in demo mode",
@@ -799,7 +798,6 @@ export default function ZoeChatbot() {
 
         setMessages(failedHistory);
         setHasConversationStarted(true);
-        setSuggestions(generateSuggestions(failedHistory));
         setInput(userContent);
         setAttachments(previousAttachments);
         setErrorState(friendly);

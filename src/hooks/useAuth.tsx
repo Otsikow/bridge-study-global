@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
-      .update({ partner_email_verified: true })
+      .update({ onboarded: true })
       .eq('id', profileData.id)
       .select('*')
       .single();
@@ -128,7 +128,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       } else {
         const normalizedProfile: Profile = {
           ...data,
-          partner_email_verified: data.partner_email_verified ?? false,
         };
 
         const profileWithVerification = await ensurePartnerEmailVerification(

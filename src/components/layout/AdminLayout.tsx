@@ -18,6 +18,7 @@ import {
   Building,
   Library,
   Wrench,
+  Sparkles,
   Brain,
   Settings,
   Bell,
