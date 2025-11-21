@@ -93,7 +93,7 @@ const buildNavigatorSteps = (
         : 'AI is waiting for a passport scan to pre-verify your applications.',
       actionLabel: passportDoc ? 'View documents' : 'Upload passport',
       actionHref: '/student/documents',
-      icon: Passport,
+      icon: ShieldCheck,
       lastUpdated: getRecordTimestamp(passportDoc ?? null),
     },
     {
