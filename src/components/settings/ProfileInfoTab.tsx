@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,14 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
     phone: profile.phone || '',
     country: profile.country || '',
   });
+
+  useEffect(() => {
+    setFormData({
+      full_name: profile.full_name || '',
+      phone: profile.phone || '',
+      country: profile.country || '',
+    });
+  }, [profile.country, profile.full_name, profile.phone]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -122,28 +130,36 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.full_name,
           phone: formData.phone,
           country: formData.country,
         })
-        .eq('id', profile.id);
+        .eq('id', profile.id)
+        .select()
+        .single();
 
       if (error) throw error;
+
+      setFormData({
+        full_name: data?.full_name ?? formData.full_name,
+        phone: data?.phone ?? formData.phone,
+        country: data?.country ?? formData.country,
+      });
 
       await refreshProfile();
 
       toast({
-        title: 'Success',
-        description: 'Profile updated successfully',
+        title: 'Profile saved',
+        description: 'Your profile details were updated successfully.',
       });
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
         title: 'Update failed',
-        description: error.message || 'Failed to update profile',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       });
     } finally {
