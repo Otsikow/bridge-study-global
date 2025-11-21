@@ -1610,6 +1610,7 @@ export type Database = {
           id: string
           locale: string | null
           onboarded: boolean | null
+          partner_email_verified: boolean | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
           tenant_id: string
@@ -1627,6 +1628,7 @@ export type Database = {
           id: string
           locale?: string | null
           onboarded?: boolean | null
+          partner_email_verified?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tenant_id: string
@@ -1644,6 +1646,7 @@ export type Database = {
           id?: string
           locale?: string | null
           onboarded?: boolean | null
+          partner_email_verified?: boolean | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tenant_id?: string
