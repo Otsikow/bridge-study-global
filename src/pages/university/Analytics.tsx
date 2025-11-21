@@ -174,10 +174,10 @@ const AnalyticsPage = () => {
 
     filteredApplications.forEach((application) => {
       const status = normalizeStatus(application.status);
-      if (OFFER_STATUSES.includes(status)) {
+      if (OFFER_STATUSES.includes(status as any)) {
         offersSent += 1;
       }
-      if (CAS_STATUSES.includes(status)) {
+      if (CAS_STATUSES.includes(status as any)) {
         casIssued += 1;
       }
     });
@@ -249,7 +249,7 @@ const AnalyticsPage = () => {
 
     filteredApplications.forEach((application) => {
       const status = normalizeStatus(application.status);
-      if (!OFFER_STATUSES.includes(status)) {
+      if (!OFFER_STATUSES.includes(status as any)) {
         return;
       }
 
