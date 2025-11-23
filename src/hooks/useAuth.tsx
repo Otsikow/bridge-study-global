@@ -50,7 +50,10 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: unknown; requiresEmailVerification?: boolean; email?: string }>;
   signUp: (params: SignUpParams) => Promise<{ error: unknown }>;
   signOut: (options?: { redirectTo?: string }) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -369,6 +372,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         return {
           error: new Error(verifyMessage),
+          requiresEmailVerification: true,
+          email: data.user.email,
         };
       }
 
