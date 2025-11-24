@@ -19,7 +19,9 @@ interface TestScoresTabProps {
 
 const CERTIFICATE_BUCKET = 'student-documents';
 const CERTIFICATE_PREFIX = 'test-score-certificates';
-const MAX_CERTIFICATE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_CERTIFICATE_SIZE = 10 * 1024 * 1024; // 10MB
+const ENGLISH_PROFICIENCY_LETTER = 'English Proficiency Letter';
+const ALLOWED_CERTIFICATE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
 
 export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
   const { toast } = useToast();
@@ -65,6 +67,18 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
     e.preventDefault();
     setLoading(true);
 
+    const isEnglishProficiencyLetter = formData.test_type === ENGLISH_PROFICIENCY_LETTER;
+
+    if (isEnglishProficiencyLetter && !certificateFile && !existingCertificatePath) {
+      toast({
+        title: 'Document required',
+        description: 'Please upload your English proficiency letter.',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+
     let uploadedCertificatePath: string | null = null;
     const previousCertificatePath = editingRecord?.report_url ?? null;
 
@@ -79,9 +93,9 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
       if (certificateFile) {
         const { preparedFile, sanitizedFileName, detectedMimeType } = await validateFileUpload(certificateFile, {
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg'],
-          allowedExtensions: ['png', 'jpg', 'jpeg'],
-          maxSizeBytes: 10 * 1024 * 1024,
+          allowedMimeTypes: ALLOWED_CERTIFICATE_TYPES,
+          allowedExtensions: ['png', 'jpg', 'jpeg', 'pdf'],
+          maxSizeBytes: MAX_CERTIFICATE_SIZE,
         });
 
         const extension = sanitizedFileName.split('.').pop()?.toLowerCase() || 'jpg';
@@ -105,8 +119,8 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
       const payload = {
         test_type: formData.test_type,
-        total_score: parseFloat(formData.total_score),
-        test_date: formData.test_date,
+        total_score: isEnglishProficiencyLetter ? 0 : parseFloat(formData.total_score),
+        test_date: formData.test_date || new Date().toISOString().split('T')[0],
         subscores_json: Object.keys(subscores).length > 0 ? subscores : null,
         report_url: certificatePath
       };
@@ -232,6 +246,7 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
   };
 
   const showSubscores = ['IELTS', 'TOEFL'].includes(formData.test_type);
+  const isEnglishProficiencyLetter = formData.test_type === ENGLISH_PROFICIENCY_LETTER;
 
   const handleCertificateChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -240,10 +255,10 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (!ALLOWED_CERTIFICATE_TYPES.includes(file.type)) {
       toast({
         title: 'Invalid file type',
-        description: 'Please upload an image file (PNG, JPG, JPEG).',
+        description: 'Please upload a PDF or image file (PNG, JPG, JPEG).',
         variant: 'destructive'
       });
       event.target.value = '';
@@ -253,7 +268,7 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
     if (file.size > MAX_CERTIFICATE_SIZE) {
       toast({
         title: 'File too large',
-        description: 'Certificate image must be smaller than 5MB.',
+        description: 'Document must be smaller than 10MB.',
         variant: 'destructive'
       });
       event.target.value = '';
@@ -340,6 +355,7 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                       <SelectItem value="IELTS">IELTS</SelectItem>
                       <SelectItem value="TOEFL">TOEFL</SelectItem>
                       <SelectItem value="Duolingo">Duolingo English Test</SelectItem>
+                      <SelectItem value={ENGLISH_PROFICIENCY_LETTER}>English Proficiency Letter</SelectItem>
                       <SelectItem value="SAT">SAT</SelectItem>
                       <SelectItem value="GRE">GRE</SelectItem>
                       <SelectItem value="GMAT">GMAT</SelectItem>
@@ -348,35 +364,50 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="total_score">Overall Score *</Label>
-                    <Input
-                      id="total_score"
-                      type="number"
-                      step="0.5"
-                      value={formData.total_score}
-                      onChange={(e) => setFormData({...formData, total_score: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="test_date">Test Date *</Label>
-                    <Input
-                      id="test_date"
-                      type="date"
-                      value={formData.test_date}
-                      onChange={(e) => setFormData({...formData, test_date: e.target.value})}
-                      required
-                    />
-                  </div>
+                  {!isEnglishProficiencyLetter ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="total_score">Overall Score *</Label>
+                        <Input
+                          id="total_score"
+                          type="number"
+                          step="0.5"
+                          value={formData.total_score}
+                          onChange={(e) => setFormData({...formData, total_score: e.target.value})}
+                          required={!isEnglishProficiencyLetter}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="test_date">Test Date *</Label>
+                        <Input
+                          id="test_date"
+                          type="date"
+                          value={formData.test_date}
+                          onChange={(e) => setFormData({...formData, test_date: e.target.value})}
+                          required={!isEnglishProficiencyLetter}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="col-span-2 space-y-2">
+                      <Label htmlFor="test_date">Letter Date (Optional)</Label>
+                      <Input
+                        id="test_date"
+                        type="date"
+                        value={formData.test_date}
+                        onChange={(e) => setFormData({...formData, test_date: e.target.value})}
+                      />
+                      <p className="text-sm text-muted-foreground">We'll use today's date if you don't provide one.</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="certificate">Certificate Image (Optional)</Label>
+                  <Label htmlFor="certificate">Certificate or Letter (Optional)</Label>
                   <Input
                     id="certificate"
                     type="file"
-                    accept="image/png,image/jpeg,image/jpg"
+                    accept="image/png,image/jpeg,image/jpg,application/pdf"
                     onChange={handleCertificateChange}
                   />
                   {certificateFile && (
@@ -386,7 +417,7 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                   )}
                   {!certificateFile && existingCertificatePath && (
                     <div className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm">
-                      <span className="text-muted-foreground">Existing certificate uploaded</span>
+                      <span className="text-muted-foreground">Existing document uploaded</span>
                       <Button
                         type="button"
                         variant="ghost"
@@ -485,7 +516,9 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                       {score.test_type}
                     </CardTitle>
                     <CardDescription>
-                      Overall: {score.total_score} • Taken on {new Date(score.test_date).toLocaleDateString()}
+                      {score.test_type === ENGLISH_PROFICIENCY_LETTER
+                        ? `Uploaded on ${new Date(score.test_date).toLocaleDateString()}`
+                        : `Overall: ${score.total_score} • Taken on ${new Date(score.test_date).toLocaleDateString()}`}
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -503,8 +536,10 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
                     {score.report_url && (
                       <div className="flex items-center justify-between rounded-lg border px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium">Certificate</p>
-                          <p className="text-xs text-muted-foreground">View uploaded test certificate image</p>
+                          <p className="text-sm font-medium">
+                            {score.test_type === ENGLISH_PROFICIENCY_LETTER ? 'English proficiency letter' : 'Certificate'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">View the uploaded document</p>
                         </div>
                         <Button
                           size="sm"
