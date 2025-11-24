@@ -82,9 +82,14 @@ export default function BackButton({
         return;
       }
 
+      if (typeof window !== "undefined" && window.history.length > 1) {
+        navigate(-1);
+        return;
+      }
+
       handleFallbackNavigation();
     },
-    [disabled, handleFallbackNavigation, immediatePrevious, navigateTo, onClick],
+    [disabled, handleFallbackNavigation, immediatePrevious, navigate, navigateTo, onClick],
   );
 
   const handleClearHistory = React.useCallback(
