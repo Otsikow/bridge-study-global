@@ -1,6 +1,6 @@
 "use client";
 
-import { type ComponentType, type SVGProps } from "react";
+import { type ComponentType, type SVGProps, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +25,8 @@ import {
   ShieldCheck,
   LogOut,
   Menu,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -163,6 +165,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   const { loading: rolesLoading, hasRole } = useUserRoles();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   /* ---------------------------------------------------------------------- */
   /* ✅ Role Validation                                                     */
@@ -197,24 +200,41 @@ const AdminLayout = () => {
   /* ✅ Sidebar                                                             */
   /* ---------------------------------------------------------------------- */
   const sidebar = (
-    <div className="flex h-full w-72 flex-col border-r bg-card">
-      <div className="flex h-16 items-center gap-3 border-b px-6">
+    <div
+      className={cn(
+        "flex h-full flex-col border-r bg-card transition-all duration-300",
+        isCollapsed ? "w-20" : "w-72"
+      )}
+    >
+      <div className="flex h-16 items-center gap-3 border-b px-4">
         <img
           src={gegLogo}
           alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "GEG" })}
           className="h-9 w-9 rounded-lg bg-white object-contain p-1"
         />
-        <div>
-          <p className="text-sm font-semibold">
-            {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Centre" })}
-          </p>
-        </div>
+        {!isCollapsed && (
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">
+              {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">
+              {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Centre" })}
+            </p>
+          </div>
+        )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="ml-auto h-9 w-9"
+          onClick={() => setIsCollapsed((prev) => !prev)}
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
       <ScrollArea className="flex-1">
-        <nav className="space-y-1 px-3 py-4">
+        <nav className="space-y-1 px-2 py-4">
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname.startsWith(item.to);
             const Icon = item.icon;
@@ -227,16 +247,18 @@ const AdminLayout = () => {
                   isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 )}
               >
-                <div className="flex items-center gap-3">
+                <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}> 
                   <Icon className="h-5 w-5" />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">
-                      {t(item.labelKey, { defaultValue: item.labelDefault })}
-                    </span>
-                    <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80">
-                      {t(item.descriptionKey, { defaultValue: item.descriptionDefault })}
-                    </span>
-                  </div>
+                  {!isCollapsed && (
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">
+                        {t(item.labelKey, { defaultValue: item.labelDefault })}
+                      </span>
+                      <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80">
+                        {t(item.descriptionKey, { defaultValue: item.descriptionDefault })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </NavLink>
             );
@@ -246,21 +268,23 @@ const AdminLayout = () => {
 
       {/* Footer user profile */}
       <div className="border-t p-4">
-        <div className="flex items-center gap-3">
+        <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}> 
           <Avatar className="h-10 w-10">
             <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.full_name ?? "Admin"} />
             <AvatarFallback>{profile?.full_name ? getInitials(profile.full_name) : "AD"}</AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
-            </p>
-            <p className="truncate text-xs text-muted-foreground">{profile?.email}</p>
-          </div>
+          {!isCollapsed && (
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold">
+                {profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">{profile?.email}</p>
+            </div>
+          )}
         </div>
         <Button variant="outline" className="mt-3 w-full" onClick={() => void signOut()}>
           <LogOut className="h-4 w-4" />
-          {t("common.actions.logout", { defaultValue: "Logout" })}
+          {!isCollapsed && <span>{t("common.actions.logout", { defaultValue: "Logout" })}</span>}
         </Button>
       </div>
     </div>
@@ -289,7 +313,7 @@ const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-muted/20">
       {mobileNavSheet}
-      <div className="hidden md:flex md:w-72">{sidebar}</div>
+      <div className={cn("hidden md:flex", isCollapsed ? "md:w-20" : "md:w-72")}>{sidebar}</div>
       <div className="flex w-full flex-col">
         <main className="flex-1 bg-background">
           <div className="mx-auto w-full max-w-7xl p-4 md:p-8">
