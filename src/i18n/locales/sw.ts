@@ -364,6 +364,8 @@ const sw = {
       heroSubtitle: "Kwa kawaida tunajibu ndani ya siku moja ya kazi.",
       emailPrompt: "Unapendelea barua pepe?",
       email: "info@globaleducationgateway.com",
+      whatsappCta: "Tutumie ujumbe kwenye WhatsApp ({{number}})",
+      whatsappNumber: "+447360961803",
       imageAlt: "Mshauri wa elimu aliye tayari kusaidia",
       formTitle: "Tutumie ujumbe",
     },

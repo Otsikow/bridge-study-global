@@ -882,6 +882,8 @@ const pt = {
       heroSubtitle: "Normalmente respondemos em até um dia útil.",
       emailPrompt: "Prefere e-mail?",
       email: "info@globaleducationgateway.com",
+      whatsappCta: "Fale conosco no WhatsApp ({{number}})",
+      whatsappNumber: "+447360961803",
       imageAlt: "Consultor educacional profissional pronto para ajudar",
       formTitle: "Envie-nos uma mensagem",
     },

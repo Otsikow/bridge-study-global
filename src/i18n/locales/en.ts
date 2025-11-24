@@ -975,6 +975,8 @@ const en = {
       heroSubtitle: "We typically respond within one business day.",
       emailPrompt: "Prefer email?",
       email: "info@globaleducationgateway.com",
+      whatsappCta: "Message us on WhatsApp ({{number}})",
+      whatsappNumber: "+447360961803",
       imageAlt: "Professional education consultant ready to help",
       formTitle: "Send us a message",
     },

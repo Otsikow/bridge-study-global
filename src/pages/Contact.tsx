@@ -2,12 +2,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ContactForm } from "@/components/ContactForm";
 import BackButton from "@/components/BackButton";
 import professionalConsultant from "@/assets/professional-consultant.png";
+import { MessageCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SEO } from "@/components/SEO";
 
 const Contact = () => {
   const { t } = useTranslation();
   const emailAddress = t("pages.contact.email");
+  const whatsappNumber = t("pages.contact.whatsappNumber");
+  const whatsappLink = "https://wa.me/447360961803";
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
@@ -23,12 +26,25 @@ const Contact = () => {
               <div className="space-y-4">
                 <h1 className="text-3xl md:text-4xl font-bold">{t("pages.contact.heroTitle")}</h1>
                 <p className="text-muted-foreground text-lg">{t("pages.contact.heroSubtitle")}</p>
-                <p className="text-sm">
-                  {t("pages.contact.emailPrompt")}{" "}
-                  <a className="text-primary hover:underline font-medium" href={`mailto:${emailAddress}`}>
-                    {emailAddress}
+                <div className="flex flex-col gap-3 text-sm">
+                  <p>
+                    {t("pages.contact.emailPrompt")} {" "}
+                    <a className="text-primary hover:underline font-medium" href={`mailto:${emailAddress}`}>
+                      {emailAddress}
+                    </a>
+                  </p>
+                  <a
+                    className="inline-flex w-fit items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-primary transition hover:border-primary hover:bg-primary/10"
+                    href={whatsappLink}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    <span className="font-medium">
+                      {t("pages.contact.whatsappCta", { number: whatsappNumber })}
+                    </span>
                   </a>
-                </p>
+                </div>
             </div>
             <div className="hidden md:block">
               <img 

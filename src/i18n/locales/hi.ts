@@ -364,6 +364,8 @@ const hi = {
       heroSubtitle: "हम आमतौर पर एक कार्य-दिवस के भीतर जवाब देते हैं।",
       emailPrompt: "ईमेल पसंद है?",
       email: "info@globaleducationgateway.com",
+      whatsappCta: "हमें WhatsApp पर संदेश भेजें ({{number}})",
+      whatsappNumber: "+447360961803",
       imageAlt: "सहायता के लिए तैयार पेशेवर शिक्षा सलाहकार",
       formTitle: "हमें संदेश भेजें",
     },
