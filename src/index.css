@@ -343,6 +343,21 @@ All colors MUST be HSL.
   .modal-enter {
     @apply animate-scale-in;
   }
+
+  /* Global icon animation to keep the interface lively */
+  :where(.icon-animated, .lucide) {
+    @apply transition-transform duration-300 ease-out;
+    transform-origin: center;
+    animation: icon-breath 12s ease-in-out infinite;
+  }
+
+  :where(.icon-animated, .lucide):hover {
+    transform: translateY(-2px) scale(1.06);
+  }
+
+  :where(.icon-animated, .lucide):active {
+    transform: translateY(0) scale(0.97);
+  }
 }
 
 @layer components {
@@ -378,5 +393,23 @@ All colors MUST be HSL.
   40% {
     opacity: 1;
     transform: translateY(-0.2rem);
+  }
+}
+
+@keyframes icon-breath {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-1px) scale(1.02);
+  }
+  50% {
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    transform: translateY(1px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
   }
 }
