@@ -119,6 +119,10 @@ export default function StudentProfile() {
     }
   }, [clearError, refetchStudentRecord, studentRecord, syncStudentState, toast, navigate, handleError]);
 
+  const handleBackToHome = useCallback(() => {
+    navigate('/dashboard');
+  }, [navigate]);
+
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
     if (hash && ['personal', 'education', 'tests', 'finances'].includes(hash)) {
@@ -190,7 +194,15 @@ export default function StudentProfile() {
     return (
       <div className="min-h-screen bg-gradient-subtle">
         <div className="container mx-auto py-6 md:py-8 px-4 space-y-6">
-          <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+          <BackButton
+            variant="ghost"
+            size="sm"
+            fallback="/dashboard"
+            onClick={(event) => {
+              event.preventDefault();
+              handleBackToHome();
+            }}
+          />
             <ErrorDisplay
               error={error}
               onRetry={() => retryWithHandler(refreshStudentData)}
@@ -232,7 +244,15 @@ export default function StudentProfile() {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <div className="container mx-auto py-6 md:py-8 px-4 space-y-6">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+        <BackButton
+          variant="ghost"
+          size="sm"
+          fallback="/dashboard"
+          onClick={(event) => {
+            event.preventDefault();
+            handleBackToHome();
+          }}
+        />
 
         <div className="space-y-2 animate-fade-in">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
