@@ -149,6 +149,14 @@ All colors MUST be HSL.
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "liga" 1, "kern" 1;
     text-rendering: optimizeLegibility;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
   }
 
   /* Typography scale with clamp */
@@ -195,6 +203,10 @@ All colors MUST be HSL.
 }
 
 @layer components {
+  .page-shell {
+    @apply mx-auto flex w-full max-w-screen-2xl flex-col px-4 sm:px-6 lg:px-10;
+  }
+
   /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
