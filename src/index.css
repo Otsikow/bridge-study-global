@@ -294,6 +294,15 @@ All colors MUST be HSL.
     @apply -translate-y-1 shadow-lg;
   }
 
+  /* Continuous, gentle carousel for the journey ribbon */
+  .journey-marquee {
+    animation: journey-marquee 32s linear infinite;
+  }
+
+  .journey-marquee:hover {
+    animation-play-state: paused;
+  }
+
   /* Interactive card */
   .card-interactive {
     @apply transition-all duration-300 ease-out;
@@ -411,5 +420,14 @@ All colors MUST be HSL.
   }
   100% {
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes journey-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
   }
 }
