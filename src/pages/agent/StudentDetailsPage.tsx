@@ -7,10 +7,37 @@ import Chat from "@/components/agent/Chat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LeadQualificationDetails from "@/components/agent/LeadQualificationDetails";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 export default function StudentDetailsPage() {
   const { studentId } = useParams<{ studentId: string }>();
   const { data: student, isLoading, error } = useStudent(studentId || "");
+
+  const aiInsights = () => {
+    if (!student) {
+      return ["Select a student to receive AI prompts on what to add next."];
+    }
+
+    const tips: string[] = [];
+
+    if (!student.country) {
+      tips.push("Add the student's current country to tailor university and visa guidance.");
+    }
+
+    if (student.status === "documents_pending") {
+      tips.push("Request transcripts, passport copy, and English proficiency proof to move this file to review.");
+    }
+
+    if (!student.email) {
+      tips.push("Capture a confirmed email so offer letters and CAS requests reach the student.");
+    }
+
+    if (tips.length === 0) {
+      tips.push("Profile looks solid — keep advising on deadlines and missing university-specific forms.");
+    }
+
+    return tips;
+  };
 
   if (!studentId) {
     return <div>Student not found.</div>;
@@ -65,6 +92,28 @@ export default function StudentDetailsPage() {
                 </Link>
               </Button>
             </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  AI profile coach
+                </CardTitle>
+                <CardDescription>
+                  Prompts to keep this student's profile and documents complete before universities review.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                {aiInsights().map((tip, index) => (
+                  <div
+                    key={`${studentId}-tip-${index}`}
+                    className="flex items-start gap-2 rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-3"
+                  >
+                    <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-primary" />
+                    <span>{tip}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </div>
         <div>{studentId && <Chat studentId={studentId} />}</div>

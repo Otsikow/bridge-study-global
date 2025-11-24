@@ -20,6 +20,8 @@ import {
   CalendarDays,
   Clock,
   ClipboardList,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 import {
   Card,
@@ -305,7 +307,9 @@ const ApplicationsPage = () => {
             `,
             { count: "exact" },
           )
-          .eq("program.university_id", universityId);
+          .eq("program.university_id", universityId)
+          .not("submitted_at", "is", null)
+          .neq("status", "draft");
 
         if (statuses.length > 0) {
           query = query.in("status", statuses as any);
@@ -667,6 +671,60 @@ const ApplicationsPage = () => {
     );
   };
 
+  const buildAiInsights = (
+    application?: DetailedApplication | ApplicationRow | null,
+  ) => {
+    const insights: string[] = [];
+
+    if (!application) {
+      return [
+        "Select an application to review AI-backed readiness prompts for the submitted package.",
+      ];
+    }
+
+    const documents = (application as DetailedApplication).documents ?? [];
+    const uploadedTypes = new Set(
+      documents
+        .map((document) => document.document_type?.toLowerCase())
+        .filter(Boolean) as string[],
+    );
+
+    const requiredDocuments = [
+      { key: "passport", label: "Passport bio page" },
+      { key: "transcript", label: "Academic transcripts" },
+      { key: "english_proficiency", label: "English test result" },
+      { key: "cv", label: "CV/Resume" },
+    ];
+
+    requiredDocuments.forEach((requirement) => {
+      if (!uploadedTypes.has(requirement.key)) {
+        insights.push(
+          `${requirement.label} missing — request the student or agent to upload it for a complete review.`,
+        );
+      }
+    });
+
+    if (!getStudentPhone(application)) {
+      insights.push(
+        "No contact phone recorded — confirm a number so admissions teams can follow up quickly.",
+      );
+    }
+
+    if (!application.timeline_json || application.timeline_json.length === 0) {
+      insights.push(
+        "Add timeline updates (screening, offers, visa steps) to keep the university and student aligned.",
+      );
+    }
+
+    if (insights.length === 0) {
+      insights.push(
+        "Everything required is present. Move ahead with review, offer issuance, or CAS processing.",
+      );
+    }
+
+    return insights;
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -676,6 +734,28 @@ const ApplicationsPage = () => {
           stay on top of decisions.
         </p>
       </div>
+
+      <Card className={withUniversityCardStyles("rounded-2xl border-primary/30 bg-primary/5 text-card-foreground")}
+        >
+        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-full bg-primary/20 p-2 text-primary">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div className="space-y-1 text-sm">
+              <p className="font-semibold text-card-foreground">
+                Submission-first visibility
+              </p>
+              <p className="text-muted-foreground">
+                Universities only see student profiles, documents, and certificates after a submission is completed. Agents and staff keep access to their own student files throughout to continue advising.
+              </p>
+            </div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Submitted applications sync here automatically for offer issuance, CAS decisions, and feedback.
+          </div>
+        </CardContent>
+      </Card>
 
       <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
         <CardHeader className="space-y-4 lg:flex lg:items-center lg:justify-between lg:space-y-0">
@@ -1018,6 +1098,26 @@ const ApplicationsPage = () => {
                       Notes
                     </div>
                     {renderNotes(detailedApplication)}
+                  </div>
+                </div>
+
+                <div className={withUniversitySurfaceTint("space-y-3 rounded-2xl p-4")}>
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+                    <Sparkles className="h-4 w-4" />
+                    AI readiness assistant
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    {buildAiInsights(
+                      detailedApplication ?? selectedApplication,
+                    ).map((insight, index) => (
+                      <div
+                        key={`${selectedApplication?.id}-insight-${index}`}
+                        className="flex items-start gap-2 rounded-lg border border-dashed border-muted-foreground/20 bg-muted/40 p-3"
+                      >
+                        <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
+                        <p className="text-muted-foreground">{insight}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
