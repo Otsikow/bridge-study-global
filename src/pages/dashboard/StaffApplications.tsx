@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Filter, FileText, Download, Eye, Calendar } from 'lucide-react';
+import { Search, Filter, FileText, Download, Eye, Calendar, Shield, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 type QuickAction = 'total' | 'assigned' | 'highPriority' | 'pendingReview';
@@ -45,7 +45,7 @@ export default function StaffApplications() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [activeQuickAction, setActiveQuickAction] = useState<QuickAction>('total');
+  const [activeQuickAction, setActiveQuickAction] = useState<QuickAction>('assigned');
 
   // Mock data - replace with actual data from your backend
   const applications: Application[] = [
@@ -133,6 +133,35 @@ export default function StaffApplications() {
     return matchesSearch && matchesStatus && matchesPriority && matchesQuickAction;
   });
 
+  const aiRecommendations = filteredApplications.slice(0, 3).map((app) => {
+    const needsOfferDocs = app.status === 'submitted' || app.status === 'screening';
+    const needsVisaDocs = app.status === 'conditional_offer' || app.status === 'visa';
+
+    const actions = [] as string[];
+
+    if (needsOfferDocs) {
+      actions.push('Request transcripts, passport scan, and reference letters to finalise the university review.');
+    }
+
+    if (needsVisaDocs) {
+      actions.push('Confirm CAS/offer details and prompt the student to upload financial evidence for visa readiness.');
+    }
+
+    if (app.priority === 'high') {
+      actions.push('High priority — send a quick update to the student and university contact with next steps.');
+    }
+
+    if (actions.length === 0) {
+      actions.push('All core materials present. Keep the student informed while awaiting the next milestone.');
+    }
+
+    return {
+      id: app.id,
+      label: `${app.studentName} · ${app.university}`,
+      actions,
+    };
+  });
+
   const quickActionLabels: Record<QuickAction, string> = {
     total: 'Total Applications',
     assigned: 'Assigned to Me',
@@ -206,6 +235,29 @@ export default function StaffApplications() {
             Review and manage student applications
           </p>
         </div>
+
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-4 py-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex items-start gap-3">
+              <span className="rounded-full bg-primary/15 p-2 text-primary">
+                <Shield className="h-4 w-4" />
+              </span>
+              <div className="space-y-1 text-sm">
+                <p className="font-semibold text-foreground">You are viewing your assigned students</p>
+                <p className="text-muted-foreground">
+                  Only applications assigned to you are shown by default. Switch filters if you need a wider view for team coverage.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-2 rounded-xl border border-dashed border-muted-foreground/20 bg-background/60 p-3 text-sm">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <div className="space-y-1">
+                <p className="font-semibold text-foreground">AI checks</p>
+                <p className="text-muted-foreground">We highlight missing documents or next steps so you can advise students before universities review.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -315,6 +367,38 @@ export default function StaffApplications() {
                 </SelectContent>
               </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-dashed">
+          <CardHeader>
+            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <Sparkles className="h-4 w-4" />
+              AI document coach
+            </div>
+            <CardDescription>
+              Quick prompts tailored to the applications you can view so you can nudge students before universities review.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {aiRecommendations.map((recommendation) => (
+              <div
+                key={recommendation.id}
+                className="rounded-xl border border-muted-foreground/20 bg-muted/30 p-3"
+              >
+                <p className="text-sm font-semibold text-foreground">
+                  {recommendation.label}
+                </p>
+                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  {recommendation.actions.map((action, index) => (
+                    <li key={`${recommendation.id}-action-${index}`} className="flex items-start gap-2">
+                      <span className="mt-[6px] h-1.5 w-1.5 rounded-full bg-primary" />
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </CardContent>
         </Card>
 
