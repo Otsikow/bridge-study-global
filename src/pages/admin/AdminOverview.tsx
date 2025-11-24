@@ -175,7 +175,7 @@ const AdminOverview = () => {
   /* ✅ KPI Cards                                                           */
   /* ---------------------------------------------------------------------- */
   const kpiCards = (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {KPI_CONFIG.map((item) => {
         const value = metricsQuery.data?.[item.key] ?? 0;
         const display =
@@ -273,7 +273,7 @@ const AdminOverview = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
             {t("admin.overview.title", { defaultValue: "Operations overview" })}
@@ -284,16 +284,16 @@ const AdminOverview = () => {
             })}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:justify-end md:w-auto">
           <AdminReportExportButton tenantId={tenantId} defaultReportType="admissions" />
         </div>
       </div>
 
       {/* Layout */}
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)] 2xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)]">
+        <div className="min-w-0 space-y-6">
           {kpiCards}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle className="text-base font-semibold">
@@ -328,7 +328,7 @@ const AdminOverview = () => {
         </div>
 
         {/* Right Column */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-semibold">
@@ -341,7 +341,7 @@ const AdminOverview = () => {
             <CardContent className="flex flex-col gap-3">
               <Button
                 variant="default"
-                className="justify-start gap-3"
+                className="w-full justify-start gap-3"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.agentsPrompt", "List agents awaiting approval and potential risks"))
                 }
@@ -351,7 +351,7 @@ const AdminOverview = () => {
               </Button>
               <Button
                 variant="outline"
-                className="justify-start gap-3"
+                className="w-full justify-start gap-3"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.universitiesPrompt", "Which universities are pending onboarding tasks?"))
                 }
@@ -361,7 +361,7 @@ const AdminOverview = () => {
               </Button>
               <Button
                 variant="ghost"
-                className="justify-start gap-3"
+                className="w-full justify-start gap-3"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.compliancePrompt", "Show profiles flagged for compliance review"))
                 }
