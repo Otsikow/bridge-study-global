@@ -148,9 +148,9 @@ const AdminAdmissionsOversight = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [universityFilter, setUniversityFilter] = useState<string>("");
-  const [countryFilter, setCountryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [universityFilter, setUniversityFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<DateFilterValue>("all");
 
   const [staff, setStaff] = useState<StaffProfile[]>([]);
@@ -312,9 +312,9 @@ const AdminAdmissionsOversight = () => {
           value?.toLowerCase().includes(lowerSearch),
         );
 
-      const universityMatch = !universityFilter || universityName === universityFilter;
-      const countryMatch = !countryFilter || countryValue === countryFilter;
-      const statusMatch = !statusFilter || status === statusFilter;
+      const universityMatch = universityFilter === "all" || universityName === universityFilter;
+      const countryMatch = countryFilter === "all" || countryValue === countryFilter;
+      const statusMatch = statusFilter === "all" || status === statusFilter;
 
       const effectiveDate = application.submitted_at ?? application.created_at;
       let dateMatch = true;
@@ -708,7 +708,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All universities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All universities</SelectItem>
+                  <SelectItem value="all">All universities</SelectItem>
                   {uniqueUniversities.map((value) => (
                     <SelectItem key={value} value={value}>
                       {value}
@@ -724,7 +724,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All countries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All countries</SelectItem>
+                  <SelectItem value="all">All countries</SelectItem>
                   {uniqueCountries.map((value) => (
                     <SelectItem key={value} value={value}>
                       {value}
@@ -740,7 +740,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   {uniqueStatuses.map((value) => (
                     <SelectItem key={value} value={value}>
                       {formatStatus(value)}
@@ -771,9 +771,9 @@ const AdminAdmissionsOversight = () => {
               size="sm"
               onClick={() => {
                 setSearchTerm("");
-                setUniversityFilter("");
-                setCountryFilter("");
-                setStatusFilter("");
+                setUniversityFilter("all");
+                setCountryFilter("all");
+                setStatusFilter("all");
                 setDateFilter("all");
               }}
             >
@@ -900,14 +900,16 @@ const AdminAdmissionsOversight = () => {
             </div>
             <div className="space-y-2">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Staff member</span>
-              <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
+              <Select value={selectedStaffId || undefined} onValueChange={setSelectedStaffId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select staff" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="" disabled={staff.length > 0}>
-                    {staff.length > 0 ? "Select a staff member" : "No staff available"}
-                  </SelectItem>
+                  {staff.length === 0 ? (
+                    <SelectItem value="no-staff" disabled>
+                      No staff available
+                    </SelectItem>
+                  ) : null}
                   {staff.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex flex-col">
