@@ -364,6 +364,8 @@ const ar = {
       heroSubtitle: "نحن نرد عادة خلال يوم عمل واحد.",
       emailPrompt: "تفضل البريد الإلكتروني؟",
       email: "info@globaleducationgateway.com",
+      whatsappCta: "راسلنا عبر واتساب ({{number}})",
+      whatsappNumber: "+447360961803",
       imageAlt: "مستشار تعليمي محترف جاهز للمساعدة",
       formTitle: "أرسل لنا رسالة",
     },
