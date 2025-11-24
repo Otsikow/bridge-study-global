@@ -254,7 +254,7 @@ export default function Documents() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <BackButton variant="ghost" size="sm" wrapperClassName="mb-4" fallback="/dashboard" />
 
       <div className="space-y-1.5 animate-fade-in">
@@ -264,7 +264,7 @@ export default function Documents() {
         </p>
       </div>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" /> Upload New Document
@@ -274,7 +274,7 @@ export default function Documents() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="document-type">Document Type</Label>
               <Select value={documentType} onValueChange={setDocumentType}>
@@ -306,19 +306,23 @@ export default function Documents() {
           </div>
 
           {selectedFile && (
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground break-words">
               Selected: {selectedFile.name} ({formatFileSize(selectedFile.size)})
             </div>
           )}
 
-          <Button onClick={handleUpload} disabled={uploading || !selectedFile || !documentType}>
+          <Button
+            onClick={handleUpload}
+            disabled={uploading || !selectedFile || !documentType}
+            className="w-full sm:w-auto"
+          >
             <Upload className="mr-2 h-4 w-4" />
             {uploading ? 'Uploading...' : 'Upload Document'}
           </Button>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" /> My Documents ({documents.length})
@@ -332,12 +336,15 @@ export default function Documents() {
           ) : (
             <div className="space-y-3">
               {documents.map((doc) => (
-                <div key={doc.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4 flex-1">
+                <div
+                  key={doc.id}
+                  className="flex flex-col gap-4 p-4 border rounded-lg sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
                     <FileText className="h-8 w-8 text-muted-foreground" />
-                    <div className="flex-1">
-                      <div className="font-medium">{doc.file_name}</div>
-                      <div className="text-sm text-muted-foreground">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <div className="font-medium break-words">{doc.file_name}</div>
+                      <div className="text-sm text-muted-foreground leading-relaxed">
                         {doc.document_type
                           .split('_')
                           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -352,7 +359,7 @@ export default function Documents() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                     <Badge
                       variant={
                         doc.verified_status === 'verified'
@@ -361,16 +368,26 @@ export default function Documents() {
                           ? 'destructive'
                           : 'secondary'
                       }
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 whitespace-nowrap"
                     >
                       {getStatusIcon(doc.verified_status)}
                       {doc.verified_status.charAt(0).toUpperCase() +
                         doc.verified_status.slice(1)}
                     </Badge>
-                    <Button variant="outline" size="sm" onClick={() => handleDownload(doc)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownload(doc)}
+                      className="w-full sm:w-auto"
+                    >
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDelete(doc)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDelete(doc)}
+                      className="w-full sm:w-auto"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
