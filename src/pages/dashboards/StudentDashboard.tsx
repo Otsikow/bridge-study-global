@@ -9,6 +9,7 @@ import {
   TrendingUp,
   Calendar,
   DollarSign,
+  Award,
   BookOpen,
   MapPin,
   Clock,
@@ -486,6 +487,7 @@ export default function StudentDashboard() {
           {[
             { to: '/courses', icon: Search, label: 'Discover Courses' },
             { to: '/student/applications', icon: FileText, label: 'Track Applications' },
+            { to: '/scholarships', icon: Award, label: 'Find Scholarships' },
             { to: '/student/documents', icon: Upload, label: 'Upload Documents' },
             { to: '/student/messages', icon: MessageCircle, label: 'Chat with Agent' },
           ].map(({ to, icon: Icon, label }) => (
