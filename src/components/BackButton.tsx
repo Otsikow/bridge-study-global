@@ -58,6 +58,10 @@ export default function BackButton({
     return combined.length > 0 ? combined : "/";
   }, [currentEntry]);
 
+  const handleFallbackNavigation = React.useCallback(() => {
+    navigate(fallback);
+  }, [fallback, navigate]);
+
   const handleNavigateToEntry = React.useCallback(
     (entry: typeof previousEntries[number]) => {
       try {
@@ -70,10 +74,6 @@ export default function BackButton({
     },
     [handleFallbackNavigation, navigateTo],
   );
-
-  const handleFallbackNavigation = React.useCallback(() => {
-    navigate(fallback);
-  }, [fallback, navigate]);
 
   const handlePrimaryClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
