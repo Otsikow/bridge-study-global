@@ -12,14 +12,16 @@ import { FinancesTab } from '@/components/student/profile/FinancesTab';
 import { useToast } from '@/hooks/use-toast';
 import { logError, formatErrorForToast } from '@/lib/errorUtils';
 import type { Tables } from '@/integrations/supabase/types';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useErrorHandler, ErrorDisplay } from '@/hooks/useErrorHandler';
 import { useStudentRecord } from '@/hooks/useStudentRecord';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function StudentProfile() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signOut } = useAuth();
   const {
     hasError,
     error,
@@ -122,6 +124,10 @@ export default function StudentProfile() {
   const handleBackToHome = useCallback(() => {
     navigate('/dashboard');
   }, [navigate]);
+
+  const handleSignOut = useCallback(() => {
+    void signOut({ redirectTo: '/' });
+  }, [signOut]);
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
@@ -254,11 +260,21 @@ export default function StudentProfile() {
           }}
         />
 
-        <div className="space-y-2 animate-fade-in">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Keep your information up to date to ensure smooth application processing
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">My Profile</h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Keep your information up to date to ensure smooth application processing
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            className="w-full sm:w-auto text-destructive border-destructive hover:bg-destructive/10"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
         </div>
 
           {/* Progress Overview */}
