@@ -11,11 +11,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LoadingState } from "@/components/LoadingState";
 import { NavigationHistoryProvider } from "@/hooks/useNavigationHistory";
-import { lazy, Suspense, ComponentType } from "react";
+import { lazy, Suspense, ComponentType, useEffect, useState } from "react";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import ZoeChatbot from "@/components/ai/AIChatbot";
 import { useTranslation } from "react-i18next";
 
 /* -------------------------------------------------------------------------- */
@@ -239,6 +238,8 @@ const UniversityProfileSettings = lazyWithErrorHandling(
   () => import("./pages/university/Profile"),
 );
 
+const ZoeChatbot = lazyWithErrorHandling(() => import("./components/ai/AIChatbot"));
+
 // Partner
 const PartnerMessages = lazyWithErrorHandling(() => import("./pages/partner/Messages"));
 const PartnerOffersCAS = lazyWithErrorHandling(() => import("./pages/partner/OffersCAS"));
@@ -255,6 +256,13 @@ const LegacySignupRedirect = () => {
 
 const App = () => {
   const { t } = useTranslation();
+  const [shouldRenderChatbot, setShouldRenderChatbot] = useState(false);
+
+  useEffect(() => {
+    // Defer chatbot hydration to keep the initial bundle lean
+    const frame = requestAnimationFrame(() => setShouldRenderChatbot(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -397,10 +405,14 @@ const App = () => {
                         </Route>
 
                         {/* ✅ 404 Fallback */}
-                        <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
+                    <Route path="*" element={<PublicLayout><NotFound /></PublicLayout>} />
                       </Routes>
                     </div>
-                    <ZoeChatbot />
+                    {shouldRenderChatbot && (
+                      <Suspense fallback={null}>
+                        <ZoeChatbot />
+                      </Suspense>
+                    )}
                   </div>
                 </Suspense>
               </NavigationHistoryProvider>
