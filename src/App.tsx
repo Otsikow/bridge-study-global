@@ -16,7 +16,6 @@ import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ZoeChatbot from "@/components/ai/AIChatbot";
-import { FloatingThemeToggle } from "@/components/FloatingThemeToggle";
 import { useTranslation } from "react-i18next";
 
 /* -------------------------------------------------------------------------- */
@@ -402,7 +401,6 @@ const App = () => {
                       </Routes>
                     </div>
                     <ZoeChatbot />
-                    <FloatingThemeToggle />
                   </div>
                 </Suspense>
               </NavigationHistoryProvider>
