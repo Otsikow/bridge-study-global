@@ -60,10 +60,15 @@ export default function BackButton({
 
   const handleNavigateToEntry = React.useCallback(
     (entry: typeof previousEntries[number]) => {
-      setMenuOpen(false);
-      navigateTo(entry);
+      try {
+        setMenuOpen(false);
+        navigateTo(entry);
+      } catch (error) {
+        console.error("Failed to navigate to history entry", error);
+        handleFallbackNavigation();
+      }
     },
-    [navigateTo],
+    [handleFallbackNavigation, navigateTo],
   );
 
   const handleFallbackNavigation = React.useCallback(() => {
@@ -77,17 +82,22 @@ export default function BackButton({
         return;
       }
 
-      if (immediatePrevious) {
-        navigateTo(immediatePrevious);
-        return;
-      }
+      try {
+        if (immediatePrevious) {
+          navigateTo(immediatePrevious);
+          return;
+        }
 
-      if (typeof window !== "undefined" && window.history.length > 1) {
-        navigate(-1);
-        return;
-      }
+        if (typeof window !== "undefined" && window.history.length > 1) {
+          navigate(-1);
+          return;
+        }
 
-      handleFallbackNavigation();
+        handleFallbackNavigation();
+      } catch (error) {
+        console.error("Back navigation failed, using fallback", error);
+        handleFallbackNavigation();
+      }
     },
     [disabled, handleFallbackNavigation, immediatePrevious, navigate, navigateTo, onClick],
   );
