@@ -36,6 +36,7 @@ import {
   SidebarTrigger,
   SidebarHeader,
   SidebarFooter,
+  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,11 @@ export function AppSidebar() {
       : menuItems.student;
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14 md:w-16" : "w-56 md:w-64"}>
+    <Sidebar
+      collapsible="icon"
+      className="relative border-r bg-background/95 transition-[width] duration-300 ease-in-out backdrop-blur supports-[backdrop-filter]:bg-background/90 data-[state=expanded]:w-[clamp(14rem,18vw,16rem)] data-[state=collapsed]:w-[4.25rem]"
+    >
+      <SidebarRail className="hidden sm:flex" />
       {/* Header */}
       <SidebarHeader className="border-b p-3 md:p-4">
         <div className="flex items-center gap-2 md:gap-3">
@@ -144,6 +149,10 @@ export function AppSidebar() {
               </p>
             </div>
           )}
+          <SidebarTrigger
+            className="ml-auto hidden h-8 w-8 shrink-0 sm:inline-flex"
+            aria-label={state === "collapsed" ? "Expand navigation" : "Collapse navigation"}
+          />
         </div>
       </SidebarHeader>
 
@@ -244,7 +253,10 @@ export function AppSidebar() {
             {state !== "collapsed" && <span className="ml-2 text-sm">Sign Out</span>}
           </Button>
         </div>
-        <SidebarTrigger className="mt-2 w-full" />
+        <SidebarTrigger
+          className="mt-2 w-full sm:hidden"
+          aria-label={state === "collapsed" ? "Expand navigation" : "Collapse navigation"}
+        />
       </SidebarFooter>
     </Sidebar>
   );
