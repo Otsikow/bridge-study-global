@@ -119,6 +119,9 @@ type DateFilterValue = "all" | "7" | "30" | "90" | "365";
 
 const STAGES = ["Lead", "Applied", "Offer", "Visa", "Enrolled"] as const;
 
+const ALL_FILTER_VALUE = "all";
+const STAFF_PLACEHOLDER_VALUE = "select-staff";
+
 const STATUS_TO_STAGE_INDEX: Record<string, number> = {
   lead: 0,
   inquiry: 0,
@@ -148,14 +151,14 @@ const AdminAdmissionsOversight = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [universityFilter, setUniversityFilter] = useState<string>("");
-  const [countryFilter, setCountryFilter] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [universityFilter, setUniversityFilter] = useState<string>(ALL_FILTER_VALUE);
+  const [countryFilter, setCountryFilter] = useState<string>(ALL_FILTER_VALUE);
+  const [statusFilter, setStatusFilter] = useState<string>(ALL_FILTER_VALUE);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>("all");
 
   const [staff, setStaff] = useState<StaffProfile[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<string>("");
-  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [selectedStaffId, setSelectedStaffId] = useState<string>(STAFF_PLACEHOLDER_VALUE);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationRow | null>(null);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState<boolean>(false);
   const [assignmentLoading, setAssignmentLoading] = useState<boolean>(false);
@@ -312,9 +315,10 @@ const AdminAdmissionsOversight = () => {
           value?.toLowerCase().includes(lowerSearch),
         );
 
-      const universityMatch = !universityFilter || universityName === universityFilter;
-      const countryMatch = !countryFilter || countryValue === countryFilter;
-      const statusMatch = !statusFilter || status === statusFilter;
+      const universityMatch =
+        universityFilter === ALL_FILTER_VALUE || universityName === universityFilter;
+      const countryMatch = countryFilter === ALL_FILTER_VALUE || countryValue === countryFilter;
+      const statusMatch = statusFilter === ALL_FILTER_VALUE || status === statusFilter;
 
       const effectiveDate = application.submitted_at ?? application.created_at;
       let dateMatch = true;
@@ -382,7 +386,7 @@ const AdminAdmissionsOversight = () => {
   const openAssignmentDialog = (application: ApplicationRow) => {
     setSelectedApplication(application);
     setAssignmentNotes("");
-    setSelectedStaffId("");
+    setSelectedStaffId(STAFF_PLACEHOLDER_VALUE);
     setAssignmentDialogOpen(true);
   };
 
@@ -396,7 +400,7 @@ const AdminAdmissionsOversight = () => {
       return;
     }
 
-    if (!selectedStaffId) {
+    if (!selectedStaffId || selectedStaffId === STAFF_PLACEHOLDER_VALUE) {
       toast({
         title: "Select staff",
         description: "Choose a staff member to oversee this application.",
@@ -434,7 +438,7 @@ const AdminAdmissionsOversight = () => {
 
       setAssignmentDialogOpen(false);
       setSelectedApplication(null);
-      setSelectedStaffId("");
+      setSelectedStaffId(STAFF_PLACEHOLDER_VALUE);
       setAssignmentNotes("");
     } catch (err) {
       console.error("Failed to reassign staff", err);
@@ -708,7 +712,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All universities" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All universities</SelectItem>
+                  <SelectItem value={ALL_FILTER_VALUE}>All universities</SelectItem>
                   {uniqueUniversities.map((value) => (
                     <SelectItem key={value} value={value}>
                       {value}
@@ -724,7 +728,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All countries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All countries</SelectItem>
+                  <SelectItem value={ALL_FILTER_VALUE}>All countries</SelectItem>
                   {uniqueCountries.map((value) => (
                     <SelectItem key={value} value={value}>
                       {value}
@@ -740,7 +744,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value={ALL_FILTER_VALUE}>All statuses</SelectItem>
                   {uniqueStatuses.map((value) => (
                     <SelectItem key={value} value={value}>
                       {formatStatus(value)}
@@ -771,9 +775,9 @@ const AdminAdmissionsOversight = () => {
               size="sm"
               onClick={() => {
                 setSearchTerm("");
-                setUniversityFilter("");
-                setCountryFilter("");
-                setStatusFilter("");
+                setUniversityFilter(ALL_FILTER_VALUE);
+                setCountryFilter(ALL_FILTER_VALUE);
+                setStatusFilter(ALL_FILTER_VALUE);
                 setDateFilter("all");
               }}
             >
@@ -905,7 +909,7 @@ const AdminAdmissionsOversight = () => {
                   <SelectValue placeholder="Select staff" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="" disabled={staff.length > 0}>
+                  <SelectItem value={STAFF_PLACEHOLDER_VALUE} disabled={staff.length > 0}>
                     {staff.length > 0 ? "Select a staff member" : "No staff available"}
                   </SelectItem>
                   {staff.map((member) => (
