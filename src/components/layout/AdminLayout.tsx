@@ -27,6 +27,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  Activity,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -141,6 +142,14 @@ const NAV_ITEMS: NavItem[] = [
     labelDefault: "Logs",
     descriptionDefault: "Audit trails",
     icon: ShieldCheck,
+  },
+  {
+    to: "/admin/usage-monitoring",
+    labelKey: "admin.layout.navigation.usage.label",
+    descriptionKey: "admin.layout.navigation.usage.description",
+    labelDefault: "Usage Monitoring",
+    descriptionDefault: "Live engagement view",
+    icon: Activity,
   },
 ];
 
