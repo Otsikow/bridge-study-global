@@ -109,7 +109,7 @@ export const useAdminOverviewMetrics = (tenantId?: string | null) =>
           .in("status", ACTIVE_STATUSES),
         supabase
           .from("commissions")
-          .select("amount,status", { head: false })
+          .select("amount_cents,currency,status", { head: false })
           .eq("tenant_id", tenantId)
           .eq("status", "paid"),
         supabase
@@ -132,10 +132,13 @@ export const useAdminOverviewMetrics = (tenantId?: string | null) =>
         throw errors[0];
       }
 
-      const commissionTotal = (commissions.data ?? []).reduce((total, record) => {
-        const amount = safeNumber((record as { amount?: number }).amount);
+      const commissionTotalCents = (commissions.data ?? []).reduce((total, record) => {
+        const amount = safeNumber((record as { amount_cents?: number }).amount_cents);
         return total + amount;
       }, 0);
+
+      const commissionCurrency = (commissions.data?.[0] as { currency?: string } | undefined)?.currency;
+      const commissionTotal = commissionTotalCents / 100;
 
       return {
         totalStudents: safeCount(students.count),
@@ -144,7 +147,7 @@ export const useAdminOverviewMetrics = (tenantId?: string | null) =>
         activeApplications: safeCount(applications.count),
         totalCommissionPaid: commissionTotal,
         pendingVerifications: safeCount(pendingAgents.count) + safeCount(pendingUniversities.count),
-        currency: DEFAULT_CURRENCY,
+        currency: commissionCurrency ?? DEFAULT_CURRENCY,
         lastUpdated: new Date().toISOString(),
       };
     },
