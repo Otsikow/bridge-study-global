@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Camera, Loader2, Save } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ProfileInfoTabProps {
   profile: any;
@@ -20,6 +21,14 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [saveStatus, setSaveStatus] = useState<
+    | {
+        type: 'success' | 'error';
+        title: string;
+        description: string;
+      }
+    | null
+  >(null);
 
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
@@ -129,6 +138,8 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
     e.preventDefault();
     setIsLoading(true);
 
+    setSaveStatus(null);
+
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -138,6 +149,7 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
           country: formData.country,
         })
         .eq('id', profile.id)
+        .eq('tenant_id', profile.tenant_id)
         .select()
         .single();
 
@@ -151,15 +163,23 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
 
       await refreshProfile();
 
-      toast({
+      const successState = {
+        type: 'success' as const,
         title: 'Profile saved',
         description: 'Your profile details were updated successfully.',
-      });
+      };
+      setSaveStatus(successState);
+      toast(successState);
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      toast({
+      const failureState = {
+        type: 'error' as const,
         title: 'Update failed',
         description: error.message || 'Failed to update profile. Please try again.',
+      };
+      setSaveStatus(failureState);
+      toast({
+        ...failureState,
         variant: 'destructive',
       });
     } finally {
@@ -186,6 +206,13 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {saveStatus && (
+            <Alert variant={saveStatus.type === 'error' ? 'destructive' : 'default'}>
+              <AlertTitle>{saveStatus.title}</AlertTitle>
+              <AlertDescription>{saveStatus.description}</AlertDescription>
+            </Alert>
+          )}
+
           {/* Profile Photo Section */}
           <div className="flex items-center gap-6">
             <div className="relative">
