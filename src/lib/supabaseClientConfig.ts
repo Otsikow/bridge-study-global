@@ -50,6 +50,12 @@ const normalizeAbsoluteUrl = (input: string): string => {
   return parsed.href.replace(/\/+$/, "");
 };
 
+const ensureFunctionsPath = (baseUrl: string): string => {
+  const sanitized = baseUrl.replace(/\/+$/, "");
+  const hasFunctionsPath = /\/functions(?:\/v\d+)?$/i.test(sanitized);
+  return hasFunctionsPath ? sanitized : `${sanitized}/functions/v1`;
+};
+
 const isSupabaseManagedHost = (host: string): boolean => {
   const lowerHost = host.toLowerCase();
 
@@ -167,7 +173,7 @@ export const resolveSupabaseFunctionsUrl = (): string => {
   );
   if (configuredFunctionsUrl) {
     try {
-      return normalizeAbsoluteUrl(configuredFunctionsUrl);
+      return ensureFunctionsPath(normalizeAbsoluteUrl(configuredFunctionsUrl));
     } catch (error) {
       console.warn(
         `[supabase] VITE_SUPABASE_FUNCTIONS_URL "${configuredFunctionsUrl}" is invalid. Ignoring custom functions URL.`,
@@ -180,19 +186,19 @@ export const resolveSupabaseFunctionsUrl = (): string => {
   const hostname = new URL(apiOrigin).hostname;
 
   if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`);
+    return ensureFunctionsPath(normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`));
   }
 
   const managedDomain = deriveFunctionsDomainFromHost(hostname);
   if (managedDomain) {
-    return normalizeAbsoluteUrl(managedDomain);
+    return ensureFunctionsPath(normalizeAbsoluteUrl(managedDomain));
   }
 
   const projectId = safeString(import.meta.env?.VITE_SUPABASE_PROJECT_ID);
   if (projectId) {
     try {
-      return normalizeAbsoluteUrl(
-        deriveFunctionsDomainFromProjectId(projectId),
+      return ensureFunctionsPath(
+        normalizeAbsoluteUrl(deriveFunctionsDomainFromProjectId(projectId)),
       );
     } catch (error) {
       console.warn(
@@ -201,7 +207,7 @@ export const resolveSupabaseFunctionsUrl = (): string => {
     }
   }
 
-  return normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`);
+  return ensureFunctionsPath(normalizeAbsoluteUrl(`${apiOrigin}/functions/v1`));
 };
 
 export const getSiteUrl = (): string => {
