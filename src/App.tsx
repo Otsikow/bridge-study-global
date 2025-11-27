@@ -200,6 +200,9 @@ const Analytics = lazyWithErrorHandling(() => import("./pages/admin/Analytics"))
 const BlogAdminPage = lazyWithErrorHandling(() => import("./pages/admin/BlogAdmin"));
 const AdminUsageMonitoringPage = lazyWithErrorHandling(() => import("./pages/admin/UsageMonitoring"));
 const BuildPreviews = lazyWithErrorHandling(() => import("./pages/admin/BuildPreviews"));
+const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
+  () => import("./pages/admin/FeaturedUniversitiesAdmin"),
+);
 
 // Staff & Agents
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
@@ -402,6 +405,10 @@ const App = () => {
                           <Route path="usage-monitoring" element={<AdminUsageMonitoringPage />} />
                           <Route path="analytics" element={<Analytics />} />
                           <Route path="user-management" element={<UserManagement />} />
+                          <Route
+                            path="featured-universities"
+                            element={<FeaturedUniversitiesAdmin />}
+                          />
                           <Route path="blog" element={<BlogAdminPage />} />
                           <Route path="build-previews" element={<BuildPreviews />} />
                         </Route>

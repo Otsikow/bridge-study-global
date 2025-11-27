@@ -28,6 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  BadgeCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -86,6 +87,14 @@ const NAV_ITEMS: NavItem[] = [
     labelDefault: "Partners",
     descriptionDefault: "Agencies & universities",
     icon: Building,
+  },
+  {
+    to: "/admin/featured-universities",
+    labelKey: "admin.layout.navigation.featuredUniversities.label",
+    descriptionKey: "admin.layout.navigation.featuredUniversities.description",
+    labelDefault: "Future University",
+    descriptionDefault: "Homepage spotlight",
+    icon: BadgeCheck,
   },
   {
     to: "/admin/resources",
