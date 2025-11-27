@@ -152,8 +152,9 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
         const extension = sanitizedFileName.split('.').pop()?.toLowerCase() || 'jpg';
         const safeTestType = formData.test_type ? formData.test_type.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'test';
-        const fileName = `${studentId}/${safeTestType}-${Date.now()}.${extension}`;
-        const filePath = `${CERTIFICATE_PREFIX}/${fileName}`;
+        // The storage policy for student-documents expects the first folder to be the student ID
+        // so we place the certificate prefix after the student folder to satisfy RLS checks.
+        const filePath = `${studentId}/${CERTIFICATE_PREFIX}/${safeTestType}-${Date.now()}.${extension}`;
 
         const { error: uploadError } = await supabase.storage
           .from(CERTIFICATE_BUCKET)
