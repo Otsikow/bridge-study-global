@@ -153,7 +153,12 @@ export function InviteStudentDialog({
           typeof error === "object" && error !== null && "message" in error
             ? String(error.message ?? "")
             : "";
-        throw new Error(message || "The student invite could not be completed.");
+
+        const friendlyMessage = message.includes("non-2xx")
+          ? "The invite service returned an unexpected response. Please try again or contact support if this continues."
+          : message;
+
+        throw new Error(friendlyMessage || "The student invite could not be completed.");
       }
 
       if (data?.error) {

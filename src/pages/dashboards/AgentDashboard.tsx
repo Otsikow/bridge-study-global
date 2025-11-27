@@ -103,72 +103,74 @@ export default function AgentDashboard() {
 
         <TooltipProvider delayDuration={100}>
           <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 lg:grid-cols-10 gap-2">
+            <TabsList
+              className="flex w-full items-center gap-2 overflow-x-auto rounded-xl border bg-muted/40 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-muted/60"
+            >
 
-              <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TabsTrigger value="overview" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="View your dashboard overview">
                   <LayoutDashboard className="h-4 w-4" />
                 </IconTooltip>
                 Overview
               </TabsTrigger>
 
-              <TabsTrigger value="applications" className="flex items-center gap-2">
+              <TabsTrigger value="applications" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Review application progress">
                   <BarChart3 className="h-4 w-4" />
                 </IconTooltip>
                 Applications
               </TabsTrigger>
 
-              <TabsTrigger value="leads" className="flex items-center gap-2">
+              <TabsTrigger value="leads" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Manage your leads">
                   <Users className="h-4 w-4" />
                 </IconTooltip>
                 My Leads
               </TabsTrigger>
 
-              <TabsTrigger value="students" className="flex items-center gap-2">
+              <TabsTrigger value="students" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="View your student list">
                   <GraduationCap className="h-4 w-4" />
                 </IconTooltip>
                 Students
               </TabsTrigger>
 
-              <TabsTrigger value="tasks" className="flex items-center gap-2">
+              <TabsTrigger value="tasks" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="View your assigned tasks">
                   <ClipboardList className="h-4 w-4" />
                 </IconTooltip>
                 Tasks
               </TabsTrigger>
 
-              <TabsTrigger value="ranking" className="flex items-center gap-2">
+              <TabsTrigger value="ranking" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Manage preference rankings">
                   <Star className="h-4 w-4" />
                 </IconTooltip>
                 Ranking
               </TabsTrigger>
 
-              <TabsTrigger value="commissions" className="flex items-center gap-2">
+              <TabsTrigger value="commissions" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Track commission earnings">
                   <DollarSign className="h-4 w-4" />
                 </IconTooltip>
                 Commissions
               </TabsTrigger>
 
-              <TabsTrigger value="import" className="flex items-center gap-2">
+              <TabsTrigger value="import" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Bulk import students">
                   <Upload className="h-4 w-4" />
                 </IconTooltip>
                 Import
               </TabsTrigger>
 
-              <TabsTrigger value="partners" className="flex items-center gap-2">
+              <TabsTrigger value="partners" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Discover universities to partner with">
                   <Handshake className="h-4 w-4" />
                 </IconTooltip>
                 Partners
               </TabsTrigger>
 
-              <TabsTrigger value="resources" className="flex items-center gap-2">
+              <TabsTrigger value="resources" className="flex items-center gap-2 whitespace-nowrap">
                 <IconTooltip label="Browse helpful resources">
                   <FolderOpen className="h-4 w-4" />
                 </IconTooltip>
