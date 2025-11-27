@@ -87,6 +87,30 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
     const isEnglishProficiencyLetter = formData.test_type === ENGLISH_PROFICIENCY_LETTER;
 
+    if (!formData.test_type) {
+      toast({
+        title: 'Test type required',
+        description: 'Please select the type of test you are adding.',
+        variant: 'destructive'
+      });
+      setLoading(false);
+      return;
+    }
+
+    if (!isEnglishProficiencyLetter) {
+      const parsedTotalScore = parseFloat(formData.total_score);
+
+      if (!formData.total_score || Number.isNaN(parsedTotalScore)) {
+        toast({
+          title: 'Score required',
+          description: 'Please enter your total test score before submitting.',
+          variant: 'destructive'
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
     if (isEnglishProficiencyLetter && !certificateFile && !existingCertificatePath) {
       toast({
         title: 'Document required',
@@ -102,10 +126,20 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
 
     try {
       const subscores: Record<string, number> = {};
-      if (formData.listening) subscores.listening = parseFloat(formData.listening);
-      if (formData.reading) subscores.reading = parseFloat(formData.reading);
-      if (formData.writing) subscores.writing = parseFloat(formData.writing);
-      if (formData.speaking) subscores.speaking = parseFloat(formData.speaking);
+      const parsedSubscores: Array<[keyof typeof subscores, string]> = [
+        ['listening', formData.listening],
+        ['reading', formData.reading],
+        ['writing', formData.writing],
+        ['speaking', formData.speaking],
+      ];
+
+      parsedSubscores.forEach(([key, value]) => {
+        if (!value) return;
+        const parsed = parseFloat(value);
+        if (!Number.isNaN(parsed)) {
+          subscores[key] = parsed;
+        }
+      });
 
       let certificatePath = existingCertificatePath ?? null;
 
