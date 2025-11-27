@@ -92,7 +92,7 @@ const NAV_ITEMS: NavItem[] = [
     to: "/admin/featured-universities",
     labelKey: "admin.layout.navigation.featuredUniversities.label",
     descriptionKey: "admin.layout.navigation.featuredUniversities.description",
-    labelDefault: "Future University",
+    labelDefault: "Featured Universities",
     descriptionDefault: "Homepage spotlight",
     icon: BadgeCheck,
   },
