@@ -59,6 +59,24 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
     }
   }, [studentId]);
 
+  const formatTestScoreError = (error: unknown, action: 'add' | 'update' | 'delete') => {
+    if (error && typeof error === 'object') {
+      const supabaseError = error as { message?: string; code?: string; details?: string };
+      const message = supabaseError.message?.toLowerCase() || '';
+      const details = supabaseError.details?.toLowerCase() || '';
+
+      if (supabaseError.code === '42501' || message.includes('row-level security')) {
+        return 'You can only manage test scores for your own profile. Please make sure you are signed in to the right account.';
+      }
+
+      if (message.includes('permission') || details.includes('permission')) {
+        return 'You do not have permission to complete this action. Try signing in again or contact support if this persists.';
+      }
+    }
+
+    return `We couldn't ${action} your test score right now. Please try again in a moment.`;
+  };
+
   useEffect(() => {
     fetchTestScores();
   }, [fetchTestScores]);
@@ -172,7 +190,8 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
         }
       }
 
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      const errorMessage = formatTestScoreError(error, editingRecord ? 'update' : 'add');
+      console.error('Failed to submit test score:', error);
       toast({
         title: 'Error',
         description: errorMessage,
@@ -205,7 +224,8 @@ export function TestScoresTab({ studentId, onUpdate }: TestScoresTabProps) {
       fetchTestScores();
       onUpdate?.();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      const errorMessage = formatTestScoreError(error, 'delete');
+      console.error('Failed to delete test score:', error);
       toast({
         title: 'Error',
         description: errorMessage,
