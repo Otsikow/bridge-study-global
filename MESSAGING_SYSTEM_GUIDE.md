@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide documents the new real-time messaging system implemented for the GEG Platform. The system provides WhatsApp Web-like functionality for communication between students, agents, and admins.
+This guide documents the new real-time messaging system implemented for the UniDoxia Platform. The system provides WhatsApp Web-like functionality for communication between students, agents, and admins.
 
 ## Features
 
@@ -488,4 +488,4 @@ For issues or questions:
 
 ## License
 
-Part of the GEG Platform - see main project LICENSE.
+Part of the UniDoxia Platform - see main project LICENSE.

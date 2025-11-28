@@ -62,9 +62,9 @@ const es = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia",
       },
       links: {
         home: "Inicio",
@@ -86,7 +86,7 @@ const es = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Conectamos a estudiantes internacionales con universidades de clase mundial mediante agentes verificados y una gestión transparente de solicitudes.",
       contactEmailLabel: "Escríbenos",
@@ -113,7 +113,7 @@ const es = {
         privacy: "Política de privacidad",
         terms: "Términos de servicio",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Todos los derechos reservados.",
+      copyright: "© {{year}} UniDoxia. Todos los derechos reservados.",
       questions: "¿Preguntas?",
     },
   },
@@ -394,7 +394,7 @@ const es = {
       heroTitle: "Contáctanos",
       heroSubtitle: "Normalmente respondemos en un día hábil.",
       emailPrompt: "¿Prefieres correo electrónico?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "Escríbenos por WhatsApp ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "Asesor educativo profesional listo para ayudar",
@@ -409,9 +409,9 @@ const es = {
           audience: "Estudiantes",
           items: [
             {
-              question: "¿Cómo me ayuda GEG a postularme a universidades?",
+              question: "¿Cómo me ayuda UniDoxia a postularme a universidades?",
               answer:
-                "GEG te conecta con agentes verificados que te guían en cada etapa: desde seleccionar universidades hasta enviar los documentos.",
+                "UniDoxia te conecta con agentes verificados que te guían en cada etapa: desde seleccionar universidades hasta enviar los documentos.",
             },
             {
               question: "¿Tiene costo usar la plataforma?",
@@ -439,7 +439,7 @@ const es = {
           audience: "Universidades",
           items: [
             {
-              question: "¿Cómo puede nuestra universidad asociarse con GEG?",
+              question: "¿Cómo puede nuestra universidad asociarse con UniDoxia?",
               answer:
                 "Envía una solicitud de asociación a través del Portal Universitario o contacta a nuestro equipo. Verificaremos tu institución y completaremos la incorporación en pocos días hábiles.",
             },
@@ -459,7 +459,7 @@ const es = {
           audience: "Agentes",
           items: [
             {
-              question: "¿Qué apoyo reciben los agentes en GEG?",
+              question: "¿Qué apoyo reciben los agentes en UniDoxia?",
               answer:
                 "Los agentes obtienen un CRM dedicado, material de marketing y capacitación bajo demanda para ayudar a los estudiantes a encontrar programas adecuados rápidamente.",
             },

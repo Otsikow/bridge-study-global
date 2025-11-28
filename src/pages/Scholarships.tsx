@@ -315,7 +315,7 @@ const ScholarshipsPage = () => {
   return (
     <>
       <SEO 
-        title="Find Scholarships - Global Education Gateway"
+        title="Find Scholarships - UniDoxia"
         description="Discover scholarships and funding opportunities worldwide. Search by country, level, and eligibility to find the perfect scholarship for your international education journey."
       />
       

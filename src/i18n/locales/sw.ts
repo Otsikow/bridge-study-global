@@ -62,9 +62,9 @@ const sw = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia",
       },
       links: {
         home: "Nyumbani",
@@ -86,7 +86,7 @@ const sw = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Tunawaunganisha wanafunzi wa kimataifa na vyuo vikuu bora kupitia mawakala waliothibitishwa na usimamizi wa uwazi wa maombi.",
       contactEmailLabel: "Tutumie barua pepe",
@@ -113,7 +113,7 @@ const sw = {
         privacy: "Sera ya faragha",
         terms: "Sheria na masharti",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Haki zote zimehifadhiwa.",
+      copyright: "© {{year}} UniDoxia. Haki zote zimehifadhiwa.",
       questions: "Maswali?",
     },
   },
@@ -363,7 +363,7 @@ const sw = {
       heroTitle: "Wasiliana nasi",
       heroSubtitle: "Kwa kawaida tunajibu ndani ya siku moja ya kazi.",
       emailPrompt: "Unapendelea barua pepe?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "Tutumie ujumbe kwenye WhatsApp ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "Mshauri wa elimu aliye tayari kusaidia",
@@ -378,9 +378,9 @@ const sw = {
           audience: "Wanafunzi",
           items: [
             {
-              question: "GEG inanisaidiaje kuomba vyuo vikuu?",
+              question: "UniDoxia inanisaidiaje kuomba vyuo vikuu?",
               answer:
-                "GEG hukunganisha na mawakala waliothibitishwa wanaokuongoza katika kila hatua – kutoka kuchagua vyuo vikuu hadi kuwasilisha nyaraka.",
+                "UniDoxia hukunganisha na mawakala waliothibitishwa wanaokuongoza katika kila hatua – kutoka kuchagua vyuo vikuu hadi kuwasilisha nyaraka.",
             },
             {
               question: "Je, kuna ada ya kutumia jukwaa?",
@@ -408,7 +408,7 @@ const sw = {
           audience: "Vyuo vikuu",
           items: [
             {
-              question: "Chuo chetu kinawezaje kushirikiana na GEG?",
+              question: "Chuo chetu kinawezaje kushirikiana na UniDoxia?",
               answer:
                 "Tuma ombi la ushirikiano kupitia Portal ya Chuo Kikuu au wasiliana na timu yetu. Tutathibitisha taasisi yako na kuanza mchakato ndani ya siku chache za kazi.",
             },
@@ -428,7 +428,7 @@ const sw = {
           audience: "Mawakala",
           items: [
             {
-              question: "Mawakala wanapata msaada gani kupitia GEG?",
+              question: "Mawakala wanapata msaada gani kupitia UniDoxia?",
               answer:
                 "Mawakala hupata CRM maalum, vifaa vya masoko na mafunzo ya mara kwa mara ili kuwasaidia wanafunzi kupata programu zinazofaa haraka.",
             },

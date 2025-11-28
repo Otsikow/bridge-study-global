@@ -504,7 +504,7 @@ export default function StudentOnboarding() {
 
         <div className="space-y-2 animate-fade-in">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-            Welcome to Global Education Gateway
+            Welcome to UniDoxia
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
             Complete your profile to start applying to universities worldwide

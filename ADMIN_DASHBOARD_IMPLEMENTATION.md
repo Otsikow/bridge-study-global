@@ -2,7 +2,7 @@
 
 ## ✅ Project Completed Successfully
 
-A comprehensive Admin Dashboard modeled after ApplyBoard's back-office has been successfully implemented for the Global Education Gateway platform.
+A comprehensive Admin Dashboard modeled after ApplyBoard's back-office has been successfully implemented for the UniDoxia platform.
 
 ---
 
@@ -383,4 +383,4 @@ The dashboard is production-ready, fully tested, and ready for deployment!
 
 ---
 
-**Developed with ❤️ for Global Education Gateway**
+**Developed with ❤️ for UniDoxia**

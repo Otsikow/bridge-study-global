@@ -239,10 +239,10 @@ For issues or questions:
 
 ## License
 
-This implementation is part of the Global Education Gateway (GEG) platform.
+This implementation is part of the UniDoxia (UniDoxia) platform.
 
 ---
 
 **Last Updated**: October 25, 2025  
 **Version**: 1.0.0  
-**Author**: GEG Development Team
+**Author**: UniDoxia Development Team

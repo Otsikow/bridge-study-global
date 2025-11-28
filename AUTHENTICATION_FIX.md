@@ -1,4 +1,4 @@
-# 🔧 Authentication System Fix for Global Education Gateway
+# 🔧 Authentication System Fix for UniDoxia
 
 ## Problem Identified
 
@@ -27,7 +27,7 @@ Without a tenant, the trigger exits early and no profile is created, breaking th
 
 ### 1. Migration File Created
 - **File**: `/workspace/supabase/migrations/20251022130000_create_default_tenant.sql`
-- **Purpose**: Creates the default "Global Education Gateway" tenant
+- **Purpose**: Creates the default "UniDoxia" tenant
 
 ### 2. SQL Initialization Script
 - **File**: `/workspace/scripts/init-tenant.sql`
@@ -80,7 +80,7 @@ supabase db push
 
 ## What This Fix Does
 
-1. ✅ Creates a default tenant "Global Education Gateway"
+1. ✅ Creates a default tenant "UniDoxia"
 2. ✅ Fixes user registration for new users
 3. ✅ Backfills profiles for existing auth users
 4. ✅ Creates missing user_roles entries

@@ -62,9 +62,9 @@ const zh = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia",
       },
       links: {
         home: "首页",
@@ -86,7 +86,7 @@ const zh = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "我们通过认证代理和透明的申请管理，将国际学生与世界一流大学连接起来。",
       contactEmailLabel: "联系我们",
@@ -113,7 +113,7 @@ const zh = {
         privacy: "隐私政策",
         terms: "服务条款",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. 版权所有。",
+      copyright: "© {{year}} UniDoxia. 版权所有。",
       questions: "有问题吗？",
     },
   },
@@ -198,7 +198,7 @@ const zh = {
           },
         },
         features: {
-          heading: "为何选择 GEG？",
+          heading: "为何选择 UniDoxia？",
           cards: {
             applyEasily: {
               title: "轻松申请",
@@ -464,7 +464,7 @@ const zh = {
               role: "麻省理工学院硕士生",
               country: "美国",
               quote:
-                "GEG 让我在 MIT 学习的梦想成真。平台操作直观，我的顾问也非常专业贴心。",
+                "UniDoxia 让我在 MIT 学习的梦想成真。平台操作直观，我的顾问也非常专业贴心。",
               rating: 5,
             },
             {
@@ -472,7 +472,7 @@ const zh = {
               role: "牛津大学 MBA 学生",
               country: "英国",
               quote:
-                "实时跟踪功能让我倍感安心。我随时了解申请进度，强烈推荐 GEG！",
+                "实时跟踪功能让我倍感安心。我随时了解申请进度，强烈推荐 UniDoxia！",
               rating: 5,
             },
             {
@@ -480,7 +480,7 @@ const zh = {
               role: "斯坦福大学工程系学生",
               country: "美国",
               quote:
-                "从选校到签证，GEG 在每一步都给予我支持。服务非常出色！",
+                "从选校到签证，UniDoxia 在每一步都给予我支持。服务非常出色！",
               rating: 5,
             },
           ],
@@ -494,9 +494,9 @@ const zh = {
               audience: "学生",
               items: [
                 {
-                  question: "GEG 如何帮助我申请大学？",
+                  question: "UniDoxia 如何帮助我申请大学？",
                   answer:
-                    "GEG 将您与认证代理连接，他们会在选校、材料准备到提交的每一步提供指导。",
+                    "UniDoxia 将您与认证代理连接，他们会在选校、材料准备到提交的每一步提供指导。",
                 },
                 {
                   question: "使用平台需要费用吗？",
@@ -591,7 +591,7 @@ const zh = {
       heroTitle: "联系我们",
       heroSubtitle: "我们通常会在一个工作日内回复。",
       emailPrompt: "更喜欢电子邮件？",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "通过 WhatsApp 联系我们（{{number}}）",
       whatsappNumber: "+447360961803",
       imageAlt: "专业教育顾问随时准备提供帮助",
@@ -606,9 +606,9 @@ const zh = {
           audience: "学生",
           items: [
             {
-              question: "GEG 如何帮助我申请大学？",
+              question: "UniDoxia 如何帮助我申请大学？",
               answer:
-                "GEG 将您与认证代理联系起来，他们会在每个阶段提供指导——从选择大学到提交材料。",
+                "UniDoxia 将您与认证代理联系起来，他们会在每个阶段提供指导——从选择大学到提交材料。",
             },
             {
               question: "使用平台需要费用吗？",
@@ -636,7 +636,7 @@ const zh = {
           audience: "大学",
           items: [
             {
-              question: "我们的大学如何与 GEG 合作？",
+              question: "我们的大学如何与 UniDoxia 合作？",
               answer:
                 "通过大学门户提交合作申请或联系我们的团队。我们会验证您的院校，并在几个工作日内完成入驻。",
             },

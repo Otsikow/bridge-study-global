@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-import gegLogo from '@/assets/geg-logo.png';
+import uniDoxiaLogo from '@/assets/unidoxia-logo.png';
 import BackButton from '@/components/BackButton';
 import { getSiteUrl } from '@/lib/supabaseClientConfig';
 import { SEO } from "@/components/SEO";
@@ -85,8 +85,8 @@ const Login = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
         <SEO
-          title="Login - Global Education Gateway"
-          description="Access your Global Education Gateway account to manage your university applications, connect with agents, and track your progress."
+          title="Login - UniDoxia"
+          description="Access your UniDoxia account to manage your university applications, connect with agents, and track your progress."
           keywords="login, sign in, student account, agent portal, university partner login"
         />
         <Card className="w-full max-w-md shadow-lg">
@@ -101,11 +101,11 @@ const Login = () => {
               />
             </div>
             <div className="flex justify-center mb-4">
-              <img src={gegLogo} alt="GEG Logo" className="h-24 w-24 object-contain dark:brightness-0 dark:invert" />
+              <img src={uniDoxiaLogo} alt="UniDoxia Logo" className="h-24 w-24 object-contain dark:brightness-0 dark:invert" />
             </div>
-            <CardTitle className="text-2xl font-bold">Welcome to GEG</CardTitle>
+            <CardTitle className="text-2xl font-bold">Welcome to UniDoxia</CardTitle>
             <CardDescription>
-              Sign in to your Global Education Gateway account
+              Sign in to your UniDoxia account
             </CardDescription>
           </CardHeader>
         <form onSubmit={handleSubmit}>

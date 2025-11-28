@@ -725,12 +725,12 @@ const PartnerOverviewPage = () => {
           <div className="space-y-1 text-sm text-slate-400">
             <p className="font-medium text-slate-200">Need assistance?</p>
             <p>
-              Reach the Global Education Gateway team at{" "}
+              Reach the UniDoxia team at{" "}
               <a
-                href="mailto:info@globaleducationgateway.com"
+                href="mailto:info@unidoxia.com"
                 className="text-blue-300 hover:text-blue-100 hover:underline"
               >
-                info@globaleducationgateway.com
+                info@unidoxia.com
               </a>
               .
             </p>

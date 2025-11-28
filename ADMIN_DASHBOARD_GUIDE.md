@@ -2,7 +2,7 @@
 
 ## Overview
 
-A comprehensive admin dashboard has been built for the Global Education Gateway platform, modeled after ApplyBoard's back-office system. The dashboard provides full administrative control with role-based access control (RBAC) and real-time data from Supabase.
+A comprehensive admin dashboard has been built for the UniDoxia platform, modeled after ApplyBoard's back-office system. The dashboard provides full administrative control with role-based access control (RBAC) and real-time data from Supabase.
 
 ## Features Implemented
 
@@ -279,4 +279,4 @@ For issues or questions:
 
 ---
 
-**Built with** ❤️ **for Global Education Gateway**
+**Built with** ❤️ **for UniDoxia**

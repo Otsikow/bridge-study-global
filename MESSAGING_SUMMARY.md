@@ -2,7 +2,7 @@
 
 ## ✅ Project Complete
 
-A full-featured, WhatsApp Web-style real-time messaging system has been successfully implemented for the GEG Platform.
+A full-featured, WhatsApp Web-style real-time messaging system has been successfully implemented for the UniDoxia Platform.
 
 ## 📦 What's Been Delivered
 

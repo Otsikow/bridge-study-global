@@ -165,7 +165,7 @@ export default function UserFeedback() {
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold">Thank you for your feedback!</h3>
                 <p className="text-muted-foreground">
-                  We appreciate you taking the time to help us improve the Global Education Gateway platform.
+                  We appreciate you taking the time to help us improve the UniDoxia platform.
                 </p>
               </div>
               <Button onClick={resetForm} className="hover-scale">

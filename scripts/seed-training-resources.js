@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const NEW_TRAINING_RESOURCES = [
     {
-      title: "GEG Admissions Workflow Training Guide",
+      title: "UniDoxia Admissions Workflow Training Guide",
       description: "A comprehensive guide detailing the step-by-step admissions workflow for agents. This document covers everything from initial application submission to final decision.",
       resource_type: "training",
       file_type: "pdf",
@@ -28,7 +28,7 @@ const NEW_TRAINING_RESOURCES = [
     },
     {
       title: "Agent Onboarding Training",
-      description: "An engaging video tutorial to help new agents get started with the GEG platform. The training covers key features and best practices for success.",
+      description: "An engaging video tutorial to help new agents get started with the UniDoxia platform. The training covers key features and best practices for success.",
       resource_type: "training",
       file_type: "video",
       access_level: "agents",

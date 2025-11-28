@@ -1,5 +1,5 @@
 -- ============================================================================
--- CRITICAL: Initialize Default Tenant for GEG Platform
+-- CRITICAL: Initialize Default Tenant for UniDoxia Platform
 -- ============================================================================
 -- This script MUST be run in the Supabase SQL Editor to fix authentication
 -- 
@@ -25,7 +25,7 @@ INSERT INTO public.tenants (
 )
 VALUES (
   '00000000-0000-0000-0000-000000000001'::uuid,
-  'Global Education Gateway',
+  'UniDoxia',
   'geg',
   'noreply@globaleducationgateway.com',
   '{"primary": "#1e40af", "secondary": "#3b82f6"}'::jsonb,

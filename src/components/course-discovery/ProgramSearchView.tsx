@@ -246,7 +246,7 @@ export function ProgramSearchView({ variant = "page" }: ProgramSearchViewProps) 
     <div className={containerClasses}>
       {showSEO && (
         <SEO
-          title="Search Universities - Global Education Gateway"
+          title="Search Universities - UniDoxia"
           description="Find and compare universities from around the world. Filter by country, program, and more to discover the perfect institution for your study abroad journey."
           keywords="university search, find universities, study abroad programs, international colleges, student recruitment, find a university"
         />

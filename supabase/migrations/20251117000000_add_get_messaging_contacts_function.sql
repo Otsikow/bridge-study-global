@@ -253,7 +253,7 @@ BEGIN
 
   ELSIF v_user_role = 'student'::app_role THEN
     -- Students can message:
-    -- 1. GEG staff (staff, admin, counselor)
+    -- 1. UniDoxia staff (staff, admin, counselor)
     -- 2. Their assigned agent (if any)
 
     -- Return staff

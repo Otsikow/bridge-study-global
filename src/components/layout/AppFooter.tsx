@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import gegLogo from "@/assets/geg-logo.png";
+import uniDoxiaLogo from "@/assets/unidoxia-logo.png";
 import {
   Mail,
   Search,
@@ -62,7 +62,7 @@ export function AppFooter() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src={gegLogo}
+                src={uniDoxiaLogo}
                 alt={t("layout.navbar.brand.full")}
                 className="h-9 w-9 object-contain dark:brightness-0 dark:invert"
               />
@@ -72,7 +72,7 @@ export function AppFooter() {
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-primary" />
               <a href="mailto:info@globaltalentgateway.net" className="hover:underline">
-                info@globaleducationgateway.com
+                info@unidoxia.com
               </a>
             </div>
           </div>
