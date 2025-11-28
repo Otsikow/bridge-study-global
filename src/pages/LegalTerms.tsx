@@ -33,7 +33,7 @@ const sections: Section[] = [
     title: 'Acceptance of Terms',
     content: (
       <p>
-        These Terms of Service (“Terms”) govern your access to and use of GEG — Global Education Gateway (“GEG”, “we”,
+        These Terms of Service (“Terms”) govern your access to and use of UniDoxia (“UniDoxia”, “we”,
         “us”, or “our”) products, websites, and services (collectively, the “Services”). By accessing or using the
         Services, you agree to be bound by these Terms and our Privacy Policy.
       </p>
@@ -85,7 +85,7 @@ const sections: Section[] = [
     title: 'Your Content',
     content: (
       <p>
-        You retain ownership of content you submit to the Services. You grant GEG a worldwide, non-exclusive,
+        You retain ownership of content you submit to the Services. You grant UniDoxia a worldwide, non-exclusive,
         royalty-free license to host, store, reproduce, and display that content solely to operate and improve the
         Services. You represent that you have the rights to submit the content and that it does not infringe the rights
         of others.
@@ -127,7 +127,7 @@ const sections: Section[] = [
     title: 'Disclaimers',
     content: (
       <p>
-        GEG facilitates connections between students, agents, and educational institutions but does not control
+        UniDoxia facilitates connections between students, agents, and educational institutions but does not control
         admissions decisions and does not guarantee specific outcomes, offers, or timelines. The Services are provided on
         an “AS IS” and “AS AVAILABLE” basis without warranties of any kind, whether express, implied, or statutory,
         including without limitation warranties of merchantability, fitness for a particular purpose, and
@@ -140,7 +140,7 @@ const sections: Section[] = [
     title: 'Limitation of Liability',
     content: (
       <p>
-        To the maximum extent permitted by law, GEG and its affiliates will not be liable for any indirect, incidental,
+        To the maximum extent permitted by law, UniDoxia and its affiliates will not be liable for any indirect, incidental,
         special, consequential, exemplary, or punitive damages, or for any loss of profits, revenues, data, goodwill, or
         other intangible losses resulting from your use of or inability to use the Services.
       </p>
@@ -151,7 +151,7 @@ const sections: Section[] = [
     title: 'Indemnification',
     content: (
       <p>
-        You agree to defend, indemnify, and hold harmless GEG, its affiliates, and their respective officers, directors,
+        You agree to defend, indemnify, and hold harmless UniDoxia, its affiliates, and their respective officers, directors,
         employees, and agents from and against any claims, liabilities, damages, losses, and expenses, including
         reasonable legal fees, arising out of or in any way connected with your violation of these Terms or your misuse of
         the Services.
@@ -174,7 +174,7 @@ const sections: Section[] = [
     title: 'Governing Law',
     content: (
       <p>
-        These Terms are governed by the laws of the jurisdiction in which GEG is established, without regard to its
+        These Terms are governed by the laws of the jurisdiction in which UniDoxia is established, without regard to its
         conflicts of law principles. Where required, exclusive venue will lie in the competent courts of that
         jurisdiction.
       </p>
@@ -197,8 +197,8 @@ const sections: Section[] = [
     content: (
       <p>
         Questions about these Terms? Email{' '}
-        <a className="text-primary" href="mailto:info@globaleducationgateway.com">
-          info@globaleducationgateway.com
+        <a className="text-primary" href="mailto:info@unidoxia.com">
+          info@unidoxia.com
         </a>
         .
       </p>
@@ -210,8 +210,8 @@ const LegalTerms = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
-        title="Terms of Service - Global Education Gateway"
-        description="Review the Global Education Gateway terms of service. Understand your rights and responsibilities when using our platform for university applications and student services."
+        title="Terms of Service - UniDoxia"
+        description="Review the UniDoxia terms of service. Understand your rights and responsibilities when using our platform for university applications and student services."
         keywords="terms of service, legal terms, platform agreement, student agreement, university partnership terms"
       />
       <header className="border-b bg-background/60 backdrop-blur">
@@ -249,7 +249,7 @@ const LegalTerms = () => {
           <div className="prose dark:prose-invert max-w-none">
             <p>
               Our Terms of Service explain the commitments we make to you as you explore, apply, and collaborate through the
-              Global Education Gateway platform. They outline your responsibilities, describe how we operate our services,
+              UniDoxia platform. They outline your responsibilities, describe how we operate our services,
               and highlight how we protect your information and experience.
             </p>
           </div>

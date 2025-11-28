@@ -112,7 +112,7 @@ async function setupDatabase() {
       .from('tenants')
       .upsert({
         id: '00000000-0000-0000-0000-000000000001',
-        name: 'Global Education Gateway',
+        name: 'UniDoxia',
         slug: 'geg',
         email_from: 'noreply@globaleducationgateway.com',
         active: true,

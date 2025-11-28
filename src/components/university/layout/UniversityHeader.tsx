@@ -148,7 +148,7 @@ export const UniversityHeader = ({
         </Button>
         <div>
           <p className="text-xs uppercase tracking-[0.4rem] text-muted-foreground">
-            Global Education Gateway
+            UniDoxia
           </p>
           <h2 className="text-lg font-semibold text-foreground">{title}</h2>
         </div>

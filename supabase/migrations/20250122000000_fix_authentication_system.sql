@@ -5,7 +5,7 @@
 INSERT INTO public.tenants (id, name, slug, email_from, active)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Global Education Gateway',
+  'UniDoxia',
   'geg',
   'noreply@globaleducationgateway.com',
   true

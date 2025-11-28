@@ -1,6 +1,6 @@
-# Implementation Guide - Global Education Gateway Enhancements
+# Implementation Guide - UniDoxia Enhancements
 
-This guide provides step-by-step instructions for implementing and using the new features added to the Global Education Gateway application.
+This guide provides step-by-step instructions for implementing and using the new features added to the UniDoxia application.
 
 ---
 

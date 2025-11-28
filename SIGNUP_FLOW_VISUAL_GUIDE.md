@@ -15,9 +15,9 @@ The new signup experience features a beautiful, modern multi-step form with smoo
 ║                      [Progress Bar: 33%]                       ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                                 ║
-║                          [GEG Logo]                            ║
+║                          [UniDoxia Logo]                            ║
 ║                                                                 ║
-║                        Join GEG                                ║
+║                        Join UniDoxia                                ║
 ║           Step 1 of 3: Choose Your Role                       ║
 ║                                                                 ║
 ║   ┌─────────────────────┐  ┌─────────────────────┐           ║
@@ -67,9 +67,9 @@ The new signup experience features a beautiful, modern multi-step form with smoo
 ║                      [Progress Bar: 66%]                       ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                                 ║
-║                          [GEG Logo]                            ║
+║                          [UniDoxia Logo]                            ║
 ║                                                                 ║
-║                        Join GEG                                ║
+║                        Join UniDoxia                                ║
 ║         Step 2 of 3: Personal Information                     ║
 ║                                                                 ║
 ║   👤 Full Name                                                 ║
@@ -110,9 +110,9 @@ The new signup experience features a beautiful, modern multi-step form with smoo
 ║                      [Progress Bar: 100%]                      ║
 ╠═══════════════════════════════════════════════════════════════╣
 ║                                                                 ║
-║                          [GEG Logo]                            ║
+║                          [UniDoxia Logo]                            ║
 ║                                                                 ║
-║                        Join GEG                                ║
+║                        Join UniDoxia                                ║
 ║          Step 3 of 3: Account Credentials                     ║
 ║                                                                 ║
 ║   ✉️  Email Address                                            ║

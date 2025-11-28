@@ -294,7 +294,7 @@ const FeaturedShowcase = () => {
 
       toast({
         title: "Spotlight activated",
-        description: selectedPlan.label + " is now live on the Global Education Gateway homepage.",
+        description: selectedPlan.label + " is now live on the UniDoxia homepage.",
       });
 
       await loadOrders();
@@ -339,7 +339,7 @@ const FeaturedShowcase = () => {
           </div>
           <h1 className="text-3xl font-semibold">Featured Showcase</h1>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            Invest in premium placement across the Global Education Gateway. Spotlight plans include homepage hero rotation,
+            Invest in premium placement across the UniDoxia. Spotlight plans include homepage hero rotation,
             newsletter features, and campaign insights tailored to your recruitment goals.
           </p>
           <div className="flex items-center gap-2">

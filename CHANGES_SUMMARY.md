@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document summarizes all changes made to fix the authentication system for the Global Education Gateway (GEG) platform.
+This document summarizes all changes made to fix the authentication system for the UniDoxia (UniDoxia) platform.
 
 ## Problem Statement
 
@@ -32,7 +32,7 @@ Created a default tenant and ensured all new users get proper profiles, roles, a
 ### 1. Database Migration
 **File**: `/workspace/supabase/migrations/20251022130000_create_default_tenant.sql`
 
-**Purpose**: Creates the default "Global Education Gateway" tenant
+**Purpose**: Creates the default "UniDoxia" tenant
 
 **Content**:
 - Creates tenant with ID: `00000000-0000-0000-0000-000000000001`
@@ -146,7 +146,7 @@ signUp: (
 1. **`tenants`**
    - Added default tenant record
    - ID: `00000000-0000-0000-0000-000000000001`
-   - Name: "Global Education Gateway"
+   - Name: "UniDoxia"
 
 2. **`profiles`**
    - Backfilled `tenant_id` for existing profiles

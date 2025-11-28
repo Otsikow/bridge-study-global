@@ -614,7 +614,7 @@ export const UniversityPartnershipForm = () => {
               <div className="space-y-1 text-sm">
                 <FormLabel className="font-medium">I confirm the information shared is accurate.</FormLabel>
                 <FormDescription>
-                  By submitting this form you agree to be contacted by the Global Education Gateway partnerships team and to our
+                  By submitting this form you agree to be contacted by the UniDoxia partnerships team and to our
                   standard collaboration terms.
                 </FormDescription>
               </div>

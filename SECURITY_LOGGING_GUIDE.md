@@ -1,6 +1,6 @@
 # 🔐 Security Logging & Monitoring Guide
 
-This guide explains the comprehensive security logging and monitoring features introduced for the Global Education Gateway platform. It covers the database schema additions, the Supabase Edge Function responsible for recording events, client-side integrations, and configuration options for alerting.
+This guide explains the comprehensive security logging and monitoring features introduced for the UniDoxia platform. It covers the database schema additions, the Supabase Edge Function responsible for recording events, client-side integrations, and configuration options for alerting.
 
 ## Overview
 

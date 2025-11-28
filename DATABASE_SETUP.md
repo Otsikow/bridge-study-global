@@ -11,7 +11,7 @@ Run this SQL in your Supabase SQL editor:
 INSERT INTO public.tenants (id, name, slug, email_from, active, brand_colors, settings)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Global Education Gateway',
+  'UniDoxia',
   'geg',
   'noreply@globaleducationgateway.com',
   true,

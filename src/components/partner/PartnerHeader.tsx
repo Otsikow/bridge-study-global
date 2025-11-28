@@ -1,5 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import gegLogo from "@/assets/geg-logo.png";
+import uniDoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,12 +34,12 @@ export function PartnerHeader() {
         <SidebarTrigger className="rounded-lg border border-slate-200/70 bg-white/70 text-slate-600 transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-900" />
         <div className="flex items-center gap-3">
           <img
-            src={gegLogo}
-            alt="GEG Partner"
+            src={uniDoxiaLogo}
+            alt="UniDoxia Partner"
             className="hidden h-12 w-12 rounded-xl border border-slate-200 bg-white p-2 shadow-sm md:block dark:border-slate-800 dark:bg-slate-900/70 dark:brightness-0 dark:invert"
           />
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Global Education Gateway</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">UniDoxia</p>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 md:text-2xl">Partner Dashboard</h1>
           </div>
         </div>
@@ -71,7 +71,7 @@ export function PartnerHeader() {
                 )}
               </Avatar>
               <div className="hidden text-left leading-tight md:block">
-                <div className="font-semibold text-slate-900 dark:text-slate-100">{profile?.full_name ?? "GEG Partner"}</div>
+                <div className="font-semibold text-slate-900 dark:text-slate-100">{profile?.full_name ?? "UniDoxia Partner"}</div>
                 <div className="text-xs text-slate-500 dark:text-slate-400">{profile?.email ?? "partner@gateway.edu"}</div>
               </div>
             </Button>
@@ -79,7 +79,7 @@ export function PartnerHeader() {
           <DropdownMenuContent className="w-60 bg-white text-slate-900 shadow-lg dark:bg-slate-900 dark:text-slate-100">
             <DropdownMenuLabel>
               <div className="space-y-1">
-                <p className="text-sm font-semibold">{profile?.full_name ?? "GEG Partner"}</p>
+                <p className="text-sm font-semibold">{profile?.full_name ?? "UniDoxia Partner"}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.email ?? "partner@gateway.edu"}</p>
               </div>
             </DropdownMenuLabel>

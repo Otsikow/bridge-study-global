@@ -440,7 +440,7 @@ export default function UniversityDirectory() {
   return (
     <div className="min-h-screen bg-background pb-12">
       <SEO
-        title="University Directory - Global Education Gateway"
+        title="University Directory - UniDoxia"
         description="Browse our directory of partner universities from around the world. Find detailed profiles, rankings, and program information to help you choose the right institution."
         keywords="university directory, partner universities, college listings, international universities, student recruitment directory, university finder"
       />
