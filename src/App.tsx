@@ -160,6 +160,7 @@ const Scholarships = lazyWithErrorHandling(() => import("./pages/Scholarships"))
 const ScholarshipShareLanding = lazyWithErrorHandling(() => import("./pages/ScholarshipShareLanding"));
 const Blog = lazyWithErrorHandling(() => import("./pages/Blog"));
 const BlogPost = lazyWithErrorHandling(() => import("./pages/BlogPost"));
+const Levels = lazyWithErrorHandling(() => import("./pages/Levels"));
 const NotFound = lazyWithErrorHandling(() => import("./pages/NotFound"));
 
 // Student
@@ -312,6 +313,7 @@ const App = () => {
                         <Route path="/partnership" element={<PublicLayout><UniversityPartnership /></PublicLayout>} />
                         <Route path="/visa-calculator" element={<PublicLayout><VisaCalculator /></PublicLayout>} />
                         <Route path="/feedback" element={<PublicLayout><Feedback /></PublicLayout>} />
+                        <Route path="/levels" element={<PublicLayout><Levels /></PublicLayout>} />
 
                         {/* ✅ Protected Routes */}
                         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
