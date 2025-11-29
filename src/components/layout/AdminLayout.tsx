@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Badge } from "@/components/ui/badge";
 
 /* -------------------------------------------------------------------------- */
@@ -228,7 +228,7 @@ const AdminLayout = () => {
         <img
           src={unidoxiaLogo}
           alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "UniDoxia" })}
-          className="h-9 w-9 rounded-lg bg-white object-contain p-1"
+          className="h-9 w-9 rounded-lg bg-white object-contain p-1 dark:bg-transparent dark:brightness-0 dark:invert"
         />
         {!isCollapsed && (
           <div className="min-w-0">

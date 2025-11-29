@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 
 // ✅ Unified menuItems combining both branches
 const menuItems = {
@@ -139,7 +139,7 @@ export function AppSidebar() {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia Logo"
-            className="h-8 w-8 md:h-10 md:w-10 rounded-md object-contain flex-shrink-0"
+            className="h-8 w-8 md:h-10 md:w-10 rounded-md object-contain flex-shrink-0 dark:brightness-0 dark:invert"
           />
           {state !== "collapsed" && (
             <div className="min-w-0 flex-1">
