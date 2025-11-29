@@ -39,7 +39,7 @@ import {
   Globe,
   AtSign,
 } from "lucide-react";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { cn } from "@/lib/utils";
 import { formatReferralUsername } from "@/lib/referrals";
 import { LoadingState } from "@/components/LoadingState";
@@ -377,7 +377,7 @@ const Signup = () => {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia Logo"
-            className="mx-auto mb-4 h-20 w-20 rounded-lg object-contain"
+            className="mx-auto mb-4 h-20 w-20 rounded-lg object-contain dark:brightness-0 dark:invert"
           />
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
             Join UniDoxia

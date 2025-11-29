@@ -1,5 +1,5 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -36,7 +36,7 @@ export function PartnerHeader() {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia Partner"
-            className="hidden h-12 w-12 rounded-xl border border-slate-200 bg-white p-1 shadow-sm md:block dark:border-slate-800 dark:bg-slate-900/70"
+            className="hidden h-12 w-12 rounded-xl border border-slate-200 bg-white p-1 shadow-sm md:block dark:border-slate-800 dark:bg-transparent dark:brightness-0 dark:invert"
           />
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">UniDoxia</p>

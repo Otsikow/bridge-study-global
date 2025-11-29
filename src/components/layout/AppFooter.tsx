@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import {
   Mail,
   Search,
@@ -64,7 +64,7 @@ export function AppFooter() {
               <img
                 src={unidoxiaLogo}
                 alt={t("layout.navbar.brand.full")}
-                className="h-9 w-9 rounded-md object-contain"
+                className="h-9 w-9 rounded-md object-contain dark:brightness-0 dark:invert"
               />
               <span className="font-semibold text-lg">{t("layout.footer.aboutTitle")}</span>
             </div>

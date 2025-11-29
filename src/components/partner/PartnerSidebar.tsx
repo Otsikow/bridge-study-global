@@ -1,5 +1,5 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { BarChart3, FileCheck2, FileText, Home, MessageSquare, Upload } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { useMemo, type ComponentType, type SVGProps } from "react";
@@ -46,7 +46,7 @@ export function PartnerSidebar() {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia"
-            className="h-10 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm transition-colors dark:border-slate-800/70 dark:bg-slate-900"
+            className="h-10 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm transition-colors dark:border-slate-800/70 dark:bg-transparent dark:brightness-0 dark:invert"
           />
           {state !== "collapsed" && (
             <div className="space-y-1">

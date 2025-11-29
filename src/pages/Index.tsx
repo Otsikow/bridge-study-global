@@ -27,7 +27,7 @@ import {
   Calculator
 } from "lucide-react";
 
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
@@ -194,7 +194,7 @@ const Index = () => {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia logo"
-            className="mx-auto mb-8 h-48 w-auto rounded-lg object-contain drop-shadow-lg"
+            className="mx-auto mb-8 h-48 w-auto rounded-lg object-contain drop-shadow-lg dark:brightness-0 dark:invert"
           />
 
           <h1 className="text-5xl font-bold mb-4">

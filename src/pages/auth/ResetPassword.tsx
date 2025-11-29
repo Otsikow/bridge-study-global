@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
-import unidoxiaLogo from '@/assets/unidoxia-logo.jpg';
+import unidoxiaLogo from '@/assets/unidoxia-logo.png';
 import BackButton from '@/components/BackButton';
 
 const ResetPassword = () => {
@@ -76,7 +76,7 @@ const ResetPassword = () => {
               />
             </div>
             <div className="flex justify-center mb-4">
-              <img src={unidoxiaLogo} alt="UniDoxia Logo" className="h-20 w-20 rounded-lg object-contain" />
+              <img src={unidoxiaLogo} alt="UniDoxia Logo" className="h-20 w-20 rounded-lg object-contain dark:brightness-0 dark:invert" />
             </div>
             <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
             <CardDescription>

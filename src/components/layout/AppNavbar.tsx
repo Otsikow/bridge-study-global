@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
@@ -100,7 +100,7 @@ const AppNavbar = () => {
                     <img
                       src={unidoxiaLogo}
                       alt={t("layout.navbar.brand.short")}
-                      className="h-8 w-8 rounded-md object-contain"
+                      className="h-8 w-8 rounded-md object-contain dark:brightness-0 dark:invert"
                     />
                     <span className="text-base font-semibold">
                       {t("layout.navbar.brand.short")}
@@ -193,7 +193,7 @@ const AppNavbar = () => {
             <img
               src={unidoxiaLogo}
               alt={t("layout.navbar.brand.short")}
-              className="h-8 w-8 rounded-md object-contain"
+              className="h-8 w-8 rounded-md object-contain dark:brightness-0 dark:invert"
             />
             <span className="hidden truncate text-base font-semibold sm:inline">
               {t("layout.navbar.brand.full")}
