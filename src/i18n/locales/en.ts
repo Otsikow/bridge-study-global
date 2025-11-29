@@ -87,7 +87,7 @@ const en = {
       },
     },
     footer: {
-      aboutTitle: "UniDoxia — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Connecting international students with world-class universities through verified agents and transparent application management.",
       contactEmailLabel: "Email us",

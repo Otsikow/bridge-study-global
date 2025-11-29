@@ -86,7 +86,7 @@ const zh = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "我们通过认证代理和透明的申请管理，将国际学生与世界一流大学连接起来。",
       contactEmailLabel: "联系我们",
