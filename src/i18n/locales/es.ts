@@ -113,7 +113,7 @@ const es = {
         privacy: "Política de privacidad",
         terms: "Términos de servicio",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Todos los derechos reservados.",
+      copyright: "© {{year}} UniDoxia. Todos los derechos reservados.",
       questions: "¿Preguntas?",
     },
   },

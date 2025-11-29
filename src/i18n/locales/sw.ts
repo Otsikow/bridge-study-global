@@ -113,7 +113,7 @@ const sw = {
         privacy: "Sera ya faragha",
         terms: "Sheria na masharti",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Haki zote zimehifadhiwa.",
+      copyright: "© {{year}} UniDoxia. Haki zote zimehifadhiwa.",
       questions: "Maswali?",
     },
   },

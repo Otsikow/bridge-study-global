@@ -114,7 +114,7 @@ const fr = {
         privacy: "Politique de confidentialité",
         terms: "Conditions d'utilisation",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Tous droits réservés.",
+      copyright: "© {{year}} UniDoxia. Tous droits réservés.",
       questions: "Des questions ?",
     },
   },
