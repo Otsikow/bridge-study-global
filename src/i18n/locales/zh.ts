@@ -113,7 +113,7 @@ const zh = {
         privacy: "隐私政策",
         terms: "服务条款",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. 版权所有。",
+      copyright: "© {{year}} UniDoxia. 版权所有.",
       questions: "有问题吗？",
     },
   },

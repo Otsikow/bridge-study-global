@@ -114,7 +114,7 @@ const en = {
         privacy: "Privacy Policy",
         terms: "Terms of Service",
       },
-      copyright: "© {{year}} UniDoxia — Global Education Gateway. All rights reserved.",
+      copyright: "© {{year}} UniDoxia. All rights reserved.",
       questions: "Questions?",
     },
   },

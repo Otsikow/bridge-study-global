@@ -113,7 +113,7 @@ const hi = {
         privacy: "गोपनीयता नीति",
         terms: "सेवा की शर्तें",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. सर्वाधिकार सुरक्षित।",
+      copyright: "© {{year}} UniDoxia. सर्वाधिकार सुरक्षित।",
       questions: "प्रश्न हैं?",
     },
   },
