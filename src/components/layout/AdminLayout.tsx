@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
 import { Badge } from "@/components/ui/badge";
 
 /* -------------------------------------------------------------------------- */
@@ -226,14 +226,14 @@ const AdminLayout = () => {
     >
       <div className="flex h-16 items-center gap-3 border-b px-4">
         <img
-          src={gegLogo}
-          alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "GEG" })}
+          src={unidoxiaLogo}
+          alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "UniDoxia" })}
           className="h-9 w-9 rounded-lg bg-white object-contain p-1"
         />
         {!isCollapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">
-              {t("admin.layout.sidebar.organization", { defaultValue: "Global Education Gateway" })}
+              {t("admin.layout.sidebar.organization", { defaultValue: "UniDoxia" })}
             </p>
             <p className="truncate text-xs text-muted-foreground">
               {t("admin.layout.sidebar.subtitle", { defaultValue: "Admin Control Centre" })}
