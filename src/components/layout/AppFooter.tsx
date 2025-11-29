@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
 import {
   Mail,
   Search,
@@ -62,9 +62,9 @@ export function AppFooter() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
-                src={gegLogo}
+                src={unidoxiaLogo}
                 alt={t("layout.navbar.brand.full")}
-                className="h-9 w-9 object-contain dark:brightness-0 dark:invert"
+                className="h-9 w-9 rounded-md object-contain"
               />
               <span className="font-semibold text-lg">{t("layout.footer.aboutTitle")}</span>
             </div>

@@ -39,7 +39,7 @@ import {
   Globe,
   AtSign,
 } from "lucide-react";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
 import { cn } from "@/lib/utils";
 import { formatReferralUsername } from "@/lib/referrals";
 import { LoadingState } from "@/components/LoadingState";
@@ -375,12 +375,12 @@ const Signup = () => {
             />
           </div>
           <img
-            src={gegLogo}
-            alt="GEG Logo"
-            className="mx-auto mb-4 h-20 w-20 object-contain dark:brightness-0 dark:invert"
+            src={unidoxiaLogo}
+            alt="UniDoxia Logo"
+            className="mx-auto mb-4 h-20 w-20 rounded-lg object-contain"
           />
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Join GEG
+            Join UniDoxia
           </CardTitle>
           <CardDescription className="text-base">
             Step {step} of {totalSteps}:{" "}

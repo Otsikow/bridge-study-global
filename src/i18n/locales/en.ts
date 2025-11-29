@@ -63,9 +63,9 @@ const en = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia — Global Education Gateway",
       },
       links: {
         home: "Home",
@@ -87,7 +87,7 @@ const en = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia — Global Education Gateway",
       aboutDescription:
         "Connecting international students with world-class universities through verified agents and transparent application management.",
       contactEmailLabel: "Email us",
@@ -114,7 +114,7 @@ const en = {
         privacy: "Privacy Policy",
         terms: "Terms of Service",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. All rights reserved.",
+      copyright: "© {{year}} UniDoxia — Global Education Gateway. All rights reserved.",
       questions: "Questions?",
     },
   },
@@ -336,7 +336,7 @@ const en = {
           trustBadge: "Trusted by {{count}}+ students worldwide",
           title: {
             prefix: "Welcome to",
-            highlight: "Global Education Gateway (GEG)",
+            highlight: "UniDoxia",
             suffix: "",
           },
           description:

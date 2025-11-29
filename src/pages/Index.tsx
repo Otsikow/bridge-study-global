@@ -27,7 +27,7 @@ import {
   Calculator
 } from "lucide-react";
 
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.jpg";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
@@ -192,9 +192,9 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-16">
         <div className="container mx-auto px-4 py-24 text-center">
           <img
-            src={gegLogo}
-            alt="Global Education Gateway logo"
-            className="mx-auto mb-8 h-48 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+            src={unidoxiaLogo}
+            alt="UniDoxia logo"
+            className="mx-auto mb-8 h-48 w-auto rounded-lg object-contain drop-shadow-lg"
           />
 
           <h1 className="text-5xl font-bold mb-4">
