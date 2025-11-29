@@ -86,7 +86,7 @@ const sw = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Tunawaunganisha wanafunzi wa kimataifa na vyuo vikuu bora kupitia mawakala waliothibitishwa na usimamizi wa uwazi wa maombi.",
       contactEmailLabel: "Tutumie barua pepe",

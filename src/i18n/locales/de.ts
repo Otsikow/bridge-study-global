@@ -87,7 +87,7 @@ const de = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Wir verbinden internationale Studierende mit erstklassigen Universitäten über verifizierte Agenten und eine transparente Antragsverwaltung.",
       contactEmailLabel: "E-Mail an uns",
