@@ -59,6 +59,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { LoadingState } from "@/components/LoadingState";
 import BackButton from "@/components/BackButton";
 import type { UniversityRecord } from "@/lib/universityProfile";
@@ -195,9 +196,10 @@ const UniversityProfilePage = () => {
     },
   });
 
+  // Note: useFieldArray requires object arrays, using workaround for string array
   const highlightsFieldArray = useFieldArray({
-    control: form.control,
-    name: "highlights",
+    control: form.control as any,
+    name: "highlights" as const,
   });
 
   const profileQuery = useQuery<UniversityProfileQueryResult>({
@@ -426,12 +428,12 @@ const UniversityProfilePage = () => {
       throw uploadError;
     }
 
-    const { data: publicUrlData, error: publicUrlError } = supabase.storage
+    const { data: publicUrlData } = supabase.storage
       .from("public")
       .getPublicUrl(objectPath);
 
-    if (publicUrlError || !publicUrlData?.publicUrl) {
-      throw publicUrlError ?? new Error("Unable to resolve uploaded asset URL");
+    if (!publicUrlData?.publicUrl) {
+      throw new Error("Unable to resolve uploaded asset URL");
     }
 
     return publicUrlData.publicUrl;
@@ -520,7 +522,7 @@ const UniversityProfilePage = () => {
         description: values.description.trim(),
         logo_url: logoUrl,
         featured_image_url: heroUrl,
-        submission_config_json: updatedDetails,
+        submission_config_json: updatedDetails as unknown as Json,
         active: true,
       };
 

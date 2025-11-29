@@ -148,11 +148,11 @@ const programSchema = z.object({
   level: z.string().min(2, "Level is required"),
   discipline: z.string().min(2, "Discipline is required"),
   durationMonths: z
-    .number({ required_error: "Duration is required" })
+    .number({ message: "Duration is required" })
     .min(1, "Duration must be at least one month"),
   tuitionCurrency: z.string().min(1, "Currency is required"),
   tuitionAmount: z
-    .number({ required_error: "Tuition amount is required" })
+    .number({ message: "Tuition amount is required" })
     .min(0, "Tuition must be zero or greater"),
   applicationFee: z.number().min(0).nullable().optional(),
   seatsAvailable: z.number().min(0).nullable().optional(),
@@ -341,12 +341,12 @@ const ProgramForm = ({
         throw lastError ?? new Error("Unable to upload programme image");
       }
 
-      const { data: publicUrlData, error: publicUrlError } = supabase.storage
+      const { data: publicUrlData } = supabase.storage
         .from(selectedBucket)
         .getPublicUrl(objectPath);
 
-      if (publicUrlError || !publicUrlData?.publicUrl) {
-        throw publicUrlError ?? new Error("Unable to determine uploaded image URL");
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Unable to determine uploaded image URL");
       }
 
       const publicUrl = publicUrlData.publicUrl;
@@ -1209,7 +1209,7 @@ const ProgramsPage = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
                 <SelectTrigger className="sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>

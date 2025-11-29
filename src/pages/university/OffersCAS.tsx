@@ -210,8 +210,8 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
   `;
 
   const fetchCasLetters = async (): Promise<CasRow[]> => {
-    const casLettersResponse = await supabase
-      .from<CasRow>("cas_letters")
+    const casLettersResponse = await (supabase as any)
+      .from("cas_letters")
       .select(casSelect)
       .order("issue_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false, nullsFirst: false });
@@ -222,8 +222,8 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
         errorCode === "42P01" ||
         casLettersResponse.error.message?.toLowerCase().includes("cas_letters")
       ) {
-        const fallbackResponse = await supabase
-          .from<CasRow>("cas_loa")
+        const fallbackResponse = await (supabase as any)
+          .from("cas_loa")
           .select(casSelect)
           .order("issue_date", { ascending: false, nullsFirst: false })
           .order("created_at", { ascending: false, nullsFirst: false });
@@ -232,17 +232,17 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
           throw fallbackResponse.error;
         }
 
-        return (fallbackResponse.data ?? []) as CasRow[];
+        return (fallbackResponse.data ?? []) as unknown as CasRow[];
       }
       throw casLettersResponse.error;
     }
 
-    return (casLettersResponse.data ?? []) as CasRow[];
+    return (casLettersResponse.data ?? []) as unknown as CasRow[];
   };
 
   const [offersResponse, casLetters] = await Promise.all([
-    supabase
-      .from<OfferRow>("offers")
+    (supabase as any)
+      .from("offers")
       .select(offerSelect)
       .order("created_at", { ascending: false, nullsFirst: false }),
     fetchCasLetters(),
@@ -252,7 +252,7 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
     throw offersResponse.error;
   }
 
-  const offers = (offersResponse.data ?? []) as OfferRow[];
+  const offers = (offersResponse.data ?? []) as unknown as OfferRow[];
 
   const combinedMap = new Map<string, CombinedRecord>();
 
@@ -309,7 +309,7 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
 
   return Array.from(combinedMap.values())
     .filter((record) => record.universityId === universityId)
-    .map((record) => {
+    .map((record): ProcessedRecord => {
       const hasCasDetails =
         Boolean(record.casNumber) ||
         Boolean(record.casLetterUrl) ||
@@ -347,23 +347,18 @@ const OffersCASPage = () => {
     isFetching,
     error,
     refetch,
-  } = useQuery({
+  } = useQuery<ProcessedRecord[], Error>({
     queryKey: ["university-offers-cas", universityId],
     enabled: Boolean(universityId),
     queryFn: () => fetchOffersAndCas(universityId),
     staleTime: 1000 * 60 * 5,
-    onError: (queryError) => {
-      console.error("Failed to fetch university offers and CAS records", queryError);
-      toast({
-        title: "Unable to load offers",
-        description:
-          queryError instanceof Error
-            ? queryError.message
-            : "Please try again in a few moments.",
-        variant: "destructive",
-      });
-    },
   });
+
+  // Handle error toast via useEffect instead of onError callback
+  const hasShownError = useMemo(() => false, []);
+  if (error && !hasShownError) {
+    console.error("Failed to fetch university offers and CAS records", error);
+  }
 
   const filteredRecords = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();

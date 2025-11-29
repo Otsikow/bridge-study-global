@@ -15,8 +15,18 @@ interface UsageEventSnapshot {
   event_type: string | null;
 }
 
+interface ProfileSnapshot {
+  id: string;
+  full_name: string | null;
+  email: string;
+  role: Tables<"profiles">["role"];
+  created_at: string;
+  active: boolean;
+  tenant_id: string;
+}
+
 interface UsageSnapshot {
-  profile: Tables<"profiles">;
+  profile: ProfileSnapshot;
   eventsLastHour: number;
   eventsLastDay: number;
   lastActive?: string;
@@ -27,7 +37,7 @@ const UsageMonitoring = () => {
   const tenantId = profile?.tenant_id;
 
   const [loading, setLoading] = useState(true);
-  const [profiles, setProfiles] = useState<Tables<"profiles">[]>([]);
+  const [profiles, setProfiles] = useState<ProfileSnapshot[]>([]);
   const [events, setEvents] = useState<UsageEventSnapshot[]>([]);
 
   const cutoffOneDay = useMemo(() => new Date(Date.now() - 24 * 60 * 60 * 1000), []);

@@ -169,7 +169,10 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
         description: 'Your profile details were updated successfully.',
       };
       setSaveStatus(successState);
-      toast(successState);
+      toast({
+        title: successState.title,
+        description: successState.description,
+      });
     } catch (error: any) {
       console.error('Error updating profile:', error);
       const failureState = {
@@ -179,7 +182,8 @@ const ProfileInfoTab = ({ profile, roleData }: ProfileInfoTabProps) => {
       };
       setSaveStatus(failureState);
       toast({
-        ...failureState,
+        title: failureState.title,
+        description: failureState.description,
         variant: 'destructive',
       });
     } finally {

@@ -67,12 +67,10 @@ type DocumentRequestRow = {
   status?: string | null;
 };
 
-const DOCUMENTS_TABLE = "documents" as unknown as keyof Database["public"]["Tables"];
-const APPLICATION_DOCUMENTS_TABLE =
-  "application_documents" as unknown as keyof Database["public"]["Tables"];
-const OFFERS_TABLE = "offers" as unknown as keyof Database["public"]["Tables"];
-const DOCUMENT_REQUESTS_TABLE =
-  "document_requests" as unknown as keyof Database["public"]["Tables"];
+const DOCUMENTS_TABLE = "documents";
+const APPLICATION_DOCUMENTS_TABLE = "application_documents";
+const OFFERS_TABLE = "offers";
+const DOCUMENT_REQUESTS_TABLE = "document_requests";
 
 const ACTIVE_APPLICATION_STATUSES = [
   "submitted",
@@ -162,8 +160,8 @@ const isMissingTableError = (error: PostgrestError | null) =>
   );
 
 const fetchPendingDocumentsCount = async (tenantId: string) => {
-  const { count, error } = await supabase
-    .from<DocumentsRow>(DOCUMENTS_TABLE)
+  const { count, error } = await (supabase as any)
+    .from(DOCUMENTS_TABLE)
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)
     .eq("status", "pending");
@@ -176,8 +174,8 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
     throw error;
   }
 
-  const { count: applicationDocumentsCount, error: applicationDocumentsError } = await supabase
-    .from<ApplicationDocumentsRow>(APPLICATION_DOCUMENTS_TABLE)
+  const { count: applicationDocumentsCount, error: applicationDocumentsError } = await (supabase as any)
+    .from(APPLICATION_DOCUMENTS_TABLE)
     .select("id, verified, applications!inner(tenant_id)", { count: "exact", head: true })
     .eq("applications.tenant_id", tenantId)
     .eq("verified", false);
@@ -190,8 +188,8 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
     throw applicationDocumentsError;
   }
 
-  const { count: documentRequestsCount, error: documentRequestsError } = await supabase
-    .from<DocumentRequestRow>(DOCUMENT_REQUESTS_TABLE)
+  const { count: documentRequestsCount, error: documentRequestsError } = await (supabase as any)
+    .from(DOCUMENT_REQUESTS_TABLE)
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)
     .eq("status", "pending");
@@ -221,8 +219,8 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .select("id", { count: "exact", head: true })
       .eq("tenant_id", tenantId)
       .in("status", [...ACTIVE_APPLICATION_STATUSES] as ActiveStatus[]),
-    supabase
-      .from<OfferRow>(OFFERS_TABLE)
+    (supabase as any)
+      .from(OFFERS_TABLE)
       .select("id, applications!inner(tenant_id)", { count: "exact", head: true })
       .eq("applications.tenant_id", tenantId),
     supabase
@@ -280,7 +278,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       conversionRate,
     },
     recentApplications: recentApplicationsResponse.data ?? [],
-    university: universityResponse.data ?? null,
+    university: (universityResponse.data ?? null) as UniversityInfoRow | null,
   };
 };
 
