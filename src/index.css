@@ -343,6 +343,83 @@ All colors MUST be HSL.
   .modal-enter {
     @apply animate-scale-in;
   }
+
+  /* Border Beam Hover Animation */
+  .button-border-beam {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .button-border-beam::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0) 10%,
+      hsl(var(--primary) / 0.8) 50%,
+      hsl(var(--primary) / 0) 90%,
+      transparent 100%
+    );
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 2px;
+    pointer-events: none;
+    opacity: 0;
+    clip-path: inset(0 100% 100% 0);
+  }
+
+  .button-border-beam:hover::after {
+    opacity: 1;
+    animation: borderBeam 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  /* Dark mode variant with brighter glow */
+  .dark .button-border-beam::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(var(--primary) / 0) 10%,
+      hsl(var(--primary) / 1) 50%,
+      hsl(var(--primary) / 0) 90%,
+      transparent 100%
+    );
+    box-shadow: 0 0 12px hsl(var(--primary) / 0.7);
+  }
+
+  /* Respect reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .button-border-beam::after {
+      animation: none !important;
+    }
+  }
+}
+
+@keyframes borderBeam {
+  0% {
+    clip-path: inset(0 100% 100% 0);
+  }
+  25% {
+    clip-path: inset(0 0 100% 0);
+  }
+  50% {
+    clip-path: inset(0 0 0 100%);
+  }
+  75% {
+    clip-path: inset(100% 0 0 0);
+  }
+  100% {
+    clip-path: inset(0 100% 100% 0);
+  }
 }
 
 @layer components {
