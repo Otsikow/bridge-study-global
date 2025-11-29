@@ -194,7 +194,7 @@ const Index = () => {
           <img
             src={unidoxiaLogo}
             alt="UniDoxia logo"
-            className="mx-auto mb-8 h-48 w-auto rounded-lg object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+            className="mx-auto mb-8 h-96 w-auto rounded-lg object-contain drop-shadow-lg dark:brightness-0 dark:invert"
           />
 
           <h1 className="text-5xl font-bold mb-4">
