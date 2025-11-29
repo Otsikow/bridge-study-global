@@ -66,10 +66,9 @@ type OfferRow = {
   } | null;
 };
 
-const DOCUMENTS_TABLE = "documents" as unknown as keyof Database["public"]["Tables"];
-const APPLICATION_DOCUMENTS_TABLE =
-  "application_documents" as unknown as keyof Database["public"]["Tables"];
-const OFFERS_TABLE = "offers" as unknown as keyof Database["public"]["Tables"];
+const DOCUMENTS_TABLE = "documents";
+const APPLICATION_DOCUMENTS_TABLE = "application_documents";
+const OFFERS_TABLE = "offers";
 
 const ACTIVE_APPLICATION_STATUSES = [
   "submitted",
@@ -168,7 +167,7 @@ const isMissingTableError = (error: PostgrestError | null) =>
   );
 
 const fetchPendingDocumentsCount = async (tenantId: string) => {
-  const { count, error } = await supabase
+  const { count, error } = await (supabase as any)
     .from(DOCUMENTS_TABLE)
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)
@@ -182,7 +181,7 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
     throw error;
   }
 
-  const { count: applicationDocumentsCount, error: applicationDocumentsError } = await supabase
+  const { count: applicationDocumentsCount, error: applicationDocumentsError } = await (supabase as any)
     .from(APPLICATION_DOCUMENTS_TABLE)
     .select("id, verified, applications!inner(tenant_id)", { count: "exact", head: true })
     .eq("applications.tenant_id", tenantId)
@@ -196,7 +195,7 @@ const fetchPendingDocumentsCount = async (tenantId: string) => {
     throw applicationDocumentsError;
   }
 
-  const { count: documentRequestsCount, error: documentRequestsError } = await supabase
+  const { count: documentRequestsCount, error: documentRequestsError } = await (supabase as any)
     .from("document_requests")
     .select("id", { count: "exact", head: true })
     .eq("tenant_id", tenantId)

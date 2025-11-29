@@ -609,7 +609,7 @@ export default function OffersCASPage() {
                       <SelectContent className="max-h-64 overflow-y-auto bg-slate-950 text-slate-100">
                       <SelectItem value="all">All universities</SelectItem>
                       {universityOptions.map((university, idx) => (
-                        <SelectItem key={university || `uni-${idx}`} value={String(university)}>
+                        <SelectItem key={String(university ?? `uni-${idx}`)} value={String(university)}>
                           {String(university)}
                         </SelectItem>
                       ))}
