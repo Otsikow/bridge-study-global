@@ -149,11 +149,11 @@ export default function Blog() {
 
   const quickLinks = [
     {
-      title: "GEG — Global Education Gateway",
+      title: "UniDoxia",
       description:
         "Connecting international students with world-class universities through verified agents and transparent application management.",
       links: [
-        { label: "info@globaltalentgateway.net", href: "mailto:info@globaltalentgateway.net", external: true },
+        { label: "info@unidoxia.com", href: "mailto:info@unidoxia.com", external: true },
         { label: "+1 (202) 555-0148", href: "tel:+12025550148", external: true },
         { label: "Book a discovery call", href: "/contact", external: false },
       ],
@@ -172,7 +172,7 @@ export default function Blog() {
   return (
     <div className="relative">
       <SEO
-        title="Blog - Global Education Gateway"
+        title="Blog - UniDoxia"
         description="Explore articles, guides, and insights on studying abroad, university admissions, and international education trends. Your resource for a successful academic journey."
         keywords="study abroad blog, international student advice, university application tips, education articles, student recruitment trends, university marketing"
       />

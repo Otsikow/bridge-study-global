@@ -23,7 +23,7 @@ const STUDENT_SUPPORT_RELATIONSHIPS: Record<string, string[]> = {
   "student-amira": ["staff-maya"],
 };
 
-const GEG_STAFF_IDS = ["staff-maya", "admin-jordan", "counselor-samira"];
+const UDX_STAFF_IDS = ["staff-maya", "admin-jordan", "counselor-samira"];
 const AGENT_IDS = ["agent-riley"];
 const UNIVERSITY_IDS = ["uni-sophia"];
 const DIRECTORY_IDS = DIRECTORY_PROFILES.map((profile) => profile.id);
@@ -39,39 +39,39 @@ const getMessagingContactIdsMock = (profile: DirectoryProfile | null | undefined
     case "agent":
     case "partner":
       return unique([
-        ...GEG_STAFF_IDS,
+        ...UDX_STAFF_IDS,
         ...UNIVERSITY_IDS,
         ...(AGENT_STUDENT_RELATIONSHIPS[profile.id] ?? []),
       ]);
     case "staff":
       return unique([
-        ...GEG_STAFF_IDS,
+        ...UDX_STAFF_IDS,
         ...AGENT_IDS,
         ...UNIVERSITY_IDS,
         ...(STAFF_STUDENT_RELATIONSHIPS[profile.id] ?? []),
       ]);
     case "school_rep":
       return unique([
-        ...GEG_STAFF_IDS,
+        ...UDX_STAFF_IDS,
         ...AGENT_IDS,
         ...(UNIVERSITY_APPLICANT_RELATIONSHIPS[profile.id] ?? []),
       ]);
     case "counselor":
       return unique([
-        ...GEG_STAFF_IDS,
+        ...UDX_STAFF_IDS,
         ...AGENT_IDS,
         ...UNIVERSITY_IDS,
         ...DIRECTORY_IDS,
       ]);
     case "student":
       return unique([
-        ...GEG_STAFF_IDS,
+        ...UDX_STAFF_IDS,
         ...(STUDENT_SUPPORT_RELATIONSHIPS[profile.id] ?? []),
       ]);
     case "admin":
       return unique(DIRECTORY_IDS);
     default:
-      return unique([...GEG_STAFF_IDS, ...AGENT_IDS, ...UNIVERSITY_IDS]);
+      return unique([...UDX_STAFF_IDS, ...AGENT_IDS, ...UNIVERSITY_IDS]);
   }
 };
 

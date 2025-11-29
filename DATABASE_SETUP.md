@@ -11,9 +11,9 @@ Run this SQL in your Supabase SQL editor:
 INSERT INTO public.tenants (id, name, slug, email_from, active, brand_colors, settings)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Global Education Gateway',
-  'geg',
-  'noreply@globaleducationgateway.com',
+  'UniDoxia',
+  'udx',
+  'noreply@unidoxia.com',
   true,
   '{"primary": "#1e40af", "secondary": "#3b82f6"}',
   '{}'
@@ -36,7 +36,7 @@ DECLARE
   profile_created boolean := false;
 BEGIN
   -- Get the default tenant
-  SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'geg' LIMIT 1;
+  SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'udx' LIMIT 1;
   
   -- If still no tenant, create one as fallback
   IF default_tenant_id IS NULL THEN

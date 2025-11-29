@@ -72,11 +72,11 @@ export const UniversitySidebar = ({
     >
       <div className="flex items-center gap-3 px-4">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-lg font-semibold text-primary-foreground shadow-sm">
-          G
+          U
         </span>
         <div>
           <p className="text-sm uppercase tracking-[0.3rem] text-muted-foreground">
-            GEG
+            UDX
           </p>
           <h1 className="text-base font-semibold leading-tight text-foreground">
             University Portal
@@ -122,7 +122,7 @@ export const UniversitySidebar = ({
       <div className="rounded-xl border border-border bg-muted/40 p-4 text-xs text-muted-foreground">
         <p className="font-medium text-foreground">Need assistance?</p>
         <p className="mt-1">
-          Visit the partner help center or contact your GEG partnership manager.
+          Visit the partner help center or contact your UDX partnership manager.
         </p>
       </div>
     </aside>

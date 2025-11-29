@@ -5,9 +5,9 @@
 INSERT INTO public.tenants (id, name, slug, email_from, active)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'Global Education Gateway',
-  'geg',
-  'noreply@globaleducationgateway.com',
+  'UniDoxia',
+  'udx',
+  'noreply@unidoxia.com',
   true
 )
 ON CONFLICT (id) DO NOTHING;
@@ -25,7 +25,7 @@ DECLARE
   profile_created boolean := false;
 BEGIN
   -- Get the default tenant (should always exist after this migration)
-  SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'geg' LIMIT 1;
+  SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'udx' LIMIT 1;
   
   -- If still no tenant, create one as fallback
   IF default_tenant_id IS NULL THEN

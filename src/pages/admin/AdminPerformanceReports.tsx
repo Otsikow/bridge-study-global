@@ -83,11 +83,11 @@ const AdminPerformanceReports = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="report-recipients">Recipients</Label>
-              <Input id="report-recipients" placeholder="finance@geg.global, leadership@geg.global" />
+              <Input id="report-recipients" placeholder="finance@unidoxia.com, leadership@unidoxia.com" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="report-branding">Branding theme</Label>
-              <Input id="report-branding" placeholder="Global Education Gateway" />
+              <Input id="report-branding" placeholder="UniDoxia" />
             </div>
           </div>
           <div className="space-y-4 rounded-lg border p-4">

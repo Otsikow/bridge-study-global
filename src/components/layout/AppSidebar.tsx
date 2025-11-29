@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 
 // ✅ Unified menuItems combining both branches
 const menuItems = {
@@ -137,7 +137,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b p-3 md:p-4">
         <div className="flex items-center gap-2 md:gap-3">
           <img
-            src={gegLogo}
+            src={unidoxiaLogo}
             alt="GEG Logo"
             className="h-8 w-8 md:h-10 md:w-10 object-contain flex-shrink-0 dark:brightness-0 dark:invert"
           />

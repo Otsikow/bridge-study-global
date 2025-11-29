@@ -33,9 +33,9 @@ const sections: Section[] = [
     title: 'Overview',
     content: (
       <p>
-        This Privacy Policy describes how Global Education Gateway (“GEG”, “we”, “us”, or “our”) collects, uses, shares, and
+        This Privacy Policy describes how UniDoxia ("UDX", "we", "us", or "our") collects, uses, shares, and
         safeguards your personal information when you access our websites, applications, and related services
-        (collectively, the “Services”).
+        (collectively, the "Services").
       </p>
     ),
     summary:
@@ -173,8 +173,8 @@ const sections: Section[] = [
       <div className="space-y-4">
         <p>
           For privacy questions or to submit a data request, email us at{' '}
-          <a className="text-primary" href="mailto:info@globaleducationgateway.com">
-            info@globaleducationgateway.com
+          <a className="text-primary" href="mailto:info@unidoxia.com">
+            info@unidoxia.com
           </a>
           .
         </p>
@@ -188,8 +188,8 @@ const LegalPrivacy = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
-        title="Privacy Policy - Global Education Gateway"
-        description="Read the Global Education Gateway privacy policy to understand how we collect, use, and protect your personal information throughout your study abroad journey."
+        title="Privacy Policy - UniDoxia"
+        description="Read the UniDoxia privacy policy to understand how we collect, use, and protect your personal information throughout your study abroad journey."
         keywords="privacy policy, data protection, student data, GDPR, student privacy, university application data"
       />
       <header className="border-b bg-background/60 backdrop-blur">
@@ -227,7 +227,7 @@ const LegalPrivacy = () => {
           <div className="prose dark:prose-invert max-w-none">
             <p>
               Our privacy program centers on respect, transparency, and strong controls. Review this policy to understand how
-              data flows through Global Education Gateway and the safeguards that accompany every step.
+              data flows through UniDoxia and the safeguards that accompany every step.
             </p>
           </div>
 

@@ -135,7 +135,7 @@ export default function AdminDashboard() {
             Admin Dashboard
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Manage the Global Education Gateway platform
+            Manage the UniDoxia platform
           </p>
         </div>
 

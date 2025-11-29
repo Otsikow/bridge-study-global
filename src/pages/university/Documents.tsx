@@ -93,7 +93,7 @@ const DocumentsPage = () => {
         title: "Unable to update request",
         description:
           (error as Error)?.message ??
-          "Please try again or contact your GEG partnership manager.",
+          "Please try again or contact your UDX partnership manager.",
         variant: "destructive",
       });
     } finally {

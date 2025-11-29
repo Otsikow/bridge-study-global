@@ -25,7 +25,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "react-i18next";
@@ -98,7 +98,7 @@ const AppNavbar = () => {
                 <div className="flex items-center justify-between gap-3 border-b px-6 py-4">
                   <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
                     <img
-                      src={gegLogo}
+                      src={unidoxiaLogo}
                       alt={t("layout.navbar.brand.short")}
                       className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
                     />
@@ -191,7 +191,7 @@ const AppNavbar = () => {
             className="flex min-w-0 items-center gap-2 transition-transform duration-300 hover:scale-105"
           >
             <img
-              src={gegLogo}
+              src={unidoxiaLogo}
               alt={t("layout.navbar.brand.short")}
               className="h-8 w-8 object-contain dark:brightness-0 dark:invert"
             />

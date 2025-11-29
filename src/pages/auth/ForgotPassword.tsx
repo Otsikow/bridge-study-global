@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import gegLogo from '@/assets/geg-logo.png';
+import unidoxiaLogo from '@/assets/unidoxia-logo.png';
 import BackButton from '@/components/BackButton';
 import { getSiteUrl } from '@/lib/supabaseClientConfig';
 
@@ -54,7 +54,7 @@ const ForgotPassword = () => {
               />
             </div>
             <div className="flex justify-center mb-4">
-              <img src={gegLogo} alt="GEG Logo" className="h-20 w-20 object-contain dark:brightness-0 dark:invert" />
+              <img src={unidoxiaLogo} alt="UDX Logo" className="h-20 w-20 object-contain dark:brightness-0 dark:invert" />
             </div>
             <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
             <CardDescription>

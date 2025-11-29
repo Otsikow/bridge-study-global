@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Badge } from "@/components/ui/badge";
 
 /* -------------------------------------------------------------------------- */
@@ -226,7 +226,7 @@ const AdminLayout = () => {
     >
       <div className="flex h-16 items-center gap-3 border-b px-4">
         <img
-          src={gegLogo}
+          src={unidoxiaLogo}
           alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "GEG" })}
           className="h-9 w-9 rounded-lg bg-white object-contain p-1"
         />

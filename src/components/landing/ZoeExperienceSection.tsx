@@ -155,10 +155,10 @@ const fallbackRoles: Array<
     key: "students",
     title: "Students & families",
     description:
-      "Zoe is a study-abroad counsellor that walks every applicant through the full GEG experience.",
+      "Zoe is a study-abroad counsellor that walks every applicant through the full UDX experience.",
     capabilities: [
       "Answers any study-abroad question instantly in plain language.",
-      "Guides you through every task inside the GEG app so nothing is missed.",
+      "Guides you through every task inside the UDX app so nothing is missed.",
       "Reviews uploaded transcripts, essays, and proof of funds to suggest best-fit schools.",
       "Shares personalised counselling recommendations informed by your goals.",
     ],
@@ -197,7 +197,7 @@ const fallbackRoles: Array<
 
 const fallbackHighlights = [
   "Answers every study-abroad question, no matter the destination.",
-  "Guides learners, agents, and universities through the entire GEG app.",
+  "Guides learners, agents, and universities through the entire UDX app.",
   "Reads shared documents to recommend schools, funding, and next steps.",
 ];
 

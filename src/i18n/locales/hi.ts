@@ -62,9 +62,9 @@ const hi = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UDX",
+        full: "UniDoxia",
+        extended: "UniDoxia",
       },
       links: {
         home: "मुखपृष्ठ",
@@ -86,7 +86,7 @@ const hi = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "हम प्रमाणित एजेंटों और पारदर्शी आवेदन प्रबंधन के माध्यम से अंतरराष्ट्रीय छात्रों को विश्वस्तरीय विश्वविद्यालयों से जोड़ते हैं।",
       contactEmailLabel: "हमें ईमेल करें",
@@ -113,7 +113,7 @@ const hi = {
         privacy: "गोपनीयता नीति",
         terms: "सेवा की शर्तें",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. सर्वाधिकार सुरक्षित।",
+      copyright: "© {{year}} UniDoxia. सर्वाधिकार सुरक्षित।",
       questions: "प्रश्न हैं?",
     },
   },
@@ -363,7 +363,7 @@ const hi = {
       heroTitle: "हमसे संपर्क करें",
       heroSubtitle: "हम आमतौर पर एक कार्य-दिवस के भीतर जवाब देते हैं।",
       emailPrompt: "ईमेल पसंद है?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "हमें WhatsApp पर संदेश भेजें ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "सहायता के लिए तैयार पेशेवर शिक्षा सलाहकार",
@@ -378,9 +378,9 @@ const hi = {
           audience: "छात्र",
           items: [
             {
-              question: "GEG मुझे विश्वविद्यालयों में आवेदन करने में कैसे मदद करता है?",
+              question: "UniDoxia मुझे विश्वविद्यालयों में आवेदन करने में कैसे मदद करता है?",
               answer:
-                "GEG आपको प्रमाणित एजेंटों से जोड़ता है जो हर चरण में मार्गदर्शन करते हैं—विश्वविद्यालय चुनने से लेकर दस्तावेज़ जमा करने तक।",
+                "UniDoxia आपको प्रमाणित एजेंटों से जोड़ता है जो हर चरण में मार्गदर्शन करते हैं—विश्वविद्यालय चुनने से लेकर दस्तावेज़ जमा करने तक।",
             },
             {
               question: "क्या प्लेटफ़ॉर्म का उपयोग करने के लिए शुल्क है?",
@@ -408,7 +408,7 @@ const hi = {
           audience: "विश्वविद्यालय",
           items: [
             {
-              question: "हमारा विश्वविद्यालय GEG के साथ कैसे साझेदारी कर सकता है?",
+              question: "हमारा विश्वविद्यालय UniDoxia के साथ कैसे साझेदारी कर सकता है?",
               answer:
                 "विश्वविद्यालय पोर्टल के माध्यम से साझेदारी अनुरोध जमा करें या हमारी टीम से संपर्क करें। हम आपके संस्थान को सत्यापित करेंगे और कुछ कार्य-दिवसों में ऑनबोर्डिंग पूरी करेंगे।",
             },
@@ -428,7 +428,7 @@ const hi = {
           audience: "एजेंट",
           items: [
             {
-              question: "GEG पर एजेंटों को कौन सा समर्थन मिलता है?",
+              question: "UniDoxia पर एजेंटों को कौन सा समर्थन मिलता है?",
               answer:
                 "एजेंटों को समर्पित CRM, विपणन सामग्री और ऑन-डिमांड प्रशिक्षण मिलता है ताकि वे छात्रों को जल्दी से सही कार्यक्रमों से जोड़ सकें।",
             },

@@ -117,8 +117,8 @@ const UniversityPartnership = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
-        title="University Partnerships - Global Education Gateway"
-        description="Partner with Global Education Gateway to grow your international student enrollment. Access our network of vetted agents and qualified applicants."
+        title="University Partnerships - UniDoxia"
+        description="Partner with UniDoxia to grow your international student enrollment. Access our network of vetted agents and qualified applicants."
         keywords="university partnership, student recruitment, international enrollment, education agent network, international student recruitment, university recruitment"
       />
       <section className="container mx-auto px-4 py-12 lg:py-16">
@@ -135,7 +135,7 @@ const UniversityPartnership = () => {
                 Grow international enrollment with a strategic partner
               </h1>
               <p className="text-lg text-muted-foreground">
-                Global Education Gateway connects your admissions team with motivated learners, data-backed market insights, and the shared infrastructure you need to scale responsibly across borders.
+                UniDoxia connects your admissions team with motivated learners, data-backed market insights, and the shared infrastructure you need to scale responsibly across borders.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Button asChild size="lg">
@@ -200,7 +200,7 @@ const UniversityPartnership = () => {
           <div className="mx-auto max-w-5xl space-y-10">
             <div className="space-y-3 text-center">
               <Badge variant="secondary" className="rounded-full px-3 py-1">
-                Why universities choose GEG
+                Why universities choose UDX
               </Badge>
               <h2 className="text-2xl font-semibold sm:text-3xl">
                 Purpose-built partnerships that balance quality and scale

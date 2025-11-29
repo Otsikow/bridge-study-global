@@ -1,5 +1,5 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { BarChart3, FileCheck2, FileText, Home, MessageSquare, Upload } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { useMemo, type ComponentType, type SVGProps } from "react";
@@ -44,13 +44,13 @@ export function PartnerSidebar() {
       <SidebarHeader className="border-b border-slate-200/70 px-4 py-6 transition-colors dark:border-slate-900/60">
         <div className="flex items-center gap-3">
           <img
-            src={gegLogo}
-            alt="Global Education Gateway"
+            src={unidoxiaLogo}
+            alt="UniDoxia"
             className="h-10 w-10 flex-shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-1 shadow-sm transition-colors dark:border-slate-800/70 dark:bg-slate-900 dark:brightness-0 dark:invert"
           />
           {state !== "collapsed" && (
             <div className="space-y-1">
-              <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">GEG</div>
+              <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">UDX</div>
               <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">Partner</div>
             </div>
           )}

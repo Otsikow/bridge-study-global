@@ -24,7 +24,7 @@ const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
     .map(
       (page) => `
     <url>
-      <loc>https://www.globaleducationgateway.com/${page}</loc>
+      <loc>https://www.unidoxia.com/${page}</loc>
       <lastmod>${new Date().toISOString()}</lastmod>
       <changefreq>weekly</changefreq>
       <priority>${page === "" ? "1.0" : "0.8"}</priority>

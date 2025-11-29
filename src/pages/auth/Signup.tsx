@@ -39,7 +39,7 @@ import {
   Globe,
   AtSign,
 } from "lucide-react";
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { cn } from "@/lib/utils";
 import { formatReferralUsername } from "@/lib/referrals";
 import { LoadingState } from "@/components/LoadingState";
@@ -351,8 +351,8 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 px-4 py-8">
       <SEO
-        title="Sign Up - Global Education Gateway"
-        description="Create an account with Global Education Gateway to begin your study abroad journey. Join as a student, agent, or university partner."
+        title="Sign Up - UniDoxia"
+        description="Create an account with UniDoxia to begin your study abroad journey. Join as a student, agent, or university partner."
         keywords="sign up, create account, student registration, agent registration, university registration, student recruitment platform"
       />
       <Card className="w-full max-w-3xl shadow-2xl border-2 relative overflow-hidden">
@@ -375,12 +375,12 @@ const Signup = () => {
             />
           </div>
           <img
-            src={gegLogo}
-            alt="GEG Logo"
+            src={unidoxiaLogo}
+            alt="UDX Logo"
             className="mx-auto mb-4 h-20 w-20 object-contain dark:brightness-0 dark:invert"
           />
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Join GEG
+            Join UDX
           </CardTitle>
           <CardDescription className="text-base">
             Step {step} of {totalSteps}:{" "}

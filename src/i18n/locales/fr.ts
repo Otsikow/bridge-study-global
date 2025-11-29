@@ -63,9 +63,9 @@ const fr = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UDX",
+        full: "UniDoxia",
+        extended: "UniDoxia",
       },
       links: {
         home: "Accueil",
@@ -87,7 +87,7 @@ const fr = {
       },
     },
     footer: {
-      aboutTitle: "GEG — Global Education Gateway",
+      aboutTitle: "UniDoxia",
       aboutDescription:
         "Nous connectons les étudiants internationaux aux universités de renommée mondiale grâce à des agents vérifiés et une gestion transparente des candidatures.",
       contactEmailLabel: "Nous écrire",
@@ -114,7 +114,7 @@ const fr = {
         privacy: "Politique de confidentialité",
         terms: "Conditions d'utilisation",
       },
-      copyright: "© {{year}} GEG — Global Education Gateway. Tous droits réservés.",
+      copyright: "© {{year}} UniDoxia. Tous droits réservés.",
       questions: "Des questions ?",
     },
   },
@@ -197,7 +197,7 @@ const fr = {
   admin: {
     layout: {
       sidebar: {
-        logoAlt: "GEG",
+        logoAlt: "UniDoxia",
         organization: "Global Education Gateway",
         subtitle: "Centre de contrôle administrateur",
       },
@@ -571,7 +571,7 @@ const fr = {
           },
         },
         storyboard: {
-          heading: "Comment GEG simplifie chaque étape",
+          heading: "Comment UniDoxia simplifie chaque étape",
           subheading:
             "Suivez notre storyboard pour découvrir comment notre plateforme et nos équipes accompagnent votre candidature de l'idée à l'arrivée.",
           stepLabel: "Étape {{number}}",
@@ -579,7 +579,7 @@ const fr = {
             discover: {
               title: "Découvrez vos programmes idéaux",
               description:
-                "Partagez vos objectifs et vos résultats : GEG sélectionne instantanément des universités, programmes et bourses adaptés.",
+                "Partagez vos objectifs et vos résultats : UniDoxia sélectionne instantanément des universités, programmes et bourses adaptés.",
               support:
                 "Des filtres intelligents et des recommandations IA éliminent les tâtonnements pour constituer une short-list en quelques minutes.",
               imageAlt: "Étudiante examinant des programmes universitaires lors d'une visite de campus",
@@ -594,7 +594,7 @@ const fr = {
             collaborate: {
               title: "Collaborez avec votre agent expert",
               description:
-                "Travaillez avec un conseiller GEG vérifié pour affiner les documents, aligner les délais et rester prêt pour les entretiens.",
+                "Travaillez avec un conseiller UniDoxia vérifié pour affiner les documents, aligner les délais et rester prêt pour les entretiens.",
               support:
                 "Espaces partagés, commentaires annotés et messagerie instantanée offrent une collaboration transparente et sereine.",
               imageAlt: "Étudiante échangeant avec un agent d'éducation via un smartphone",
@@ -619,7 +619,7 @@ const fr = {
         featuredUniversities: {
           heading: "Universités mises en avant",
           description:
-            "Des établissements qui offrent systématiquement aux étudiants internationaux de GEG une expérience d'intégration exceptionnelle.",
+            "Des établissements qui offrent systématiquement aux étudiants internationaux de UniDoxia une expérience d'intégration exceptionnelle.",
           network: {
             label: "Réseau en vedette",
             summary: "{{count}} établissements sélectionnés par notre équipe partenariats",
@@ -653,7 +653,7 @@ const fr = {
       heroTitle: "Contactez-nous",
       heroSubtitle: "Nous répondons généralement sous un jour ouvrable.",
       emailPrompt: "Vous préférez l'e-mail ?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "Écrivez-nous sur WhatsApp ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "Conseiller en éducation prêt à aider",
@@ -668,9 +668,9 @@ const fr = {
           audience: "Étudiants",
           items: [
             {
-              question: "Comment GEG m'aide-t-il à postuler dans les universités ?",
+              question: "Comment UniDoxia m'aide-t-il à postuler dans les universités ?",
               answer:
-                "GEG vous met en relation avec des agents vérifiés qui vous accompagnent à chaque étape – de la sélection des universités à la soumission des documents.",
+                "UniDoxia vous met en relation avec des agents vérifiés qui vous accompagnent à chaque étape – de la sélection des universités à la soumission des documents.",
             },
             {
               question: "L'utilisation de la plateforme est-elle payante ?",
@@ -698,7 +698,7 @@ const fr = {
           audience: "Universités",
           items: [
             {
-              question: "Comment notre université peut-elle devenir partenaire de GEG ?",
+              question: "Comment notre université peut-elle devenir partenaire de UniDoxia ?",
               answer:
                 "Soumettez une demande de partenariat via le portail universitaire ou contactez notre équipe. Nous vérifions votre établissement et organisons l'onboarding en quelques jours ouvrés.",
             },
@@ -718,7 +718,7 @@ const fr = {
           audience: "Agents",
           items: [
             {
-              question: "Quel soutien les agents reçoivent-ils sur GEG ?",
+              question: "Quel soutien les agents reçoivent-ils sur UniDoxia ?",
               answer:
                 "Les agents disposent d'un CRM dédié, de supports marketing et de formations à la demande pour aider les étudiants à trouver rapidement les bons programmes.",
             },

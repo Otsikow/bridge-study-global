@@ -371,7 +371,7 @@ function UniversityMessagesPage() {
             University Messages
           </h1>
           <p className="text-sm text-muted-foreground">
-            Coordinate with agents and GEG staff to keep your applicants on track.
+            Coordinate with agents and UDX staff to keep your applicants on track.
           </p>
         </div>
 
@@ -527,7 +527,7 @@ function UniversityMessagesPage() {
               <DialogHeader>
                 <DialogTitle>Start a new conversation</DialogTitle>
                 <DialogDescription>
-                  Search for agents or GEG team members to begin a new chat.
+                  Search for agents or UDX team members to begin a new chat.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">

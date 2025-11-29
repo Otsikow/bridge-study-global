@@ -28,7 +28,7 @@ const formatCountdownLabel = (countdown: number) => {
 export default function ScholarshipShareLanding() {
   const [searchParams] = useSearchParams();
   const scholarshipTitle = searchParams.get("title") ?? "Scholarship opportunity";
-  const institution = searchParams.get("institution") ?? "Global Education Gateway partner";
+  const institution = searchParams.get("institution") ?? "UniDoxia partner";
   const country = searchParams.get("country") ?? undefined;
   const awardAmount = searchParams.get("award") ?? undefined;
   const safeRedirectUrl = useMemo(() => sanitizeRedirectUrl(searchParams.get("redirect")), [searchParams]);
@@ -51,18 +51,18 @@ export default function ScholarshipShareLanding() {
     return () => window.clearInterval(timer);
   }, [safeRedirectUrl]);
 
-  const description = `Preview ${scholarshipTitle} on Global Education Gateway before continuing to the official scholarship site.`;
+  const description = `Preview ${scholarshipTitle} on UniDoxia before continuing to the official scholarship site.`;
 
   return (
     <div className="py-16">
-      <SEO title={`${scholarshipTitle} | Global Education Gateway`} description={description} />
+      <SEO title={`${scholarshipTitle} | UniDoxia`} description={description} />
       <div className="container mx-auto max-w-3xl px-4">
         <div className="text-center space-y-3 mb-10">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
             <ShieldCheck className="h-4 w-4" /> Verified scholarship redirect
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Stay on GEG before you go</h1>
-          <p className="text-muted-foreground">We guide every student through Global Education Gateway so you always land on trusted opportunities.</p>
+          <h1 className="text-3xl font-bold text-foreground">Stay on UDX before you go</h1>
+          <p className="text-muted-foreground">We guide every student through UniDoxia so you always land on trusted opportunities.</p>
         </div>
 
         <Card>
@@ -87,7 +87,7 @@ export default function ScholarshipShareLanding() {
 
             <Alert>
               <AlertTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4" /> You're viewing this via Global Education Gateway
+                <ShieldCheck className="h-4 w-4" /> You're viewing this via UniDoxia
               </AlertTitle>
               <AlertDescription>
                 We confirm each scholarship before sending you on. This quick stop keeps students safe from outdated or fraudulent listings.
@@ -105,14 +105,14 @@ export default function ScholarshipShareLanding() {
                   </a>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  The official site opens in a new tab so you can return to GEG anytime.
+                  The official site opens in a new tab so you can return to UDX anytime.
                 </p>
               </div>
             ) : (
               <Alert variant="destructive">
                 <AlertTitle>We couldn't find the official link</AlertTitle>
                 <AlertDescription>
-                  This share link is missing a destination. Ask your advisor to resend it or explore verified scholarships on GEG.
+                  This share link is missing a destination. Ask your advisor to resend it or explore verified scholarships on UDX.
                 </AlertDescription>
               </Alert>
             )}

@@ -112,9 +112,9 @@ async function setupDatabase() {
       .from('tenants')
       .upsert({
         id: '00000000-0000-0000-0000-000000000001',
-        name: 'Global Education Gateway',
-        slug: 'geg',
-        email_from: 'noreply@globaleducationgateway.com',
+        name: 'UniDoxia',
+        slug: 'udx',
+        email_from: 'noreply@unidoxia.com',
         active: true,
         brand_colors: { primary: '#1e40af', secondary: '#3b82f6' },
         settings: {}

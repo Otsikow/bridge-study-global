@@ -27,7 +27,7 @@ import {
   Calculator
 } from "lucide-react";
 
-import gegLogo from "@/assets/geg-logo.png";
+import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import studentsStudyingGroup from "@/assets/students-studying-group.png";
 import agentStudentConsulting from "@/assets/agent-student-consulting.png";
 import universityBuildings from "@/assets/university-buildings.png";
@@ -181,7 +181,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <SEO
-        title="Global Education Gateway - Your Path to International Education"
+        title="UniDoxia - Your Path to International Education"
         description="Connect with top universities worldwide. Streamline your study abroad journey with expert guidance, AI tools, tracking, and full support."
         keywords="study abroad, university applications, international education, AI tools, visa calculator"
       />
@@ -192,8 +192,8 @@ const Index = () => {
       <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-16">
         <div className="container mx-auto px-4 py-24 text-center">
           <img
-            src={gegLogo}
-            alt="Global Education Gateway logo"
+            src={unidoxiaLogo}
+            alt="UniDoxia logo"
             className="mx-auto mb-8 h-48 w-auto object-contain drop-shadow-lg dark:brightness-0 dark:invert"
           />
 
