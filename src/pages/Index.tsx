@@ -219,7 +219,7 @@ const Index = () => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-90 group-hover:opacity-80" />
 
-                    <Badge className="absolute left-4 top-4 bg-background/90 text-white">
+                    <Badge className="absolute left-4 top-4 bg-background/90 text-foreground">
                       {cta.badge}
                     </Badge>
                   </div>
