@@ -63,9 +63,9 @@ const de = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia — Study Abroad Platform",
       },
       links: {
         home: "Startseite",
@@ -210,7 +210,7 @@ const de = {
         trustBadge: "Von {{count}}+ Studierenden weltweit vertraut",
         title: {
           prefix: "Willkommen bei",
-          highlight: "Global Education Gateway (GEG)",
+          highlight: "UniDoxia (UniDoxia)",
           suffix: "",
         },
         description:
@@ -240,7 +240,7 @@ const de = {
         },
       },
       features: {
-        heading: "Warum GEG wählen?",
+        heading: "Warum UniDoxia wählen?",
         cards: {
           applyEasily: {
             title: "Einfach bewerben",
@@ -498,7 +498,7 @@ const de = {
         },
       },
       storyboard: {
-        heading: "So vereinfacht GEG jeden Schritt",
+        heading: "So vereinfacht UniDoxia jeden Schritt",
         subheading:
           "Erleben Sie Schritt für Schritt, wie unsere Plattform und unser Team Ihre Bewerbung von der Idee bis zur Ankunft begleiten.",
         stepLabel: "Schritt {{number}}",
@@ -506,7 +506,7 @@ const de = {
           discover: {
             title: "Finden Sie Ihre passenden Programme",
             description:
-              "Nennen Sie Ihre Ziele und Leistungen – GEG kuratiert sofort Universitäten, Programme und Stipendien, die zu Ihnen passen.",
+              "Nennen Sie Ihre Ziele und Leistungen – UniDoxia kuratiert sofort Universitäten, Programme und Stipendien, die zu Ihnen passen.",
             support:
               "Intelligente Filter und KI-Empfehlungen nehmen das Rätselraten ab, damit Sie in Minuten eine Shortlist erstellen.",
             imageAlt:
@@ -524,7 +524,7 @@ const de = {
           collaborate: {
             title: "Arbeiten Sie mit Ihrem Expert:innen-Agenten zusammen",
             description:
-              "Arbeiten Sie mit einem verifizierten GEG-Berater zusammen, um Dokumente zu verfeinern, Zeitpläne abzustimmen und interviewbereit zu bleiben.",
+              "Arbeiten Sie mit einem verifizierten UniDoxia-Berater zusammen, um Dokumente zu verfeinern, Zeitpläne abzustimmen und interviewbereit zu bleiben.",
             support:
               "Gemeinsame Arbeitsbereiche, kommentiertes Feedback und Sofortnachrichten sorgen für transparente Entscheidungen.",
             imageAlt:
@@ -553,7 +553,7 @@ const de = {
       featuredUniversities: {
         heading: "Ausgewählte Universitäten",
         description:
-          "Institutionen, die internationalen GEG-Studierenden konsequent ein herausragendes Onboarding-Erlebnis bieten.",
+          "Institutionen, die internationalen UniDoxia-Studierenden konsequent ein herausragendes Onboarding-Erlebnis bieten.",
         network: {
           label: "Ausgewähltes Netzwerk",
           summary:
@@ -570,7 +570,7 @@ const de = {
         },
         fallback: {
           summary:
-            "Engagierte Partner, die Studierende von Global Education Gateway mit maßgeschneiderter Unterstützung begrüßen.",
+            "Engagierte Partner, die Studierende von UniDoxia mit maßgeschneiderter Unterstützung begrüßen.",
           highlight: "Engagierter Erfolgspartner für Studierende",
           notice: {
             error:
@@ -641,7 +641,7 @@ const de = {
             role: "Master-Studentin am MIT",
             country: "USA",
             quote:
-              "GEG hat meinen Traum, am MIT zu studieren, wahr gemacht. Die Plattform war intuitiv und mein Agent unglaublich unterstützend.",
+              "UniDoxia hat meinen Traum, am MIT zu studieren, wahr gemacht. Die Plattform war intuitiv und mein Agent unglaublich unterstützend.",
             rating: 5,
           },
           {
@@ -649,7 +649,7 @@ const de = {
             role: "MBA-Student an der Universität Oxford",
             country: "UK",
             quote:
-              "Die Echtzeitverfolgung gab mir Sicherheit. Ich wusste immer, wo meine Bewerbung stand. GEG ist sehr zu empfehlen!",
+              "Die Echtzeitverfolgung gab mir Sicherheit. Ich wusste immer, wo meine Bewerbung stand. UniDoxia ist sehr zu empfehlen!",
             rating: 5,
           },
           {
@@ -657,7 +657,7 @@ const de = {
             role: "Ingenieurstudentin an der Stanford University",
             country: "USA",
             quote:
-              "Von der Programmsuche bis zur Visa-Genehmigung hat mich GEG in jedem Schritt unterstützt. Hervorragender Service!",
+              "Von der Programmsuche bis zur Visa-Genehmigung hat mich UniDoxia in jedem Schritt unterstützt. Hervorragender Service!",
             rating: 5,
           },
         ],
@@ -672,9 +672,9 @@ const de = {
             items: [
               {
                 question:
-                  "Wie unterstützt mich GEG bei der Bewerbung an Universitäten?",
+                  "Wie unterstützt mich UniDoxia bei der Bewerbung an Universitäten?",
                 answer:
-                  "GEG verbindet Sie mit verifizierten Agenten, die Sie in jeder Phase begleiten – von der Hochschulwahl bis zur Dokumenteneinreichung.",
+                  "UniDoxia verbindet Sie mit verifizierten Agenten, die Sie in jeder Phase begleiten – von der Hochschulwahl bis zur Dokumenteneinreichung.",
               },
               {
                 question: "Kostet die Nutzung der Plattform etwas?",
@@ -770,7 +770,7 @@ const de = {
       heroTitle: "Kontaktieren Sie uns",
       heroSubtitle: "In der Regel antworten wir innerhalb eines Werktags.",
       emailPrompt: "Lieber per E-Mail?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "Schreiben Sie uns auf WhatsApp ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "Professionelle Bildungsberaterin, bereit zu helfen",
@@ -787,9 +787,9 @@ const de = {
           items: [
             {
               question:
-                "Wie unterstützt mich GEG bei der Bewerbung an Universitäten?",
+                "Wie unterstützt mich UniDoxia bei der Bewerbung an Universitäten?",
               answer:
-                "GEG verbindet Sie mit verifizierten Agenten, die Sie in jeder Phase begleiten – von der Hochschulwahl bis zur Dokumenteneinreichung.",
+                "UniDoxia verbindet Sie mit verifizierten Agenten, die Sie in jeder Phase begleiten – von der Hochschulwahl bis zur Dokumenteneinreichung.",
             },
             {
               question: "Kostet die Nutzung der Plattform etwas?",
@@ -819,7 +819,7 @@ const de = {
           audience: "Universitäten",
           items: [
             {
-              question: "Wie kann unsere Universität mit GEG zusammenarbeiten?",
+              question: "Wie kann unsere Universität mit UniDoxia zusammenarbeiten?",
               answer:
                 "Reichen Sie eine Partnerschaftsanfrage über das Universitätsportal ein oder kontaktieren Sie unser Partnermanagement. Wir verifizieren Ihre Institution und starten das Onboarding innerhalb weniger Werktage.",
             },
@@ -840,7 +840,7 @@ const de = {
           audience: "Agenten",
           items: [
             {
-              question: "Welche Unterstützung erhalten Agenten bei GEG?",
+              question: "Welche Unterstützung erhalten Agenten bei UniDoxia?",
               answer:
                 "Agenten erhalten ein dediziertes CRM, Marketingmaterialien und bedarfsgerechte Schulungen, um Studierende schnell mit passenden Programmen zu verknüpfen.",
             },
@@ -863,8 +863,8 @@ const de = {
   admin: {
     layout: {
       sidebar: {
-        logoAlt: "GEG",
-        organization: "Global Education Gateway",
+        logoAlt: "UniDoxia",
+        organization: "UniDoxia",
         subtitle: "Administratives Kontrollzentrum",
       },
       navigation: {
@@ -885,7 +885,7 @@ const de = {
       },
       header: {
         openNavigation: "Navigation öffnen",
-        organization: "Global Education Gateway",
+        organization: "UniDoxia",
         workspace: "Administrator-Arbeitsbereich",
         privilegedAccess: "Privilegierter Zugriff",
         askZoe: "Zoe fragen",

@@ -37,7 +37,7 @@ AS $$
 $$;
 
 -- Ensure the tenant-aware helper also returns the image URL
-CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug TEXT DEFAULT 'geg')
+CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug TEXT DEFAULT 'unidoxia')
 RETURNS TABLE (
   id UUID,
   name TEXT,
@@ -71,7 +71,7 @@ AS $$
     u.featured_image_url
   FROM public.universities u
   JOIN public.tenants t ON t.id = u.tenant_id
-  WHERE t.slug = COALESCE(NULLIF(p_tenant_slug, ''), 'geg')
+  WHERE t.slug = COALESCE(NULLIF(p_tenant_slug, ''), 'unidoxia')
     AND u.active IS TRUE
     AND u.featured IS TRUE
   ORDER BY COALESCE(u.featured_priority, 9999), u.name ASC

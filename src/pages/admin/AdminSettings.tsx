@@ -158,8 +158,8 @@ const emailTemplateSeed: Record<EmailTemplateKey, EmailTemplate> = {
   onboarding: {
     name: "Onboarding welcome",
     description: "Sent immediately after a new partner or campus admin is provisioned.",
-    subject: "Welcome to Global Education Gateway — getting started",
-    body: "Hi {{first_name}},\n\nThanks for joining Global Education Gateway. Here’s your launch checklist to activate admissions and finance tools.\n\n— GEG Team",
+    subject: "Welcome to UniDoxia — getting started",
+    body: "Hi {{first_name}},\n\nThanks for joining UniDoxia. Here’s your launch checklist to activate admissions and finance tools.\n\n— UniDoxia Team",
     sendAutomatically: true,
   },
   verification: {

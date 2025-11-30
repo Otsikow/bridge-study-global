@@ -351,8 +351,8 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 px-4 py-8">
       <SEO
-        title="Sign Up - Global Education Gateway"
-        description="Create an account with Global Education Gateway to begin your study abroad journey. Join as a student, agent, or university partner."
+        title="Sign Up - UniDoxia"
+        description="Create an account with UniDoxia to begin your study abroad journey. Join as a student, agent, or university partner."
         keywords="sign up, create account, student registration, agent registration, university registration, student recruitment platform"
       />
       <Card className="w-full max-w-3xl shadow-2xl border-2 relative overflow-hidden">

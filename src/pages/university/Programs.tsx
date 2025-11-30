@@ -947,7 +947,7 @@ const ProgramsPage = () => {
         title: "Unable to update programme",
         description:
           (error as Error)?.message ??
-          "Please try again or contact your GEG partnership manager.",
+          "Please try again or contact your UniDoxia partnership manager.",
         variant: "destructive",
       });
     } finally {
@@ -1167,7 +1167,7 @@ const ProgramsPage = () => {
       <div>
         <h1 className="text-2xl font-semibold text-foreground">Programmes</h1>
         <p className="text-sm text-muted-foreground">
-          Manage your published courses and control which ones are visible to GEG agents and students.
+          Manage your published courses and control which ones are visible to UniDoxia agents and students.
         </p>
       </div>
 
@@ -1395,7 +1395,7 @@ const ProgramsPage = () => {
           <DialogHeader>
             <DialogTitle>Add a new programme</DialogTitle>
             <DialogDescription>
-              Publish a new course to make it available to agents and students across the GEG ecosystem.
+              Publish a new course to make it available to agents and students across the UniDoxia ecosystem.
             </DialogDescription>
           </DialogHeader>
           <ProgramForm

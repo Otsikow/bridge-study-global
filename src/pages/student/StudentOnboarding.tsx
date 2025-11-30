@@ -48,7 +48,7 @@ type PaymentSummary = Pick<
   'id' | 'status' | 'purpose' | 'application_id' | 'created_at' | 'updated_at'
 >;
 
-const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'geg';
+const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'unidoxia';
 const DEFAULT_TENANT_ID = import.meta.env.VITE_DEFAULT_TENANT_ID ?? '00000000-0000-0000-0000-000000000001';
 
 const getRecordTimestamp = (record?: { updated_at: string | null; created_at: string | null } | null) =>
@@ -504,7 +504,7 @@ export default function StudentOnboarding() {
 
         <div className="space-y-2 animate-fade-in">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-            Welcome to Global Education Gateway
+            Welcome to UniDoxia
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
             Complete your profile to start applying to universities worldwide

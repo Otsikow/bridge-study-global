@@ -181,7 +181,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <SEO
-        title="Global Education Gateway - Your Path to International Education"
+        title="UniDoxia - Your Path to International Education"
         description="Connect with top universities worldwide. Streamline your study abroad journey with expert guidance, AI tools, tracking, and full support."
         keywords="study abroad, university applications, international education, AI tools, visa calculator"
       />

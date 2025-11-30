@@ -48,7 +48,7 @@ const sendEmail = async (to: string[], subject: string, html: string) => {
       Authorization: `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: "Global Education Gateway <info@globaleducationgateway.com>",
+      from: "UniDoxia <info@unidoxia.com>",
       to,
       subject,
       html,
@@ -108,7 +108,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send notification to admin
     const adminEmailResponse = await sendEmail(
-      ["info@globaleducationgateway.com"],
+      ["info@unidoxia.com"],
       `New Contact Form Submission from ${name}`,
       `
         <h2>New Contact Form Submission</h2>
@@ -123,7 +123,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send confirmation to user
     const userEmailResponse = await sendEmail(
       [email],
-      "Thank you for contacting Global Education Gateway",
+      "Thank you for contacting UniDoxia",
       `
         <h1>Thank you for reaching out, ${safeName}!</h1>
         <p>We have received your message and will get back to you as soon as possible.</p>
@@ -131,7 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
         <p><strong>Your message:</strong></p>
         <p>${safeMessage}</p>
         <br>
-        <p>Best regards,<br>Global Education Gateway Team</p>
+        <p>Best regards,<br>UniDoxia Team</p>
       `
     );
 

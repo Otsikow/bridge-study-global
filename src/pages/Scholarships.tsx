@@ -49,8 +49,8 @@ const DEFAULT_FILTERS: ScholarshipSearchFilters = {
   eligibilityTags: [],
 };
 
-const STORAGE_KEY = "geg-saved-scholarships";
-const ALERTS_STORAGE_KEY = "geg-scholarship-alerts-enabled";
+const STORAGE_KEY = "unidoxia-saved-scholarships";
+const ALERTS_STORAGE_KEY = "unidoxia-scholarship-alerts-enabled";
 
 const detectProfileTags = (saved: ScholarshipSearchResult[]): string[] => {
   const tagSet = new Set<string>();
@@ -315,7 +315,7 @@ const ScholarshipsPage = () => {
   return (
     <>
       <SEO 
-        title="Find Scholarships - Global Education Gateway"
+        title="Find Scholarships - UniDoxia"
         description="Discover scholarships and funding opportunities worldwide. Search by country, level, and eligibility to find the perfect scholarship for your international education journey."
       />
       

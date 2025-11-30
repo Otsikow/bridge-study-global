@@ -36,7 +36,7 @@ const mockBuilds: BuildPreview[] = [
     commitMessage: "Fix task status updates and feedback",
     branch: "main",
     status: "success",
-    previewUrl: "https://preview-0baddf4e--globaleducationgateway.lovable.app",
+    previewUrl: "https://preview-0baddf4e--unidoxia.lovable.app",
     buildTime: "2025-11-21T14:38:52Z",
     duration: "2m 34s",
     author: "Developer"

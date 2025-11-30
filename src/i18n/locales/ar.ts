@@ -62,9 +62,9 @@ const ar = {
   layout: {
     navbar: {
       brand: {
-        short: "GEG",
-        full: "Global Education Gateway",
-        extended: "GEG — Global Education Gateway",
+        short: "UniDoxia",
+        full: "UniDoxia",
+        extended: "UniDoxia — Study Abroad Platform",
       },
       links: {
         home: "الرئيسية",
@@ -363,7 +363,7 @@ const ar = {
       heroTitle: "تواصل معنا",
       heroSubtitle: "نحن نرد عادة خلال يوم عمل واحد.",
       emailPrompt: "تفضل البريد الإلكتروني؟",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "راسلنا عبر واتساب ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "مستشار تعليمي محترف جاهز للمساعدة",
@@ -378,9 +378,9 @@ const ar = {
           audience: "الطلاب",
           items: [
             {
-              question: "كيف يساعدني GEG في التقديم للجامعات؟",
+              question: "كيف يساعدني UniDoxia في التقديم للجامعات؟",
               answer:
-                "يربطك GEG بوكلاء موثوقين يوجهونك في كل مرحلة، من اختيار الجامعات إلى تقديم المستندات.",
+                "يربطك UniDoxia بوكلاء موثوقين يوجهونك في كل مرحلة، من اختيار الجامعات إلى تقديم المستندات.",
             },
             {
               question: "هل هناك رسوم لاستخدام المنصة؟",
@@ -408,7 +408,7 @@ const ar = {
           audience: "الجامعات",
           items: [
             {
-              question: "كيف يمكن لجامعتنا الشراكة مع GEG؟",
+              question: "كيف يمكن لجامعتنا الشراكة مع UniDoxia؟",
               answer:
                 "قدّم طلب شراكة عبر بوابة الجامعة أو تواصل مع فريقنا. سنقوم بالتحقق من مؤسستك وإكمال عملية الانضمام خلال أيام عمل قليلة.",
             },
@@ -428,7 +428,7 @@ const ar = {
           audience: "الوكلاء",
           items: [
             {
-              question: "ما الدعم الذي يحصل عليه الوكلاء في GEG؟",
+              question: "ما الدعم الذي يحصل عليه الوكلاء في UniDoxia؟",
               answer:
                 "يحصل الوكلاء على نظام CRM مخصص ومواد تسويقية وتدريب حسب الطلب لمساعدة الطلاب في إيجاد البرامج المناسبة بسرعة.",
             },

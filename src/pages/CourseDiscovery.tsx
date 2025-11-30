@@ -33,7 +33,7 @@ import { SEO } from "@/components/SEO";
 import { ProgramSearchView } from "@/components/course-discovery/ProgramSearchView";
 
 const ITEMS_PER_PAGE = 12;
-const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "geg";
+const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? "unidoxia";
 const DEFAULT_TUITION_RANGE = {
   min: 0,
   max: 100000,
@@ -771,8 +771,8 @@ export default function CourseDiscovery() {
   }, [filterOptions]);
 
   const seoTitle = isProgramView
-    ? "Find Programs & Universities - Global Education Gateway"
-    : "Discover Courses - Global Education Gateway";
+    ? "Find Programs & Universities - UniDoxia"
+    : "Discover Courses - UniDoxia";
   const seoDescription = isProgramView
     ? "Find and compare universities from around the world. Filter by country, program, and more to discover the perfect institution for your study abroad journey."
     : "Explore thousands of courses from top universities worldwide. Filter by discipline, level, tuition, and more to find the right program for your international education.";

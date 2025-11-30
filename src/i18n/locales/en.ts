@@ -65,7 +65,7 @@ const en = {
       brand: {
         short: "UniDoxia",
         full: "UniDoxia",
-        extended: "UniDoxia — Global Education Gateway",
+        extended: "UniDoxia — Study Abroad Platform",
       },
       links: {
         home: "Home",
@@ -164,8 +164,8 @@ const en = {
   admin: {
     layout: {
       sidebar: {
-        logoAlt: "GEG",
-        organization: "Global Education Gateway",
+        logoAlt: "UniDoxia",
+        organization: "UniDoxia",
         subtitle: "Admin Control Centre",
       },
       navigation: {
@@ -186,7 +186,7 @@ const en = {
       },
       header: {
         openNavigation: "Open navigation",
-        organization: "Global Education Gateway",
+        organization: "UniDoxia",
         workspace: "Administrator Workspace",
         privilegedAccess: "Privileged access",
         askZoe: "Ask Zoe",
@@ -366,7 +366,7 @@ const en = {
           },
         },
         features: {
-          heading: "Why Choose GEG?",
+          heading: "Why Choose UniDoxia?",
           cards: {
             applyEasily: {
               title: "Apply Easily",
@@ -530,7 +530,7 @@ const en = {
           highlightsHeading: "What Zoe handles for you",
           highlights: [
             "Answers every study-abroad question with region-aware visa and policy context.",
-            "Guides you through the entire GEG app so timelines, dashboards, and automations stay on track.",
+            "Guides you through the entire UniDoxia app so timelines, dashboards, and automations stay on track.",
             "Reads uploaded documents to recommend schools, scholarships, and next steps instantly.",
           ],
           roles: [
@@ -538,10 +538,10 @@ const en = {
               key: "students",
               title: "Students & families",
               description:
-                "Zoe is a study-abroad counsellor that walks every applicant through the full GEG experience.",
+                "Zoe is a study-abroad counsellor that walks every applicant through the full UniDoxia experience.",
               capabilities: [
                 "Answers any study-abroad question instantly in plain language.",
-                "Guides you through every task inside the GEG app so nothing is missed.",
+                "Guides you through every task inside the UniDoxia app so nothing is missed.",
                 "Reviews uploaded transcripts, essays, and proof of funds to suggest best-fit schools.",
                 "Shares personalised counselling recommendations informed by your goals.",
               ],
@@ -617,7 +617,7 @@ const en = {
         },
       },
       storyboard: {
-        heading: "How GEG Simplifies Every Step",
+        heading: "How UniDoxia Simplifies Every Step",
         subheading:
           "Follow the storyboard to see exactly how our platform and people guide your application from idea to arrival.",
         stepLabel: "Step {{number}}",
@@ -625,7 +625,7 @@ const en = {
           discover: {
             title: "Discover Your Best-Fit Programmes",
             description:
-              "Tell us your goals and academics, and GEG instantly curates universities, programmes, and scholarships that match.",
+              "Tell us your goals and academics, and UniDoxia instantly curates universities, programmes, and scholarships that match.",
             support:
               "Smart filters and AI-powered recommendations remove the guesswork so you can shortlist confident choices in minutes.",
             imageAlt: "Student reviewing university programmes on a campus tour",
@@ -640,7 +640,7 @@ const en = {
           collaborate: {
             title: "Collaborate with Your Expert Agent",
             description:
-              "Work side-by-side with a verified GEG advisor to polish documents, align on timelines, and stay interview ready.",
+              "Work side-by-side with a verified UniDoxia advisor to polish documents, align on timelines, and stay interview ready.",
             support:
               "Shared workspaces, annotated feedback, and instant messaging keep every decision transparent and stress-free.",
             imageAlt: "Student connecting with an education agent using a mobile phone",
@@ -665,7 +665,7 @@ const en = {
       featuredUniversities: {
         heading: "Featured Universities",
         description:
-          "Institutions that consistently deliver an exceptional onboarding experience for Global Education Gateway students.",
+          "Institutions that consistently deliver an exceptional onboarding experience for UniDoxia students.",
         network: {
           label: "Featured Universities",
           summary: "{{count}} institutions selected by our partnerships team",
@@ -681,7 +681,7 @@ const en = {
         },
         fallback: {
           summary:
-            "Dedicated partners that consistently welcome Global Education Gateway students with tailored support.",
+            "Dedicated partners that consistently welcome UniDoxia students with tailored support.",
           highlight: "Dedicated student success partner",
           notice: {
             error: "We're showing highlighted partners while we reconnect to the featured list.",
@@ -807,7 +807,7 @@ const en = {
               role: "Master's Student at MIT",
               country: "USA",
               quote:
-                "GEG made my dream of studying at MIT a reality. The platform was intuitive, and my agent was incredibly supportive.",
+                "UniDoxia made my dream of studying at MIT a reality. The platform was intuitive, and my agent was incredibly supportive.",
               rating: 5,
             },
             {
@@ -815,7 +815,7 @@ const en = {
               role: "MBA Student at Oxford",
               country: "UK",
               quote:
-                "The real-time tracking feature gave me peace of mind. I always knew where my application stood. Highly recommend GEG!",
+                "The real-time tracking feature gave me peace of mind. I always knew where my application stood. Highly recommend UniDoxia!",
               rating: 5,
             },
             {
@@ -823,7 +823,7 @@ const en = {
               role: "Engineering Student at Stanford",
               country: "USA",
               quote:
-                "From finding the right programme to visa approval, GEG supported me every step of the way. Outstanding service!",
+                "From finding the right programme to visa approval, UniDoxia supported me every step of the way. Outstanding service!",
               rating: 5,
             },
           ],
@@ -837,9 +837,9 @@ const en = {
               audience: "Students",
               items: [
                 {
-                  question: "How does GEG help me apply to universities?",
+                  question: "How does UniDoxia help me apply to universities?",
                   answer:
-                    "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
+                    "UniDoxia connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
                 },
                 {
                   question: "Is there a fee to use the platform?",
@@ -857,7 +857,7 @@ const en = {
               audience: "Universities",
               items: [
                 {
-                  question: "How can our university partner with GEG?",
+                  question: "How can our university partner with UniDoxia?",
                   answer:
                     "Submit a partnership request through the University Portal or contact our partnerships team. We'll verify your institution and set up onboarding within a few business days.",
                 },
@@ -877,7 +877,7 @@ const en = {
               audience: "Agents",
               items: [
                 {
-                  question: "What support do agents receive on GEG?",
+                  question: "What support do agents receive on UniDoxia?",
                   answer:
                     "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programs quickly.",
                 },
@@ -974,7 +974,7 @@ const en = {
       heroTitle: "Contact Us",
       heroSubtitle: "We typically respond within one business day.",
       emailPrompt: "Prefer email?",
-      email: "info@globaleducationgateway.com",
+      email: "info@unidoxia.com",
       whatsappCta: "Message us on WhatsApp ({{number}})",
       whatsappNumber: "+447360961803",
       imageAlt: "Professional education consultant ready to help",
@@ -989,9 +989,9 @@ const en = {
           audience: "Students",
           items: [
             {
-              question: "How does GEG help me apply to universities?",
+              question: "How does UniDoxia help me apply to universities?",
               answer:
-                "GEG connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
+                "UniDoxia connects you with verified agents who guide you through every stage — from selecting universities to submitting documents.",
             },
             {
               question: "Is there a fee to use the platform?",
@@ -1019,7 +1019,7 @@ const en = {
           audience: "Universities",
           items: [
             {
-              question: "How can our university partner with GEG?",
+              question: "How can our university partner with UniDoxia?",
               answer:
                 "Submit a partnership request through the University Portal or contact our partnerships team. We'll verify your institution and set up onboarding within a few business days.",
             },
@@ -1039,7 +1039,7 @@ const en = {
           audience: "Agents",
           items: [
             {
-              question: "What support do agents receive on GEG?",
+              question: "What support do agents receive on UniDoxia?",
               answer:
                 "Agents receive a dedicated CRM, marketing collateral, and on-demand training to help match students with suitable programmes quickly.",
             },

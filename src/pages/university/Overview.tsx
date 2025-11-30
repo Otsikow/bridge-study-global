@@ -67,7 +67,7 @@ const OverviewPage = () => {
       <StatePlaceholder
         icon={<Building2 className="h-10 w-10 text-primary" />}
         title="No university profile connected"
-        description="Connect your institution to unlock the Global Education Gateway dashboard experience."
+        description="Connect your institution to unlock the UniDoxia dashboard experience."
       />
     );
   }

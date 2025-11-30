@@ -651,12 +651,12 @@ const UniversityOverviewPage = () => {
           <div className="space-y-1 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Need assistance?</p>
             <p>
-              Reach the Global Education Gateway team at{" "}
+              Reach the UniDoxia team at{" "}
               <a
-                href="mailto:info@globaleducationgateway.com"
+                href="mailto:info@unidoxia.com"
                 className="text-primary hover:text-primary-foreground hover:underline"
               >
-                info@globaleducationgateway.com
+                info@unidoxia.com
               </a>
               .
             </p>

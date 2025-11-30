@@ -1201,7 +1201,7 @@ export default function StudentIntakeForm() {
                       <div className="space-y-1 leading-tight">
                         <FormLabel className="text-base">I agree to the data usage policy *</FormLabel>
                         <FormDescription>
-                          I consent to Global Education Gateway storing my details to provide personalized study
+                          I consent to UniDoxia storing my details to provide personalized study
                           recommendations and support services.
                         </FormDescription>
                       </div>

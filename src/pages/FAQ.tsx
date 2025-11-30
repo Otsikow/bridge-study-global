@@ -14,7 +14,7 @@ const FAQ = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
-        title="Frequently Asked Questions - Global Education Gateway"
+        title="Frequently Asked Questions - UniDoxia"
         description="Find answers to common questions about studying abroad, university applications, student visas, and our platform. Get the information you need to start your journey."
         keywords="FAQ, study abroad questions, university application help, student visa FAQ, international student questions, agent recruitment FAQ"
       />

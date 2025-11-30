@@ -78,7 +78,7 @@ CREATE POLICY "Admins manage featured listing orders"
   WITH CHECK (public.is_admin_or_staff(auth.uid()));
 
 -- Ensure public featured query respects lifecycle
-CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug TEXT DEFAULT 'geg')
+CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug TEXT DEFAULT 'unidoxia')
 RETURNS TABLE (
   id UUID,
   name TEXT,
@@ -110,7 +110,7 @@ AS $$
     u.featured_image_url
   FROM public.universities u
   JOIN public.tenants t ON u.tenant_id = t.id
-  WHERE t.slug = COALESCE(p_tenant_slug, 'geg')
+  WHERE t.slug = COALESCE(p_tenant_slug, 'unidoxia')
     AND COALESCE(u.featured, FALSE) = TRUE
     AND COALESCE(u.active, TRUE) = TRUE
     AND COALESCE(u.featured_listing_status, 'inactive') IN ('active', 'pending')

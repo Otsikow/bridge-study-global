@@ -112,9 +112,9 @@ async function setupDatabase() {
       .from('tenants')
       .upsert({
         id: '00000000-0000-0000-0000-000000000001',
-        name: 'Global Education Gateway',
-        slug: 'geg',
-        email_from: 'noreply@globaleducationgateway.com',
+        name: 'UniDoxia',
+        slug: 'unidoxia',
+        email_from: 'noreply@unidoxia.com',
         active: true,
         brand_colors: { primary: '#1e40af', secondary: '#3b82f6' },
         settings: {}
@@ -145,7 +145,7 @@ async function setupDatabase() {
           profile_created boolean := false;
         BEGIN
           -- Get the default tenant
-          SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'geg' LIMIT 1;
+          SELECT id INTO default_tenant_id FROM public.tenants WHERE slug = 'unidoxia' LIMIT 1;
           
           -- If still no tenant, create one as fallback
           IF default_tenant_id IS NULL THEN

@@ -199,7 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       let { data: tenant } = await supabase
         .from('tenants')
         .select('id')
-        .eq('slug', 'geg')
+        .eq('slug', 'unidoxia')
         .single();
 
       if (!tenant) {

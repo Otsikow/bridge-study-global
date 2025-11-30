@@ -14,8 +14,8 @@ const Contact = () => {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <SEO
-        title="Contact Us - Global Education Gateway"
-        description="Get in touch with the Global Education Gateway team. We're here to help with your questions about studying abroad, university applications, and our services."
+        title="Contact Us - UniDoxia"
+        description="Get in touch with the UniDoxia team. We're here to help with your questions about studying abroad, university applications, and our services."
         keywords="contact, support, study abroad help, university admissions contact, student recruitment support, university partnership inquiries"
       />
       <section className="container mx-auto px-4 py-12">

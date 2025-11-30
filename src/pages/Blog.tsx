@@ -149,7 +149,7 @@ export default function Blog() {
 
   const quickLinks = [
     {
-      title: "UniDoxia — Global Education Gateway",
+      title: "UniDoxia — Study Abroad Platform",
       description:
         "Connecting international students with world-class universities through verified agents and transparent application management.",
       links: [
@@ -172,7 +172,7 @@ export default function Blog() {
   return (
     <div className="relative">
       <SEO
-        title="Blog - Global Education Gateway"
+        title="Blog - UniDoxia"
         description="Explore articles, guides, and insights on studying abroad, university admissions, and international education trends. Your resource for a successful academic journey."
         keywords="study abroad blog, international student advice, university application tips, education articles, student recruitment trends, university marketing"
       />

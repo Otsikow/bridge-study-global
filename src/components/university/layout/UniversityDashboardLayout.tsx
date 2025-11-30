@@ -831,7 +831,7 @@ export const UniversityDashboardLayout = ({
         <EmptyState
           icon={<Building2 className="h-10 w-10" />}
           title="No partner profile found"
-          description="Sign in with your university partner credentials to access the Global Education Gateway dashboard."
+          description="Sign in with your university partner credentials to access the UniDoxia dashboard."
         />
       </div>
     );
@@ -863,7 +863,7 @@ export const UniversityDashboardLayout = ({
         <StatePlaceholder
           icon={<Building2 className="h-12 w-12 text-primary" />}
           title="No university profile found"
-          description={`No active university is linked to your account (Tenant ID: ${tenantId?.slice(0, 8)}...). Please contact GEG Support to set up your university profile.`}
+          description={`No active university is linked to your account (Tenant ID: ${tenantId?.slice(0, 8)}...). Please contact UniDoxia Support to set up your university profile.`}
           action={
             <Button
               onClick={() => void queryRefetch()}
