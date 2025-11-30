@@ -199,7 +199,7 @@ export default function AgentStudentsManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <h2 className="text-2xl font-bold tracking-tight">My Students</h2>
@@ -207,13 +207,15 @@ export default function AgentStudentsManager() {
             Track student progress, invite new prospects, and monitor application activity.
           </p>
         </div>
-        <InviteStudentDialog
-          agentProfileId={agentProfileId}
-          tenantId={tenantId}
-          disabled={!tenantId}
-          open={inviteDialogOpen}
-          onOpenChange={setInviteDialogOpen}
-        />
+        <div className="w-full sm:w-auto flex justify-end">
+          <InviteStudentDialog
+            agentProfileId={agentProfileId}
+            tenantId={tenantId}
+            disabled={!tenantId}
+            open={inviteDialogOpen}
+            onOpenChange={setInviteDialogOpen}
+          />
+        </div>
       </div>
 
       <AgentInviteCodeManager agentProfileId={agentProfileId} />
@@ -221,8 +223,8 @@ export default function AgentStudentsManager() {
       {isLoading ? (
         <MetricsSkeleton />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Card>
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total students
@@ -233,7 +235,7 @@ export default function AgentStudentsManager() {
               <p className="text-xs text-muted-foreground">In your organization</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Onboarded
@@ -244,7 +246,7 @@ export default function AgentStudentsManager() {
               <p className="text-xs text-muted-foreground">Ready for applications</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Pending onboarding
@@ -255,7 +257,7 @@ export default function AgentStudentsManager() {
               <p className="text-xs text-muted-foreground">Invited but not completed</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Active applications
@@ -271,14 +273,14 @@ export default function AgentStudentsManager() {
 
       <Card>
         <CardHeader className="pb-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+            <div className="min-w-0">
               <CardTitle>Students</CardTitle>
               <CardDescription>
                 {isFetching ? "Refreshing latest data…" : `${filteredStudents.length} student(s)`}
               </CardDescription>
             </div>
-            <div className="flex flex-col gap-3 w-full lg:w-auto lg:flex-row">
+            <div className="flex flex-col gap-3 w-full lg:w-auto lg:flex-row lg:items-center">
               <div className="relative flex-1 min-w-[220px]">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -289,7 +291,7 @@ export default function AgentStudentsManager() {
                 />
               </div>
               <Select value={statusFilter} onValueChange={(value: StatusFilter) => setStatusFilter(value)}>
-                <SelectTrigger className="lg:w-[220px]">
+                <SelectTrigger className="w-full lg:w-[220px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
                 <SelectContent>
