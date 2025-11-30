@@ -183,6 +183,17 @@ export function InviteStudentDialog({
         payload.counselorProfileId = counselorProfileId;
       }
 
+      const {
+        data: sessionData,
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const accessToken = sessionData.session?.access_token;
+
       const { data, error } = await supabase.functions.invoke<{
         success?: boolean;
         studentId?: string;
@@ -190,6 +201,11 @@ export function InviteStudentDialog({
         error?: string;
       }>("invite-student", {
         body: payload,
+        headers: accessToken
+          ? {
+              Authorization: `Bearer ${accessToken}`,
+            }
+          : undefined,
       });
 
       if (error) {
