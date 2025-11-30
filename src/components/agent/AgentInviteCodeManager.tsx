@@ -56,28 +56,33 @@ export default function AgentInviteCodeManager({
             Could not load invite code.
           </p>
         ) : (
-          <div className="flex items-center gap-2">
-            <Label htmlFor="invite-code" className="sr-only">
-              Invite Code
-            </Label>
-            <Input id="invite-code" value={inviteCode} readOnly />
-            <Button variant="outline" size="icon" onClick={handleCopy}>
-              {copied ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => regenerate()}
-              disabled={isRegenerating}
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`}
-              />
-            </Button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex-1 min-w-0">
+              <Label htmlFor="invite-code" className="sr-only">
+                Invite Code
+              </Label>
+              <Input id="invite-code" value={inviteCode} readOnly className="w-full" />
+            </div>
+            <div className="flex items-center gap-2 sm:self-stretch">
+              <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+                {copied ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => regenerate()}
+                disabled={isRegenerating}
+                className="shrink-0"
+              >
+                <RefreshCw
+                  className={`h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`}
+                />
+              </Button>
+            </div>
           </div>
         )}
       </CardContent>
