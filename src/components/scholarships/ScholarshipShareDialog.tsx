@@ -40,7 +40,7 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
       scholarship.title,
       scholarship.awardAmount,
       scholarship.deadlineLabel ? `Deadline: ${scholarship.deadlineLabel}` : undefined,
-      shareLink ? `Explore via Global Education Gateway: ${shareLink}` : undefined,
+      shareLink ? `Explore via UniDoxia: ${shareLink}` : undefined,
     ].filter(Boolean);
 
     return parts.join("\n");
@@ -110,7 +110,7 @@ export function ScholarshipShareDialog({ open, onOpenChange, scholarship }: Scho
 
             <div className="space-y-2">
               <Label htmlFor="share-link" className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Global Education Gateway link
+                UniDoxia link
               </Label>
               <div className="flex items-center gap-2">
                 <Input id="share-link" value={shareLink} readOnly className="font-mono text-xs" />

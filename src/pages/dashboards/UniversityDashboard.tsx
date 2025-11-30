@@ -601,7 +601,7 @@ export default function UniversityDashboard() {
                   onChange={(e) =>
                     setUniversityForm((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  placeholder="e.g. Global Education Gateway University"
+                  placeholder="e.g. UniDoxia University"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

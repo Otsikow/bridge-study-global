@@ -1,6 +1,6 @@
 import { getSiteUrl } from '@/lib/supabaseClientConfig';
 
-const FALLBACK_PORTAL_URL = 'https://portal.gegglobal.com';
+const FALLBACK_PORTAL_URL = 'https://portal.unidoxia.com';
 
 export const generateReferralLink = (username: string | null | undefined): string => {
   if (!username) {

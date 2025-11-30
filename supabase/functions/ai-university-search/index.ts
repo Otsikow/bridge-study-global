@@ -104,7 +104,7 @@ serve(async (req) => {
 
     console.log("Generating AI university search for:", { query, focusAreas, resultCount });
 
-    const systemPrompt = `You are Global Education Gateway's live university and scholarship research analyst. ` +
+    const systemPrompt = `You are UniDoxia's live university and scholarship research analyst. ` +
       `Return precise, up-to-date guidance about universities, degree programs, and scholarships globally. ` +
       `Respond with a single JSON object that follows this exact TypeScript interface:
 {

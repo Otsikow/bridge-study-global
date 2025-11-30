@@ -2,7 +2,7 @@
 -- without requiring an authenticated Supabase session. The function runs with elevated
 -- privileges so that it can bypass the tenant-based row level security that is applied
 -- to the universities table.
-CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug text DEFAULT 'geg')
+CREATE OR REPLACE FUNCTION public.get_public_featured_universities(p_tenant_slug text DEFAULT 'unidoxia')
 RETURNS TABLE (
   id uuid,
   name text,
@@ -35,7 +35,7 @@ AS $$
   FROM public.universities u
   JOIN public.tenants t ON t.id = u.tenant_id
   WHERE
-    t.slug = COALESCE(NULLIF(p_tenant_slug, ''), 'geg')
+    t.slug = COALESCE(NULLIF(p_tenant_slug, ''), 'unidoxia')
     AND u.active IS TRUE
     AND u.featured IS TRUE
   ORDER BY

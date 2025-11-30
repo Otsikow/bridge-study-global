@@ -1,4 +1,4 @@
--- GEG Platform Database Schema with RLS
+-- UniDoxia Platform Database Schema with RLS
 -- Version: 1.0.0
 
 -- Enable necessary extensions

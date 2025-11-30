@@ -1,4 +1,4 @@
--- Create default tenant for GEG Platform
+-- Create default tenant for UniDoxia Platform
 -- This ensures that new user registrations work correctly
 
 -- Insert default tenant (idempotent)
@@ -13,9 +13,9 @@ INSERT INTO public.tenants (
 )
 VALUES (
   '00000000-0000-0000-0000-000000000001'::uuid,
-  'Global Education Gateway',
-  'geg',
-  'noreply@globaleducationgateway.com',
+  'UniDoxia',
+  'unidoxia',
+  'noreply@unidoxia.com',
   '{"primary": "#1e40af", "secondary": "#3b82f6"}'::jsonb,
   true,
   '{

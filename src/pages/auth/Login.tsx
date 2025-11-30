@@ -85,8 +85,8 @@ const Login = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-subtle px-4">
         <SEO
-          title="Login - Global Education Gateway"
-          description="Access your Global Education Gateway account to manage your university applications, connect with agents, and track your progress."
+          title="Login - UniDoxia"
+          description="Access your UniDoxia account to manage your university applications, connect with agents, and track your progress."
           keywords="login, sign in, student account, agent portal, university partner login"
         />
         <Card className="w-full max-w-md shadow-lg">
