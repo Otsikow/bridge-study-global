@@ -84,11 +84,6 @@ export default function Messages() {
     return ids.length > 0 ? new Set(ids) : undefined;
   }, [messagingProfile]);
 
-  const defaultProfiles = useMemo(() => {
-    // Return empty array initially - will be populated by search or database fetch
-    return [];
-  }, []);
-
   const handleSelectConversation = (conversationId: string) => {
     setCurrentConversation(conversationId);
   };
@@ -118,12 +113,6 @@ export default function Messages() {
   const searchProfiles = useCallback(
     async (queryText: string) => {
       const trimmedQuery = queryText.trim();
-      if (!trimmedQuery) {
-        setProfiles(defaultProfiles);
-        setSearchingProfiles(false);
-        return;
-      }
-
       setSearchingProfiles(true);
       try {
         const tenant = profile?.tenant_id ?? DEFAULT_TENANT_ID;
@@ -147,13 +136,7 @@ export default function Messages() {
         setSearchingProfiles(false);
       }
     },
-    [
-      defaultProfiles,
-      profile?.id,
-      profile?.tenant_id,
-      toast,
-      user?.id,
-    ]
+    [profile?.id, profile?.tenant_id, toast, user?.id]
   );
 
   useEffect(() => {
@@ -169,14 +152,14 @@ export default function Messages() {
   }, [searchProfiles, searchQuery, showNewChatDialog]);
 
   const handleSelectProfile = async (profileId: string) => {
-    const conversationId = await getOrCreateConversation(profileId);
-    if (conversationId) {
-      setCurrentConversation(conversationId);
-      setShowNewChatDialog(false);
-      setSearchQuery('');
-      setProfiles(defaultProfiles);
-    }
-  };
+      const conversationId = await getOrCreateConversation(profileId);
+      if (conversationId) {
+        setCurrentConversation(conversationId);
+        setShowNewChatDialog(false);
+        setSearchQuery('');
+        setProfiles([]);
+      }
+    };
 
   const getInitials = (name: string) =>
     name
@@ -219,7 +202,7 @@ export default function Messages() {
     );
   }
 
-  const displayProfiles = profiles.length > 0 ? profiles : defaultProfiles;
+  const displayProfiles = profiles;
   const noMatches = searchQuery.trim().length > 0 && profiles.length === 0;
   const hasDisplayProfiles = displayProfiles.length > 0;
 
