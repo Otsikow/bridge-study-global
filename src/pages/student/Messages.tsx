@@ -24,6 +24,7 @@ import {
   findDirectoryProfileById,
   getDirectoryProfiles,
   searchDirectoryProfiles,
+  registerDirectoryProfile,
   type DirectoryProfile,
 } from '@/lib/messaging/directory';
 import { DEFAULT_TENANT_ID } from '@/lib/messaging/data';
@@ -124,6 +125,8 @@ export default function Messages() {
           roles: MESSAGING_DIRECTORY_ROLES,
           limit: 20,
         });
+
+        results.forEach(registerDirectoryProfile);
         setProfiles(results);
       } catch (error) {
         console.error('Error searching profiles:', error);
@@ -151,15 +154,16 @@ export default function Messages() {
     void searchProfiles(searchQuery);
   }, [searchProfiles, searchQuery, showNewChatDialog]);
 
-  const handleSelectProfile = async (profileId: string) => {
-      const conversationId = await getOrCreateConversation(profileId);
-      if (conversationId) {
-        setCurrentConversation(conversationId);
-        setShowNewChatDialog(false);
-        setSearchQuery('');
-        setProfiles([]);
-      }
-    };
+  const handleSelectProfile = async (selectedProfile: ProfileRecord) => {
+    registerDirectoryProfile(selectedProfile);
+    const conversationId = await getOrCreateConversation(selectedProfile.id);
+    if (conversationId) {
+      setCurrentConversation(conversationId);
+      setShowNewChatDialog(false);
+      setSearchQuery('');
+      setProfiles([]);
+    }
+  };
 
   const getInitials = (name: string) =>
     name
@@ -319,7 +323,7 @@ export default function Messages() {
                   {displayProfiles.map((profile) => (
                     <button
                       key={profile.id}
-                      onClick={() => handleSelectProfile(profile.id)}
+                      onClick={() => handleSelectProfile(profile)}
                       className="w-full p-3 flex items-center gap-3 hover:bg-accent rounded-lg transition-colors text-left"
                     >
                       <Avatar className="h-10 w-10">
