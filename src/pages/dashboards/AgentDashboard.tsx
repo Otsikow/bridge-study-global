@@ -86,152 +86,160 @@ export default function AgentDashboard() {
     navigate(targetPath);
   };
 
+  const tabButtonClassName =
+    "flex min-w-[140px] items-center gap-2 whitespace-nowrap px-3 py-2 text-xs sm:text-sm md:text-base";
+
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-8 space-y-8">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+      <div className="p-4 md:p-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+            <div className="text-xs text-muted-foreground sm:text-sm">
+              Quick navigation is available via the tabs below.
+            </div>
+          </div>
 
-        {/* Header */}
-        <div className="space-y-1.5 animate-fade-in">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-            Partner Agent Dashboard
-          </h1>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            Manage your students, track performance, and access resources.
-          </p>
+          {/* Header */}
+          <div className="space-y-1.5 animate-fade-in">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
+              Partner Agent Dashboard
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Manage your students, track performance, and access resources.
+            </p>
+          </div>
+
+          <TooltipProvider delayDuration={100}>
+            <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
+              <TabsList
+                className="flex w-full flex-wrap items-center justify-start gap-2 overflow-x-auto rounded-xl border bg-muted/40 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-muted/60"
+              >
+                <TabsTrigger value="overview" className={tabButtonClassName}>
+                  <IconTooltip label="View your dashboard overview">
+                    <LayoutDashboard className="h-4 w-4" />
+                  </IconTooltip>
+                  Overview
+                </TabsTrigger>
+
+                <TabsTrigger value="applications" className={tabButtonClassName}>
+                  <IconTooltip label="Review application progress">
+                    <BarChart3 className="h-4 w-4" />
+                  </IconTooltip>
+                  Applications
+                </TabsTrigger>
+
+                <TabsTrigger value="leads" className={tabButtonClassName}>
+                  <IconTooltip label="Manage your leads">
+                    <Users className="h-4 w-4" />
+                  </IconTooltip>
+                  My Leads
+                </TabsTrigger>
+
+                <TabsTrigger value="students" className={tabButtonClassName}>
+                  <IconTooltip label="View your student list">
+                    <GraduationCap className="h-4 w-4" />
+                  </IconTooltip>
+                  Students
+                </TabsTrigger>
+
+                <TabsTrigger value="tasks" className={tabButtonClassName}>
+                  <IconTooltip label="View your assigned tasks">
+                    <ClipboardList className="h-4 w-4" />
+                  </IconTooltip>
+                  Tasks
+                </TabsTrigger>
+
+                <TabsTrigger value="ranking" className={tabButtonClassName}>
+                  <IconTooltip label="Manage preference rankings">
+                    <Star className="h-4 w-4" />
+                  </IconTooltip>
+                  Ranking
+                </TabsTrigger>
+
+                <TabsTrigger value="commissions" className={tabButtonClassName}>
+                  <IconTooltip label="Track commission earnings">
+                    <DollarSign className="h-4 w-4" />
+                  </IconTooltip>
+                  Commissions
+                </TabsTrigger>
+
+                <TabsTrigger value="import" className={tabButtonClassName}>
+                  <IconTooltip label="Bulk import students">
+                    <Upload className="h-4 w-4" />
+                  </IconTooltip>
+                  Import
+                </TabsTrigger>
+
+                <TabsTrigger value="partners" className={tabButtonClassName}>
+                  <IconTooltip label="Discover universities to partner with">
+                    <Handshake className="h-4 w-4" />
+                  </IconTooltip>
+                  Partners
+                </TabsTrigger>
+
+                <TabsTrigger value="resources" className={tabButtonClassName}>
+                  <IconTooltip label="Browse helpful resources">
+                    <FolderOpen className="h-4 w-4" />
+                  </IconTooltip>
+                  Resources
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Overview */}
+              <TabsContent value="overview">
+                <AgentDashboardOverview />
+              </TabsContent>
+
+              {/* Applications */}
+              <TabsContent value="applications">
+                <ApplicationTrackingSystem />
+              </TabsContent>
+
+              {/* Leads */}
+              <TabsContent value="leads">
+                <LeadsList />
+              </TabsContent>
+
+              {/* Students */}
+              <TabsContent value="students">
+                <AgentStudentsManager />
+              </TabsContent>
+
+              {/* Tasks */}
+              <TabsContent value="tasks">
+                <TaskManager />
+                <TaskManagement />
+              </TabsContent>
+
+              {/* Ranking */}
+              <TabsContent value="ranking">
+                <PreferenceRanking />
+              </TabsContent>
+
+              {/* Commissions */}
+              <TabsContent value="commissions">
+                <CommissionTracker />
+                <CommissionManagement />
+              </TabsContent>
+
+              {/* Import */}
+              <TabsContent value="import">
+                <BulkImport />
+              </TabsContent>
+
+              {/* Partners */}
+              <TabsContent value="partners">
+                <AgentPartnerDiscovery />
+              </TabsContent>
+
+              {/* Resources */}
+              <TabsContent value="resources">
+                <ResourceHub />
+              </TabsContent>
+            </Tabs>
+          </TooltipProvider>
         </div>
-
-        <TooltipProvider delayDuration={100}>
-          <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsList
-              className="flex w-full items-center gap-2 overflow-x-auto rounded-xl border bg-muted/40 p-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-muted/60"
-            >
-
-              <TabsTrigger value="overview" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="View your dashboard overview">
-                  <LayoutDashboard className="h-4 w-4" />
-                </IconTooltip>
-                Overview
-              </TabsTrigger>
-
-              <TabsTrigger value="applications" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Review application progress">
-                  <BarChart3 className="h-4 w-4" />
-                </IconTooltip>
-                Applications
-              </TabsTrigger>
-
-              <TabsTrigger value="leads" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Manage your leads">
-                  <Users className="h-4 w-4" />
-                </IconTooltip>
-                My Leads
-              </TabsTrigger>
-
-              <TabsTrigger value="students" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="View your student list">
-                  <GraduationCap className="h-4 w-4" />
-                </IconTooltip>
-                Students
-              </TabsTrigger>
-
-              <TabsTrigger value="tasks" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="View your assigned tasks">
-                  <ClipboardList className="h-4 w-4" />
-                </IconTooltip>
-                Tasks
-              </TabsTrigger>
-
-              <TabsTrigger value="ranking" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Manage preference rankings">
-                  <Star className="h-4 w-4" />
-                </IconTooltip>
-                Ranking
-              </TabsTrigger>
-
-              <TabsTrigger value="commissions" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Track commission earnings">
-                  <DollarSign className="h-4 w-4" />
-                </IconTooltip>
-                Commissions
-              </TabsTrigger>
-
-              <TabsTrigger value="import" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Bulk import students">
-                  <Upload className="h-4 w-4" />
-                </IconTooltip>
-                Import
-              </TabsTrigger>
-
-              <TabsTrigger value="partners" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Discover universities to partner with">
-                  <Handshake className="h-4 w-4" />
-                </IconTooltip>
-                Partners
-              </TabsTrigger>
-
-              <TabsTrigger value="resources" className="flex items-center gap-2 whitespace-nowrap">
-                <IconTooltip label="Browse helpful resources">
-                  <FolderOpen className="h-4 w-4" />
-                </IconTooltip>
-                Resources
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Overview */}
-            <TabsContent value="overview">
-              <AgentDashboardOverview />
-            </TabsContent>
-
-            {/* Applications */}
-            <TabsContent value="applications">
-              <ApplicationTrackingSystem />
-            </TabsContent>
-
-            {/* Leads */}
-            <TabsContent value="leads">
-              <LeadsList />
-            </TabsContent>
-
-            {/* Students */}
-            <TabsContent value="students">
-              <AgentStudentsManager />
-            </TabsContent>
-
-            {/* Tasks */}
-            <TabsContent value="tasks">
-              <TaskManager />
-              <TaskManagement />
-            </TabsContent>
-
-            {/* Ranking */}
-            <TabsContent value="ranking">
-              <PreferenceRanking />
-            </TabsContent>
-
-            {/* Commissions */}
-            <TabsContent value="commissions">
-              <CommissionTracker />
-              <CommissionManagement />
-            </TabsContent>
-
-            {/* Import */}
-            <TabsContent value="import">
-              <BulkImport />
-            </TabsContent>
-
-            {/* Partners */}
-            <TabsContent value="partners">
-              <AgentPartnerDiscovery />
-            </TabsContent>
-
-            {/* Resources */}
-            <TabsContent value="resources">
-              <ResourceHub />
-            </TabsContent>
-
-          </Tabs>
-        </TooltipProvider>
       </div>
     </DashboardLayout>
   );
