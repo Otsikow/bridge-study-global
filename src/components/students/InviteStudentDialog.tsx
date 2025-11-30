@@ -4,6 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus, Loader2 } from "lucide-react";
+import {
+  FunctionsFetchError,
+  FunctionsHttpError,
+  FunctionsRelayError,
+} from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +42,45 @@ const inviteStudentSchema = z.object({
 });
 
 type InviteStudentFormValues = z.infer<typeof inviteStudentSchema>;
+
+const extractInviteErrorMessage = async (error: unknown): Promise<string> => {
+  if (error instanceof FunctionsHttpError || error instanceof FunctionsRelayError) {
+    const response = error.context;
+
+    if (response instanceof Response) {
+      try {
+        const parsedBody = await response.clone().json();
+
+        if (parsedBody?.error && typeof parsedBody.error === "string") {
+          return parsedBody.error;
+        }
+
+        if (typeof parsedBody === "string") {
+          return parsedBody;
+        }
+      } catch {
+        // Ignore JSON parse errors and fall back to the plain text body.
+      }
+
+      try {
+        const text = await response.clone().text();
+        if (text) return text;
+      } catch {
+        // Ignore body parsing failures and fall through to the default message.
+      }
+    }
+
+    return error.message;
+  }
+
+  if (error instanceof FunctionsFetchError) {
+    return "Unable to reach the invite service. Please check your connection and try again.";
+  }
+
+  if (error instanceof Error) return error.message;
+
+  return "Unexpected error while inviting the student.";
+};
 
 export interface InviteStudentDialogProps {
   tenantId?: string | null;
@@ -149,16 +193,7 @@ export function InviteStudentDialog({
       });
 
       if (error) {
-        const message =
-          typeof error === "object" && error !== null && "message" in error
-            ? String(error.message ?? "")
-            : "";
-
-        const friendlyMessage = message.includes("non-2xx")
-          ? "The invite service returned an unexpected response. Please try again or contact support if this continues."
-          : message;
-
-        throw new Error(friendlyMessage || "The student invite could not be completed.");
+        throw error;
       }
 
       if (data?.error) {
@@ -182,8 +217,7 @@ export function InviteStudentDialog({
 
       onSuccess?.();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unexpected error while inviting the student.";
+      const message = await extractInviteErrorMessage(error);
 
       toast({
         title: "Unable to invite student",
