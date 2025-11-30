@@ -44,37 +44,60 @@ const inviteStudentSchema = z.object({
 type InviteStudentFormValues = z.infer<typeof inviteStudentSchema>;
 
 const extractInviteErrorMessage = async (error: unknown): Promise<string> => {
+  const parseResponseError = async (response: Response) => {
+    const statusDetails = `${response.status || ""} ${response.statusText || ""}`.trim();
+
+    try {
+      const parsedBody = await response.clone().json();
+
+      const candidateMessage =
+        (typeof parsedBody === "object" && parsedBody !== null
+          ? [
+              // Common error shapes returned by edge functions and APIs
+              (parsedBody as { error?: string }).error,
+              (parsedBody as { message?: string }).message,
+              (parsedBody as { error_description?: string }).error_description,
+              (parsedBody as { details?: string }).details,
+            ]
+              .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+              .at(0)
+          : undefined) ?? (typeof parsedBody === "string" ? parsedBody : undefined);
+
+      if (candidateMessage) {
+        return statusDetails ? `${candidateMessage} (${statusDetails})` : candidateMessage;
+      }
+    } catch {
+      // Ignore JSON parse errors and fall back to the plain text body.
+    }
+
+    try {
+      const text = await response.clone().text();
+      if (text) {
+        return statusDetails ? `${text} (${statusDetails})` : text;
+      }
+    } catch {
+      // Ignore body parsing failures and fall through to the default message.
+    }
+
+    if (statusDetails) return statusDetails;
+
+    return undefined;
+  };
+
   if (error instanceof FunctionsHttpError || error instanceof FunctionsRelayError) {
     const response = error.context;
 
     if (response instanceof Response) {
-      try {
-        const parsedBody = await response.clone().json();
-
-        if (parsedBody?.error && typeof parsedBody.error === "string") {
-          return parsedBody.error;
-        }
-
-        if (typeof parsedBody === "string") {
-          return parsedBody;
-        }
-      } catch {
-        // Ignore JSON parse errors and fall back to the plain text body.
-      }
-
-      try {
-        const text = await response.clone().text();
-        if (text) return text;
-      } catch {
-        // Ignore body parsing failures and fall through to the default message.
-      }
+      const responseMessage = await parseResponseError(response);
+      if (responseMessage) return responseMessage;
     }
 
     return error.message;
   }
 
   if (error instanceof FunctionsFetchError) {
-    return "Unable to reach the invite service. Please check your connection and try again.";
+    return error.message ||
+      "Unable to reach the invite service. Please check your connection and try again.";
   }
 
   if (error instanceof Error) return error.message;
