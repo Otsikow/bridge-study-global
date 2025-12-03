@@ -252,12 +252,12 @@ const fetchUniversityDashboardData = async (
   tenantId: string,
 ): Promise<UniversityDashboardData> => {
   console.log("Fetching university dashboard for tenant:", tenantId);
-  
+
   const { data: uniRows, error: uniError } = await supabase
     .from("universities")
     .select("*")
     .eq("tenant_id", tenantId)
-    .eq("active", true)
+    .order("active", { ascending: false, nullsLast: false })
     .order("updated_at", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(1);
