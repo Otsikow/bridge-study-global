@@ -78,6 +78,7 @@ interface UniversityProfileQueryResult {
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_HERO_SIZE = 10 * 1024 * 1024; // 10MB
+const UNIVERSITY_MEDIA_BUCKET = "university-media";
 
 const optionalUrlSchema = z
   .string()
@@ -415,10 +416,10 @@ const UniversityProfilePage = () => {
     if (!tenantId) throw new Error("Missing tenant context");
 
     const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-    const objectPath = `universities/${tenantId}/${type}-${Date.now()}.${extension}`;
+    const objectPath = `${tenantId}/${type}-${Date.now()}.${extension}`;
 
     const { error: uploadError } = await supabase.storage
-      .from("public")
+      .from(UNIVERSITY_MEDIA_BUCKET)
       .upload(objectPath, file, {
         cacheControl: "3600",
         upsert: true,
@@ -429,7 +430,7 @@ const UniversityProfilePage = () => {
     }
 
     const { data: publicUrlData } = supabase.storage
-      .from("public")
+      .from(UNIVERSITY_MEDIA_BUCKET)
       .getPublicUrl(objectPath);
 
     if (!publicUrlData?.publicUrl) {
@@ -536,6 +537,7 @@ const UniversityProfilePage = () => {
             updated_at: new Date().toISOString(),
           })
           .eq("id", queryData.university.id)
+          .eq("tenant_id", tenantId)
           .select()
           .single();
 
@@ -567,7 +569,8 @@ const UniversityProfilePage = () => {
           full_name: values.contactName.trim(),
           phone: normalizeEmptyToNull(values.contactPhone),
         })
-        .eq("id", profile.id);
+        .eq("id", profile.id)
+        .eq("tenant_id", tenantId);
 
       if (profileError) {
         throw profileError;
