@@ -404,7 +404,8 @@ const UniversityProfilePage = () => {
         error: profileError
       } = await supabase.from("profiles").update({
         full_name: values.contactName.trim(),
-        phone: normalizeEmptyToNull(values.contactPhone)
+        phone: normalizeEmptyToNull(values.contactPhone),
+        email: values.contactEmail.trim()
       }).eq("id", profile.id).eq("tenant_id", tenantId);
       if (profileError) {
         throw profileError;
