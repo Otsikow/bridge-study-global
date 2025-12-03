@@ -152,7 +152,10 @@ serve(async (req: Request): Promise<Response> => {
 
     const redirectTo = Deno.env.get("INVITE_REDIRECT_URL") || undefined;
 
-    const { data: existingProfile, error: profileLookupError } = await retry(() =>
+    const { data: existingProfile, error: profileLookupError } = await retry<{
+      data: { id: string; tenant_id: string; role: string; full_name: string; email: string; phone: string | null } | null;
+      error: Error | null;
+    }>(() =>
       supabaseAdmin
         .from("profiles")
         .select("id, tenant_id, role, full_name, email, phone")
@@ -179,7 +182,7 @@ serve(async (req: Request): Promise<Response> => {
     let inviteType: "invite" | "magic_link" = "invite";
 
     if (existingProfile) {
-      const { error: magicLinkError } = await retry(() =>
+      const { error: magicLinkError } = await retry<{ data: unknown; error: Error | null }>(() =>
         supabaseAdmin.auth.signInWithOtp({
           email: normalizedEmail,
           options: {
@@ -202,7 +205,10 @@ serve(async (req: Request): Promise<Response> => {
 
       inviteType = "magic_link";
     } else {
-      const { data: inviteData, error: inviteError } = await retry(() =>
+      const { data: inviteData, error: inviteError } = await retry<{
+        data: { user: { id: string } | null };
+        error: Error | null;
+      }>(() =>
         supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail, {
           redirectTo,
           data: {
@@ -229,7 +235,7 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    const { error: profileUpsertError } = await retry(() =>
+    const { error: profileUpsertError } = await retry<{ data: unknown; error: Error | null }>(() =>
       supabaseAdmin.from("profiles").upsert(
         {
           id: userId,
@@ -249,7 +255,7 @@ serve(async (req: Request): Promise<Response> => {
       throw profileUpsertError;
     }
 
-    const { error: userRoleError } = await retry(() =>
+    const { error: userRoleError } = await retry<{ data: unknown; error: Error | null }>(() =>
       supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "student" }, { onConflict: "user_id,role" }),
     );
 
@@ -258,7 +264,10 @@ serve(async (req: Request): Promise<Response> => {
       throw userRoleError;
     }
 
-    const { data: studentRecord, error: studentUpsertError } = await retry(() =>
+    const { data: studentRecord, error: studentUpsertError } = await retry<{
+      data: { id: string };
+      error: Error | null;
+    }>(() =>
       supabaseAdmin
         .from("students")
         .upsert(
@@ -283,7 +292,10 @@ serve(async (req: Request): Promise<Response> => {
 
     // Look up the agent record using the profile_id
     if (agentProfileId) {
-      const { data: agentRecord, error: agentLookupError } = await retry(() =>
+      const { data: agentRecord, error: agentLookupError } = await retry<{
+        data: { id: string } | null;
+        error: Error | null;
+      }>(() =>
         supabaseAdmin
           .from("agents")
           .select("id")
@@ -306,7 +318,7 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      const { error: linkUpsertError } = await retry(() =>
+      const { error: linkUpsertError } = await retry<{ data: unknown; error: Error | null }>(() =>
         supabaseAdmin
           .from("agent_student_links")
           .upsert(
@@ -328,7 +340,10 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     if (counselorProfileId) {
-      const { data: counselorProfile, error: counselorLookupError } = await retry(() =>
+      const { data: counselorProfile, error: counselorLookupError } = await retry<{
+        data: { id: string; tenant_id: string } | null;
+        error: Error | null;
+      }>(() =>
         supabaseAdmin
           .from("profiles")
           .select("id, tenant_id")
@@ -351,7 +366,7 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      const { error: assignmentCleanupError } = await retry(() =>
+      const { error: assignmentCleanupError } = await retry<{ data: unknown; error: Error | null }>(() =>
         supabaseAdmin.from("student_assignments").delete().eq("student_id", studentRecord.id),
       );
 
@@ -360,7 +375,7 @@ serve(async (req: Request): Promise<Response> => {
         throw assignmentCleanupError;
       }
 
-      const { error: assignmentInsertError } = await retry(() =>
+      const { error: assignmentInsertError } = await retry<{ data: unknown; error: Error | null }>(() =>
         supabaseAdmin.from("student_assignments").insert({
           student_id: studentRecord.id,
           counselor_id: counselorProfileId,

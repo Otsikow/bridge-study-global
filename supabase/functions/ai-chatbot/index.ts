@@ -278,14 +278,18 @@ async function describeImageAttachment(
       ],
     });
 
-    const messageContent = completion.choices?.[0]?.message?.content;
+    const messageContent = completion.choices?.[0]?.message?.content as
+      | string
+      | Array<{ type?: string; text?: string }>
+      | null
+      | undefined;
     if (!messageContent) return null;
     if (typeof messageContent === "string") {
       return messageContent.trim() || null;
     }
     if (Array.isArray(messageContent)) {
       const textChunk = messageContent.find(
-        (chunk: { type?: string; text?: string }) => chunk?.type === "text",
+        (chunk) => chunk?.type === "text",
       );
       if (textChunk?.text) {
         return textChunk.text.trim() || null;
