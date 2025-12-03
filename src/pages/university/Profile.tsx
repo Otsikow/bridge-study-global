@@ -33,7 +33,14 @@ interface UniversityProfileQueryResult {
 const MAX_LOGO_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_HERO_SIZE = 10 * 1024 * 1024; // 10MB
 const UNIVERSITY_MEDIA_BUCKET = "university-media";
-const optionalUrlSchema = z.string().trim().optional().or(z.literal("")).refine(value => {
+const optionalUrlSchema = z.string().trim().optional().or(z.literal("")).transform(value => {
+  if (!value) return "";
+  // Auto-prepend https:// if no protocol specified
+  if (value && !value.match(/^https?:\/\//i)) {
+    return `https://${value}`;
+  }
+  return value;
+}).refine(value => {
   if (!value) return true;
   try {
     const parsed = new URL(value);
@@ -42,7 +49,7 @@ const optionalUrlSchema = z.string().trim().optional().or(z.literal("")).refine(
     return false;
   }
 }, {
-  message: "Enter a valid URL including https://"
+  message: "Enter a valid URL"
 });
 const optionalText = z.string().trim().optional().or(z.literal("")).transform(value => value ?? "");
 const profileSchema = z.object({
