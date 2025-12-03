@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   computeUniversityProfileCompletion,
   emptyUniversityProfileDetails,
+  mergeUniversityProfileDetails,
   parseUniversityProfileDetails,
   type UniversityProfileDetails,
 } from "@/lib/universityProfile";
@@ -271,14 +272,29 @@ const fetchUniversityDashboardData = async (
 
   const uniData = (uniRows?.[0] ?? null) as Nullable<UniversityRecord>;
 
-  const profileDetails = uniData
-    ? parseUniversityProfileDetails(uniData.submission_config_json ?? null)
-    : { ...emptyUniversityProfileDetails };
-
   if (!uniData) {
     console.warn("No university found for tenant:", tenantId);
     return buildEmptyDashboardData();
   }
+
+  const parsedDetails = parseUniversityProfileDetails(
+    uniData.submission_config_json ?? null,
+  );
+
+  const profileDetails = mergeUniversityProfileDetails(emptyUniversityProfileDetails, {
+    ...parsedDetails,
+    media: {
+      ...parsedDetails.media,
+      heroImageUrl:
+        parsedDetails.media.heroImageUrl ??
+        uniData.featured_image_url ??
+        null,
+    },
+    social: {
+      ...parsedDetails.social,
+      website: parsedDetails.social.website ?? uniData.website ?? null,
+    },
+  });
 
   console.log("Loading data for university:", uniData.name);
 

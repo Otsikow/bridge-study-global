@@ -527,40 +527,22 @@ const UniversityProfilePage = () => {
         active: true,
       };
 
-      let upsertedUniversity: UniversityRecord | null = null;
-
-      if (queryData?.university?.id) {
-        const { data: updatedUniversity, error: updateError } = await supabase
-          .from("universities")
-          .update({
+      const { data: upsertedUniversity, error: universityError } = await supabase
+        .from("universities")
+        .upsert(
+          {
             ...payload,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", queryData.university.id)
-          .eq("tenant_id", tenantId)
-          .select()
-          .single();
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        upsertedUniversity = updatedUniversity;
-      } else {
-        const { data: insertedUniversity, error: insertError } = await supabase
-          .from("universities")
-          .insert({
-            ...payload,
+            id: queryData?.university?.id,
             tenant_id: tenantId,
-          })
-          .select()
-          .single();
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" },
+        )
+        .select()
+        .single();
 
-        if (insertError) {
-          throw insertError;
-        }
-
-        upsertedUniversity = insertedUniversity;
+      if (universityError) {
+        throw universityError;
       }
 
       const { error: profileError } = await supabase
