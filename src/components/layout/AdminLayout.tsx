@@ -89,6 +89,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: Building,
   },
   {
+    to: "/admin/universities",
+    labelKey: "admin.layout.navigation.universities.label",
+    descriptionKey: "admin.layout.navigation.universities.description",
+    labelDefault: "Universities",
+    descriptionDefault: "Institution partners",
+    icon: GraduationCap,
+  },
+  {
     to: "/admin/featured-universities",
     labelKey: "admin.layout.navigation.featuredUniversities.label",
     descriptionKey: "admin.layout.navigation.featuredUniversities.description",

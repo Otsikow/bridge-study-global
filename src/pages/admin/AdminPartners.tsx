@@ -75,7 +75,11 @@ const formatPercent = (value: number | null) => {
   return `${Math.round(value)}%`;
 };
 
-const AdminPartners = () => {
+type AdminPartnersProps = {
+  defaultTab?: "agents" | "universities";
+};
+
+const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   const { toast } = useToast();
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
@@ -329,7 +333,7 @@ const AdminPartners = () => {
         </Button>
       </div>
 
-      <Tabs defaultValue="agents" className="space-y-4">
+      <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList className="w-full justify-start">
           <TabsTrigger value="agents" className="flex-1 sm:flex-none">
             Agents
