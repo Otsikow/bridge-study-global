@@ -366,6 +366,7 @@ const UniversityProfilePage = () => {
           }
         },
         social: {
+          website: normalizeEmptyToNull(values.website),
           facebook: normalizeEmptyToNull(values.social.facebook),
           instagram: normalizeEmptyToNull(values.social.instagram),
           linkedin: normalizeEmptyToNull(values.social.linkedin),
