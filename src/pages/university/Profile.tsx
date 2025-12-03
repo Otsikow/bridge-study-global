@@ -283,8 +283,6 @@ const UniversityProfilePage = () => {
     setHeroFile(null);
   }, [
     form,
-    heroPreviewObjectUrl,
-    logoPreviewObjectUrl,
     profile?.email,
     profile?.full_name,
     profile?.phone,
