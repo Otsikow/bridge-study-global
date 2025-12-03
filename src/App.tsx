@@ -203,6 +203,7 @@ const BuildPreviews = lazyWithErrorHandling(() => import("./pages/admin/BuildPre
 const FeaturedUniversitiesAdmin = lazyWithErrorHandling(
   () => import("./pages/admin/FeaturedUniversitiesAdmin"),
 );
+const AdminUniversitiesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminUniversities"));
 
 // Staff & Agents
 const StaffStudents = lazyWithErrorHandling(() => import("./pages/dashboard/StaffStudents"));
@@ -389,6 +390,7 @@ const App = () => {
                           <Route index element={<Navigate to="/admin/overview" replace />} />
                           <Route path="overview" element={<AdminOverview />} />
                           <Route path="users" element={<AdminUsers />} />
+                          <Route path="universities" element={<AdminUniversitiesPage />} />
                           <Route path="admissions" element={<AdminAdmissions />} />
                           <Route path="payments" element={<AdminPaymentsPage />} />
                           <Route path="partners" element={<AdminPartnersPage />} />

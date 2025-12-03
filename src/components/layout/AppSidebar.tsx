@@ -89,9 +89,9 @@ const menuItems = {
     { title: "Settings", url: "/dashboard/settings", icon: Settings },
   ],
   admin: [
-    { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "Users", url: "/dashboard/users", icon: Users },
-    { title: "Universities", url: "/dashboard/universities", icon: Building2 },
+    { title: "Dashboard", url: "/admin/overview", icon: Home },
+    { title: "Users", url: "/admin/users", icon: Users },
+    { title: "Universities", url: "/admin/universities", icon: Building2 },
     {
       title: "Featured Universities",
       url: "/admin/featured-universities",
