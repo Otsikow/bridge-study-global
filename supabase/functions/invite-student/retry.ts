@@ -17,7 +17,7 @@ export async function retry<T>(
     try {
       return await fn();
     } catch (error) {
-      lastError = error;
+      lastError = error instanceof Error ? error : new Error(String(error));
       if (i < attempts - 1) {
         await new Promise((resolve) => setTimeout(resolve, delay * 2 ** i));
       }

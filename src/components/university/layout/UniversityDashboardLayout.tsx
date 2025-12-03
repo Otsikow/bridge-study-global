@@ -258,7 +258,7 @@ const fetchUniversityDashboardData = async (
     .from("universities")
     .select("*")
     .eq("tenant_id", tenantId)
-    .order("active", { ascending: false, nullsLast: false })
+    .order("active", { ascending: false, nullsFirst: false })
     .order("updated_at", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(1);
