@@ -917,7 +917,7 @@ export const UniversityDashboardLayout = ({
           <Button
             variant="outline"
             size="icon"
-            className="fixed left-4 top-4 z-50 lg:hidden"
+            className="absolute left-4 top-4 lg:hidden"
             onClick={() => setMobileNavOpen(true)}
           >
             <Menu className="h-5 w-5" />
