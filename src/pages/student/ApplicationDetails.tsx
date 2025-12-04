@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge } from '@/components/StatusBadge';
+import { LoadingState } from '@/components/LoadingState';
 import { Calendar, DollarSign, Download, FileText, GraduationCap, MapPin, Timer } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 
@@ -232,7 +233,9 @@ export default function ApplicationDetails() {
   if (loading || !app) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">Loading application...</div>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <LoadingState message="Loading application details..." size="lg" />
+        </div>
       </div>
     );
   }

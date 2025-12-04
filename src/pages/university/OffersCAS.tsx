@@ -354,9 +354,8 @@ const OffersCASPage = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Handle error toast via useEffect instead of onError callback
-  const hasShownError = useMemo(() => false, []);
-  if (error && !hasShownError) {
+  // Log errors for debugging
+  if (error) {
     console.error("Failed to fetch university offers and CAS records", error);
   }
 

@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 interface OverviewTabProps {
   metrics: {
@@ -275,7 +275,10 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topCountries.length > 0 ? (
               <div className="space-y-3">
                 {topCountries.map((country, index) => (
@@ -303,7 +306,10 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topAgents.length > 0 ? (
               <div className="space-y-3">
                 {topAgents.map((agent, index) => (
@@ -331,7 +337,10 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topPrograms.length > 0 ? (
               <div className="space-y-3">
                 {topPrograms.map((program, index) => (

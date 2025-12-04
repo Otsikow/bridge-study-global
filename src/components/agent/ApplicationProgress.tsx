@@ -1,6 +1,7 @@
 import { useApplicationDrafts } from "@/hooks/useApplicationDrafts";
 import { Progress } from "@/components/ui/progress";
 import { formatDistanceToNow } from "date-fns";
+import { Loader2, AlertCircle } from "lucide-react";
 
 const TOTAL_STEPS = 10;
 
@@ -18,11 +19,21 @@ export default function ApplicationProgress({
   } = useApplicationDrafts(studentId);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Loading progress...</span>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <div className="flex items-center gap-2 text-sm text-destructive py-2">
+        <AlertCircle className="h-4 w-4" />
+        <span>Unable to load progress</span>
+      </div>
+    );
   }
 
   if (!drafts || drafts.length === 0) {
