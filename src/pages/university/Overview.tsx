@@ -130,12 +130,28 @@ const OverviewPage = () => {
                     <MapPin className="mr-1 h-3 w-3" />
                     {[university.city, university.country].filter(Boolean).join(", ") || university.country}
                   </Badge>
-                  <Badge variant="outline" className="border-primary/30 text-primary">
-                    {programs.length} Programmes
-                  </Badge>
-                  <Badge variant="outline" className="border-success/30 text-success">
-                    {agents.length} Partner Agents
-                  </Badge>
+                  <Link
+                    to="/university/programs"
+                    className="transition hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Badge
+                      variant="outline"
+                      className="border-primary/30 text-primary hover:bg-primary/10"
+                    >
+                      {programs.length} Programmes
+                    </Badge>
+                  </Link>
+                  <Link
+                    to="/dashboard/agents"
+                    className="transition hover:scale-[1.01] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <Badge
+                      variant="outline"
+                      className="border-success/30 text-success hover:bg-success/10"
+                    >
+                      {agents.length} Partner Agents
+                    </Badge>
+                  </Link>
                 </div>
                 {university.description ? (
                   <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
