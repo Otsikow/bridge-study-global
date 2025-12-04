@@ -14,8 +14,7 @@ import ApplicationTrackingSystem from "@/components/ats/ApplicationTrackingSyste
 import TaskManagement from "@/components/tasks/TaskManagement";
 import PreferenceRanking from "@/components/ranking/PreferenceRanking";
 import CommissionManagement from "@/components/commission/CommissionManagement";
-import { IconTooltip } from "@/components/agent/IconTooltip";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 import {
   LayoutDashboard,
@@ -34,76 +33,16 @@ import BackButton from "@/components/BackButton";
 import { cn } from "@/lib/utils";
 
 const tabItems = [
-  {
-    value: "overview" as const,
-    label: "Overview",
-    description: "Snapshot of performance",
-    icon: LayoutDashboard,
-    tooltip: "View your dashboard overview",
-  },
-  {
-    value: "applications" as const,
-    label: "Applications",
-    description: "Monitor student progress",
-    icon: BarChart3,
-    tooltip: "Review application progress",
-  },
-  {
-    value: "leads" as const,
-    label: "My Leads",
-    description: "Convert prospects faster",
-    icon: Users,
-    tooltip: "Manage your leads",
-  },
-  {
-    value: "students" as const,
-    label: "Students",
-    description: "Stay close to advisees",
-    icon: GraduationCap,
-    tooltip: "View your student list",
-  },
-  {
-    value: "tasks" as const,
-    label: "Tasks",
-    description: "Prioritized action items",
-    icon: ClipboardList,
-    tooltip: "View your assigned tasks",
-  },
-  {
-    value: "ranking" as const,
-    label: "Ranking",
-    description: "Preference management",
-    icon: Star,
-    tooltip: "Manage preference rankings",
-  },
-  {
-    value: "commissions" as const,
-    label: "Commissions",
-    description: "Track earnings",
-    icon: DollarSign,
-    tooltip: "Track commission earnings",
-  },
-  {
-    value: "import" as const,
-    label: "Import",
-    description: "Bulk upload pipelines",
-    icon: Upload,
-    tooltip: "Bulk import students",
-  },
-  {
-    value: "partners" as const,
-    label: "Partners",
-    description: "Discover new schools",
-    icon: Handshake,
-    tooltip: "Discover universities to partner with",
-  },
-  {
-    value: "resources" as const,
-    label: "Resources",
-    description: "Guides and templates",
-    icon: FolderOpen,
-    tooltip: "Browse helpful resources",
-  },
+  { value: "overview" as const, label: "Overview", icon: LayoutDashboard },
+  { value: "applications" as const, label: "Applications", icon: BarChart3 },
+  { value: "leads" as const, label: "Leads", icon: Users },
+  { value: "students" as const, label: "Students", icon: GraduationCap },
+  { value: "tasks" as const, label: "Tasks", icon: ClipboardList },
+  { value: "ranking" as const, label: "Ranking", icon: Star },
+  { value: "commissions" as const, label: "Commissions", icon: DollarSign },
+  { value: "import" as const, label: "Import", icon: Upload },
+  { value: "partners" as const, label: "Partners", icon: Handshake },
+  { value: "resources" as const, label: "Resources", icon: FolderOpen },
 ];
 
 export default function AgentDashboard() {
@@ -160,51 +99,54 @@ export default function AgentDashboard() {
     navigate(targetPath);
   };
 
-  const tabButtonClassName = cn(
-    "group flex h-full items-start gap-3 rounded-lg border border-border bg-background/60 px-3 py-3 text-left",
-    "shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md",
-    "data-[state=active]:border-primary data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
-    "focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2",
-  );
-
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <BackButton variant="ghost" size="sm" fallback="/dashboard" />
-            <div className="text-xs text-muted-foreground sm:text-sm">
-              Quick navigation is available via the tabs below.
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <BackButton variant="ghost" size="sm" fallback="/dashboard" className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+                Agent Dashboard
+              </h1>
+              <p className="text-sm text-muted-foreground hidden sm:block">
+                Manage students, track performance, and access resources
+              </p>
             </div>
           </div>
 
-          {/* Header */}
-          <div className="space-y-1.5 animate-fade-in">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-              Partner Agent Dashboard
-            </h1>
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Manage your students, track performance, and access resources.
-            </p>
-          </div>
-
-          <TooltipProvider delayDuration={100}>
+          {/* Navigation Tabs */}
+          <TooltipProvider delayDuration={200}>
             <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                {tabItems.map(({ value, label, icon: Icon, description, tooltip }) => (
-                  <TabsTrigger key={value} value={value} className={tabButtonClassName}>
-                    <IconTooltip label={tooltip}>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition group-data-[state=active]:bg-primary/20">
-                        <Icon className="h-5 w-5" />
-                      </div>
-                    </IconTooltip>
-                    <div className="flex flex-col items-start gap-0.5">
-                      <span className="text-sm font-semibold leading-tight md:text-base">{label}</span>
-                      <span className="text-xs text-muted-foreground">{description}</span>
-                    </div>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <div className="relative -mx-4 sm:-mx-6 lg:-mx-8">
+                <div className="overflow-x-auto scrollbar-hide px-4 sm:px-6 lg:px-8">
+                  <TabsList className="inline-flex h-auto min-w-full gap-1 rounded-xl bg-muted/50 p-1.5 backdrop-blur-sm">
+                    {tabItems.map(({ value, label, icon: Icon }) => (
+                      <Tooltip key={value}>
+                        <TooltipTrigger asChild>
+                          <TabsTrigger
+                            value={value}
+                            className={cn(
+                              "group relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                              "text-muted-foreground hover:text-foreground hover:bg-background/60",
+                              "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+                              "whitespace-nowrap"
+                            )}
+                          >
+                            <Icon className="h-4 w-4 shrink-0 transition-colors group-data-[state=active]:text-primary" />
+                            <span className="hidden sm:inline">{label}</span>
+                          </TabsTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="sm:hidden">
+                          {label}
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </TabsList>
+                </div>
+              </div>
 
               {/* Overview */}
               <TabsContent value="overview">
