@@ -444,14 +444,15 @@ const ProgramForm = ({
                 <FormLabel>Duration (months)</FormLabel>
                 <FormControl>
                   <Input
-                    type="text"
+                    type="number"
                     inputMode="numeric"
-                    pattern="[0-9]*"
+                    min={1}
+                    step={1}
                     placeholder="e.g. 12"
                     value={field.value ?? ""}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "");
-                      field.onChange(val === "" ? undefined : Number(val));
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      field.onChange(value === "" ? undefined : Number(value));
                     }}
                   />
                 </FormControl>
@@ -857,7 +858,7 @@ const ProgramsPage = () => {
     [data?.programs],
   );
   const universityId = data?.university?.id ?? null;
-  const tenantId = profile?.tenant_id ?? null;
+  const tenantId = data?.university?.tenant_id ?? profile?.tenant_id ?? null;
 
   const levelFilterOptions = useMemo(() => {
     const unique = new Set<string>();
@@ -1104,52 +1105,47 @@ const ProgramsPage = () => {
     levelFilter === "all" &&
     statusFilter === "all";
 
-  const createInitialValues: ProgramFormValues = useMemo(
-    () => ({
-      ...defaultFormValues,
-      tuitionCurrency: suggestedCurrency ?? defaultFormValues.tuitionCurrency,
-    }),
-    [suggestedCurrency],
-  );
+  const createInitialValues: ProgramFormValues = {
+    ...defaultFormValues,
+    tuitionCurrency: suggestedCurrency ?? defaultFormValues.tuitionCurrency,
+  };
 
-  const editInitialValues: ProgramFormValues | null = useMemo(() => {
-    if (!editingProgram) return null;
-
-    return {
-      name: editingProgram.name,
-      level: editingProgram.level,
-      discipline: editingProgram.discipline ?? "",
-      durationMonths:
-        editingProgram.duration_months ?? defaultFormValues.durationMonths,
-      tuitionCurrency:
-        editingProgram.tuition_currency ??
-        suggestedCurrency ??
-        defaultFormValues.tuitionCurrency,
-      tuitionAmount: (() => {
-        const amount = editingProgram.tuition_amount;
-        if (amount === null || amount === undefined) {
-          return defaultFormValues.tuitionAmount;
-        }
-        const numeric =
-          typeof amount === "string" ? Number(amount) : Number(amount);
-        return Number.isFinite(numeric)
-          ? numeric
-          : defaultFormValues.tuitionAmount;
-      })(),
-      applicationFee: editingProgram.app_fee ?? null,
-      seatsAvailable: editingProgram.seats_available ?? null,
-      ieltsOverall: editingProgram.ielts_overall ?? null,
-      toeflOverall: editingProgram.toefl_overall ?? null,
-      intakeMonths:
-        editingProgram.intake_months && editingProgram.intake_months.length > 0
-          ? editingProgram.intake_months
-          : defaultFormValues.intakeMonths,
-      entryRequirements: (editingProgram.entry_requirements ?? []).join("\n"),
-      description: editingProgram.description ?? "",
-      imageUrl: editingProgram.image_url ?? null,
-      active: Boolean(editingProgram.active),
-    };
-  }, [editingProgram, suggestedCurrency]);
+  const editInitialValues: ProgramFormValues | null = editingProgram
+    ? {
+        name: editingProgram.name,
+        level: editingProgram.level,
+        discipline: editingProgram.discipline ?? "",
+        durationMonths:
+          editingProgram.duration_months ?? defaultFormValues.durationMonths,
+        tuitionCurrency:
+          editingProgram.tuition_currency ??
+          suggestedCurrency ??
+          defaultFormValues.tuitionCurrency,
+        tuitionAmount: (() => {
+          const amount = editingProgram.tuition_amount;
+          if (amount === null || amount === undefined) {
+            return defaultFormValues.tuitionAmount;
+          }
+          const numeric =
+            typeof amount === "string" ? Number(amount) : Number(amount);
+          return Number.isFinite(numeric)
+            ? numeric
+            : defaultFormValues.tuitionAmount;
+        })(),
+        applicationFee: editingProgram.app_fee ?? null,
+        seatsAvailable: editingProgram.seats_available ?? null,
+        ieltsOverall: editingProgram.ielts_overall ?? null,
+        toeflOverall: editingProgram.toefl_overall ?? null,
+        intakeMonths:
+          editingProgram.intake_months && editingProgram.intake_months.length > 0
+            ? editingProgram.intake_months
+            : defaultFormValues.intakeMonths,
+        entryRequirements: (editingProgram.entry_requirements ?? []).join("\n"),
+        description: editingProgram.description ?? "",
+        imageUrl: editingProgram.image_url ?? null,
+        active: Boolean(editingProgram.active),
+      }
+    : null;
 
   return (
     <div className="space-y-6">
