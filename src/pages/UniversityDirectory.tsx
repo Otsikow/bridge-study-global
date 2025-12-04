@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 
@@ -10,17 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  UNIVERSITY_COUNTRIES,
-  UNIVERSITY_DIRECTORY_DATA,
-  UNIVERSITY_FOCUS_AREAS,
-  UNIVERSITY_REGIONS,
-  UNIVERSITY_TYPES,
-  type UniversityDirectoryItem,
-} from "@/data/university-directory";
+  parseUniversityProfileDetails,
+  type UniversityProfileDetails,
+} from "@/lib/universityProfile";
 import {
   Award,
-  BarChart3,
   Building2,
   ExternalLink,
   Globe,
@@ -31,93 +28,53 @@ import {
   RefreshCw,
   Search,
   TrendingUp,
-  Users,
 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 // --- University Images ---
-import oxfordImg from "@/assets/university-oxford.jpg";
-import harvardImg from "@/assets/university-harvard.jpg";
-import mitImg from "@/assets/university-mit.jpg";
-import cambridgeImg from "@/assets/university-cambridge.jpg";
-import stanfordImg from "@/assets/university-stanford.jpg";
-import torontoImg from "@/assets/university-toronto.jpg";
-import melbourneImg from "@/assets/university-melbourne.jpg";
-import yaleImg from "@/assets/university-yale.jpg";
-import princetonImg from "@/assets/university-princeton.jpg";
-import uclImg from "@/assets/university-ucl.jpg";
-import imperialImg from "@/assets/university-imperial.jpg";
-import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
 
-// Helper: pick image for university
-const getUniversityImage = (universityName: string, logoUrl: string | null, imageUrl?: string): string => {
-  // First check if there's a direct imageUrl provided
-  if (imageUrl) return imageUrl;
+// Interface for university data from database
+interface UniversityFromDB {
+  id: string;
+  name: string;
+  city: string | null;
+  country: string | null;
+  website: string | null;
+  description: string | null;
+  logo_url: string | null;
+  featured_image_url: string | null;
+  submission_config_json: unknown;
+  active: boolean | null;
+  programCount: number;
+  profileDetails: UniversityProfileDetails;
+}
 
-  const name = universityName.toLowerCase();
-  if (logoUrl && logoUrl.startsWith('/src/assets/')) {
-    // Use university-specific images instead of logos for better visual appeal
-    if (name.includes("oxford")) return oxfordImg;
-    if (name.includes("harvard")) return harvardImg;
-    if (name.includes("mit") || name.includes("massachusetts institute")) return mitImg;
-    if (name.includes("cambridge")) return cambridgeImg;
-    if (name.includes("stanford")) return stanfordImg;
-    if (name.includes("toronto")) return torontoImg;
-    if (name.includes("melbourne")) return melbourneImg;
-    if (name.includes("yale")) return yaleImg;
-    if (name.includes("princeton")) return princetonImg;
-    if (name.includes("ucl") || name.includes("university college london")) return uclImg;
-    if (name.includes("imperial")) return imperialImg;
-    if (name.includes("edinburgh")) return edinburghImg;
-    if (name.includes("berkeley") || name.includes("california")) return defaultUniversityImg;
-  }
-
-  if (name.includes("oxford")) return oxfordImg;
-  if (name.includes("harvard")) return harvardImg;
-  if (name.includes("mit") || name.includes("massachusetts institute")) return mitImg;
-  if (name.includes("cambridge")) return cambridgeImg;
-  if (name.includes("stanford")) return stanfordImg;
-  if (name.includes("toronto")) return torontoImg;
-  if (name.includes("melbourne")) return melbourneImg;
-  if (name.includes("yale")) return yaleImg;
-  if (name.includes("princeton")) return princetonImg;
-  if (name.includes("ucl") || name.includes("university college london")) return uclImg;
-  if (name.includes("imperial")) return imperialImg;
-  if (name.includes("edinburgh")) return edinburghImg;
-  if (name.includes("berkeley") || name.includes("california")) return defaultUniversityImg;
-
+// Helper: get the best available image for a university
+const getUniversityImage = (university: UniversityFromDB): string => {
+  // Priority: hero image from profile > featured_image_url > default
+  const heroImage = university.profileDetails?.media?.heroImageUrl;
+  if (heroImage) return heroImage;
+  if (university.featured_image_url) return university.featured_image_url;
   return defaultUniversityImg;
 };
 
 type SortOption =
-  | "ranking-asc"
-  | "ranking-desc"
   | "name-asc"
   | "name-desc"
   | "programs-desc"
-  | "acceptance-desc"
-  | "international-desc"
-  | "tuition-asc"
-  | "tuition-desc";
+  | "programs-asc";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "ranking-asc", label: "QS Rank: Ascending" },
-  { value: "ranking-desc", label: "QS Rank: Descending" },
   { value: "name-asc", label: "Name A → Z" },
   { value: "name-desc", label: "Name Z → A" },
   { value: "programs-desc", label: "Programmes: High to Low" },
-  { value: "acceptance-desc", label: "Acceptance Rate: High to Low" },
-  { value: "international-desc", label: "International Students: High to Low" },
-  { value: "tuition-asc", label: "Tuition: Lowest to Highest" },
-  { value: "tuition-desc", label: "Tuition: Highest to Lowest" },
+  { value: "programs-asc", label: "Programmes: Low to High" },
 ];
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
 const formatNumber = (value: number) => numberFormatter.format(Math.round(value));
-
-const formatPercentage = (value: number) => `${value.toFixed(0)}%`;
 
 const StatItem = ({
   icon: Icon,
@@ -141,65 +98,106 @@ const StatItem = ({
 );
 
 export default function UniversityDirectory() {
+  const [universities, setUniversities] = useState<UniversityFromDB[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("all");
-  const [selectedRegion, setSelectedRegion] = useState<string>("all");
-  const [selectedType, setSelectedType] = useState<string>("all");
-  const [selectedFocusAreas, setSelectedFocusAreas] = useState<string[]>([]);
-  const [sortOption, setSortOption] = useState<SortOption>("ranking-asc");
+  const [sortOption, setSortOption] = useState<SortOption>("name-asc");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+  // Fetch universities from database
+  useEffect(() => {
+    const fetchUniversities = async () => {
+      setLoading(true);
+      try {
+        // Fetch universities
+        const { data: universitiesData, error: uniError } = await supabase
+          .from("universities")
+          .select("id, name, city, country, website, description, logo_url, featured_image_url, submission_config_json, active")
+          .eq("active", true)
+          .order("name");
+
+        if (uniError) throw uniError;
+
+        // Fetch program counts for each university
+        const { data: programCounts, error: progError } = await supabase
+          .from("programs")
+          .select("university_id")
+          .eq("active", true);
+
+        if (progError) throw progError;
+
+        // Count programs per university
+        const programCountMap: Record<string, number> = {};
+        programCounts?.forEach((program) => {
+          const uniId = program.university_id;
+          if (uniId) {
+            programCountMap[uniId] = (programCountMap[uniId] || 0) + 1;
+          }
+        });
+
+        // Combine data
+        const enrichedUniversities: UniversityFromDB[] = (universitiesData || []).map((uni) => ({
+          ...uni,
+          programCount: programCountMap[uni.id] || 0,
+          profileDetails: parseUniversityProfileDetails(uni.submission_config_json),
+        }));
+
+        setUniversities(enrichedUniversities);
+      } catch (error) {
+        console.error("Error loading universities:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchUniversities();
+  }, []);
+
+  // Get unique countries for filter
+  const availableCountries = useMemo(() => {
+    const countries = new Set<string>();
+    universities.forEach((uni) => {
+      if (uni.country) countries.add(uni.country);
+    });
+    return Array.from(countries).sort();
+  }, [universities]);
+
   const summaryMetrics = useMemo(() => {
-    const totalUniversities = UNIVERSITY_DIRECTORY_DATA.length;
-    const totalPrograms = UNIVERSITY_DIRECTORY_DATA.reduce(
+    const totalUniversities = universities.length;
+    const totalPrograms = universities.reduce(
       (sum, uni) => sum + uni.programCount,
       0
     );
-    const averageAcceptance =
-      UNIVERSITY_DIRECTORY_DATA.reduce((sum, uni) => sum + uni.acceptanceRate, 0) /
-      totalUniversities;
-    const averageInternational =
-      UNIVERSITY_DIRECTORY_DATA.reduce(
-        (sum, uni) => sum + uni.studentBody.internationalPercentage,
-        0
-      ) / totalUniversities;
     const countriesCount = new Set(
-      UNIVERSITY_DIRECTORY_DATA.map((uni) => uni.country)
+      universities.map((uni) => uni.country).filter(Boolean)
     ).size;
-    const regionsCount = new Set(
-      UNIVERSITY_DIRECTORY_DATA.map((uni) => uni.region)
-    ).size;
-    const largestStudentBody = UNIVERSITY_DIRECTORY_DATA.reduce(
+    const universityWithMostPrograms = universities.reduce(
       (prev, current) =>
-        current.studentBody.total > prev.studentBody.total ? current : prev,
-      UNIVERSITY_DIRECTORY_DATA[0]
+        current.programCount > (prev?.programCount || 0) ? current : prev,
+      universities[0]
     );
 
     return {
       totalUniversities,
       totalPrograms,
-      averageAcceptance,
-      averageInternational,
       countriesCount,
-      regionsCount,
-      largestStudentBody,
+      universityWithMostPrograms,
     };
-  }, []);
+  }, [universities]);
 
   const filteredUniversities = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    return UNIVERSITY_DIRECTORY_DATA.filter((university) => {
+    return universities.filter((university) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
         [
           university.name,
-          university.city,
-          university.country,
-          university.description,
-          ...university.focusAreas,
-          ...university.notablePrograms,
-          ...university.badges,
+          university.city || "",
+          university.country || "",
+          university.description || "",
+          ...(university.profileDetails?.highlights || []),
         ]
           .join(" ")
           .toLowerCase()
@@ -207,56 +205,23 @@ export default function UniversityDirectory() {
 
       const matchesCountry =
         selectedCountry === "all" || university.country === selectedCountry;
-      const matchesRegion =
-        selectedRegion === "all" || university.region === selectedRegion;
-      const matchesType =
-        selectedType === "all" || university.institutionType === selectedType;
-      const matchesFocusAreas =
-        selectedFocusAreas.length === 0 ||
-        selectedFocusAreas.every((focus) =>
-          university.focusAreas.includes(focus)
-        );
 
-      return (
-        matchesSearch &&
-        matchesCountry &&
-        matchesRegion &&
-        matchesType &&
-        matchesFocusAreas
-      );
+      return matchesSearch && matchesCountry;
     });
-  }, [searchTerm, selectedCountry, selectedRegion, selectedType, selectedFocusAreas]);
+  }, [universities, searchTerm, selectedCountry]);
 
   const sortedUniversities = useMemo(() => {
     const list = [...filteredUniversities];
 
     switch (sortOption) {
-      case "ranking-asc":
-        return list.sort((a, b) => a.ranking - b.ranking);
-      case "ranking-desc":
-        return list.sort((a, b) => b.ranking - a.ranking);
       case "name-asc":
         return list.sort((a, b) => a.name.localeCompare(b.name));
       case "name-desc":
         return list.sort((a, b) => b.name.localeCompare(a.name));
       case "programs-desc":
         return list.sort((a, b) => b.programCount - a.programCount);
-      case "acceptance-desc":
-        return list.sort((a, b) => b.acceptanceRate - a.acceptanceRate);
-      case "international-desc":
-        return list.sort(
-          (a, b) =>
-            b.studentBody.internationalPercentage -
-            a.studentBody.internationalPercentage
-        );
-      case "tuition-asc":
-        return list.sort(
-          (a, b) => a.averageTuitionInternational - b.averageTuitionInternational
-        );
-      case "tuition-desc":
-        return list.sort(
-          (a, b) => b.averageTuitionInternational - a.averageTuitionInternational
-        );
+      case "programs-asc":
+        return list.sort((a, b) => a.programCount - b.programCount);
       default:
         return list;
     }
@@ -265,142 +230,100 @@ export default function UniversityDirectory() {
   const handleResetFilters = () => {
     setSearchTerm("");
     setSelectedCountry("all");
-    setSelectedRegion("all");
-    setSelectedType("all");
-    setSelectedFocusAreas([]);
-    setSortOption("ranking-asc");
+    setSortOption("name-asc");
   };
 
-  const renderUniversityCard = (university: UniversityDirectoryItem) => {
-    const image = getUniversityImage(university.name, null, university.imageUrl);
-    const locationLabel = `${university.city}, ${university.country}`;
+  const renderUniversityCard = (university: UniversityFromDB) => {
+    const image = getUniversityImage(university);
+    const locationLabel = [university.city, university.country].filter(Boolean).join(", ");
+    const tagline = university.profileDetails?.tagline;
+    const highlights = university.profileDetails?.highlights || [];
 
     const cardContent = (
       <div className="flex flex-col gap-5 p-6">
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {university.badges.map((badge) => (
-              <Badge key={badge} variant="secondary" className="text-xs">
-                {badge}
-              </Badge>
-            ))}
-          </div>
-          <div className="space-y-1.5">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <CardTitle className="text-2xl text-foreground">
-                  {university.name}
-                </CardTitle>
-                <CardDescription className="flex flex-wrap items-center gap-2">
+          <div className="flex items-start gap-4">
+            {/* University Logo */}
+            {university.logo_url ? (
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-background p-2">
+                <img
+                  src={university.logo_url}
+                  alt={`${university.name} logo`}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
+                <Building2 className="h-8 w-8 text-muted-foreground" />
+              </div>
+            )}
+            <div className="flex-1 space-y-1.5">
+              <CardTitle className="text-2xl text-foreground">
+                {university.name}
+              </CardTitle>
+              {tagline ? (
+                <p className="text-sm text-primary font-medium">{tagline}</p>
+              ) : null}
+              <CardDescription className="flex flex-wrap items-center gap-2">
+                {locationLabel ? (
                   <span className="flex items-center gap-1 text-sm">
                     <MapPin className="h-4 w-4" />
                     {locationLabel}
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    • {university.region}
-                  </span>
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="text-xs">
-                Founded {university.founded}
-              </Badge>
+                ) : null}
+              </CardDescription>
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+          </div>
+          {university.description ? (
+            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
               {university.description}
             </p>
-          </div>
+          ) : null}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <StatItem icon={Award} label="QS Rank" value={`#${university.ranking}`} />
-          <StatItem
-            icon={BarChart3}
-            label="Acceptance"
-            value={formatPercentage(university.acceptanceRate)}
-          />
+        <div className="grid grid-cols-2 gap-3">
           <StatItem
             icon={GraduationCap}
             label="Programmes"
             value={formatNumber(university.programCount)}
           />
           <StatItem
-            icon={Users}
-            label="Students"
-            value={`${formatNumber(university.studentBody.total)}`}
-            subValue={`${formatPercentage(
-              university.studentBody.internationalPercentage
-            )} international`}
+            icon={MapPin}
+            label="Location"
+            value={university.country || "—"}
           />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        {highlights.length > 0 ? (
           <div className="rounded-lg border bg-background/60 p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Key Focus Areas
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {university.focusAreas.map((focus) => (
-                <Badge key={focus} variant="outline" className="text-xs">
-                  {focus}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-lg border bg-background/60 p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Signature Programmes
+              Highlights
             </p>
             <ul className="mt-2 space-y-1.5 text-sm text-foreground">
-              {university.notablePrograms.map((program) => (
-                <li key={program} className="flex items-start gap-2">
+              {highlights.slice(0, 3).map((highlight, index) => (
+                <li key={index} className="flex items-start gap-2">
                   <TrendingUp className="mt-0.5 h-3.5 w-3.5 text-primary" />
-                  <span>{program}</span>
+                  <span>{highlight}</span>
                 </li>
               ))}
             </ul>
           </div>
-        </div>
+        ) : null}
 
-        <div className="rounded-lg border bg-background/60 p-4">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
-            Research Highlights
-          </p>
-          <ul className="mt-2 space-y-1.5 text-sm text-foreground">
-            {university.researchHighlights.map((highlight) => (
-              <li key={highlight} className="flex items-start gap-2">
-                <Building2 className="mt-0.5 h-3.5 w-3.5 text-primary" />
-                <span>{highlight}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Investment Snapshot
-            </p>
-            <p className="text-sm font-medium text-foreground">
-              {university.tuitionDisplay}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Competitive employability ranking #{university.employabilityRank ?? "—"}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to={`/universities/${university.id}`}>
-                Explore profile
-              </Link>
-            </Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/universities/${university.id}`}>
+              Explore profile
+            </Link>
+          </Button>
+          {university.website ? (
             <Button variant="secondary" size="sm" asChild>
               <a href={university.website} target="_blank" rel="noreferrer">
                 Visit website
                 <ExternalLink className="ml-2 h-3.5 w-3.5" />
               </a>
             </Button>
-          </div>
+          ) : null}
         </div>
       </div>
     );
@@ -440,6 +363,30 @@ export default function UniversityDirectory() {
     sortedUniversities.length === 1 ? "University" : "Universities"
   } Found`;
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-12">
+        <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 md:px-8">
+          <Skeleton className="h-10 w-32" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-96" />
+            <Skeleton className="h-6 w-64" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-40" />
+            <Skeleton className="h-40" />
+            <Skeleton className="h-40" />
+          </div>
+          <Skeleton className="h-48" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Skeleton className="h-96" />
+            <Skeleton className="h-96" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pb-12">
       <SEO
@@ -454,30 +401,30 @@ export default function UniversityDirectory() {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Globe className="h-4 w-4" />
-              Curated global institutions • Updated Q1 2025
+              Partner universities • Live data
             </div>
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-foreground">University Directory</h1>
               <p className="max-w-2xl text-base text-muted-foreground">
-                Discover world-leading universities with key statistics, focus areas,
-                signature programs, and direct links to explore admissions further.
+                Discover partner universities with key information, programmes,
+                and direct links to explore admissions further.
               </p>
             </div>
           </div>
           <Badge variant="secondary" className="h-fit px-3 py-2 text-xs uppercase tracking-wide">
-            100% Verified Profiles
+            Live Profiles
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card className="border-border/60">
             <CardHeader className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <GraduationCap className="h-4 w-4 text-primary" />
-                Global Universities
+                <Building2 className="h-4 w-4 text-primary" />
+                Partner Universities
               </CardTitle>
               <CardDescription>
-                Comprehensive coverage across regions
+                Active institutions on the platform
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -485,27 +432,7 @@ export default function UniversityDirectory() {
                 {summaryMetrics.totalUniversities}
               </p>
               <p className="text-sm text-muted-foreground">
-                {summaryMetrics.countriesCount} countries • {summaryMetrics.regionsCount} regions
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60">
-            <CardHeader className="space-y-1">
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <BarChart3 className="h-4 w-4 text-primary" />
-                Selectivity Snapshot
-              </CardTitle>
-              <CardDescription>
-                Average admissions competitiveness
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {formatPercentage(summaryMetrics.averageAcceptance)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Acceptance rate across the directory
+                Across {summaryMetrics.countriesCount} countries
               </p>
             </CardContent>
           </Card>
@@ -514,16 +441,16 @@ export default function UniversityDirectory() {
             <CardHeader className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <GraduationCap className="h-4 w-4 text-primary" />
-                Programme Portfolio
+                Available Programmes
               </CardTitle>
-              <CardDescription>Active degree pathways globally</CardDescription>
+              <CardDescription>Active degree pathways</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-foreground">
                 {formatNumber(summaryMetrics.totalPrograms)}
               </p>
               <p className="text-sm text-muted-foreground">
-                Including flagship undergraduate & graduate tracks
+                Across all partner universities
               </p>
             </CardContent>
           </Card>
@@ -531,17 +458,17 @@ export default function UniversityDirectory() {
           <Card className="border-border/60">
             <CardHeader className="space-y-1">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <Users className="h-4 w-4 text-primary" />
-                International Community
+                <Award className="h-4 w-4 text-primary" />
+                Top University
               </CardTitle>
-              <CardDescription>Average global student mix</CardDescription>
+              <CardDescription>Most programmes available</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {formatPercentage(summaryMetrics.averageInternational)}
+              <p className="text-lg font-bold text-foreground truncate">
+                {summaryMetrics.universityWithMostPrograms?.name || "—"}
               </p>
               <p className="text-sm text-muted-foreground">
-                Largest cohort: {summaryMetrics.largestStudentBody.name}
+                {summaryMetrics.universityWithMostPrograms?.programCount || 0} programmes
               </p>
             </CardContent>
           </Card>
@@ -551,7 +478,7 @@ export default function UniversityDirectory() {
           <CardHeader className="space-y-1">
             <CardTitle>Search & Filter</CardTitle>
             <CardDescription>
-              Narrow down universities by geography, institution type, or academic focus.
+              Find universities by name, location, or keyword.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -563,7 +490,7 @@ export default function UniversityDirectory() {
                   <Input
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search by university, city, or program strength"
+                    placeholder="Search by university name, city, or description"
                     className="pl-9"
                   />
                 </div>
@@ -580,46 +507,9 @@ export default function UniversityDirectory() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Countries</SelectItem>
-                    {UNIVERSITY_COUNTRIES.map((country) => (
+                    {availableCountries.map((country) => (
                       <SelectItem key={country} value={country}>
                         {country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-sm text-muted-foreground">Region</Label>
-                <Select
-                  value={selectedRegion}
-                  onValueChange={setSelectedRegion}
-                >
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="All regions" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Regions</SelectItem>
-                    {UNIVERSITY_REGIONS.map((region) => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-sm text-muted-foreground">Institution Type</Label>
-                <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger className="mt-2">
-                    <SelectValue placeholder="All institution types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    {UNIVERSITY_TYPES.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -646,38 +536,12 @@ export default function UniversityDirectory() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm text-muted-foreground">
-                Focus Areas
-              </Label>
-              <ToggleGroup
-                type="multiple"
-                value={selectedFocusAreas}
-                onValueChange={(value) => setSelectedFocusAreas(value)}
-                className="flex flex-wrap justify-start gap-2"
-              >
-                {UNIVERSITY_FOCUS_AREAS.map((area) => (
-                  <ToggleGroupItem
-                    key={area}
-                    value={area}
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full px-3 py-1 text-xs"
-                  >
-                    {area}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
-
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
-                {selectedFocusAreas.length > 0
-                  ? `${selectedFocusAreas.length} focus filter${
-                      selectedFocusAreas.length > 1 ? "s" : ""
-                    } applied`
-                  : "No focus filters applied"}
+                <Building2 className="h-4 w-4" />
+                {selectedCountry !== "all"
+                  ? `Filtering by ${selectedCountry}`
+                  : "Showing all countries"}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <ToggleGroup
