@@ -1104,47 +1104,52 @@ const ProgramsPage = () => {
     levelFilter === "all" &&
     statusFilter === "all";
 
-  const createInitialValues: ProgramFormValues = {
-    ...defaultFormValues,
-    tuitionCurrency: suggestedCurrency ?? defaultFormValues.tuitionCurrency,
-  };
+  const createInitialValues: ProgramFormValues = useMemo(
+    () => ({
+      ...defaultFormValues,
+      tuitionCurrency: suggestedCurrency ?? defaultFormValues.tuitionCurrency,
+    }),
+    [suggestedCurrency],
+  );
 
-  const editInitialValues: ProgramFormValues | null = editingProgram
-    ? {
-        name: editingProgram.name,
-        level: editingProgram.level,
-        discipline: editingProgram.discipline ?? "",
-        durationMonths:
-          editingProgram.duration_months ?? defaultFormValues.durationMonths,
-        tuitionCurrency:
-          editingProgram.tuition_currency ??
-          suggestedCurrency ??
-          defaultFormValues.tuitionCurrency,
-        tuitionAmount: (() => {
-          const amount = editingProgram.tuition_amount;
-          if (amount === null || amount === undefined) {
-            return defaultFormValues.tuitionAmount;
-          }
-          const numeric =
-            typeof amount === "string" ? Number(amount) : Number(amount);
-          return Number.isFinite(numeric)
-            ? numeric
-            : defaultFormValues.tuitionAmount;
-        })(),
-        applicationFee: editingProgram.app_fee ?? null,
-        seatsAvailable: editingProgram.seats_available ?? null,
-        ieltsOverall: editingProgram.ielts_overall ?? null,
-        toeflOverall: editingProgram.toefl_overall ?? null,
-        intakeMonths:
-          editingProgram.intake_months && editingProgram.intake_months.length > 0
-            ? editingProgram.intake_months
-            : defaultFormValues.intakeMonths,
-        entryRequirements: (editingProgram.entry_requirements ?? []).join("\n"),
-        description: editingProgram.description ?? "",
-        imageUrl: editingProgram.image_url ?? null,
-        active: Boolean(editingProgram.active),
-      }
-    : null;
+  const editInitialValues: ProgramFormValues | null = useMemo(() => {
+    if (!editingProgram) return null;
+
+    return {
+      name: editingProgram.name,
+      level: editingProgram.level,
+      discipline: editingProgram.discipline ?? "",
+      durationMonths:
+        editingProgram.duration_months ?? defaultFormValues.durationMonths,
+      tuitionCurrency:
+        editingProgram.tuition_currency ??
+        suggestedCurrency ??
+        defaultFormValues.tuitionCurrency,
+      tuitionAmount: (() => {
+        const amount = editingProgram.tuition_amount;
+        if (amount === null || amount === undefined) {
+          return defaultFormValues.tuitionAmount;
+        }
+        const numeric =
+          typeof amount === "string" ? Number(amount) : Number(amount);
+        return Number.isFinite(numeric)
+          ? numeric
+          : defaultFormValues.tuitionAmount;
+      })(),
+      applicationFee: editingProgram.app_fee ?? null,
+      seatsAvailable: editingProgram.seats_available ?? null,
+      ieltsOverall: editingProgram.ielts_overall ?? null,
+      toeflOverall: editingProgram.toefl_overall ?? null,
+      intakeMonths:
+        editingProgram.intake_months && editingProgram.intake_months.length > 0
+          ? editingProgram.intake_months
+          : defaultFormValues.intakeMonths,
+      entryRequirements: (editingProgram.entry_requirements ?? []).join("\n"),
+      description: editingProgram.description ?? "",
+      imageUrl: editingProgram.image_url ?? null,
+      active: Boolean(editingProgram.active),
+    };
+  }, [editingProgram, suggestedCurrency]);
 
   return (
     <div className="space-y-6">
