@@ -51,7 +51,10 @@ import edinburghImg from "@/assets/university-edinburgh.jpg";
 import defaultUniversityImg from "@/assets/university-default.jpg";
 
 // Helper: pick image for university
-const getUniversityImage = (universityName: string, logoUrl: string | null): string => {
+const getUniversityImage = (universityName: string, logoUrl: string | null, imageUrl?: string): string => {
+  // First check if there's a direct imageUrl provided
+  if (imageUrl) return imageUrl;
+
   const name = universityName.toLowerCase();
   if (logoUrl && logoUrl.startsWith('/src/assets/')) {
     // Use university-specific images instead of logos for better visual appeal
@@ -269,7 +272,7 @@ export default function UniversityDirectory() {
   };
 
   const renderUniversityCard = (university: UniversityDirectoryItem) => {
-    const image = getUniversityImage(university.name, null);
+    const image = getUniversityImage(university.name, null, university.imageUrl);
     const locationLabel = `${university.city}, ${university.country}`;
 
     const cardContent = (
