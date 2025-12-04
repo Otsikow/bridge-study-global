@@ -463,15 +463,25 @@ const UniversityProfilePage = () => {
         submission_config_json: updatedDetails as unknown as Json,
         active: true
       };
+      // Use onConflict with tenant_id to ensure proper tenant isolation
+      // This guarantees that each tenant can only have one university profile
+      // and updates are always scoped to the correct tenant
+      const upsertPayload = {
+        ...payload,
+        tenant_id: tenantId,
+        updated_at: new Date().toISOString(),
+        // Only include id if we're updating an existing university
+        // that belongs to this tenant (verified by the query)
+        ...(queryData?.university?.id ? { id: queryData.university.id } : {}),
+      };
+
       const {
         data: upsertedUniversity,
         error: universityError
-      } = await supabase.from("universities").upsert({
-        ...payload,
-        id: queryData?.university?.id,
-        tenant_id: tenantId,
-        updated_at: new Date().toISOString()
-      }).select().single();
+      } = await supabase.from("universities").upsert(
+        upsertPayload,
+        { onConflict: 'tenant_id' }
+      ).select().single();
       if (universityError) {
         throw universityError;
       }
