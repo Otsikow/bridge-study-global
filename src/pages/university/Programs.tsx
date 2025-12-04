@@ -444,13 +444,13 @@ const ProgramForm = ({
                 <FormLabel>Duration (months)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="1"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="e.g. 12"
-                    {...field}
                     value={field.value ?? ""}
                     onChange={(e) => {
-                      const val = e.target.value;
+                      const val = e.target.value.replace(/\D/g, "");
                       field.onChange(val === "" ? undefined : Number(val));
                     }}
                   />
