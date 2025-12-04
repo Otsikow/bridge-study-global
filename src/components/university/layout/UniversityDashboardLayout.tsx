@@ -556,6 +556,7 @@ const fetchUniversityDashboardData = async (
   return {
     university: {
       id: uniData.id,
+      tenant_id: uniData.tenant_id,
       name: uniData.name,
       logo_url: uniData.logo_url,
       website: uniData.website,
