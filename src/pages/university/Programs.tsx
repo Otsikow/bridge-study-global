@@ -457,12 +457,16 @@ const ProgramForm = ({
                 <FormLabel>Duration (months)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min={1}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={field.value ?? ""}
                     onChange={(event) => {
                       const rawValue = event.target.value;
-                      const sanitizedValue = rawValue.replace(/^0+(?=\d)/, "");
+                      // Only allow digits
+                      const digitsOnly = rawValue.replace(/\D/g, "");
+                      // Remove leading zeros
+                      const sanitizedValue = digitsOnly.replace(/^0+(?=\d)/, "");
                       if (sanitizedValue === "") {
                         field.onChange(undefined);
                       } else {
