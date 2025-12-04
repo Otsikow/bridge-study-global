@@ -49,6 +49,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
+    to: "/admin/dashboard",
+    labelKey: "admin.layout.navigation.dashboard.label",
+    descriptionKey: "admin.layout.navigation.dashboard.description",
+    labelDefault: "Dashboard",
+    descriptionDefault: "Key metrics & insights",
+    icon: LayoutDashboard,
+  },
+  {
     to: "/admin/overview",
     labelKey: "admin.layout.navigation.overview.label",
     descriptionKey: "admin.layout.navigation.overview.description",

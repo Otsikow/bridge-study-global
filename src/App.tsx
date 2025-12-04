@@ -180,6 +180,7 @@ const Payments = lazyWithErrorHandling(() => import("./pages/Payments"));
 
 // Admin
 const AdminLayout = lazyWithErrorHandling(() => import("./components/layout/AdminLayout"));
+const AdminDashboardPage = lazyWithErrorHandling(() => import("./pages/dashboards/AdminDashboard"));
 const AdminOverview = lazyWithErrorHandling(() => import("./pages/admin/AdminOverview"));
 const AdminUsers = lazyWithErrorHandling(() => import("./pages/admin/AdminUsers"));
 const AdminAdmissions = lazyWithErrorHandling(() => import("./pages/admin/AdminAdmissions"));
@@ -387,7 +388,8 @@ const App = () => {
 
                         {/* ✅ Admin Dashboard */}
                         <Route path="/admin" element={<ProtectedRoute allowedRoles={["admin"]}><AdminLayout /></ProtectedRoute>}>
-                          <Route index element={<Navigate to="/admin/overview" replace />} />
+                          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                          <Route path="dashboard" element={<AdminDashboardPage />} />
                           <Route path="overview" element={<AdminOverview />} />
                           <Route path="users" element={<AdminUsers />} />
                           <Route path="universities" element={<AdminUniversitiesPage />} />
