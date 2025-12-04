@@ -13,12 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { UniversitySidebar } from "./UniversitySidebar";
+import { UniversityHeader } from "./UniversityHeader";
 import { StatePlaceholder } from "../common/StatePlaceholder";
 import { LoadingState } from "@/components/LoadingState";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Building2, AlertCircle, ArrowUpRight, RefreshCw, Sparkles, Menu } from "lucide-react";
+import { Building2, AlertCircle, ArrowUpRight, RefreshCw, Sparkles } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -914,15 +915,11 @@ export const UniversityDashboardLayout = ({
         </Sheet>
 
         <div className="flex min-h-screen flex-1 flex-col">
-          <Button
-            variant="outline"
-            size="icon"
-            className="mt-6 ml-4 mb-2 lg:hidden"
-            onClick={() => setMobileNavOpen(true)}
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Open navigation</span>
-          </Button>
+          <UniversityHeader
+            onRefresh={() => void queryRefetch()}
+            refreshing={isFetching}
+            onToggleMobileNav={() => setMobileNavOpen(true)}
+          />
           <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-subtle px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
               {showProfileReminder ? (
