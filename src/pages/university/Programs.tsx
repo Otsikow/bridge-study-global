@@ -665,15 +665,24 @@ const ProgramForm = ({
                     </Button>
                     <Input
                       type="url"
-                      placeholder="https://example.com/programme-image.jpg"
-                      value={field.value ?? ""}
-                      onChange={(event) =>
-                        field.onChange(event.target.value.length > 0 ? event.target.value : null)
+                      placeholder={
+                        hasImage
+                          ? "Image uploaded — remove it to enter a custom URL"
+                          : "https://example.com/programme-image.jpg"
                       }
-                      onBlur={(event) =>
-                        field.onChange(event.target.value.trim().length > 0 ? event.target.value.trim() : null)
-                      }
+                      value={hasImage ? "" : field.value ?? ""}
+                      onChange={(event) => {
+                        if (hasImage) return;
+                        field.onChange(event.target.value.length > 0 ? event.target.value : null);
+                      }}
+                      onBlur={(event) => {
+                        if (hasImage) return;
+                        field.onChange(
+                          event.target.value.trim().length > 0 ? event.target.value.trim() : null,
+                        );
+                      }}
                       className="flex-1"
+                      disabled={hasImage || isUploadingImage || isSubmitting}
                     />
                   </div>
                   {!tenantId ? (
