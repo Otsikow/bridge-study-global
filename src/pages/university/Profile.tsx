@@ -213,16 +213,85 @@ const UniversityProfilePage = () => {
       URL.revokeObjectURL(heroPreviewObjectUrl);
     }
   }, [heroPreviewObjectUrl, logoPreviewObjectUrl]);
+  // Watch form values for real-time checklist updates
+  const formValues = form.watch();
+
+  // Compute live checklist based on current form state
+  const liveChecklist: UniversityProfileChecklistItem[] = useMemo(() => {
+    const hasLogo = Boolean(logoPreview || logoFile);
+    const hasHero = Boolean(heroPreview || heroFile);
+
+    const items: UniversityProfileChecklistItem[] = [
+      {
+        key: "name",
+        label: "University name",
+        description: "Let partners know exactly who you are.",
+        isComplete: Boolean(formValues.name?.trim() && formValues.name.length >= 3),
+      },
+      {
+        key: "location",
+        label: "City and country",
+        description: "Pinpoint your campus location for discovery tools.",
+        isComplete: Boolean(formValues.country && formValues.city?.trim()),
+      },
+      {
+        key: "website",
+        label: "Website",
+        description: "Share the official site so students can learn more.",
+        isComplete: Boolean(formValues.website?.trim()),
+      },
+      {
+        key: "description",
+        label: "About section",
+        description: "Tell your story in a concise overview (30+ characters).",
+        isComplete: Boolean(formValues.description && formValues.description.length >= 30),
+      },
+      {
+        key: "logo",
+        label: "Logo",
+        description: "Upload a clear logo for instant recognition.",
+        isComplete: hasLogo,
+      },
+      {
+        key: "heroImage",
+        label: "Hero image",
+        description: "Add a hero banner to showcase your campus atmosphere.",
+        isComplete: hasHero,
+      },
+      {
+        key: "contact",
+        label: "Primary contact",
+        description: "Provide a name and email for partnership outreach.",
+        isComplete: Boolean(formValues.contactEmail?.trim() && formValues.contactName?.trim() && formValues.contactName.length >= 3),
+      },
+      {
+        key: "highlights",
+        label: "Highlights",
+        description: "List at least two standout achievements or facts.",
+        isComplete: Array.isArray(formValues.highlights) && formValues.highlights.filter(h => h && h.trim().length >= 3).length >= 2,
+      },
+      {
+        key: "tagline",
+        label: "Tagline",
+        description: "Capture your promise in a single inspiring line.",
+        isComplete: Boolean(formValues.tagline?.trim()),
+      },
+    ];
+    return items;
+  }, [formValues, logoPreview, logoFile, heroPreview, heroFile]);
+
   const completion = useMemo(() => {
-    if (!queryData) {
-      return {
-        percentage: 0,
-        missingFields: []
-      };
-    }
-    return computeUniversityProfileCompletion(queryData.university, queryData.details);
-  }, [queryData]);
-  const checklist: UniversityProfileChecklistItem[] = useMemo(() => getUniversityProfileChecklist(queryData?.university ?? null, queryData?.details ?? emptyUniversityProfileDetails), [queryData]);
+    const completed = liveChecklist.filter(item => item.isComplete);
+    const percentage = Math.round((completed.length / liveChecklist.length) * 100);
+    const missingFields = liveChecklist.filter(item => !item.isComplete).map(item => item.label);
+
+    return {
+      percentage: Math.min(100, Math.max(0, percentage)),
+      missingFields,
+    };
+  }, [liveChecklist]);
+
+  const checklist = liveChecklist;
   const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
     if (!file) {
