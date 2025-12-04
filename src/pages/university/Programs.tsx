@@ -444,21 +444,14 @@ const ProgramForm = ({
                 <FormLabel>Duration (months)</FormLabel>
                 <FormControl>
                   <Input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    type="number"
+                    min="1"
+                    placeholder="e.g. 12"
+                    {...field}
                     value={field.value ?? ""}
-                    onChange={(event) => {
-                      const rawValue = event.target.value;
-                      // Only allow digits
-                      const digitsOnly = rawValue.replace(/\D/g, "");
-                      // Remove leading zeros
-                      const sanitizedValue = digitsOnly.replace(/^0+(?=\d)/, "");
-                      if (sanitizedValue === "") {
-                        field.onChange(undefined);
-                      } else {
-                        field.onChange(Number(sanitizedValue));
-                      }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      field.onChange(val === "" ? undefined : Number(val));
                     }}
                   />
                 </FormControl>
