@@ -34,71 +34,89 @@ interface FeaturedUniversity {
 
 const FALLBACK_UNIVERSITIES: FeaturedUniversity[] = [
   {
-    id: "fallback-oxford",
-    name: "University of Oxford",
+    id: "fallback-portsmouth",
+    name: "University of Portsmouth",
     country: "United Kingdom",
-    city: "Oxford",
+    city: "Portsmouth",
     logo_url:
-      "https://upload.wikimedia.org/wikipedia/en/thumb/2/2e/University_of_Oxford_coat_of_arms.svg/1200px-University_of_Oxford_coat_of_arms.svg.png",
-    website: "https://www.ox.ac.uk",
-    ranking: { "QS Global": "Top 5", "Times": "Top 1" },
+      "https://upload.wikimedia.org/wikipedia/en/thumb/6/6e/University_of_Portsmouth_coat_of_arms.svg/800px-University_of_Portsmouth_coat_of_arms.svg.png",
+    website: "https://www.port.ac.uk",
+    ranking: { "QS Global": "Top 600", Acceptance: "High for international" },
     featured: true,
     featured_priority: 0,
     featured_summary:
-      "Historic academic excellence with a strong record of welcoming international scholars.",
-    featured_highlight: "Personalized onboarding for postgraduate programs",
+      "Career-focused teaching with scholarships and competitive fees for African students.",
+    featured_highlight: "Affordable undergraduate and postgraduate routes with flexible intakes",
     featured_image_url:
-      "https://images.unsplash.com/photo-1528747045269-390fe33c19d4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    id: "fallback-toronto",
-    name: "University of Toronto",
+    id: "fallback-memorial",
+    name: "Memorial University of Newfoundland",
     country: "Canada",
-    city: "Toronto",
+    city: "St. John’s",
     logo_url:
-      "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/University_of_Toronto_coat_of_arms.svg/1024px-University_of_Toronto_coat_of_arms.svg.png",
-    website: "https://www.utoronto.ca",
-    ranking: { "QS Global": "Top 20", "Times": "Top 20" },
+      "https://upload.wikimedia.org/wikipedia/en/thumb/5/5e/Memorial_University_of_Newfoundland_coat_of_arms.svg/1024px-Memorial_University_of_Newfoundland_coat_of_arms.svg.png",
+    website: "https://www.mun.ca",
+    ranking: { "QS Global": "Top 800", Tuition: "Among lowest in Canada" },
     featured: true,
     featured_priority: 1,
     featured_summary:
-      "Leading research university known for industry partnerships and co-op opportunities.",
-    featured_highlight: "Career pathways across technology and business",
+      "Public research university known for low tuition and supportive settlement services.",
+    featured_highlight: "High acceptance rates with generous international scholarships",
     featured_image_url:
-      "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    id: "fallback-mit",
-    name: "Massachusetts Institute of Technology",
-    country: "United States",
-    city: "Cambridge, MA",
-    logo_url: "https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_logo.svg",
-    website: "https://www.mit.edu",
-    ranking: { "QS Global": "Top 1", Innovation: "Breakthrough research" },
+    id: "fallback-southern-queensland",
+    name: "University of Southern Queensland",
+    country: "Australia",
+    city: "Toowoomba",
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/en/thumb/4/4b/University_of_Southern_Queensland_coat_of_arms.svg/800px-University_of_Southern_Queensland_coat_of_arms.svg.png",
+    website: "https://www.usq.edu.au",
+    ranking: { "QS Global": "Top 700", "Online & On-campus": "Flexible" },
     featured: true,
     featured_priority: 2,
     featured_summary:
-      "World-leading hub for engineering, computing, and science with deep industry partnerships.",
-    featured_highlight: "Hands-on labs advancing AI, robotics, and climate tech",
+      "Practical learning pathways with budget-friendly tuition and regional campus lifestyle.",
+    featured_highlight: "High visa success support and work-integrated learning options",
     featured_image_url:
-      "https://upload.wikimedia.org/wikipedia/commons/0/02/MIT_Building_10_and_the_Great_Dome%2C_April_2017.jpg",
+      "https://images.unsplash.com/photo-1489515217757-5fd1be406fef?auto=format&fit=crop&w=1200&q=80",
   },
   {
-    id: "fallback-melbourne",
-    name: "University of Melbourne",
-    country: "Australia",
-    city: "Melbourne",
+    id: "fallback-bremen",
+    name: "University of Bremen",
+    country: "Germany",
+    city: "Bremen",
     logo_url:
-      "https://upload.wikimedia.org/wikipedia/en/thumb/8/88/University_of_Melbourne_coat_of_arms.svg/1024px-University_of_Melbourne_coat_of_arms.svg.png",
-    website: "https://www.unimelb.edu.au",
-    ranking: { "QS Global": "Top 40", "Times": "Top 35" },
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Universit%C3%A4t_Bremen_Logo.svg/512px-Universit%C3%A4t_Bremen_Logo.svg.png",
+    website: "https://www.uni-bremen.de/en",
+    ranking: { "QS Global": "Top 600", Tuition: "No tuition for most programs" },
     featured: true,
     featured_priority: 3,
     featured_summary:
-      "Vibrant campus culture with deep ties to Asia-Pacific innovation ecosystems.",
-    featured_highlight: "Global internships spanning research and industry",
+      "Research-driven German public university with English-taught master’s options and low fees.",
+    featured_highlight: "Affordable living costs with strong international student support",
     featured_image_url:
-      "https://upload.wikimedia.org/wikipedia/commons/5/5f/The_University_of_Melbourne_Parkville_Campus.jpg",
+      "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "fallback-portland-state",
+    name: "Portland State University",
+    country: "United States",
+    city: "Portland, OR",
+    logo_url:
+      "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Portland_State_University_logo.svg/512px-Portland_State_University_logo.svg.png",
+    website: "https://www.pdx.edu",
+    ranking: { "QS Global": "Top 1000", Acceptance: "90%+" },
+    featured: true,
+    featured_priority: 4,
+    featured_summary:
+      "Urban university with industry-connected programs and approachable tuition for internationals.",
+    featured_highlight: "Pathway programs that welcome transfer credits and work experience",
+    featured_image_url:
+      "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
