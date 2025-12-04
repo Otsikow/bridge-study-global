@@ -36,7 +36,9 @@ const resolveSectionTitle = (pathname: string) => {
   const lastSegment = parts[parts.length - 1];
   return lastSegment
     .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .map((part) => 
+      part.toLowerCase() === "cas" ? "CAS" : part.charAt(0).toUpperCase() + part.slice(1)
+    )
     .join(" ");
 };
 
