@@ -36,15 +36,18 @@ BEGIN
       SET university_id = university_to_keep
       WHERE university_id = ANY(universities_to_delete);
 
-      -- Update scholarships
+      -- Update scholarships (if table exists)
       UPDATE public.scholarships
       SET university_id = university_to_keep
       WHERE university_id = ANY(universities_to_delete);
 
-      -- Update applications
-      UPDATE public.applications
+      -- Update intake_calendars
+      UPDATE public.intake_calendars
       SET university_id = university_to_keep
       WHERE university_id = ANY(universities_to_delete);
+
+      -- Note: applications table doesn't have university_id column
+      -- It links to universities through programs.university_id
 
       -- Delete the duplicate universities
       DELETE FROM public.universities
