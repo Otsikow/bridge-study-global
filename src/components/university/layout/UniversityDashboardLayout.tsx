@@ -4,10 +4,13 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
+  useCallback,
   ReactNode,
 } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -755,6 +758,8 @@ export const UniversityDashboardLayout = ({
   const { toast } = useToast();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const tenantId = profile?.tenant_id;
 
@@ -781,10 +786,80 @@ export const UniversityDashboardLayout = ({
         throw err;
       }
     },
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2, // 2 minutes for better real-time responsiveness
+    refetchOnWindowFocus: true,
     retry: 1,
   });
+
+  // Set up real-time subscriptions for live data updates
+  useEffect(() => {
+    if (!tenantId) return;
+
+    // Clean up any existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const handleRealtimeChange = () => {
+      // Invalidate and refetch the dashboard data when changes occur
+      queryClient.invalidateQueries({ queryKey: ["university-dashboard", tenantId] });
+    };
+
+    // Create a single channel for all subscriptions
+    const channel = supabase
+      .channel(`university-dashboard-${tenantId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "applications",
+        },
+        handleRealtimeChange
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "programs",
+        },
+        handleRealtimeChange
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "document_requests",
+        },
+        handleRealtimeChange
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "students",
+        },
+        handleRealtimeChange
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log("University dashboard real-time subscriptions active");
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [tenantId, queryClient]);
 
   // Handle errors
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import {
   ArrowDownRight
 } from "lucide-react";
 import { format, subDays, subWeeks, subMonths } from "date-fns";
+import { useEffect, useRef } from "react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface BlogAnalyticsProps {
   className?: string;
@@ -48,8 +50,12 @@ interface AnalyticsData {
 }
 
 export function BlogAnalytics({ className = "" }: BlogAnalyticsProps) {
+  const queryClient = useQueryClient();
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
   const { data: analytics, isLoading } = useQuery({
     queryKey: ["blog-analytics"],
+    staleTime: 30_000,
     queryFn: async (): Promise<AnalyticsData> => {
       // Get all posts
       const { data: posts, error: postsError } = await supabase
@@ -108,6 +114,43 @@ export function BlogAnalytics({ className = "" }: BlogAnalyticsProps) {
       };
     },
   });
+
+  // Set up real-time subscription for live updates
+  useEffect(() => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel('blog-analytics-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'blog_posts',
+        },
+        () => {
+          // Invalidate and refetch blog analytics when changes occur
+          queryClient.invalidateQueries({ queryKey: ["blog-analytics"] });
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Blog analytics real-time subscription active');
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [queryClient]);
 
   const formatTrend = (trend: number) => {
     const isPositive = trend >= 0;

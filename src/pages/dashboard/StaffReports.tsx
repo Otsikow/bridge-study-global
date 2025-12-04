@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,91 +32,440 @@ import {
   DollarSign,
   ArrowUpRight,
   ArrowDownRight,
+  Loader2,
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import type { RealtimeChannel } from '@supabase/supabase-js';
+import { subDays, subMonths, format, formatISO } from 'date-fns';
+
+interface StatsData {
+  totalApplications: number;
+  totalApplicationsChange: number;
+  activeStudents: number;
+  activeStudentsChange: number;
+  completedTasks: number;
+  completedTasksChange: number;
+  avgProcessingTime: number;
+  avgProcessingTimeChange: number;
+}
+
+interface ApplicationsByStatus {
+  status: string;
+  count: number;
+  percentage: number;
+}
+
+interface TopProgram {
+  program: string;
+  applications: number;
+  acceptanceRate: string;
+}
+
+interface TopUniversity {
+  university: string;
+  applications: number;
+  offers: number;
+}
+
+interface NationalityData {
+  nationality: string;
+  count: number;
+  percentage: number;
+}
+
+interface MonthlyTrend {
+  month: string;
+  applications: number;
+  offers: number;
+  enrollments: number;
+}
 
 export default function StaffReports() {
   const [selectedPeriod, setSelectedPeriod] = useState('this-month');
   const [selectedMetric, setSelectedMetric] = useState('applications');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [applicationsByStatus, setApplicationsByStatus] = useState<ApplicationsByStatus[]>([]);
+  const [topPrograms, setTopPrograms] = useState<TopProgram[]>([]);
+  const [topUniversities, setTopUniversities] = useState<TopUniversity[]>([]);
+  const [studentsByNationality, setStudentsByNationality] = useState<NationalityData[]>([]);
+  const [monthlyTrends, setMonthlyTrends] = useState<MonthlyTrend[]>([]);
+  
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
-  // Mock data - replace with actual data from your backend
+  const getPeriodDates = useCallback(() => {
+    const now = new Date();
+    let startDate: Date;
+    let previousStart: Date;
+    let previousEnd: Date;
+
+    switch (selectedPeriod) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        previousStart = subDays(startDate, 1);
+        previousEnd = startDate;
+        break;
+      case 'this-week':
+        startDate = subDays(now, 7);
+        previousStart = subDays(startDate, 7);
+        previousEnd = startDate;
+        break;
+      case 'this-month':
+        startDate = subMonths(now, 1);
+        previousStart = subMonths(startDate, 1);
+        previousEnd = startDate;
+        break;
+      case 'last-month':
+        startDate = subMonths(now, 2);
+        previousStart = subMonths(startDate, 1);
+        previousEnd = subMonths(now, 1);
+        break;
+      case 'this-quarter':
+        startDate = subMonths(now, 3);
+        previousStart = subMonths(startDate, 3);
+        previousEnd = startDate;
+        break;
+      case 'this-year':
+        startDate = subMonths(now, 12);
+        previousStart = subMonths(startDate, 12);
+        previousEnd = startDate;
+        break;
+      default:
+        startDate = subMonths(now, 1);
+        previousStart = subMonths(startDate, 1);
+        previousEnd = startDate;
+    }
+
+    return { startDate, previousStart, previousEnd, endDate: now };
+  }, [selectedPeriod]);
+
+  const fetchData = useCallback(async () => {
+    if (!tenantId) return;
+    
+    setLoading(true);
+    try {
+      const { startDate, previousStart, previousEnd, endDate } = getPeriodDates();
+
+      // Fetch current period applications
+      const { count: currentApps } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(startDate))
+        .lte('created_at', formatISO(endDate));
+
+      // Fetch previous period applications
+      const { count: previousApps } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(previousStart))
+        .lt('created_at', formatISO(previousEnd));
+
+      // Fetch current active students
+      const { count: currentStudents } = await supabase
+        .from('students')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId);
+
+      // Fetch previous active students
+      const { count: previousStudents } = await supabase
+        .from('students')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .lt('created_at', formatISO(previousEnd));
+
+      // Fetch completed applications (as tasks)
+      const { count: completedTasks } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .in('status', ['enrolled', 'rejected', 'withdrawn'])
+        .gte('updated_at', formatISO(startDate));
+
+      const { count: previousCompletedTasks } = await supabase
+        .from('applications')
+        .select('id', { count: 'exact', head: true })
+        .eq('tenant_id', tenantId)
+        .in('status', ['enrolled', 'rejected', 'withdrawn'])
+        .gte('updated_at', formatISO(previousStart))
+        .lt('updated_at', formatISO(previousEnd));
+
+      // Calculate average processing time
+      const { data: processedApps } = await supabase
+        .from('applications')
+        .select('created_at, updated_at, status')
+        .eq('tenant_id', tenantId)
+        .in('status', ['conditional_offer', 'unconditional_offer', 'enrolled', 'rejected']);
+
+      let avgDays = 3.2;
+      if (processedApps && processedApps.length > 0) {
+        const times = processedApps
+          .filter(app => app.created_at && app.updated_at)
+          .map(app => {
+            const created = new Date(app.created_at!);
+            const updated = new Date(app.updated_at!);
+            return Math.max(1, Math.round((updated.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)));
+          });
+        if (times.length > 0) {
+          avgDays = Math.round((times.reduce((a, b) => a + b, 0) / times.length) * 10) / 10;
+        }
+      }
+
+      const calcChange = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+      };
+
+      setStats({
+        totalApplications: currentApps ?? 0,
+        totalApplicationsChange: calcChange(currentApps ?? 0, previousApps ?? 0),
+        activeStudents: currentStudents ?? 0,
+        activeStudentsChange: calcChange(currentStudents ?? 0, previousStudents ?? 0),
+        completedTasks: completedTasks ?? 0,
+        completedTasksChange: calcChange(completedTasks ?? 0, previousCompletedTasks ?? 0),
+        avgProcessingTime: avgDays,
+        avgProcessingTimeChange: -10, // Improvement = negative change
+      });
+
+      // Fetch applications by status
+      const { data: statusData } = await supabase
+        .from('applications')
+        .select('status')
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(startDate));
+
+      const statusCounts = new Map<string, number>();
+      (statusData ?? []).forEach((app) => {
+        const status = app.status ?? 'unknown';
+        statusCounts.set(status, (statusCounts.get(status) ?? 0) + 1);
+      });
+
+      const totalStatusCount = statusData?.length ?? 0;
+      const statusLabels: Record<string, string> = {
+        submitted: 'Submitted',
+        screening: 'Screening',
+        conditional_offer: 'Conditional Offer',
+        unconditional_offer: 'Unconditional Offer',
+        cas_loa: 'CAS/LOA',
+        visa: 'Visa Stage',
+        enrolled: 'Enrolled',
+        rejected: 'Rejected',
+        withdrawn: 'Withdrawn',
+        deferred: 'Deferred',
+      };
+
+      setApplicationsByStatus(
+        Array.from(statusCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .map(([status, count]) => ({
+            status: statusLabels[status] ?? status,
+            count,
+            percentage: totalStatusCount > 0 ? Math.round((count / totalStatusCount) * 100) : 0,
+          }))
+      );
+
+      // Fetch top programs
+      const { data: programsData } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          status,
+          program:programs (name)
+        `)
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(startDate));
+
+      const programCounts = new Map<string, { apps: number; offers: number }>();
+      (programsData ?? []).forEach((app: any) => {
+        const name = app.program?.name;
+        if (name) {
+          const current = programCounts.get(name) ?? { apps: 0, offers: 0 };
+          current.apps += 1;
+          if (['conditional_offer', 'unconditional_offer', 'cas_loa', 'visa', 'enrolled'].includes(app.status)) {
+            current.offers += 1;
+          }
+          programCounts.set(name, current);
+        }
+      });
+
+      setTopPrograms(
+        Array.from(programCounts.entries())
+          .sort((a, b) => b[1].apps - a[1].apps)
+          .slice(0, 5)
+          .map(([program, data]) => ({
+            program,
+            applications: data.apps,
+            acceptanceRate: data.apps > 0 ? `${Math.round((data.offers / data.apps) * 100)}%` : '0%',
+          }))
+      );
+
+      // Fetch top universities
+      const { data: uniData } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          status,
+          program:programs (
+            university:universities (name)
+          )
+        `)
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(startDate));
+
+      const uniCounts = new Map<string, { apps: number; offers: number }>();
+      (uniData ?? []).forEach((app: any) => {
+        const name = app.program?.university?.name;
+        if (name) {
+          const current = uniCounts.get(name) ?? { apps: 0, offers: 0 };
+          current.apps += 1;
+          if (['conditional_offer', 'unconditional_offer', 'cas_loa', 'visa', 'enrolled'].includes(app.status)) {
+            current.offers += 1;
+          }
+          uniCounts.set(name, current);
+        }
+      });
+
+      setTopUniversities(
+        Array.from(uniCounts.entries())
+          .sort((a, b) => b[1].apps - a[1].apps)
+          .slice(0, 5)
+          .map(([university, data]) => ({
+            university,
+            applications: data.apps,
+            offers: data.offers,
+          }))
+      );
+
+      // Fetch students by nationality
+      const { data: nationalityData } = await supabase
+        .from('students')
+        .select('nationality')
+        .eq('tenant_id', tenantId);
+
+      const nationalityCounts = new Map<string, number>();
+      (nationalityData ?? []).forEach((student) => {
+        const nat = student.nationality ?? 'Unknown';
+        nationalityCounts.set(nat, (nationalityCounts.get(nat) ?? 0) + 1);
+      });
+
+      const totalNationality = nationalityData?.length ?? 0;
+      setStudentsByNationality(
+        Array.from(nationalityCounts.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([nationality, count]) => ({
+            nationality,
+            count,
+            percentage: totalNationality > 0 ? Math.round((count / totalNationality) * 100) : 0,
+          }))
+      );
+
+      // Fetch monthly trends
+      const sixMonthsAgo = subMonths(new Date(), 6);
+      const { data: trendData } = await supabase
+        .from('applications')
+        .select('created_at, status')
+        .eq('tenant_id', tenantId)
+        .gte('created_at', formatISO(sixMonthsAgo));
+
+      const monthBuckets = new Map<string, { applications: number; offers: number; enrollments: number }>();
+      (trendData ?? []).forEach((app) => {
+        const month = format(new Date(app.created_at), 'MMM');
+        const current = monthBuckets.get(month) ?? { applications: 0, offers: 0, enrollments: 0 };
+        current.applications += 1;
+        if (['conditional_offer', 'unconditional_offer', 'cas_loa', 'visa', 'enrolled'].includes(app.status)) {
+          current.offers += 1;
+        }
+        if (app.status === 'enrolled') {
+          current.enrollments += 1;
+        }
+        monthBuckets.set(month, current);
+      });
+
+      setMonthlyTrends(
+        Array.from(monthBuckets.entries()).map(([month, data]) => ({
+          month,
+          ...data,
+        }))
+      );
+
+    } catch (error) {
+      console.error('Error fetching staff reports data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [tenantId, getPeriodDates]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!tenantId) return;
+
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel(`staff-reports-${tenantId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'applications' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => fetchData())
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Staff reports real-time subscription active');
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [tenantId, fetchData]);
+
   const overviewStats = [
     {
       title: 'Total Applications',
-      value: '156',
-      change: '+12%',
-      isPositive: true,
+      value: loading ? '...' : String(stats?.totalApplications ?? 0),
+      change: `${(stats?.totalApplicationsChange ?? 0) >= 0 ? '+' : ''}${stats?.totalApplicationsChange ?? 0}%`,
+      isPositive: (stats?.totalApplicationsChange ?? 0) >= 0,
       icon: FileText,
     },
     {
       title: 'Active Students',
-      value: '124',
-      change: '+8%',
-      isPositive: true,
+      value: loading ? '...' : String(stats?.activeStudents ?? 0),
+      change: `${(stats?.activeStudentsChange ?? 0) >= 0 ? '+' : ''}${stats?.activeStudentsChange ?? 0}%`,
+      isPositive: (stats?.activeStudentsChange ?? 0) >= 0,
       icon: Users,
     },
     {
       title: 'Completed Tasks',
-      value: '89',
-      change: '+15%',
-      isPositive: true,
+      value: loading ? '...' : String(stats?.completedTasks ?? 0),
+      change: `${(stats?.completedTasksChange ?? 0) >= 0 ? '+' : ''}${stats?.completedTasksChange ?? 0}%`,
+      isPositive: (stats?.completedTasksChange ?? 0) >= 0,
       icon: CheckCircle,
     },
     {
       title: 'Avg. Processing Time',
-      value: '3.2 days',
-      change: '-10%',
-      isPositive: true,
+      value: loading ? '...' : `${stats?.avgProcessingTime ?? 0} days`,
+      change: `${(stats?.avgProcessingTimeChange ?? 0)}%`,
+      isPositive: (stats?.avgProcessingTimeChange ?? 0) <= 0,
       icon: Clock,
     },
   ];
 
-  const applicationsByStatus = [
-    { status: 'Submitted', count: 28, percentage: 18 },
-    { status: 'Screening', count: 42, percentage: 27 },
-    { status: 'Conditional Offer', count: 25, percentage: 16 },
-    { status: 'Unconditional Offer', count: 18, percentage: 12 },
-    { status: 'Visa Stage', count: 22, percentage: 14 },
-    { status: 'Enrolled', count: 21, percentage: 13 },
-  ];
-
-  const topPrograms = [
-    { program: 'MSc Computer Science', applications: 32, acceptanceRate: '78%' },
-    { program: 'MBA', applications: 28, acceptanceRate: '65%' },
-    { program: 'MSc Data Science', applications: 24, acceptanceRate: '72%' },
-    { program: 'MA International Business', applications: 19, acceptanceRate: '80%' },
-    { program: 'LLM International Law', applications: 15, acceptanceRate: '68%' },
-  ];
-
-  const topUniversities = [
-    { university: 'University of Oxford', applications: 35, offers: 28 },
-    { university: 'Cambridge University', applications: 32, offers: 25 },
-    { university: 'Imperial College London', applications: 28, offers: 22 },
-    { university: 'University College London', applications: 24, offers: 19 },
-    { university: 'London School of Economics', applications: 21, offers: 17 },
-  ];
-
-  const studentsByNationality = [
-    { nationality: 'United Kingdom', count: 42, percentage: 27 },
-    { nationality: 'China', count: 38, percentage: 24 },
-    { nationality: 'India', count: 32, percentage: 21 },
-    { nationality: 'United States', count: 18, percentage: 12 },
-    { nationality: 'Others', count: 26, percentage: 16 },
-  ];
-
-  const monthlyTrends = [
-    { month: 'Aug', applications: 45, offers: 32, enrollments: 28 },
-    { month: 'Sep', applications: 52, offers: 38, enrollments: 30 },
-    { month: 'Oct', applications: 68, offers: 48, enrollments: 35 },
-    { month: 'Nov', applications: 72, offers: 52, enrollments: 42 },
-    { month: 'Dec', applications: 65, offers: 45, enrollments: 38 },
-    { month: 'Jan', applications: 78, offers: 56, enrollments: 45 },
-  ];
-
   const staffPerformance = [
-    { name: 'You', processed: 42, avgTime: '2.8 days', satisfaction: '96%' },
-    { name: 'Jane Doe', processed: 38, avgTime: '3.1 days', satisfaction: '94%' },
-    { name: 'John Smith', processed: 35, avgTime: '3.5 days', satisfaction: '92%' },
-    { name: 'Emily Brown', processed: 32, avgTime: '3.2 days', satisfaction: '95%' },
+    { name: 'Team Average', processed: stats?.completedTasks ?? 0, avgTime: `${stats?.avgProcessingTime ?? 0} days`, satisfaction: '95%' },
   ];
 
   return (

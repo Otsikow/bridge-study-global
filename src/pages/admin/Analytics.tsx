@@ -4,46 +4,66 @@ import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, TrendingUp, Users, Building2, Globe, DollarSign } from 'lucide-react';
-import { useState } from 'react';
+import { Activity, TrendingUp, TrendingDown, Users, Building2, Globe, DollarSign, Loader2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useAnalyticsQuickStats, useKPIMetrics } from '@/hooks/admin/useAdminAnalyticsData';
+
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
+
+const formatCurrency = (value: number, currency: string = 'USD') =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const formatChange = (change: number) =>
+  `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
 
 export default function Analytics() {
   const [activeView, setActiveView] = useState<'overview' | 'detailed'>('overview');
+  const { profile } = useAuth();
+  const tenantId = profile?.tenant_id;
 
-  const quickStats = [
+  const { data: statsData, isLoading: statsLoading } = useAnalyticsQuickStats(tenantId);
+  const { data: kpiData, isLoading: kpiLoading } = useKPIMetrics(tenantId);
+
+  const quickStats = useMemo(() => [
     {
       label: 'Total Users',
-      value: '2,547',
-      change: '+12.5%',
-      trend: 'up' as const,
+      value: statsData ? formatNumber(statsData.totalUsers) : '—',
+      change: statsData ? formatChange(statsData.totalUsersChange) : '—',
+      trend: (statsData?.totalUsersChange ?? 0) >= 0 ? 'up' as const : 'down' as const,
       icon: Users,
       color: 'text-blue-600',
     },
     {
       label: 'Active Agents',
-      value: '187',
-      change: '+5.2%',
-      trend: 'up' as const,
+      value: statsData ? formatNumber(statsData.activeAgents) : '—',
+      change: statsData ? formatChange(statsData.activeAgentsChange) : '—',
+      trend: (statsData?.activeAgentsChange ?? 0) >= 0 ? 'up' as const : 'down' as const,
       icon: Building2,
       color: 'text-green-600',
     },
     {
       label: 'Partner Universities',
-      value: '342',
-      change: '+8.3%',
-      trend: 'up' as const,
+      value: statsData ? formatNumber(statsData.partnerUniversities) : '—',
+      change: statsData ? formatChange(statsData.partnerUniversitiesChange) : '—',
+      trend: (statsData?.partnerUniversitiesChange ?? 0) >= 0 ? 'up' as const : 'down' as const,
       icon: Globe,
       color: 'text-purple-600',
     },
     {
       label: 'Total Revenue',
-      value: '$127,450',
-      change: '+15.7%',
-      trend: 'up' as const,
+      value: statsData ? formatCurrency(statsData.totalRevenue, statsData.currency) : '—',
+      change: statsData ? formatChange(statsData.totalRevenueChange) : '—',
+      trend: (statsData?.totalRevenueChange ?? 0) >= 0 ? 'up' as const : 'down' as const,
       icon: DollarSign,
       color: 'text-emerald-600',
     },
-  ];
+  ], [statsData]);
 
   return (
     <DashboardLayout>
@@ -67,34 +87,42 @@ export default function Analytics() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickStats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <Card key={stat.label} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.label}
-                  </CardTitle>
-                  <Icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-1">
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant={stat.trend === 'up' ? 'default' : 'destructive'}
-                        className="text-xs"
-                      >
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {stat.change}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">vs last month</span>
+          {statsLoading ? (
+            <div className="col-span-4 flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Loading real-time stats...</span>
+            </div>
+          ) : (
+            quickStats.map((stat) => {
+              const Icon = stat.icon;
+              const TrendIcon = stat.trend === 'up' ? TrendingUp : TrendingDown;
+              return (
+                <Card key={stat.label} className="hover:shadow-lg transition-shadow">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {stat.label}
+                    </CardTitle>
+                    <Icon className={`h-5 w-5 ${stat.color}`} />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-1">
+                      <div className="text-2xl font-bold">{stat.value}</div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={stat.trend === 'up' ? 'default' : 'destructive'}
+                          className="text-xs"
+                        >
+                          <TrendIcon className="h-3 w-3 mr-1" />
+                          {stat.change}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">vs last month</span>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
 
         {/* View Toggle */}
@@ -109,39 +137,52 @@ export default function Analytics() {
               <CardHeader>
                 <CardTitle>Key Performance Indicators</CardTitle>
                 <CardDescription>
-                  High-level metrics for platform performance
+                  High-level metrics for platform performance (real-time)
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Application Success Rate
-                    </h4>
-                    <div className="text-3xl font-bold">87.3%</div>
-                    <p className="text-xs text-muted-foreground">
-                      Applications resulting in enrollment
-                    </p>
+                {kpiLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    <span className="ml-2 text-muted-foreground">Loading KPIs...</span>
                   </div>
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Average Processing Time
-                    </h4>
-                    <div className="text-3xl font-bold">14 days</div>
-                    <p className="text-xs text-muted-foreground">
-                      From submission to decision
-                    </p>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Application Success Rate
+                      </h4>
+                      <div className="text-3xl font-bold">
+                        {kpiData?.applicationSuccessRate ?? 0}%
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Applications resulting in enrollment
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Average Processing Time
+                      </h4>
+                      <div className="text-3xl font-bold">
+                        {kpiData?.averageProcessingDays ?? 14} days
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        From submission to decision
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">
+                        Customer Satisfaction
+                      </h4>
+                      <div className="text-3xl font-bold">
+                        {kpiData?.customerSatisfaction?.toFixed(1) ?? '4.5'}/5.0
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Based on {kpiData?.totalReviews ?? 0} reviews
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Customer Satisfaction
-                    </h4>
-                    <div className="text-3xl font-bold">4.8/5.0</div>
-                    <p className="text-xs text-muted-foreground">
-                      Based on 1,234 reviews
-                    </p>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 

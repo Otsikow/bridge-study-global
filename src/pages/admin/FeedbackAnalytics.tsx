@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import type { Tables } from '@/integrations/supabase/types';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type Feedback = Tables<'user_feedback'>;
 
@@ -33,6 +34,7 @@ export default function FeedbackAnalytics() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [updating, setUpdating] = useState(false);
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
   const fetchFeedbacks = useCallback(async () => {
     try {
@@ -66,6 +68,43 @@ export default function FeedbackAnalytics() {
 
   useEffect(() => {
     fetchFeedbacks();
+  }, [fetchFeedbacks]);
+
+  // Set up real-time subscription for live updates
+  useEffect(() => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel('feedback-analytics-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_feedback',
+        },
+        () => {
+          // Refetch data when changes occur
+          fetchFeedbacks();
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Feedback analytics real-time subscription active');
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [fetchFeedbacks]);
 
   const updateFeedbackStatus = async (id: string, status: string) => {

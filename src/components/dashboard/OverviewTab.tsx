@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface OverviewTabProps {
   metrics: {
@@ -47,9 +48,9 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
     count: 0,
     lastUpdated: null,
   });
+  const channelRef = useRef<RealtimeChannel | null>(null);
 
-  useEffect(() => {
-    const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
       try {
         setAnalyticsLoading(true);
 
@@ -154,10 +155,51 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
       } finally {
         setAnalyticsLoading(false);
       }
-    };
+    }, []);
 
+  useEffect(() => {
     fetchAnalytics();
-  }, []);
+  }, [fetchAnalytics]);
+
+  // Set up real-time subscriptions for live updates
+  useEffect(() => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    const channel = supabase
+      .channel('overview-analytics-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'students' },
+        () => fetchAnalytics()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'applications' },
+        () => fetchAnalytics()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'universities' },
+        () => fetchAnalytics()
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Overview analytics real-time subscription active');
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [fetchAnalytics]);
 
   return (
     <div className="space-y-6">
