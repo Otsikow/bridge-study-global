@@ -235,35 +235,47 @@ export default function UniversityProfile() {
               wrapperClassName="mb-4"
               fallback="/universities"
             />
-            <div className="space-y-2">
-              <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
-                {university.name}
-              </h1>
-              {profileDetails.tagline ? (
-                <p className="max-w-2xl text-lg text-white/90 drop-shadow">
-                  {profileDetails.tagline}
-                </p>
+            <div className="flex items-end gap-6">
+              {/* University Logo */}
+              {university.logo_url ? (
+                <div className="flex h-20 w-20 md:h-24 md:w-24 flex-shrink-0 items-center justify-center rounded-xl border border-white/20 bg-background/90 p-3 backdrop-blur-sm shadow-lg">
+                  <img
+                    src={university.logo_url}
+                    alt={`${university.name} logo`}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
               ) : null}
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-white/90 drop-shadow">
-              <span className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                {university.city && `${university.city}, `}
-                {university.country}
-              </span>
-              {university.website && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
-                  asChild
-                >
-                  <a href={university.website} target="_blank" rel="noopener noreferrer">
-                    <Globe className="h-4 w-4 mr-2" />
-                    Visit Website
-                  </a>
-                </Button>
-              )}
+              <div className="flex-1 space-y-2">
+                <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+                  {university.name}
+                </h1>
+                {profileDetails.tagline ? (
+                  <p className="max-w-2xl text-lg text-white/90 drop-shadow">
+                    {profileDetails.tagline}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap items-center gap-4 text-white/90 drop-shadow">
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    {university.city && `${university.city}, `}
+                    {university.country}
+                  </span>
+                  {university.website && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
+                      asChild
+                    >
+                      <a href={university.website} target="_blank" rel="noopener noreferrer">
+                        <Globe className="h-4 w-4 mr-2" />
+                        Visit Website
+                      </a>
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
