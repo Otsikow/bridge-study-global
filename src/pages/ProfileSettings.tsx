@@ -150,10 +150,10 @@ export default function ProfileSettings() {
 
   // Calculate profile completion percentage
   useEffect(() => {
-    if (profile && roleData) {
-      const percentage = calculateProfileCompletion(profile, roleData as any);
-      setCompletionPercentage(percentage);
-    }
+    if (!profile) return;
+
+    const percentage = calculateProfileCompletion(profile, roleData as any);
+    setCompletionPercentage(percentage);
   }, [profile, roleData]);
 
   if (!profile || !user) {
