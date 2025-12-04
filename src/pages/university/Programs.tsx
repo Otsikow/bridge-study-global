@@ -137,8 +137,7 @@ const optionalImageUrlSchema = z
     return trimmed.length > 0 ? trimmed : null;
   });
 
-const PROGRAM_IMAGE_BUCKETS = ["program-images", "public"] as const;
-type ProgramImageBucket = (typeof PROGRAM_IMAGE_BUCKETS)[number];
+const PROGRAM_IMAGE_BUCKET = "university-media";
 const PROGRAM_IMAGE_FOLDER = "program-images";
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -313,36 +312,24 @@ const ProgramForm = ({
 
     try {
       const extension = file.name.split(".").pop()?.toLowerCase() ?? "png";
-      const objectPath = `${userId}/${PROGRAM_IMAGE_FOLDER}/${tenantId}/${Date.now()}-${Math.random()
+      const objectPath = `${tenantId}/${PROGRAM_IMAGE_FOLDER}/${Date.now()}-${Math.random()
         .toString(36)
         .slice(2)}.${extension}`;
 
-      let selectedBucket: ProgramImageBucket | null = null;
-      let lastError: Error | null = null;
+      const { error: uploadError } = await supabase.storage
+        .from(PROGRAM_IMAGE_BUCKET)
+        .upload(objectPath, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
 
-      for (const bucket of PROGRAM_IMAGE_BUCKETS) {
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(objectPath, file, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: file.type,
-          });
-
-        if (!uploadError) {
-          selectedBucket = bucket;
-          break;
-        }
-
-        lastError = uploadError;
-      }
-
-      if (!selectedBucket) {
-        throw lastError ?? new Error("Unable to upload programme image");
+      if (uploadError) {
+        throw uploadError;
       }
 
       const { data: publicUrlData } = supabase.storage
-        .from(selectedBucket)
+        .from(PROGRAM_IMAGE_BUCKET)
         .getPublicUrl(objectPath);
 
       if (!publicUrlData?.publicUrl) {
