@@ -1074,7 +1074,12 @@ export default function UniversityDashboard() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Courses & Programs</CardTitle>
-                  <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
+                  <Dialog open={isAddCourseOpen} onOpenChange={(open) => {
+                    setIsAddCourseOpen(open);
+                    if (!open) {
+                      setNewProgram(createDefaultProgram());
+                    }
+                  }}>
                     <DialogTrigger asChild>
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
@@ -1132,16 +1137,27 @@ export default function UniversityDashboard() {
                             <Label htmlFor="duration">Duration (months) *</Label>
                             <Input
                               id="duration"
-                              type="number"
-                              value={newProgram.duration_months}
+                              type="text"
+                              inputMode="numeric"
+                              placeholder="e.g. 12"
+                              value={newProgram.duration_months === '' ? '' : String(newProgram.duration_months)}
                               onChange={(e) => {
-                                const value = e.target.value;
-                                const parsedValue = value === '' ? '' : Number.parseInt(value, 10);
-
-                                setNewProgram({
-                                  ...newProgram,
-                                  duration_months: Number.isNaN(parsedValue) ? '' : parsedValue,
-                                });
+                                const rawValue = e.target.value;
+                                // Allow only digits
+                                const sanitized = rawValue.replace(/[^0-9]/g, "");
+                                if (sanitized === "") {
+                                  setNewProgram({
+                                    ...newProgram,
+                                    duration_months: '',
+                                  });
+                                } else {
+                                  // Remove leading zeros except for a single "0"
+                                  const normalized = sanitized.replace(/^0+(?=\d)/, "");
+                                  setNewProgram({
+                                    ...newProgram,
+                                    duration_months: Number(normalized),
+                                  });
+                                }
                               }}
                             />
                           </div>
