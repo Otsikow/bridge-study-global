@@ -1,6 +1,6 @@
-import { Menu, RefreshCcw, Bell } from "lucide-react";
+import { Menu, RefreshCcw, Bell, LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useToast } from "@/hooks/use-toast";
 
 interface UniversityHeaderProps {
   onRefresh?: () => void;
@@ -47,6 +48,8 @@ export const UniversityHeader = ({
   const location = useLocation();
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const partnerProfileQuery = useQuery({
     queryKey: ["university-partner-profile", profile?.id, profile?.tenant_id],
@@ -133,6 +136,31 @@ export const UniversityHeader = ({
 
   const handleAccountSettings = () => {
     navigate("/profile/settings?tab=account");
+  };
+
+  const handleSignOut = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOut({ redirectTo: "/auth/login" });
+      toast({
+        title: "Success",
+        description: "You have been signed out successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+      const description =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while signing you out. Please try again.";
+      toast({
+        title: "Error",
+        description,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -262,11 +290,11 @@ export const UniversityHeader = ({
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                onSelect={() => {
-                  void signOut();
-                }}
+              onSelect={handleSignOut}
+              disabled={isLoggingOut}
             >
-                Logout
+              <LogOut className="mr-2 h-4 w-4" />
+              {isLoggingOut ? "Signing out..." : "Logout"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
