@@ -186,6 +186,28 @@ export default function Messages() {
     }
   };
 
+  // Show loading state first, then check for errors to prevent flash
+  if (loading) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">
+        <div className="border-b bg-background px-4 py-2">
+          <BackButton
+            variant="ghost"
+            size="sm"
+            className="md:w-auto"
+            fallback="/dashboard"
+          />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading messages...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="h-[calc(100vh-4rem)] flex flex-col bg-background">

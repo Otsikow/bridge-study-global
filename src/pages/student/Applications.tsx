@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { logError, formatErrorForToast } from '@/lib/errorUtils';
+import { LoadingState } from '@/components/LoadingState';
 import {
   FileText,
   Plus,
@@ -189,7 +190,9 @@ export default function Applications() {
   if (isLoading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="text-center">Loading applications...</div>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <LoadingState message="Loading your applications..." size="lg" />
+        </div>
       </div>
     );
   }
