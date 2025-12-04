@@ -93,6 +93,15 @@ const universityPayouts = [
     contact: "treasury@oxfordintcollege.ac.uk",
   },
   {
+    id: "po_1b",
+    university: "Pineapple University",
+    amount: 96800,
+    status: "Scheduled",
+    payoutDate: "2024-05-22T10:30:00Z",
+    invoiceUrl: "https://dashboard.stripe.com/invoices/inv_pineapple",
+    contact: "finance@pineapple.university",
+  },
+  {
     id: "po_2",
     university: "Toronto Metropolitan University",
     amount: 98650,
@@ -129,6 +138,14 @@ const transactionLog = [
     type: "university_payout",
     status: "paid",
     date: "2024-05-16T09:15:00Z",
+  },
+  {
+    id: "txn_1b",
+    user: "Pineapple University",
+    amount: 96800,
+    type: "university_payout",
+    status: "scheduled",
+    date: "2024-05-22T10:30:00Z",
   },
   {
     id: "txn_2",

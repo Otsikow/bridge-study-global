@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { UNIVERSITY_DIRECTORY_DATA, type UniversityDirectoryItem } from "@/data/university-directory";
 
 const universityStatuses: Record<string, PartnerStatus> = {
+  pineapple: "approved",
   uopeople: "approved",
   tartu: "pending",
   porto: "rejected",
@@ -31,8 +32,17 @@ type PartnerUniversity = UniversityDirectoryItem & {
   focus: string;
 };
 
+const PRIORITY_UNIVERSITY_IDS = ["pineapple"];
+
 const mapToPartnerUniversities = (): PartnerUniversity[] => {
-  return UNIVERSITY_DIRECTORY_DATA.slice(0, 8).map((university) => ({
+  const prioritized = UNIVERSITY_DIRECTORY_DATA.filter((university) =>
+    PRIORITY_UNIVERSITY_IDS.includes(university.id),
+  );
+  const remaining = UNIVERSITY_DIRECTORY_DATA.filter(
+    (university) => !PRIORITY_UNIVERSITY_IDS.includes(university.id),
+  );
+
+  return [...prioritized, ...remaining].slice(0, 8).map((university) => ({
     ...university,
     status: universityStatuses[university.id] ?? "not_requested",
     responseTime: university.id === "uopeople" ? "<24h" : university.id === "porto" ? "48h" : "72h",

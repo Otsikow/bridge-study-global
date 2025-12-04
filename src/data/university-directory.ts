@@ -36,6 +36,47 @@ export interface UniversityDirectoryItem {
 
 export const UNIVERSITY_DIRECTORY_DATA: UniversityDirectoryItem[] = [
   {
+    id: "pineapple",
+    name: "Pineapple University",
+    city: "Vienna",
+    country: "Austria",
+    region: "Europe",
+    institutionType: "Private research university",
+    founded: 1928,
+    ranking: 11,
+    acceptanceRate: 12,
+    programCount: 180,
+    description:
+      "Industry-focused European university known for blending hospitality, business innovation, and applied AI across all programmes.",
+    focusAreas: [
+      "Hospitality Management",
+      "Business Innovation",
+      "Data Science",
+      "Sustainability",
+      "Design & Experience",
+    ],
+    notablePrograms: [
+      "Global Hospitality Leadership",
+      "International Business & Innovation",
+      "Applied Data Science for Services",
+    ],
+    badges: ["Partner Agents", "Applied AI"],
+    website: "https://pineapple.university",
+    averageTuitionInternational: 32000,
+    tuitionDisplay: "€24k–€32k per year",
+    studentBody: {
+      total: 18000,
+      internationalPercentage: 52,
+    },
+    researchHighlights: [
+      "AI-driven guest experience labs with hospitality partners",
+      "Sustainability accelerator for circular campus operations",
+    ],
+    employabilityRank: 12,
+    imageUrl:
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
     id: "oxford",
     name: "University of Oxford",
     city: "Oxford",
