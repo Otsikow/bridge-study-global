@@ -994,6 +994,10 @@ const ProgramsPage = () => {
       values.description && values.description.trim().length > 0
         ? values.description.trim()
         : null,
+    image_url:
+      values.imageUrl && values.imageUrl.trim().length > 0
+        ? values.imageUrl.trim()
+        : null,
     active: values.active,
   });
 
