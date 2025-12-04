@@ -1170,7 +1170,7 @@ const ProgramsPage = () => {
               {programs.length} programme{programs.length === 1 ? "" : "s"} connected to your university profile.
             </CardDescription>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-blue-500 text-foreground hover:bg-primary">
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-blue-500 text-white hover:bg-primary">
             <Plus className="h-4 w-4" /> Add programme
           </Button>
         </CardHeader>
