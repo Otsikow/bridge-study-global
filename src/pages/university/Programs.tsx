@@ -183,7 +183,7 @@ const defaultFormValues: ProgramFormValues = {
   name: "",
   level: "Master",
   discipline: "",
-  durationMonths: 12,
+  durationMonths: undefined,
   tuitionCurrency: "USD",
   tuitionAmount: 10000,
   applicationFee: null,
