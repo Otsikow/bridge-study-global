@@ -70,7 +70,20 @@ interface Agent {
   referral_count: number;
 }
 
-const createDefaultProgram = () => ({
+type NewProgram = {
+  name: string;
+  level: string;
+  discipline: string;
+  duration_months: number | '';
+  tuition_amount: number;
+  tuition_currency: string;
+  description: string;
+  ielts_overall: number | null;
+  toefl_overall: number | null;
+  active: boolean;
+};
+
+const createDefaultProgram = (): NewProgram => ({
   name: '',
   level: 'Bachelor',
   discipline: '',
@@ -109,7 +122,7 @@ export default function UniversityDashboard() {
   
   // Modal states
   const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
-  const [newProgram, setNewProgram] = useState(() => createDefaultProgram());
+  const [newProgram, setNewProgram] = useState<NewProgram>(() => createDefaultProgram());
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
   const [creatingUniversity, setCreatingUniversity] = useState(false);
   const [universityForm, setUniversityForm] = useState(() => createDefaultUniversityForm());
@@ -257,11 +270,23 @@ export default function UniversityDashboard() {
   const handleAddProgram = async () => {
     if (!university) return;
     
+    const durationValue = newProgram.duration_months === '' ? null : newProgram.duration_months;
+
+    if (!durationValue || Number.isNaN(durationValue)) {
+      toast({
+        title: 'Duration required',
+        description: 'Please enter the programme duration in months.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('programs')
         .insert({
           ...newProgram,
+          duration_months: durationValue,
           university_id: university.id,
           tenant_id: profile!.tenant_id,
         });
@@ -1109,7 +1134,15 @@ export default function UniversityDashboard() {
                               id="duration"
                               type="number"
                               value={newProgram.duration_months}
-                              onChange={(e) => setNewProgram({ ...newProgram, duration_months: parseInt(e.target.value) })}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                const parsedValue = value === '' ? '' : Number.parseInt(value, 10);
+
+                                setNewProgram({
+                                  ...newProgram,
+                                  duration_months: Number.isNaN(parsedValue) ? '' : parsedValue,
+                                });
+                              }}
                             />
                           </div>
                           <div className="grid gap-2">
