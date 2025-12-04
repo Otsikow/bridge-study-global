@@ -994,7 +994,6 @@ const ProgramsPage = () => {
       values.description && values.description.trim().length > 0
         ? values.description.trim()
         : null,
-    image_url: values.imageUrl ?? null,
     active: values.active,
   });
 
@@ -1019,34 +1018,6 @@ const ProgramsPage = () => {
           tenant_id: tenantId,
           university_id: universityId,
         });
-
-      if (error && isMissingImageUrlColumn(error)) {
-        console.warn("programs.image_url column missing – retrying without image", error);
-
-        const { image_url: _imageUrl, ...payloadWithoutImage } = payload;
-
-        const retry = await supabase
-          .from("programs")
-          .insert({
-            ...payloadWithoutImage,
-            tenant_id: tenantId,
-            university_id: universityId,
-          });
-
-        if (retry.error) {
-          throw retry.error;
-        }
-
-        toast({
-          title: "Programme published",
-          description:
-            "Image uploads are not supported on your current setup, but the programme was created without one.",
-        });
-
-        setIsCreateOpen(false);
-        await refetch();
-        return;
-      }
 
       if (error) {
         throw error;
@@ -1083,31 +1054,6 @@ const ProgramsPage = () => {
         .from("programs")
         .update(payload)
         .eq("id", editingProgram.id);
-
-      if (error && isMissingImageUrlColumn(error)) {
-        console.warn("programs.image_url column missing – retrying update without image", error);
-
-        const { image_url: _imageUrl, ...payloadWithoutImage } = payload;
-
-        const retry = await supabase
-          .from("programs")
-          .update(payloadWithoutImage)
-          .eq("id", editingProgram.id);
-
-        if (retry.error) {
-          throw retry.error;
-        }
-
-        toast({
-          title: "Programme updated",
-          description:
-            "Image uploads are not supported on your current setup, but the programme details were saved.",
-        });
-
-        setEditingProgram(null);
-        await refetch();
-        return;
-      }
 
       if (error) {
         throw error;
