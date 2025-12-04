@@ -472,7 +472,7 @@ const UniversityProfilePage = () => {
         tenant_id: tenantId,
         updated_at: new Date().toISOString()
       }, {
-        onConflict: "id"
+        onConflict: "tenant_id"
       }).select().single();
       if (universityError) {
         throw universityError;
