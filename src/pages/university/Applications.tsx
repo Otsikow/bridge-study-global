@@ -22,6 +22,9 @@ import {
   ClipboardList,
   ShieldCheck,
   Sparkles,
+  MapPin,
+  Globe,
+  Calendar,
 } from "lucide-react";
 import {
   Card,
@@ -90,6 +93,10 @@ interface StudentInfo {
   legal_name?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
+  nationality?: string | null;
+  date_of_birth?: string | null;
+  current_country?: string | null;
+  passport_number?: string | null;
   profile?: ProfileInfo | null;
 }
 
@@ -119,6 +126,8 @@ interface ApplicationRow {
   updated_at: string | null;
   created_at: string | null;
   app_number?: string | null;
+  intake_year?: number | null;
+  intake_month?: number | null;
   student?: StudentInfo | null;
   agent?: AgentInfo | null;
   program?: ProgramInfo | null;
@@ -238,6 +247,23 @@ const ApplicationsPage = () => {
   const getStudentPhone = (application: ApplicationRow) =>
     application.student?.contact_phone ?? null;
 
+  const getStudentNationality = (application: ApplicationRow) =>
+    application.student?.nationality ?? null;
+
+  const getStudentDateOfBirth = (application: ApplicationRow) =>
+    application.student?.date_of_birth ?? null;
+
+  const getStudentCountry = (application: ApplicationRow) =>
+    application.student?.current_country ?? null;
+
+  const getIntakeLabel = (application: ApplicationRow) => {
+    const month = application.intake_month;
+    const year = application.intake_year;
+    if (!month || !year) return null;
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${monthNames[month - 1]} ${year}`;
+  };
+
   const getAgentName = (application: ApplicationRow) =>
     toDisplayName(
       application.agent?.profile?.full_name,
@@ -280,11 +306,17 @@ const ApplicationsPage = () => {
               updated_at,
               created_at,
               app_number,
+              intake_year,
+              intake_month,
               student:students (
                 id,
                 legal_name,
                 contact_email,
                 contact_phone,
+                nationality,
+                date_of_birth,
+                current_country,
+                passport_number,
                 profile:profiles (
                   full_name,
                   email
@@ -416,11 +448,17 @@ const ApplicationsPage = () => {
               notes,
               internal_notes,
               timeline_json,
+              intake_year,
+              intake_month,
               student:students (
                 id,
                 legal_name,
                 contact_email,
                 contact_phone,
+                nationality,
+                date_of_birth,
+                current_country,
+                passport_number,
                 profile:profiles (
                   full_name,
                   email
@@ -865,6 +903,11 @@ const ApplicationsPage = () => {
                             {getStudentEmail(application)}
                           </p>
                         )}
+                        {getStudentNationality(application) && (
+                          <p className="text-xs text-muted-foreground">
+                            {getStudentNationality(application)}
+                          </p>
+                        )}
                       </TableCell>
                       <TableCell className="space-y-1">
                         <p>{getAgentName(application)}</p>
@@ -879,6 +922,11 @@ const ApplicationsPage = () => {
                         {getProgramLevel(application) && (
                           <p className="text-xs text-muted-foreground">
                             {getProgramLevel(application)}
+                          </p>
+                        )}
+                        {getIntakeLabel(application) && (
+                          <p className="text-xs text-muted-foreground">
+                            Intake: {getIntakeLabel(application)}
                           </p>
                         )}
                       </TableCell>
@@ -988,7 +1036,7 @@ const ApplicationsPage = () => {
                       <GraduationCap className="h-4 w-4" />
                       Course
                     </div>
-                    <div className="mt-3 space-y-1 text-sm">
+                    <div className="mt-3 space-y-1.5 text-sm">
                       <p className="text-base font-semibold text-foreground">
                         {getProgramName(selectedApplication)}
                       </p>
@@ -996,6 +1044,12 @@ const ApplicationsPage = () => {
                         <p className="text-muted-foreground">
                           {getProgramLevel(selectedApplication)}
                         </p>
+                      )}
+                      {getIntakeLabel(selectedApplication) && (
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <Calendar className="h-3.5 w-3.5" />
+                          Intended Intake: {getIntakeLabel(selectedApplication)}
+                        </div>
                       )}
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <CalendarDays className="h-3.5 w-3.5" />
@@ -1043,7 +1097,7 @@ const ApplicationsPage = () => {
                       <p className="text-base font-semibold text-foreground">
                         {getStudentName(selectedApplication)}
                       </p>
-                      <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+                      <div className="flex flex-col gap-1.5 text-xs text-muted-foreground">
                         {getStudentEmail(selectedApplication) && (
                           <span className="flex items-center gap-2">
                             <Mail className="h-3.5 w-3.5" />
@@ -1054,6 +1108,24 @@ const ApplicationsPage = () => {
                           <span className="flex items-center gap-2">
                             <Phone className="h-3.5 w-3.5" />
                             {getStudentPhone(selectedApplication)}
+                          </span>
+                        )}
+                        {getStudentNationality(selectedApplication) && (
+                          <span className="flex items-center gap-2">
+                            <Globe className="h-3.5 w-3.5" />
+                            {getStudentNationality(selectedApplication)}
+                          </span>
+                        )}
+                        {getStudentCountry(selectedApplication) && (
+                          <span className="flex items-center gap-2">
+                            <MapPin className="h-3.5 w-3.5" />
+                            Currently in {getStudentCountry(selectedApplication)}
+                          </span>
+                        )}
+                        {getStudentDateOfBirth(selectedApplication) && (
+                          <span className="flex items-center gap-2">
+                            <Calendar className="h-3.5 w-3.5" />
+                            DOB: {formatDate(getStudentDateOfBirth(selectedApplication))}
                           </span>
                         )}
                       </div>
