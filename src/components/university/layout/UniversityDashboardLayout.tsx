@@ -36,6 +36,7 @@ type FeaturedListingStatus = Database["public"]["Enums"]["featured_listing_statu
 
 interface UniversityRecord {
   id: string;
+  tenant_id?: string;
   name: string;
   logo_url: string | null;
   website: string | null;
