@@ -69,6 +69,7 @@ export default function ProgramSelectionStep({
 
   // Fetch programs
   const fetchPrograms = useCallback(async () => {
+    setLoading(true);
     try {
       let query = supabase
         .from('programs')
@@ -124,10 +125,11 @@ export default function ProgramSelectionStep({
     } catch (error) {
       console.error('Error fetching programs:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load programs',
+        title: 'Unable to load programmes',
+        description: 'Please try again in a moment.',
         variant: 'destructive',
       });
+      setPrograms([]);
     } finally {
       setLoading(false);
     }
