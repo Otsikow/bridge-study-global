@@ -61,6 +61,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEFAULT_TENANT_SLUG = import.meta.env.VITE_DEFAULT_TENANT_SLUG ?? 'unidoxia';
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -196,19 +198,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      let { data: tenant } = await supabase
-        .from('tenants')
-        .select('id')
-        .eq('slug', 'unidoxia')
-        .single();
+      const metadataTenantId = typeof user.user_metadata?.tenant_id === 'string'
+        ? user.user_metadata.tenant_id
+        : null;
+      const metadataTenantSlug = typeof user.user_metadata?.tenant_slug === 'string'
+        ? user.user_metadata.tenant_slug
+        : null;
 
-      if (!tenant) {
-        const { data: fallbackTenant } = await supabase
+      const resolveTenantById = async (tenantId: string) => {
+        const { data, error } = await supabase
           .from('tenants')
           .select('id')
-          .limit(1)
-          .single();
-        tenant = fallbackTenant;
+          .eq('id', tenantId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error resolving tenant by id:', error);
+          return null;
+        }
+
+        return data;
+      };
+
+      const resolveTenantBySlug = async (slug: string) => {
+        const { data, error } = await supabase
+          .from('tenants')
+          .select('id')
+          .eq('slug', slug)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error resolving tenant by slug:', error);
+          return null;
+        }
+
+        return data;
+      };
+
+      let tenant = null;
+
+      if (metadataTenantId) {
+        tenant = await resolveTenantById(metadataTenantId);
+      }
+
+      if (!tenant && metadataTenantSlug) {
+        tenant = await resolveTenantBySlug(metadataTenantSlug);
+      }
+
+      if (!tenant && DEFAULT_TENANT_SLUG) {
+        tenant = await resolveTenantBySlug(DEFAULT_TENANT_SLUG);
       }
 
       if (!tenant) {
@@ -217,7 +255,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('tenants')
           .insert({
             name: 'Default Tenant',
-            slug: 'default',
+            slug: DEFAULT_TENANT_SLUG || 'default',
             email_from: 'noreply@example.com',
             active: true,
           })
