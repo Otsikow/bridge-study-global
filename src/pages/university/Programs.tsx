@@ -444,15 +444,30 @@ const ProgramForm = ({
                 <FormLabel>Duration (months)</FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
-                    min={1}
-                    step={1}
                     placeholder="e.g. 12"
-                    value={field.value ?? ""}
+                    value={field.value === undefined || field.value === null ? "" : String(field.value)}
                     onChange={(event) => {
-                      const value = event.target.value;
-                      field.onChange(value === "" ? undefined : Number(value));
+                      const rawValue = event.target.value;
+                      // Allow only digits
+                      const sanitized = rawValue.replace(/[^0-9]/g, "");
+                      if (sanitized === "") {
+                        field.onChange(undefined);
+                      } else {
+                        // Remove leading zeros except for a single "0"
+                        const normalized = sanitized.replace(/^0+(?=\d)/, "");
+                        field.onChange(Number(normalized));
+                      }
+                    }}
+                    onBlur={(event) => {
+                      field.onBlur();
+                      // Ensure proper number on blur
+                      const rawValue = event.target.value;
+                      const sanitized = rawValue.replace(/[^0-9]/g, "");
+                      if (sanitized === "" || sanitized === "0") {
+                        field.onChange(undefined);
+                      }
                     }}
                   />
                 </FormControl>
@@ -1169,15 +1184,6 @@ const ProgramsPage = () => {
     [data?.university?.country],
   );
 
-  if (isLoading && !data) {
-    return <LoadingState message="Loading programmes" />;
-  }
-
-  const emptyFilters =
-    searchTerm.trim().length === 0 &&
-    levelFilter === "all" &&
-    statusFilter === "all";
-
   const createInitialValues: ProgramFormValues = useMemo(
     () => ({
       ...defaultFormValues,
@@ -1222,6 +1228,15 @@ const ProgramsPage = () => {
       active: Boolean(editingProgram.active),
     };
   }, [editingProgram, suggestedCurrency]);
+
+  if (isLoading && !data) {
+    return <LoadingState message="Loading programmes" />;
+  }
+
+  const emptyFilters =
+    searchTerm.trim().length === 0 &&
+    levelFilter === "all" &&
+    statusFilter === "all";
 
   return (
     <div className="space-y-6">
@@ -1459,16 +1474,19 @@ const ProgramsPage = () => {
               Publish a new course to make it available to agents and students across the UniDoxia ecosystem.
             </DialogDescription>
           </DialogHeader>
-          <ProgramForm
-            initialValues={createInitialValues}
-            onSubmit={handleCreateProgram}
-            onCancel={() => setIsCreateOpen(false)}
-            isSubmitting={isSubmitting}
-            submitLabel="Create programme"
-            levelOptions={availableLevelOptions}
-            tenantId={tenantId}
-            userId={user?.id ?? null}
-          />
+          {isCreateOpen && (
+            <ProgramForm
+              key="create-program-form"
+              initialValues={createInitialValues}
+              onSubmit={handleCreateProgram}
+              onCancel={() => setIsCreateOpen(false)}
+              isSubmitting={isSubmitting}
+              submitLabel="Create programme"
+              levelOptions={availableLevelOptions}
+              tenantId={tenantId}
+              userId={user?.id ?? null}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
