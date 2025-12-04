@@ -30,16 +30,11 @@ function SidebarToolbar() {
   const { state } = useSidebar();
 
   return (
-    <div className="sticky top-0 z-30 flex items-center gap-3 border-b bg-background/80 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="sticky top-0 z-30 flex items-center gap-2 border-b bg-background/80 px-3 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <SidebarTrigger
-        className="h-10 w-10"
+        className="h-8 w-8"
         aria-label={state === "collapsed" ? "Expand navigation" : "Collapse navigation"}
       />
-      <div className="flex-1 text-xs text-muted-foreground sm:text-sm">
-        {state === "collapsed"
-          ? "Expand the navigation to view full menu labels."
-          : "Collapse the navigation to maximize your workspace."}
-      </div>
     </div>
   );
 }
