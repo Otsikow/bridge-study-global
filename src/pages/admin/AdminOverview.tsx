@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useCallback } from "react";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -175,7 +176,7 @@ const AdminOverview = () => {
   /* ✅ KPI Cards                                                           */
   /* ---------------------------------------------------------------------- */
   const kpiCards = (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3">
       {KPI_CONFIG.map((item) => {
         const value = metricsQuery.data?.[item.key] ?? 0;
         const display =
@@ -184,19 +185,19 @@ const AdminOverview = () => {
             : formatValue(value, undefined, undefined, i18n.language);
         return (
           <Card key={item.key}>
-            <CardHeader className="flex items-center justify-between gap-2 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2 flex flex-row items-start justify-between gap-1">
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground leading-tight">
                 {t(item.labelKey, { defaultValue: item.defaultLabel })}
               </CardTitle>
               {item.key === "pendingVerifications" && value > 0 && (
-                <Badge variant="outline" className="text-[10px] uppercase tracking-wide text-amber-600">
-                  {t("admin.overview.badges.actionRequired", { defaultValue: "Action Required" })}
+                <Badge variant="outline" className="text-[9px] sm:text-[10px] uppercase tracking-wide text-amber-600 shrink-0 hidden sm:inline-flex">
+                  {t("admin.overview.badges.actionRequired", { defaultValue: "Action" })}
                 </Badge>
               )}
             </CardHeader>
-            <CardContent>
-              {metricsQuery.isLoading ? <Skeleton className="h-8 w-24" /> : <p className="text-2xl font-semibold tracking-tight">{display}</p>}
-              <p className="mt-1 text-xs text-muted-foreground">
+            <CardContent className="p-3 sm:p-4 pt-0">
+              {metricsQuery.isLoading ? <Skeleton className="h-6 sm:h-8 w-16 sm:w-24" /> : <p className="text-lg sm:text-2xl font-semibold tracking-tight">{display}</p>}
+              <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-xs text-muted-foreground truncate">
                 {t("admin.overview.kpis.lastUpdated", {
                   defaultValue: "Updated {{time}}",
                   time: metricsQuery.data?.lastUpdated
@@ -216,12 +217,12 @@ const AdminOverview = () => {
   /* ---------------------------------------------------------------------- */
   const recentActivity = (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="text-base font-semibold">
+      <CardHeader className="p-3 sm:p-4 lg:p-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <CardTitle className="text-sm sm:text-base font-semibold">
             {t("admin.overview.recentActivity.title", { defaultValue: "Recent activity" })}
           </CardTitle>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {t("admin.overview.recentActivity.subtitle", { defaultValue: "Latest tenant-wide audit events" })}
           </p>
         </div>
@@ -230,12 +231,12 @@ const AdminOverview = () => {
           variant="outline"
           onClick={() => openZoe(translate("admin.overview.recentActivity.prompt", "Summarize today’s critical audit events"))}
         >
-          <ArrowUpRight className="h-4 w-4" />
+          <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           {t("admin.overview.recentActivity.cta", { defaultValue: "Escalate with Zoe" })}
         </Button>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="max-h-80">
+        <ScrollArea className="max-h-64 sm:max-h-80">
           <div className="divide-y">
             {activityQuery.isLoading && <LoadingState message={t("admin.overview.loading.activity", { defaultValue: "Loading activity" })} size="sm" />}
             {!activityQuery.isLoading && (!activityQuery.data?.length) && (
@@ -271,50 +272,54 @@ const AdminOverview = () => {
   /* ✅ Render                                                              */
   /* ---------------------------------------------------------------------- */
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="page-header">
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             {t("admin.overview.title", { defaultValue: "Operations overview" })}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {t("admin.overview.subtitle", {
               defaultValue: "Monitor admissions momentum, commercial health, and platform activity in one unified console.",
             })}
           </p>
         </div>
-        <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:justify-end md:w-auto">
+        <div className="page-header-actions w-full sm:w-auto">
           <AdminReportExportButton tenantId={tenantId} defaultReportType="admissions" />
         </div>
       </div>
 
       {/* Layout */}
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)] 2xl:grid-cols-[minmax(0,1.6fr)_minmax(360px,1fr)]">
-        <div className="min-w-0 space-y-6">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(280px,1fr)] 2xl:grid-cols-[minmax(0,1.6fr)_minmax(340px,1fr)]">
+        <div className="min-w-0 space-y-4 sm:space-y-6">
           {kpiCards}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">
+              <CardHeader className="p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-sm sm:text-base font-semibold">
                   {t("admin.overview.trends.title", { defaultValue: "Admissions trends" })}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {t("admin.overview.trends.subtitle", { defaultValue: "Rolling six-month submission and enrollment cadence" })}
                 </p>
               </CardHeader>
-              <CardContent className="pt-2">{chartContent}</CardContent>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0 sm:pt-0 lg:pt-2">
+                <div className="h-[200px] sm:h-[260px]">{chartContent}</div>
+              </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold">
+              <CardHeader className="p-3 sm:p-4 lg:p-6">
+                <CardTitle className="text-sm sm:text-base font-semibold">
                   {t("admin.overview.geography.title", { defaultValue: "Applications by country" })}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {t("admin.overview.geography.subtitle", { defaultValue: "Current pipeline distribution by destination" })}
                 </p>
               </CardHeader>
-              <CardContent className="pt-2">{barChart}</CardContent>
+              <CardContent className="p-3 sm:p-4 lg:p-6 pt-0 sm:pt-0 lg:pt-2">
+                <div className="h-[200px] sm:h-[260px]">{barChart}</div>
+              </CardContent>
             </Card>
           </div>
 
@@ -328,66 +333,69 @@ const AdminOverview = () => {
         </div>
 
         {/* Right Column */}
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-3 sm:space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="text-sm sm:text-base font-semibold">
                 {t("admin.overview.quickActions.title", { defaultValue: "Quick actions" })}
               </CardTitle>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 {t("admin.overview.quickActions.subtitle", { defaultValue: "Resolve high-impact workflow blockers" })}
               </p>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0 flex flex-col gap-2 sm:gap-3">
               <Button
                 variant="default"
-                className="w-full justify-start gap-3"
+                size="sm"
+                className="w-full justify-start gap-2 sm:gap-3 text-xs sm:text-sm"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.agentsPrompt", "List agents awaiting approval and potential risks"))
                 }
               >
-                <Activity className="h-4 w-4" />
-                {t("admin.overview.quickActions.agents", { defaultValue: "Approve New Agents" })}
+                <Activity className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t("admin.overview.quickActions.agents", { defaultValue: "Approve New Agents" })}</span>
               </Button>
               <Button
                 variant="outline"
-                className="w-full justify-start gap-3"
+                size="sm"
+                className="w-full justify-start gap-2 sm:gap-3 text-xs sm:text-sm"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.universitiesPrompt", "Which universities are pending onboarding tasks?"))
                 }
               >
-                <ArrowUpRight className="h-4 w-4" />
-                {t("admin.overview.quickActions.universities", { defaultValue: "Approve Universities" })}
+                <ArrowUpRight className="h-4 w-4 shrink-0" />
+                <span className="truncate">{t("admin.overview.quickActions.universities", { defaultValue: "Approve Universities" })}</span>
               </Button>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3"
+                size="sm"
+                className="w-full justify-start gap-2 sm:gap-3 text-xs sm:text-sm"
                 onClick={() =>
                   openZoe(translate("admin.overview.quickActions.compliancePrompt", "Show profiles flagged for compliance review"))
                 }
               >
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                {t("admin.overview.quickActions.compliance", { defaultValue: "Review Flagged Profiles" })}
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+                <span className="truncate">{t("admin.overview.quickActions.compliance", { defaultValue: "Review Flagged Profiles" })}</span>
               </Button>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-2">
-              <div>
-                <CardTitle className="text-base font-semibold">
+            <CardHeader className="p-3 sm:p-4 lg:p-6 flex flex-row items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-sm sm:text-base font-semibold">
                   {t("admin.overview.health.title", { defaultValue: "System health" })}
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   {t("admin.overview.health.subtitle", { defaultValue: "Security signals aggregated from the last 30 days" })}
                 </p>
               </div>
-              <Badge className={healthStyles.badge}>{healthStyles.label}</Badge>
+              <Badge className={cn(healthStyles.badge, "text-xs shrink-0")}>{healthStyles.label}</Badge>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="p-3 sm:p-4 lg:p-6 pt-0 space-y-2 sm:space-y-3">
               <div className="flex items-baseline gap-2">
-                <p className={`text-3xl font-semibold ${healthStyles.accent}`}>{healthQuery.data?.score ?? 0}</p>
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                <p className={`text-2xl sm:text-3xl font-semibold ${healthStyles.accent}`}>{healthQuery.data?.score ?? 0}</p>
+                <span className="text-[10px] sm:text-xs uppercase tracking-wide text-muted-foreground">
                   {t("admin.overview.health.scoreLabel", { defaultValue: "risk score" })}
                 </span>
               </div>

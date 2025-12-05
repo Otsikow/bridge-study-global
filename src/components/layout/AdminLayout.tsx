@@ -250,21 +250,21 @@ const AdminLayout = () => {
   /* ---------------------------------------------------------------------- */
   /* ✅ Sidebar                                                             */
   /* ---------------------------------------------------------------------- */
-  const sidebar = (
+  const sidebar = (showCollapseButton = true) => (
     <div
       className={cn(
         "flex h-full flex-col border-r bg-card transition-all duration-300",
-        isCollapsed ? "w-20" : "w-72"
+        isCollapsed && showCollapseButton ? "w-20" : "w-72"
       )}
     >
-      <div className="flex h-16 items-center gap-3 border-b px-4">
+      <div className="flex h-14 sm:h-16 items-center gap-2 sm:gap-3 border-b px-3 sm:px-4">
         <img
           src={unidoxiaLogo}
           alt={t("admin.layout.sidebar.logoAlt", { defaultValue: "UniDoxia" })}
-          className="h-9 w-9 rounded-lg bg-white object-contain p-1 dark:bg-transparent dark:brightness-0 dark:invert"
+          className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-white object-contain p-1 dark:bg-transparent dark:brightness-0 dark:invert"
         />
-        {!isCollapsed && (
-          <div className="min-w-0">
+        {(!isCollapsed || !showCollapseButton) && (
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">
               {t("admin.layout.sidebar.organization", { defaultValue: "UniDoxia" })}
             </p>
@@ -273,19 +273,21 @@ const AdminLayout = () => {
             </p>
           </div>
         )}
-        <Button
-          size="icon"
-          variant="ghost"
-          className="ml-auto h-9 w-9"
-          onClick={() => setIsCollapsed((prev) => !prev)}
-          aria-expanded={!isCollapsed}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </Button>
+        {showCollapseButton && (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="ml-auto h-8 w-8 sm:h-9 sm:w-9 shrink-0"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            aria-expanded={!isCollapsed}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+        )}
       </div>
       <ScrollArea className="flex-1">
-        <nav className="space-y-1 px-2 py-4">
+        <nav className="space-y-1 px-2 py-3 sm:py-4">
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname.startsWith(item.to);
             const Icon = item.icon;
@@ -294,18 +296,18 @@ const AdminLayout = () => {
                 key={item.to}
                 to={item.to}
                 className={cn(
-                  "group block rounded-lg p-3 transition",
+                  "group block rounded-lg p-2.5 sm:p-3 transition touch-manipulation",
                   isActive ? "bg-primary/10 text-primary" : "hover:bg-muted"
                 )}
               >
-                <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}> 
-                  <Icon className="h-5 w-5" />
-                  {!isCollapsed && (
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">
+                <div className={cn("flex items-center gap-2 sm:gap-3", isCollapsed && showCollapseButton && "justify-center")}> 
+                  <Icon className="h-5 w-5 shrink-0" />
+                  {(!isCollapsed || !showCollapseButton) && (
+                    <div className="flex min-w-0 flex-col">
+                      <span className="text-sm font-medium truncate">
                         {t(item.labelKey, { defaultValue: item.labelDefault })}
                       </span>
-                      <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80">
+                      <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 truncate hidden sm:block">
                         {t(item.descriptionKey, { defaultValue: item.descriptionDefault })}
                       </span>
                     </div>
@@ -318,14 +320,14 @@ const AdminLayout = () => {
       </ScrollArea>
 
       {/* Footer user profile */}
-      <div className="border-t p-4">
-        <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}> 
-          <Avatar className="h-10 w-10">
+      <div className="border-t p-3 sm:p-4">
+        <div className={cn("flex items-center gap-2 sm:gap-3", isCollapsed && showCollapseButton && "justify-center")}> 
+          <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
             <AvatarImage src={profile?.avatar_url ?? undefined} alt={profile?.full_name ?? "Admin"} />
             <AvatarFallback>{profile?.full_name ? getInitials(profile.full_name) : "AD"}</AvatarFallback>
           </Avatar>
-          {!isCollapsed && (
-            <div className="min-w-0">
+          {(!isCollapsed || !showCollapseButton) && (
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">
                 {profile?.full_name ?? t("admin.layout.profile.defaultName", { defaultValue: "Admin" })}
               </p>
@@ -333,9 +335,9 @@ const AdminLayout = () => {
             </div>
           )}
         </div>
-        <Button variant="outline" className="mt-3 w-full" onClick={() => void signOut()}>
+        <Button variant="outline" size="sm" className="mt-2 sm:mt-3 w-full" onClick={() => void signOut()}>
           <LogOut className="h-4 w-4" />
-          {!isCollapsed && <span>{t("common.actions.logout", { defaultValue: "Logout" })}</span>}
+          {(!isCollapsed || !showCollapseButton) && <span className="ml-2">{t("common.actions.logout", { defaultValue: "Logout" })}</span>}
         </Button>
       </div>
     </div>
@@ -347,13 +349,13 @@ const AdminLayout = () => {
   const mobileNavSheet = isMobile ? (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="fixed left-4 top-4 z-50 md:hidden">
+        <Button variant="outline" size="icon" className="fixed left-3 top-3 z-50 h-10 w-10 md:hidden shadow-md">
           <Menu className="h-5 w-5" />
           <span className="sr-only">Open navigation</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-72 p-0">
-        {sidebar}
+      <SheetContent side="left" className="w-[280px] p-0">
+        {sidebar(false)}
       </SheetContent>
     </Sheet>
   ) : null;
@@ -364,10 +366,10 @@ const AdminLayout = () => {
   return (
     <div className="flex min-h-screen bg-muted/20">
       {mobileNavSheet}
-      <div className={cn("hidden md:flex", isCollapsed ? "md:w-20" : "md:w-72")}>{sidebar}</div>
-      <div className="flex w-full flex-col">
+      <div className={cn("hidden md:flex shrink-0", isCollapsed ? "md:w-20" : "md:w-72")}>{sidebar(true)}</div>
+      <div className="flex w-full min-w-0 flex-col">
         <main className="flex-1 bg-background">
-          <div className="mx-auto w-full max-w-7xl p-4 md:p-8">
+          <div className="mx-auto w-full max-w-7xl px-3 py-4 pt-16 sm:px-4 sm:pt-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
         </main>

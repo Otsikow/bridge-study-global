@@ -65,85 +65,115 @@ const AdminUsers = () => {
   }, [tenantId]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">User governance</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="page-header">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">User governance</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Review and manage administrative identities with centralized auditing.
           </p>
         </div>
         <Button
+          size="sm"
+          className="w-full sm:w-auto"
           onClick={() =>
             typeof window !== "undefined" &&
             window.dispatchEvent(new CustomEvent("zoe:open-chat", { detail: { prompt: "Outline role assignment gaps" } }))
           }
         >
-          Ask Zoe for a gap analysis
+          Ask Zoe for analysis
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Role distribution</CardTitle>
-          <CardDescription>Snapshot of active accounts by privilege level.</CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Role distribution</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Snapshot of active accounts by privilege level.</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-3">
-          {loading && <Skeleton className="h-12 w-32" />}
-          {!loading &&
-            roleSummary.map((role) => (
-              <Badge key={role.role} variant="outline" className="px-4 py-2 text-sm">
-                <span className="font-semibold">{role.users}</span>
-                <span className="ml-2 uppercase tracking-wide text-xs text-muted-foreground">{role.role}</span>
-              </Badge>
-            ))}
-          {!loading && roleSummary.length === 0 && <p className="text-sm text-muted-foreground">No roles assigned yet.</p>}
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {loading && <Skeleton className="h-10 w-24" />}
+            {!loading &&
+              roleSummary.map((role) => (
+                <Badge key={role.role} variant="outline" className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">
+                  <span className="font-semibold">{role.users}</span>
+                  <span className="ml-1.5 sm:ml-2 uppercase tracking-wide text-xs text-muted-foreground">{role.role}</span>
+                </Badge>
+              ))}
+            {!loading && roleSummary.length === 0 && <p className="text-sm text-muted-foreground">No roles assigned yet.</p>}
+          </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Administrators</CardTitle>
-          <CardDescription>Key account holders with administrative or elevated permissions.</CardDescription>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-base sm:text-lg">Administrators</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">Key account holders with administrative or elevated permissions.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           {loading ? (
-            <div className="grid gap-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+            <div className="grid gap-2 sm:gap-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
             </div>
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">No administrator records found.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-border">
-                <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Name</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Role</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Created</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border text-sm">
-                  {rows.map((user) => (
-                    <tr key={user.id}>
-                      <td className="px-4 py-2 font-medium">{user.full_name}</td>
-                      <td className="px-4 py-2 text-muted-foreground">{user.email}</td>
-                      <td className="px-4 py-2 uppercase tracking-wide text-xs">{user.role}</td>
-                      <td className="px-4 py-2">
-                        <Badge variant={user.active ? "outline" : "destructive"}>{user.active ? "Active" : "Inactive"}</Badge>
-                      </td>
-                      <td className="px-4 py-2 text-muted-foreground">
+            <>
+              {/* Mobile Card View */}
+              <div className="block space-y-3 md:hidden">
+                {rows.map((user) => (
+                  <div key={user.id} className="rounded-lg border p-3 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm truncate">{user.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                      <Badge variant={user.active ? "outline" : "destructive"} className="text-xs shrink-0">
+                        {user.active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-xs pt-1 border-t">
+                      <Badge variant="secondary" className="text-xs uppercase">{user.role}</Badge>
+                      <span className="text-muted-foreground">
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
-                      </td>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2.5 lg:px-4 lg:py-3">Name</th>
+                      <th className="px-3 py-2.5 lg:px-4 lg:py-3">Email</th>
+                      <th className="px-3 py-2.5 lg:px-4 lg:py-3">Role</th>
+                      <th className="px-3 py-2.5 lg:px-4 lg:py-3">Status</th>
+                      <th className="px-3 py-2.5 lg:px-4 lg:py-3">Created</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border text-sm">
+                    {rows.map((user) => (
+                      <tr key={user.id}>
+                        <td className="px-3 py-2 lg:px-4 font-medium">{user.full_name}</td>
+                        <td className="px-3 py-2 lg:px-4 text-muted-foreground truncate max-w-[200px]">{user.email}</td>
+                        <td className="px-3 py-2 lg:px-4 uppercase tracking-wide text-xs">{user.role}</td>
+                        <td className="px-3 py-2 lg:px-4">
+                          <Badge variant={user.active ? "outline" : "destructive"} className="text-xs">{user.active ? "Active" : "Inactive"}</Badge>
+                        </td>
+                        <td className="px-3 py-2 lg:px-4 text-muted-foreground whitespace-nowrap">
+                          {user.created_at ? new Date(user.created_at).toLocaleDateString() : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

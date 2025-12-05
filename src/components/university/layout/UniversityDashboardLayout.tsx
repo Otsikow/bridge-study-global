@@ -997,8 +997,8 @@ export const UniversityDashboardLayout = ({
             refreshing={isFetching}
             onToggleMobileNav={() => setMobileNavOpen(true)}
           />
-          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-subtle px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-subtle px-3 py-4 sm:px-4 sm:py-6 lg:px-8 xl:px-10 lg:py-8 xl:py-10">
+            <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6 lg:gap-8">
               {showProfileReminder ? (
                 <Alert className="border-primary/40 bg-primary/5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

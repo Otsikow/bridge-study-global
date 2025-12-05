@@ -345,19 +345,19 @@ const AdminPayments = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Finance &amp; Stripe payouts</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+      <div className="page-header">
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Finance &amp; Stripe payouts</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Monitor platform revenue, university remittances, and agent commissions pulled from live Stripe balances.
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-sm">
-            <CalendarRange className="h-4 w-4 text-muted-foreground" />
+        <div className="page-header-actions w-full sm:w-auto">
+          <div className="flex items-center gap-2 rounded-lg border bg-card px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm">
+            <CalendarRange className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Select value={dateRange} onValueChange={(value) => setDateRange(value as keyof typeof rangeOptions)}>
-              <SelectTrigger className="w-[160px] border-none bg-transparent p-0 text-sm shadow-none">
+              <SelectTrigger className="w-[120px] sm:w-[140px] border-none bg-transparent p-0 text-xs sm:text-sm shadow-none">
                 <SelectValue placeholder="Select range" />
               </SelectTrigger>
               <SelectContent align="end">
@@ -368,61 +368,61 @@ const AdminPayments = () => {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" className="gap-2" onClick={handleExportCsv}>
+          <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto" onClick={handleExportCsv}>
             <Download className="h-4 w-4" />
-            Export as CSV
+            <span className="sm:inline">Export CSV</span>
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 lg:grid-cols-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total payouts</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Total payouts</CardTitle>
+            <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(financeKpis.payoutsTotal)}</div>
-            <p className="text-xs text-muted-foreground">Agent + university payouts processed through Stripe</p>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-semibold">{formatCurrency(financeKpis.payoutsTotal)}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Agent + university payouts via Stripe</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending commissions</CardTitle>
-            <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+            <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(financeKpis.pendingCommissions)}</div>
-            <p className="text-xs text-muted-foreground">Awaiting release to agent Stripe Connect accounts</p>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-semibold">{formatCurrency(financeKpis.pendingCommissions)}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Awaiting agent release</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">University fees collected</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Uni fees</CardTitle>
+            <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(financeKpis.totalFees)}</div>
-            <p className="text-xs text-muted-foreground">Cleared tuition &amp; application payments</p>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-semibold">{formatCurrency(financeKpis.totalFees)}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Cleared payments</p>
           </CardContent>
         </Card>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Platform revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-1 sm:pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Revenue</CardTitle>
+            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-semibold">{formatCurrency(financeKpis.platformRevenue)}</div>
-            <p className="text-xs text-muted-foreground">Net fees + service charges retained by Bridge</p>
+          <CardContent className="p-3 sm:p-4 pt-0">
+            <div className="text-lg sm:text-2xl font-semibold">{formatCurrency(financeKpis.platformRevenue)}</div>
+            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Platform fees retained</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="agents" className="space-y-6">
-        <TabsList className="grid w-full gap-2 md:w-auto md:grid-cols-3">
-          <TabsTrigger value="agents">Agent Commissions</TabsTrigger>
-          <TabsTrigger value="universities">University Payouts</TabsTrigger>
-          <TabsTrigger value="platform">Platform Summary</TabsTrigger>
+      <Tabs defaultValue="agents" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full gap-1 sm:gap-2 grid-cols-3 h-auto p-1">
+          <TabsTrigger value="agents" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2"><span className="hidden sm:inline">Agent </span>Commissions</TabsTrigger>
+          <TabsTrigger value="universities" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2"><span className="hidden sm:inline">University </span>Payouts</TabsTrigger>
+          <TabsTrigger value="platform" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">Platform<span className="hidden sm:inline"> Summary</span></TabsTrigger>
         </TabsList>
 
         <TabsContent value="agents">
