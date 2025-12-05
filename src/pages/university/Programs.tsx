@@ -1198,7 +1198,7 @@ const ProgramsPage = () => {
       </div>
 
       <Card className={withUniversityCardStyles("rounded-2xl text-card-foreground")}>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div>
             <CardTitle className="text-base font-semibold text-card-foreground">
               Programme catalogue
@@ -1207,14 +1207,17 @@ const ProgramsPage = () => {
               {programs.length} programme{programs.length === 1 ? "" : "s"} connected to your university profile.
             </CardDescription>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-blue-500 text-white hover:bg-primary">
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className="w-full gap-2 bg-blue-500 text-white hover:bg-primary sm:w-auto"
+          >
             <Plus className="h-4 w-4" /> Add programme
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative flex-1">
+          <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <div className="relative w-full min-w-[220px] flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   value={searchTerm}
@@ -1224,7 +1227,7 @@ const ProgramsPage = () => {
                 />
               </div>
               <Select value={levelFilter} onValueChange={setLevelFilter}>
-                <SelectTrigger className="sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="All levels" />
                 </SelectTrigger>
                 <SelectContent className="bg-background text-card-foreground">
@@ -1236,7 +1239,7 @@ const ProgramsPage = () => {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
-                <SelectTrigger className="sm:w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-background text-card-foreground">
@@ -1275,142 +1278,144 @@ const ProgramsPage = () => {
               />
             )
           ) : (
-            <div className={withUniversitySurfaceTint("overflow-hidden rounded-xl bg-muted/30")}>
-              <table className="w-full min-w-[920px] text-left text-sm">
-                <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Programme</th>
-                    <th className="px-4 py-3 font-medium">Level</th>
-                    <th className="px-4 py-3 font-medium">Discipline</th>
-                    <th className="px-4 py-3 font-medium">Duration</th>
-                    <th className="px-4 py-3 font-medium">Tuition</th>
-                    <th className="px-4 py-3 font-medium">Intakes</th>
-                    <th className="px-4 py-3 font-medium">Seats</th>
-                    <th className="px-4 py-3 text-right font-medium">Status</th>
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {filteredPrograms.map((program) => (
-                    <tr key={program.id} className="text-foreground">
-                      <td className="px-4 py-4 align-top">
-                        <div className="flex items-start gap-3">
-                          {program.image_url ? (
-                            <div className="relative hidden h-12 w-12 overflow-hidden rounded-md border border-border bg-muted/30 sm:block">
-                              <img
-                                src={program.image_url}
-                                alt={`${program.name} thumbnail`}
-                                className="h-full w-full object-cover"
+            <div className="overflow-x-auto">
+              <div className={withUniversitySurfaceTint("rounded-xl bg-muted/30")}>            
+                <table className="w-full min-w-[920px] text-left text-sm">
+                  <thead className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Programme</th>
+                      <th className="px-4 py-3 font-medium">Level</th>
+                      <th className="px-4 py-3 font-medium">Discipline</th>
+                      <th className="px-4 py-3 font-medium">Duration</th>
+                      <th className="px-4 py-3 font-medium">Tuition</th>
+                      <th className="px-4 py-3 font-medium">Intakes</th>
+                      <th className="px-4 py-3 font-medium">Seats</th>
+                      <th className="px-4 py-3 text-right font-medium">Status</th>
+                      <th className="px-4 py-3 text-right font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredPrograms.map((program) => (
+                      <tr key={program.id} className="text-foreground">
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex items-start gap-3">
+                            {program.image_url ? (
+                              <div className="relative hidden h-12 w-12 overflow-hidden rounded-md border border-border bg-muted/30 sm:block">
+                                <img
+                                  src={program.image_url}
+                                  alt={`${program.name} thumbnail`}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                            ) : null}
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-foreground">{program.name}</span>
+                              {program.description ? (
+                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                  {program.description}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                          </td>
+                        <td className="px-4 py-4 align-top">
+                          <Badge variant="outline" className="border-border bg-muted/60 text-foreground">
+                            {program.level}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-4 align-top">{program.discipline ?? "—"}</td>
+                        <td className="px-4 py-4 align-top">
+                          {program.duration_months ? `${program.duration_months} months` : "—"}
+                        </td>
+                        <td className="px-4 py-4 align-top">{formatCurrency(program.tuition_currency, program.tuition_amount)}</td>
+                        <td className="px-4 py-4 align-top">
+                          {program.intake_months && program.intake_months.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {program.intake_months
+                                .slice()
+                                .sort((a, b) => a - b)
+                                .map((month) => (
+                                  <Badge
+                                    key={`${program.id}-${month}`}
+                                    variant="secondary"
+                                    className="border-border bg-muted/50 text-foreground"
+                                  >
+                                    {monthFormatter.format(new Date(2000, month - 1, 1))}
+                                  </Badge>
+                                ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          {typeof program.seats_available === "number"
+                            ? program.seats_available
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex flex-col items-end gap-3">
+                            <Badge
+                              variant="outline"
+                              className={
+                                program.active
+                                  ? "border-success/30 bg-success/10 text-success"
+                                  : "border-border bg-muted/50 text-muted-foreground"
+                              }
+                            >
+                              {program.active ? "Active" : "Inactive"}
+                            </Badge>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>Visible</span>
+                              <Switch
+                                checked={Boolean(program.active)}
+                                onCheckedChange={(checked) =>
+                                  void handleToggleActive(program.id, checked)
+                                }
+                                disabled={updatingId === program.id}
                               />
                             </div>
-                          ) : null}
-                          <div className="flex flex-col gap-1">
-                            <span className="font-semibold text-foreground">{program.name}</span>
-                            {program.description ? (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
-                                {program.description}
-                              </p>
-                            ) : null}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        <Badge variant="outline" className="border-border bg-muted/60 text-foreground">
-                          {program.level}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-4 align-top">{program.discipline ?? "—"}</td>
-                      <td className="px-4 py-4 align-top">
-                        {program.duration_months ? `${program.duration_months} months` : "—"}
-                      </td>
-                      <td className="px-4 py-4 align-top">{formatCurrency(program.tuition_currency, program.tuition_amount)}</td>
-                      <td className="px-4 py-4 align-top">
-                        {program.intake_months && program.intake_months.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {program.intake_months
-                              .slice()
-                              .sort((a, b) => a - b)
-                              .map((month) => (
-                                <Badge
-                                  key={`${program.id}-${month}`}
-                                  variant="secondary"
-                                  className="border-border bg-muted/50 text-foreground"
+                        </td>
+                        <td className="px-4 py-4 align-top">
+                          <div className="flex justify-end">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                 >
-                                  {monthFormatter.format(new Date(2000, month - 1, 1))}
-                                </Badge>
-                              ))}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        {typeof program.seats_available === "number"
-                          ? program.seats_available
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        <div className="flex flex-col items-end gap-3">
-                          <Badge
-                            variant="outline"
-                            className={
-                              program.active
-                                ? "border-success/30 bg-success/10 text-success"
-                                : "border-border bg-muted/50 text-muted-foreground"
-                            }
-                          >
-                            {program.active ? "Active" : "Inactive"}
-                          </Badge>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>Visible</span>
-                            <Switch
-                              checked={Boolean(program.active)}
-                              onCheckedChange={(checked) =>
-                                void handleToggleActive(program.id, checked)
-                              }
-                              disabled={updatingId === program.id}
-                            />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 align-top">
-                        <div className="flex justify-end">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">Open menu</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent
+                                align="end"
+                                className="w-48 border border-border bg-background text-card-foreground"
                               >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="w-48 border border-border bg-background text-card-foreground"
-                            >
-                              <DropdownMenuItem onClick={() => setViewingProgram(program)}>
-                                <Eye className="mr-2 h-4 w-4" /> View details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => setEditingProgram(program)}>
-                                <Pencil className="mr-2 h-4 w-4" /> Edit programme
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => setDeletingId(program.id)}
-                                className="text-red-400 focus:bg-red-500/10 focus:text-red-200"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete programme
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </td>
+                                <DropdownMenuItem onClick={() => setViewingProgram(program)}>
+                                  <Eye className="mr-2 h-4 w-4" /> View details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditingProgram(program)}>
+                                  <Pencil className="mr-2 h-4 w-4" /> Edit programme
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => setDeletingId(program.id)}
+                                  className="text-red-400 focus:bg-red-500/10 focus:text-red-200"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete programme
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </td>
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           )}
         </CardContent>
