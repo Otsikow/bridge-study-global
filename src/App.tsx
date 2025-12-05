@@ -184,9 +184,11 @@ const AdminDashboardPage = lazyWithErrorHandling(() => import("./pages/dashboard
 const AdminOverview = lazyWithErrorHandling(() => import("./pages/admin/AdminOverview"));
 const AdminUsers = lazyWithErrorHandling(() => import("./pages/admin/AdminUsers"));
 const AdminAdmissions = lazyWithErrorHandling(() => import("./pages/admin/AdminAdmissions"));
+const AdminAgentsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminAgents"));
 const AdminPaymentsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPayments"));
 const AdminPartnersPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPartners"));
 const AdminResourcesPage = lazyWithErrorHandling(() => import("./pages/admin/AdminResources"));
+const AdminProgramsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminPrograms"));
 const AdminToolsPage = lazyWithErrorHandling(() => import("./pages/admin/AdminTools"));
 const AdminBroadcastCenterPage = lazyWithErrorHandling(() => import("./pages/admin/AdminBroadcastCenter"));
 const AdminChatConsolePage = lazyWithErrorHandling(() => import("./pages/admin/AdminChatConsole"));
@@ -394,6 +396,8 @@ const App = () => {
                           <Route path="users" element={<AdminUsers />} />
                           <Route path="universities" element={<AdminUniversitiesPage />} />
                           <Route path="admissions" element={<AdminAdmissions />} />
+                          <Route path="agents" element={<AdminAgentsPage />} />
+                          <Route path="programs" element={<AdminProgramsPage />} />
                           <Route path="payments" element={<AdminPaymentsPage />} />
                           <Route path="partners" element={<AdminPartnersPage />} />
                           <Route path="resources" element={<AdminResourcesPage />} />

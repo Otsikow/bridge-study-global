@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Activity,
   BadgeCheck,
+  BookOpen,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -105,6 +106,14 @@ const NAV_ITEMS: NavItem[] = [
     icon: GraduationCap,
   },
   {
+    to: "/admin/programs",
+    labelKey: "admin.layout.navigation.programs.label",
+    descriptionKey: "admin.layout.navigation.programs.description",
+    labelDefault: "Programs",
+    descriptionDefault: "Catalogue & intakes",
+    icon: BookOpen,
+  },
+  {
     to: "/admin/featured-universities",
     labelKey: "admin.layout.navigation.featuredUniversities.label",
     descriptionKey: "admin.layout.navigation.featuredUniversities.description",
@@ -119,6 +128,14 @@ const NAV_ITEMS: NavItem[] = [
     labelDefault: "Resources",
     descriptionDefault: "Content & assets",
     icon: Library,
+  },
+  {
+    to: "/admin/agents",
+    labelKey: "admin.layout.navigation.agents.label",
+    descriptionKey: "admin.layout.navigation.agents.description",
+    labelDefault: "Agents",
+    descriptionDefault: "Agency performance",
+    icon: Users,
   },
   {
     to: "/admin/tools",
