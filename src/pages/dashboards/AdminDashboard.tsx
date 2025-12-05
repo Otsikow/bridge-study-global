@@ -140,7 +140,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Stats - Metrics Cards */}
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -218,24 +218,24 @@ export default function AdminDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+          <TabsList className="flex w-full flex-col gap-2 overflow-x-auto rounded-xl sm:flex-row sm:flex-wrap lg:flex-nowrap">
+            <TabsTrigger value="overview" className="flex min-w-[140px] flex-1 items-center justify-center gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
+            <TabsTrigger value="users" className="flex min-w-[140px] flex-1 items-center justify-center gap-2">
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="applications" className="flex items-center gap-2">
+            <TabsTrigger value="applications" className="flex min-w-[140px] flex-1 items-center justify-center gap-2">
               <FileText className="h-4 w-4" />
               Applications
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
+            <TabsTrigger value="payments" className="flex min-w-[140px] flex-1 items-center justify-center gap-2">
               <DollarSign className="h-4 w-4" />
               Payments
             </TabsTrigger>
-            <TabsTrigger value="reports" className="flex items-center gap-2">
+            <TabsTrigger value="reports" className="flex min-w-[140px] flex-1 items-center justify-center gap-2">
               <Download className="h-4 w-4" />
               Reports
             </TabsTrigger>
