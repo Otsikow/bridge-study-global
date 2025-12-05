@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,9 +124,8 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <DashboardLayout>
-      <div className="p-8 space-y-8">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+    <div className="space-y-8">
+      <BackButton variant="ghost" size="sm" fallback="/admin" />
         
         {/* Header */}
         <div className="space-y-1.5 animate-fade-in">
@@ -261,7 +259,6 @@ export default function AdminDashboard() {
             <ReportsTab />
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }

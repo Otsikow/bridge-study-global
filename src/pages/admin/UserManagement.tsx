@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import BackButton from "@/components/BackButton";
 import {
   Card,
@@ -363,9 +362,9 @@ export default function UserManagement() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-8 space-y-6">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+    <>
+      <div className="space-y-6">
+        <BackButton variant="ghost" size="sm" fallback="/admin" />
 
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -747,6 +746,6 @@ export default function UserManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </DashboardLayout>
+    </>
   );
 }
