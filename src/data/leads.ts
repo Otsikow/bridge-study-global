@@ -94,14 +94,22 @@ export const getStudent = async (studentId: string): Promise<Lead> => {
     `
     )
     .eq("id", studentId)
-    .single();
+    .limit(1);
 
   if (error) {
     console.error("Error fetching student:", error);
     throw error;
   }
 
-  const student = data as any;
+  const student = Array.isArray(data) ? data[0] : null;
+
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  const agentStatus = Array.isArray(student.agent_student_links)
+    ? student.agent_student_links[0]?.status
+    : undefined;
   const nameParts = (student.legal_name || student.preferred_name || "").split(" ");
   const firstName = nameParts.shift() || "";
   const lastName = nameParts.join(" ");
@@ -111,7 +119,7 @@ export const getStudent = async (studentId: string): Promise<Lead> => {
     last_name: lastName,
     email: student.contact_email || "",
     country: student.current_country || "",
-    status: student.agent_student_links[0]?.status || "unknown",
+    status: agentStatus || "unknown",
   };
   return enrichLeadWithQualification(baseLead) as Lead;
 };
