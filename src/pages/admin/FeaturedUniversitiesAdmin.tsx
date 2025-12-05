@@ -10,7 +10,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import BackButton from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeEdgeFunction } from "@/lib/supabaseEdgeFunctions";
@@ -373,9 +372,8 @@ export default function FeaturedUniversitiesAdmin() {
   );
 
   return (
-    <DashboardLayout>
-      <div className="p-6 md:p-8 space-y-8">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+    <div className="space-y-8">
+      <BackButton variant="ghost" size="sm" fallback="/admin" />
 
         <div className="space-y-2">
           <div className="flex items-center gap-3">
@@ -766,7 +764,6 @@ export default function FeaturedUniversitiesAdmin() {
             })}
           </div>
         )}
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
