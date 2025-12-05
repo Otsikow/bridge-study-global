@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Calendar, DollarSign, Clock, GraduationCap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export interface Course {
   id: string;
@@ -33,14 +33,24 @@ const MONTH_NAMES = [
 
 export function CourseCard({ course }: CourseCardProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const studentIdFromUrl = searchParams.get('studentId') || searchParams.get('student');
 
   const handleCardClick = () => {
-    navigate(`/universities/${course.university_id}?program=${course.id}`);
+    const params = new URLSearchParams({ program: course.id });
+    if (studentIdFromUrl) {
+      params.set('studentId', studentIdFromUrl);
+    }
+    navigate(`/universities/${course.university_id}?${params.toString()}`);
   };
 
   const handleApplyNow = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    navigate(`/student/applications/new?program=${course.id}`);
+    const params = new URLSearchParams({ program: course.id });
+    if (studentIdFromUrl) {
+      params.set('studentId', studentIdFromUrl);
+    }
+    navigate(`/student/applications/new?${params.toString()}`);
   };
 
   const getNextIntakeDisplay = () => {
