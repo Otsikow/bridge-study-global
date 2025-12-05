@@ -933,12 +933,25 @@ const ProgramsPage = () => {
   }, [levelFilter, levelFilterOptions]);
 
   const handleToggleActive = async (programId: string, nextActive: boolean) => {
+    // ISOLATION CHECK: Verify tenant/university ownership
+    if (!tenantId || !universityId) {
+      toast({
+        title: "Missing account information",
+        description: "Unable to verify your university profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUpdatingId(programId);
+      // ISOLATION: Update must be scoped by program id AND university_id/tenant_id
       const { error } = await supabase
         .from("programs")
         .update({ active: nextActive })
-        .eq("id", programId);
+        .eq("id", programId)
+        .eq("university_id", universityId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
@@ -1012,9 +1025,27 @@ const ProgramsPage = () => {
       return;
     }
 
+    // ISOLATION CHECK: Verify the university belongs to the current tenant
+    const { data: universityCheck, error: checkError } = await supabase
+      .from("universities")
+      .select("id, tenant_id")
+      .eq("id", universityId)
+      .eq("tenant_id", tenantId)
+      .single();
+
+    if (checkError || !universityCheck) {
+      toast({
+        title: "Security error",
+        description: "Unable to verify university ownership. Please refresh and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const payload = buildPayloadFromForm(values);
+      // ISOLATION: Always set both tenant_id and university_id to ensure proper scoping
       const { error } = await supabase
         .from("programs")
         .insert({
@@ -1051,13 +1082,27 @@ const ProgramsPage = () => {
   const handleUpdateProgram = async (values: ProgramFormValues) => {
     if (!editingProgram) return;
 
+    // ISOLATION CHECK: Verify the program belongs to the current university/tenant
+    if (!tenantId || !universityId) {
+      toast({
+        title: "Missing account information",
+        description: "Unable to verify your university profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const payload = buildPayloadFromForm(values);
+      // ISOLATION: Update must be scoped by both program id AND university_id
+      // This prevents any possibility of updating another university's program
       const { error } = await supabase
         .from("programs")
         .update(payload)
-        .eq("id", editingProgram.id);
+        .eq("id", editingProgram.id)
+        .eq("university_id", universityId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
@@ -1087,10 +1132,26 @@ const ProgramsPage = () => {
   const handleDeleteProgram = async () => {
     if (!deletingId) return;
 
+    // ISOLATION CHECK: Verify tenant/university ownership
+    if (!tenantId || !universityId) {
+      toast({
+        title: "Missing account information",
+        description: "Unable to verify your university profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const programToDelete = programs.find((program) => program.id === deletingId) ?? null;
-      const { error } = await supabase.from("programs").delete().eq("id", deletingId);
+      // ISOLATION: Delete must be scoped by program id AND university_id/tenant_id
+      const { error } = await supabase
+        .from("programs")
+        .delete()
+        .eq("id", deletingId)
+        .eq("university_id", universityId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
