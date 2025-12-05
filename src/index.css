@@ -204,7 +204,115 @@ All colors MUST be HSL.
 
 @layer components {
   .page-shell {
-    @apply mx-auto flex w-full max-w-screen-2xl min-w-0 flex-col px-4 sm:px-6 lg:px-10;
+    @apply mx-auto flex w-full max-w-screen-2xl min-w-0 flex-col px-3 sm:px-4 md:px-6 lg:px-10;
+  }
+
+  /* Responsive container utilities */
+  .responsive-container {
+    @apply w-full px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+
+  /* Responsive grid for cards */
+  .responsive-grid {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2;
+  }
+
+  .responsive-grid-3 {
+    @apply grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3;
+  }
+
+  /* Responsive flex utilities */
+  .responsive-flex {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center;
+  }
+
+  .responsive-flex-between {
+    @apply flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  /* Responsive header section */
+  .page-header {
+    @apply flex flex-col gap-3 sm:gap-4 md:flex-row md:items-start md:justify-between;
+  }
+
+  .page-header-actions {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap;
+  }
+
+  /* Responsive table wrapper */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0;
+  }
+
+  /* Hide on mobile, show on desktop */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  .hide-desktop {
+    @apply block sm:hidden;
+  }
+
+  /* Mobile-first button sizing */
+  .btn-responsive {
+    @apply w-full sm:w-auto;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive-sm {
+    @apply text-xs sm:text-sm;
+  }
+
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-lg {
+    @apply text-base sm:text-lg md:text-xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-lg sm:text-xl md:text-2xl;
+  }
+
+  /* Responsive spacing */
+  .space-responsive {
+    @apply space-y-3 sm:space-y-4 md:space-y-6;
+  }
+
+  .gap-responsive {
+    @apply gap-3 sm:gap-4 md:gap-6;
+  }
+
+  /* Mobile card padding */
+  .card-padding-responsive {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  /* Filter section responsive */
+  .filter-section {
+    @apply flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between;
+  }
+
+  .filter-row {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap;
+  }
+
+  /* Mobile-friendly input sizes */
+  .input-responsive {
+    @apply w-full sm:w-auto sm:min-w-[140px];
+  }
+
+  /* Touch-friendly sizing for mobile */
+  @media (max-width: 640px) {
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 
   /* Reduced motion */

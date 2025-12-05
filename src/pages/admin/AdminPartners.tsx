@@ -270,14 +270,14 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   };
 
   const renderAgentSkeletons = () => (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <Card key={index}>
-          <CardHeader className="space-y-2">
+          <CardHeader className="space-y-2 p-3 sm:p-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-3 w-24" />
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 p-3 sm:p-4 pt-0">
             <Skeleton className="h-3 w-40" />
             <Skeleton className="h-3 w-24" />
             <Skeleton className="h-8 w-full" />
@@ -288,14 +288,14 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   );
 
   const renderUniversitySkeletons = () => (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <Card key={index}>
-          <CardHeader className="space-y-2">
+          <CardHeader className="space-y-2 p-3 sm:p-4">
             <Skeleton className="h-4 w-48" />
             <Skeleton className="h-3 w-32" />
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3 p-3 sm:p-4 pt-0">
             <Skeleton className="h-3 w-24" />
             <Skeleton className="h-3 w-28" />
             <Skeleton className="h-8 w-full" />
@@ -306,17 +306,18 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Partner management</h1>
-          <p className="text-sm text-muted-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="page-header">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Partner management</h1>
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
             Govern agency and university relationships with clear performance and status signals.
           </p>
         </div>
         <Button
           variant="outline"
-          className="gap-2"
+          size="sm"
+          className="w-full gap-2 sm:w-auto"
           onClick={() =>
             typeof window !== "undefined" &&
             window.dispatchEvent(
@@ -358,41 +359,41 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
               ) : agentCards.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No agent partners found for this tenant.</p>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {agentCards.map((agent) => (
                     <Card key={agent.id} className="border-muted">
-                      <CardHeader className="space-y-2">
+                      <CardHeader className="space-y-2 p-3 sm:p-4">
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <CardTitle className="text-base font-semibold">{agent.companyName}</CardTitle>
-                            <CardDescription className="flex items-center gap-1 text-xs">
-                              <Mail className="h-3.5 w-3.5" />
-                              {agent.email}
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-sm sm:text-base font-semibold truncate">{agent.companyName}</CardTitle>
+                            <CardDescription className="flex items-center gap-1 text-xs truncate">
+                              <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
+                              <span className="truncate">{agent.email}</span>
                             </CardDescription>
                           </div>
-                          <Badge variant={agent.isActive ? "outline" : "destructive"}>
+                          <Badge variant={agent.isActive ? "outline" : "destructive"} className="text-xs shrink-0">
                             {agent.isActive ? "Active" : "Suspended"}
                           </Badge>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="secondary">{agent.activeStudents} active students</Badge>
-                          <Badge variant="secondary">Performance {formatPercent(agent.performanceScore)}</Badge>
-                          <Badge variant="outline">
-                            Commission {agent.commissionRate !== null ? `${agent.commissionRate}%` : "—"}
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs">{agent.activeStudents} students</Badge>
+                          <Badge variant="secondary" className="text-[10px] sm:text-xs">{formatPercent(agent.performanceScore)}</Badge>
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">
+                            {agent.commissionRate !== null ? `${agent.commissionRate}%` : "—"}
                           </Badge>
                         </div>
                       </CardHeader>
-                      <CardContent className="space-y-4 text-sm">
+                      <CardContent className="space-y-3 sm:space-y-4 text-sm p-3 sm:p-4 pt-0">
                         <div className="flex items-center justify-between">
-                          <span className="capitalize text-muted-foreground">{agent.verificationStatus}</span>
+                          <span className="capitalize text-muted-foreground text-xs sm:text-sm">{agent.verificationStatus}</span>
                           <Switch
                             checked={agent.isActive}
                             onCheckedChange={() => handleAgentToggle(agent.id, agent.isActive)}
                             aria-label={`Toggle agent ${agent.companyName} status`}
                           />
                         </div>
-                        <Button asChild variant="secondary" className="w-full">
-                          <Link to={`/admin/users?profile=${agent.profileId}`}>View profile details</Link>
+                        <Button asChild variant="secondary" size="sm" className="w-full">
+                          <Link to={`/admin/users?profile=${agent.profileId}`}>View profile</Link>
                         </Button>
                       </CardContent>
                     </Card>
@@ -418,36 +419,37 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
               ) : universityCards.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No university partnerships available yet.</p>
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {universityCards.map((university) => {
                     const normalizedStatus = university.partnershipStatus.toLowerCase();
                     const shouldSuspend = normalizedStatus === "approved";
 
                     return (
                       <Card key={university.id} className="border-muted">
-                        <CardHeader className="space-y-2">
+                        <CardHeader className="space-y-2 p-3 sm:p-4">
                           <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <CardTitle className="text-base font-semibold">{university.name}</CardTitle>
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="text-sm sm:text-base font-semibold truncate">{university.name}</CardTitle>
                               <CardDescription className="flex items-center gap-1 text-xs">
-                                <GraduationCap className="h-3.5 w-3.5" />
+                                <GraduationCap className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
                                 {university.country}
                               </CardDescription>
                             </div>
-                            <Badge variant={university.isActive ? "outline" : "destructive"}>
+                            <Badge variant={university.isActive ? "outline" : "destructive"} className="text-xs shrink-0">
                               {university.isActive ? "Active" : "Suspended"}
                             </Badge>
                           </div>
-                          <div className="flex flex-wrap gap-2 text-xs">
-                            <Badge variant="secondary">{university.programsOffered} programs</Badge>
-                            <Badge variant="secondary">{university.totalApplications} applications</Badge>
-                            <Badge variant="outline">Conversion {formatPercent(university.conversionRate)}</Badge>
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.programsOffered} programs</Badge>
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.totalApplications} apps</Badge>
+                            <Badge variant="outline" className="text-[10px] sm:text-xs">{formatPercent(university.conversionRate)}</Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                          <span className="capitalize text-muted-foreground">Status: {university.partnershipStatus}</span>
+                        <CardContent className="space-y-3 sm:space-y-4 text-sm p-3 sm:p-4 pt-0">
+                          <span className="capitalize text-muted-foreground text-xs sm:text-sm">Status: {university.partnershipStatus}</span>
                           <Button
                             variant={shouldSuspend ? "destructive" : "default"}
+                            size="sm"
                             className="w-full"
                             onClick={() => handleUniversityStatus(university.id, university.partnershipStatus)}
                           >

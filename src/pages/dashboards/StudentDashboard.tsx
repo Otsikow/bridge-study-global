@@ -408,44 +408,46 @@ export default function StudentDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
+      <div className="p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-6 md:space-y-8 max-w-[1600px] mx-auto">
         {/* Greeting */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16 border-2 border-primary shadow-lg">
+        <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Avatar className="h-12 w-12 sm:h-14 md:h-16 sm:w-14 md:w-16 border-2 border-primary shadow-lg shrink-0">
               <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name} />
-              <AvatarFallback className="text-lg font-semibold bg-primary/70 text-white">
+              <AvatarFallback className="text-sm sm:text-lg font-semibold bg-primary/70 text-white">
                 {profile?.full_name ? getInitials(profile.full_name) : 'ST'}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Welcome back, {profile?.full_name?.split(' ')[0] || 'Student'}! 👋
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight truncate">
+                Welcome, {profile?.full_name?.split(' ')[0] || 'Student'}! 👋
               </h1>
-              <p className="text-muted-foreground mt-1">Track your journey and explore new opportunities</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate">Track your journey and explore opportunities</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" asChild className="relative">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="icon" asChild className="relative h-9 w-9 sm:h-10 sm:w-10">
               <Link to="/student/notifications">
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadNotifications > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-semibold">
+                  <span className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-destructive text-destructive-foreground text-[10px] sm:text-xs flex items-center justify-center font-semibold">
                     {unreadNotifications > 9 ? '9+' : unreadNotifications}
                   </span>
                 )}
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="hover-scale whitespace-nowrap">
-              <Link to="/student/application-tracking" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
+            <Button asChild variant="outline" size="sm" className="hover-scale whitespace-nowrap text-xs sm:text-sm">
+              <Link to="/student/application-tracking" className="flex items-center gap-1.5 sm:gap-2">
+                <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Track Apps</span>
+                <span className="sm:hidden">Track</span>
               </Link>
             </Button>
-            <Button asChild size="sm" className="hover-scale whitespace-nowrap">
-              <Link to="/courses?view=programs" className="flex items-center gap-2">
-                <Search className="h-4 w-4" />
-                <span>Find Programs</span>
+            <Button asChild size="sm" className="hover-scale whitespace-nowrap text-xs sm:text-sm">
+              <Link to="/courses?view=programs" className="flex items-center gap-1.5 sm:gap-2">
+                <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Find Programs</span>
+                <span className="sm:hidden">Find</span>
               </Link>
             </Button>
           </div>
