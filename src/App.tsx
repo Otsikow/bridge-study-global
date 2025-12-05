@@ -347,6 +347,7 @@ const App = () => {
                         <Route path="/dashboard/partners" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><AgentPartners /></ProtectedRoute>} />
                         <Route path="/dashboard/settings" element={<ProtectedRoute allowedRoles={["agent","admin","staff"]}><StaffSettingsRouter /></ProtectedRoute>} />
                         <Route path="/dashboard/ai-insights" element={<ProtectedRoute allowedRoles={["staff","admin"]}><StaffAIInsightsPage /></ProtectedRoute>} />
+                        <Route path="/dashboard/programs" element={<ProtectedRoute allowedRoles={["admin"]}><AdminProgramsPage /></ProtectedRoute>} />
                         <Route path="/profile/settings" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
                         <Route path="/settings" element={<Navigate to="/profile/settings" replace />} />
                         <Route path="/agent/student/:studentId" element={<ProtectedRoute allowedRoles={["agent", "admin", "staff"]}><StudentDetailsPage /></ProtectedRoute>} />
