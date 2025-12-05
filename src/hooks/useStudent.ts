@@ -5,5 +5,7 @@ export const useStudent = (studentId: string) => {
   return useQuery({
     queryKey: ["student", studentId],
     queryFn: () => getStudent(studentId),
+    enabled: Boolean(studentId),
+    retry: 1,
   });
 };
