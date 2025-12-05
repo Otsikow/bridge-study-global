@@ -29,6 +29,7 @@ type UniversityRow = {
   id: string;
   name: string;
   country: string;
+  code: string | null;
   partnership_status: string | null;
   active: boolean | null;
 };
@@ -67,8 +68,10 @@ type UniversityCard = {
   id: string;
   name: string;
   country: string;
+  code: string | null;
   programsOffered: number;
   totalApplications: number;
+  submittedApplications: number;
   conversionRate: number;
   partnershipStatus: string;
   isActive: boolean;
@@ -122,7 +125,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
             .eq("tenant_id", tenantId),
           supabase
             .from("universities")
-            .select("id, name, country, partnership_status, active, tenant_id")
+            .select("id, name, country, code, partnership_status, active, tenant_id")
             .eq("tenant_id", tenantId),
           supabase
             .from("applications")
@@ -204,18 +207,26 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
       const universityApplications = applications.filter(
         (application) => application.program?.university_id === university.id
       );
+      
+      // Count submitted applications (non-draft)
+      const submittedApplications = universityApplications.filter(
+        (application) => application.status && application.status !== "draft"
+      );
+      
       const successful = universityApplications.filter((application) =>
         successStatuses.includes((application.status ?? "").toLowerCase())
       );
       const conversion =
-        universityApplications.length > 0 ? (successful.length / universityApplications.length) * 100 : 0;
+        submittedApplications.length > 0 ? (successful.length / submittedApplications.length) * 100 : 0;
 
       return {
         id: university.id,
         name: university.name,
         country: university.country,
+        code: university.code,
         programsOffered: universityPrograms.length,
         totalApplications: universityApplications.length,
+        submittedApplications: submittedApplications.length,
         conversionRate: Number.isFinite(conversion) ? conversion : 0,
         partnershipStatus: (university.partnership_status ?? "pending").replace(/_/g, " "),
         isActive: university.active ?? false,
@@ -453,9 +464,12 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
                               {university.isActive ? "Active" : "Suspended"}
                             </Badge>
                           </div>
-                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                          {university.code && (
+                            <p className="text-xs font-mono text-muted-foreground mt-0.5">{university.code}</p>
+                          )}
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1">
                             <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.programsOffered} programs</Badge>
-                            <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.totalApplications} apps</Badge>
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.submittedApplications} submitted</Badge>
                             <Badge variant="outline" className="text-[10px] sm:text-xs">{formatPercent(university.conversionRate)}</Badge>
                           </div>
                         </CardHeader>

@@ -29,6 +29,10 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
+  TrendingUp,
+  FileStack,
+  Award,
+  Zap,
 } from "lucide-react";
 import {
   Card,
@@ -211,6 +215,7 @@ const ApplicationsPage = () => {
   const { toast } = useToast();
 
   const universityId = data?.university?.id ?? null;
+  const tenantId = data?.university?.tenant_id ?? null;
 
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -296,7 +301,8 @@ const ApplicationsPage = () => {
 
   const fetchApplications = useCallback(
     async (options?: { signal?: AbortSignal }) => {
-      if (!universityId) {
+      // ISOLATION CHECK: Must have both universityId and tenantId
+      if (!universityId || !tenantId) {
         setApplications([]);
         setTotalCount(0);
         return false;
@@ -311,6 +317,7 @@ const ApplicationsPage = () => {
           ? `%${debouncedSearch.replace(/\s+/g, "%")}%`
           : null;
 
+        // ISOLATION: Filter applications by programs that belong to THIS university only
         let query = supabase
           .from("applications")
           .select(
@@ -350,11 +357,13 @@ const ApplicationsPage = () => {
                 id,
                 name,
                 level,
-                university_id
+                university_id,
+                tenant_id
               )
             `,
             { count: "exact" },
           )
+          // ISOLATION: Filter by university_id to ensure only this university's applications are shown
           .eq("program.university_id", universityId)
           .not("submitted_at", "is", null)
           .neq("status", "draft");
@@ -422,11 +431,13 @@ const ApplicationsPage = () => {
       statusFilter,
       toast,
       universityId,
+      tenantId,
     ],
   );
 
   useEffect(() => {
-    if (!universityId) {
+    // ISOLATION: Only fetch if we have proper university context
+    if (!universityId || !tenantId) {
       return;
     }
 
@@ -436,7 +447,7 @@ const ApplicationsPage = () => {
     return () => {
       controller.abort();
     };
-  }, [fetchApplications, universityId]);
+  }, [fetchApplications, universityId, tenantId]);
 
   const loadApplicationDetails = useCallback(
     async (applicationId: string) => {
@@ -609,8 +620,30 @@ const ApplicationsPage = () => {
   const handleUpdateApplicationStatus = async () => {
     if (!decisionApplication || !newStatus) return;
 
+    // ISOLATION CHECK: Verify we have proper context
+    if (!universityId) {
+      toast({
+        title: "Missing university context",
+        description: "Unable to verify your university profile. Please refresh.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUpdatingStatus(true);
     try {
+      // ISOLATION CHECK: Verify the application belongs to a program of this university
+      const { data: programCheck } = await supabase
+        .from("programs")
+        .select("id, university_id")
+        .eq("id", decisionApplication.program?.id)
+        .eq("university_id", universityId)
+        .single();
+
+      if (!programCheck) {
+        throw new Error("Cannot update application: program not found or does not belong to your university");
+      }
+
       // Build timeline entry
       const timelineEntry = {
         title: `Status updated to ${newStatus.replace(/_/g, " ")}`,
@@ -626,7 +659,7 @@ const ApplicationsPage = () => {
 
       const updatedTimeline = [timelineEntry, ...existingTimeline];
 
-      // Update application
+      // ISOLATION: Update application only if it belongs to a program of this university
       const { error } = await supabase
         .from("applications")
         .update({
@@ -876,6 +909,25 @@ const ApplicationsPage = () => {
     return insights;
   };
 
+  // Calculate application statistics
+  const applicationStats = useMemo(() => {
+    const total = totalCount;
+    const pending = applications.filter(app => 
+      ["draft", "submitted"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const underReview = applications.filter(app => 
+      ["screening"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const offersIssued = applications.filter(app => 
+      ["conditional_offer", "unconditional_offer"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const enrolled = applications.filter(app => 
+      ["enrolled"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    
+    return { total, pending, underReview, offersIssued, enrolled };
+  }, [applications, totalCount]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -884,6 +936,57 @@ const ApplicationsPage = () => {
           Monitor applications submitted by agents, review documentation, and
           stay on top of decisions.
         </p>
+      </div>
+
+      {/* Application Statistics Summary */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+              <FileStack className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.total}</p>
+              <p className="text-sm text-muted-foreground">Total Applications</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10">
+              <Clock className="h-6 w-6 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.pending}</p>
+              <p className="text-sm text-muted-foreground">Pending Review</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
+              <TrendingUp className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.offersIssued}</p>
+              <p className="text-sm text-muted-foreground">Offers Issued</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+              <GraduationCap className="h-6 w-6 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.enrolled}</p>
+              <p className="text-sm text-muted-foreground">Enrolled Students</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className={withUniversityCardStyles("rounded-2xl border-primary/30 bg-primary/5 text-card-foreground")}
@@ -995,6 +1098,7 @@ const ApplicationsPage = () => {
                     <TableHead>Student name</TableHead>
                     <TableHead>Agent</TableHead>
                     <TableHead>Course</TableHead>
+                    <TableHead>Source</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                     <TableHead>Date submitted</TableHead>
@@ -1043,6 +1147,15 @@ const ApplicationsPage = () => {
                             Intake: {getIntakeLabel(application)}
                           </p>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className="border-primary/40 bg-primary/5 text-primary whitespace-nowrap gap-1"
+                        >
+                          <Zap className="h-3 w-3" />
+                          UniDoxia
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
@@ -1197,6 +1310,24 @@ const ApplicationsPage = () => {
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         Last updated {formatDateTime(selectedApplication.updated_at)}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className="border-primary/40 bg-primary/5 text-primary gap-1"
+                        >
+                          <Zap className="h-3 w-3" />
+                          Source: UniDoxia
+                        </Badge>
+                        {data?.university && (
+                          <Badge 
+                            variant="outline" 
+                            className="border-emerald-500/40 bg-emerald-500/5 text-emerald-600 gap-1"
+                          >
+                            <Award className="h-3 w-3" />
+                            Accredited Institution
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
