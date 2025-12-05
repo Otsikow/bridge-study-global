@@ -463,6 +463,21 @@ const UniversityProfilePage = () => {
         submission_config_json: updatedDetails as unknown as Json,
         active: true
       };
+
+      // ISOLATION CHECK: If we have an existing university, verify it belongs to this tenant
+      if (queryData?.university?.id) {
+        const { data: verifyOwnership, error: verifyError } = await supabase
+          .from("universities")
+          .select("id, tenant_id")
+          .eq("id", queryData.university.id)
+          .eq("tenant_id", tenantId)
+          .single();
+
+        if (verifyError || !verifyOwnership) {
+          throw new Error("Security error: Cannot verify university ownership. Please contact support.");
+        }
+      }
+
       // Use onConflict with tenant_id to ensure proper tenant isolation
       // This guarantees that each tenant can only have one university profile
       // and updates are always scoped to the correct tenant
@@ -471,7 +486,7 @@ const UniversityProfilePage = () => {
         tenant_id: tenantId,
         updated_at: new Date().toISOString(),
         // Only include id if we're updating an existing university
-        // that belongs to this tenant (verified by the query)
+        // that belongs to this tenant (verified above)
         ...(queryData?.university?.id ? { id: queryData.university.id } : {}),
       };
 
