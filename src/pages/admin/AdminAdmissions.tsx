@@ -62,6 +62,7 @@ import {
   AlertCircle,
   BarChart3,
   CalendarClock,
+  Download,
   Filter,
   Loader2,
   MoreHorizontal,
@@ -78,6 +79,7 @@ interface ApplicationRow {
   submitted_at: string | null;
   created_at: string | null;
   app_number: string | null;
+  application_source: string | null;
   tenant_id?: string | null;
   student: {
     id: string;
@@ -155,6 +157,7 @@ const AdminAdmissionsOversight = () => {
   const [countryFilter, setCountryFilter] = useState<string>(ALL_FILTER_VALUE);
   const [statusFilter, setStatusFilter] = useState<string>(ALL_FILTER_VALUE);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>(ALL_FILTER_VALUE);
 
   const [staff, setStaff] = useState<StaffProfile[]>([]);
   const [assignmentNotes, setAssignmentNotes] = useState<string>("");
@@ -183,6 +186,7 @@ const AdminAdmissionsOversight = () => {
             submitted_at,
             created_at,
             app_number,
+            application_source,
             tenant_id,
             student:students (
               id,
@@ -296,6 +300,16 @@ const AdminAdmissionsOversight = () => {
     return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, [applications]);
 
+  const uniqueSources = useMemo(() => {
+    const values = new Set<string>();
+    applications.forEach((application) => {
+      if (application.application_source) {
+        values.add(application.application_source);
+      }
+    });
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [applications]);
+
   const filteredApplications = useMemo(() => {
     const lowerSearch = searchTerm.trim().toLowerCase();
 
@@ -308,6 +322,7 @@ const AdminAdmissionsOversight = () => {
         application.student?.legal_name ?? application.student?.profile?.full_name ?? "";
       const programName = application.program?.name ?? "";
       const agentName = application.agent?.profile?.full_name ?? application.agent?.company_name ?? "";
+      const applicationSource = application.application_source ?? "";
 
       const searchMatch =
         lowerSearch.length === 0 ||
@@ -319,6 +334,7 @@ const AdminAdmissionsOversight = () => {
         universityFilter === ALL_FILTER_VALUE || universityName === universityFilter;
       const countryMatch = countryFilter === ALL_FILTER_VALUE || countryValue === countryFilter;
       const statusMatch = statusFilter === ALL_FILTER_VALUE || status === statusFilter;
+      const sourceMatch = sourceFilter === ALL_FILTER_VALUE || applicationSource === sourceFilter;
 
       const effectiveDate = application.submitted_at ?? application.created_at;
       let dateMatch = true;
@@ -331,9 +347,9 @@ const AdminAdmissionsOversight = () => {
         }
       }
 
-      return searchMatch && universityMatch && countryMatch && statusMatch && dateMatch;
+      return searchMatch && universityMatch && countryMatch && statusMatch && sourceMatch && dateMatch;
     });
-  }, [applications, searchTerm, universityFilter, countryFilter, statusFilter, dateFilter]);
+  }, [applications, searchTerm, universityFilter, countryFilter, statusFilter, sourceFilter, dateFilter]);
 
   const totals = useMemo(() => {
     const total = applications.length;
@@ -474,6 +490,80 @@ const AdminAdmissionsOversight = () => {
     return "secondary";
   };
 
+  const handleExportCsv = useCallback(() => {
+    if (filteredApplications.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Apply filters to select applications before exporting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const header = [
+      "Application ID",
+      "App Number",
+      "Source",
+      "Student Name",
+      "Student Email",
+      "Agent",
+      "Agent Email",
+      "University",
+      "Programme",
+      "Level",
+      "Country",
+      "Status",
+      "Submitted At",
+      "Created At",
+    ];
+
+    const rows = filteredApplications.map((application) => [
+      application.id,
+      application.app_number ?? "",
+      application.application_source ?? "UniDoxia",
+      application.student?.legal_name ?? application.student?.profile?.full_name ?? "",
+      application.student?.profile?.email ?? "",
+      application.agent?.profile?.full_name ?? application.agent?.company_name ?? "",
+      application.agent?.profile?.email ?? "",
+      application.program?.university?.name ?? "",
+      application.program?.name ?? "",
+      application.program?.level ?? "",
+      application.program?.university?.country ?? application.student?.current_country ?? "",
+      formatStatus(application.status),
+      application.submitted_at ?? "",
+      application.created_at ?? "",
+    ]);
+
+    const csv = [header, ...rows]
+      .map((line) =>
+        line
+          .map((value) => {
+            const stringValue = String(value ?? "");
+            if (/[",\n]/.test(stringValue)) {
+              return `"${stringValue.replace(/"/g, '""')}"`;
+            }
+            return stringValue;
+          })
+          .join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `unidoxia-applications-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export complete",
+      description: `Exported ${filteredApplications.length} applications to CSV.`,
+    });
+  }, [filteredApplications, toast]);
+
   const renderTableBody = () => {
     if (loading) {
       return (
@@ -532,9 +622,16 @@ const AdminAdmissionsOversight = () => {
                 <span className="text-muted-foreground">{Math.round(stagePercent)}%</span>
               </div>
               <Progress value={stagePercent} aria-label={`Stage progress ${stageLabel}`} />
-              <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs">
-                {formatStatus(application.status)}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-1">
+                <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs">
+                  {formatStatus(application.status)}
+                </Badge>
+                {application.application_source && (
+                  <Badge variant="secondary" className="text-xs">
+                    {application.application_source}
+                  </Badge>
+                )}
+              </div>
             </div>
           </TableCell>
           <TableCell className="min-w-[120px]">{countryValue}</TableCell>
@@ -613,6 +710,10 @@ const AdminAdmissionsOversight = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleExportCsv}>
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
           <AdminReportExportButton
             tenantId={tenantId}
             defaultReportType="admissions"
@@ -696,7 +797,7 @@ const AdminAdmissionsOversight = () => {
           <CardDescription>Slice the pipeline by institution, market, lifecycle stage, or timeframe.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             <div className="space-y-2">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Search</span>
               <Input
@@ -754,6 +855,22 @@ const AdminAdmissionsOversight = () => {
               </Select>
             </div>
             <div className="space-y-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Source</span>
+              <Select value={sourceFilter} onValueChange={setSourceFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All sources" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_FILTER_VALUE}>All sources</SelectItem>
+                  {uniqueSources.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {value}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Date submitted</span>
               <Select value={dateFilter} onValueChange={(value: DateFilterValue) => setDateFilter(value)}>
                 <SelectTrigger>
@@ -778,6 +895,7 @@ const AdminAdmissionsOversight = () => {
                 setUniversityFilter(ALL_FILTER_VALUE);
                 setCountryFilter(ALL_FILTER_VALUE);
                 setStatusFilter(ALL_FILTER_VALUE);
+                setSourceFilter(ALL_FILTER_VALUE);
                 setDateFilter("all");
               }}
             >

@@ -328,6 +328,7 @@ export type Database = {
         Row: {
           agent_id: string | null
           app_number: string | null
+          application_source: string | null
           created_at: string | null
           decision_json: Json | null
           fees_json: Json | null
@@ -350,6 +351,7 @@ export type Database = {
         Insert: {
           agent_id?: string | null
           app_number?: string | null
+          application_source?: string | null
           created_at?: string | null
           decision_json?: Json | null
           fees_json?: Json | null
@@ -372,6 +374,7 @@ export type Database = {
         Update: {
           agent_id?: string | null
           app_number?: string | null
+          application_source?: string | null
           created_at?: string | null
           decision_json?: Json | null
           fees_json?: Json | null

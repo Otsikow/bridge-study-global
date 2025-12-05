@@ -711,6 +711,7 @@ export default function NewApplication() {
           agent_id: submittedByAgent ? agentId : null,
           submitted_by_agent: submittedByAgent,
           submission_channel: submissionChannel,
+          application_source: 'UniDoxia', // Attribution: track that this application came through UniDoxia platform
         })
         .select()
         .single();

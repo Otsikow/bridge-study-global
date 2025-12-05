@@ -137,6 +137,7 @@ interface ApplicationRow {
   updated_at: string | null;
   created_at: string | null;
   app_number?: string | null;
+  application_source?: string | null;
   intake_year?: number | null;
   intake_month?: number | null;
   student?: StudentInfo | null;
@@ -327,6 +328,7 @@ const ApplicationsPage = () => {
               updated_at,
               created_at,
               app_number,
+              application_source,
               intake_year,
               intake_month,
               student:students (
@@ -470,6 +472,7 @@ const ApplicationsPage = () => {
               updated_at,
               created_at,
               app_number,
+              application_source,
               notes,
               internal_notes,
               timeline_json,
@@ -1165,6 +1168,14 @@ const ApplicationsPage = () => {
                               #{application.app_number}
                             </Badge>
                           )}
+                          {application.application_source && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px]"
+                            >
+                              {application.application_source}
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -1345,6 +1356,11 @@ const ApplicationsPage = () => {
                         {selectedApplication.app_number && (
                           <Badge variant="secondary" className="font-mono text-xs">
                             #{selectedApplication.app_number}
+                          </Badge>
+                        )}
+                        {selectedApplication.application_source && (
+                          <Badge variant="default" className="text-xs">
+                            Source: {selectedApplication.application_source}
                           </Badge>
                         )}
                         <Badge variant="outline" className="text-xs">
