@@ -254,23 +254,23 @@ export function PartnerZoeAssistant() {
   }, []);
 
   return (
-    <Card className="flex h-full flex-col border-slate-800/80 bg-slate-900/80 text-slate-100">
-      <CardHeader className="space-y-3 border-b border-slate-800/80 pb-4">
+    <Card className="flex h-full flex-col border-slate-200 bg-white/90 text-slate-900 dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-100">
+      <CardHeader className="space-y-3 border-b border-slate-200 pb-4 dark:border-slate-800/80">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-100">
-              <Sparkles className="h-5 w-5 text-blue-300" />
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-300" />
               Zoe
             </CardTitle>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Ask about partner operations, university updates, or student timelines.
             </p>
           </div>
-          <Badge variant="secondary" className="bg-blue-900/50 text-blue-200">
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-200">
             Live AI
           </Badge>
         </div>
-        <Separator className="bg-slate-800/70" />
+        <Separator className="bg-slate-200 dark:bg-slate-800/70" />
         <div className="flex flex-wrap gap-2">
           {SUGGESTIONS.map(({ label, prompt }) => (
             <Button
@@ -278,7 +278,7 @@ export function PartnerZoeAssistant() {
               type="button"
               size="sm"
               variant={activeSuggestion === prompt ? "default" : "secondary"}
-              className="h-8 rounded-full border border-blue-800/60 bg-blue-950/50 px-3 text-[11px] text-blue-200 hover:bg-blue-900/70"
+              className="h-8 rounded-full border border-blue-200 bg-blue-50 px-3 text-[11px] text-blue-700 hover:bg-blue-100 dark:border-blue-800/60 dark:bg-blue-950/50 dark:text-blue-200 dark:hover:bg-blue-900/70"
               onClick={() => handleSuggestion(prompt)}
             >
               <MessageSquareQuote className="mr-1.5 h-3.5 w-3.5" />
@@ -299,7 +299,7 @@ export function PartnerZoeAssistant() {
                   className={`flex items-start gap-2 ${isUser ? "justify-end" : "justify-start"}`}
                 >
                   {!isUser && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-900/60 text-blue-200">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">
                       <Bot className="h-4 w-4" />
                     </div>
                   )}
@@ -307,17 +307,17 @@ export function PartnerZoeAssistant() {
                     className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                       isUser
                         ? "bg-blue-500 text-blue-50"
-                        : "bg-slate-950/80 text-slate-100 ring-1 ring-slate-800/60"
+                        : "bg-slate-100 text-slate-900 ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-800/60"
                     }`}
                   >
                     {message.content.trim().length === 0 ? (
-                      <span className="text-xs text-slate-400">Thinking…</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">Thinking…</span>
                     ) : (
                       message.content
                     )}
                   </div>
                   {isUser && (
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/20 text-blue-100">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-100">
                       <User className="h-4 w-4" />
                     </div>
                   )}
@@ -326,12 +326,12 @@ export function PartnerZoeAssistant() {
             })}
             {isLoading && (
               <div className="flex items-start gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-900/60 text-blue-200">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-200">
                   <Bot className="h-4 w-4" />
                 </div>
-                <div className="flex max-w-[85%] items-center gap-3 rounded-2xl bg-slate-950/80 px-4 py-3 text-sm text-slate-100 ring-1 ring-slate-800/60">
-                  <span className="font-medium text-slate-200">Zoe is composing a reply</span>
-                  <ZoeTypingIndicator className="text-blue-200" />
+                <div className="flex max-w-[85%] items-center gap-3 rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-900 ring-1 ring-slate-200 dark:bg-slate-950/80 dark:text-slate-100 dark:ring-slate-800/60">
+                  <span className="font-medium text-slate-700 dark:text-slate-200">Zoe is composing a reply</span>
+                  <ZoeTypingIndicator className="text-blue-600 dark:text-blue-200" />
                 </div>
               </div>
             )}
@@ -344,7 +344,7 @@ export function PartnerZoeAssistant() {
             value={inputValue}
             onChange={(event) => setInputValue(event.target.value)}
             placeholder="Ask Zoe anything about your partnerships…"
-            className="min-h-[100px] resize-none border-slate-700 bg-slate-950/70 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:ring-blue-500/50"
+            className="min-h-[100px] resize-none border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-500 focus-visible:ring-blue-500/50 dark:border-slate-700 dark:bg-slate-950/70 dark:text-slate-100"
             disabled={isLoading}
           />
           <div className="flex items-center justify-between">

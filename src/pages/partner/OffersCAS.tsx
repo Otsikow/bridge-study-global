@@ -107,16 +107,16 @@ interface ProcessedRecord {
 
 const offerTypeBadgeStyles: Record<OfferType, string> = {
   conditional:
-    "border-blue-400/40 bg-blue-500/10 text-blue-200 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-100",
+    "border-blue-300 bg-blue-100 text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-100",
   unconditional:
-    "border-emerald-400/40 bg-emerald-500/10 text-emerald-200 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-100",
+    "border-emerald-300 bg-emerald-100 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-100",
 };
 
 const statusBadgeStyles: Record<RecordStatus, string> = {
   issued:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-200 dark:border-emerald-500/50 dark:bg-emerald-500/20 dark:text-emerald-100",
+    "border-emerald-300 bg-emerald-100 text-emerald-700 dark:border-emerald-500/50 dark:bg-emerald-500/20 dark:text-emerald-100",
   pending:
-    "border-slate-500/40 bg-slate-500/10 text-slate-200 dark:border-slate-500/40 dark:bg-slate-800 dark:text-slate-200",
+    "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-500/40 dark:bg-slate-800 dark:text-slate-200",
 };
 
 const formatDate = (isoDate?: string) => {
@@ -366,10 +366,10 @@ export default function OffersCASPage() {
     if (error) {
       return (
         <div className="flex flex-col items-center gap-3 py-12 text-center">
-          <p className="text-base font-medium text-red-400">
+          <p className="text-base font-medium text-red-600 dark:text-red-400">
             We couldn&apos;t load the records.
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Please refresh the page or try again later.
           </p>
         </div>
@@ -382,13 +382,13 @@ export default function OffersCASPage() {
           <img
             src={emptyStateIllustration}
             alt="No offers yet"
-            className="h-40 w-40 rounded-xl border border-slate-800/60 bg-slate-900/60 object-cover p-4"
+            className="h-40 w-40 rounded-xl border border-slate-200 bg-slate-50 object-cover p-4 dark:border-slate-800/60 dark:bg-slate-900/60"
           />
           <div className="space-y-2 text-center">
-            <h3 className="text-xl font-semibold text-slate-100">
+            <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
               No offers or CAS letters yet
             </h3>
-            <p className="max-w-md text-sm text-slate-400">
+            <p className="max-w-md text-sm text-slate-500 dark:text-slate-400">
               Once universities issue offers and CAS letters for your students, they will
               appear here for quick tracking.
             </p>
@@ -403,8 +403,8 @@ export default function OffersCASPage() {
 
     if (filteredRecords.length === 0) {
       return (
-        <div className="flex flex-col items-center gap-4 py-16 text-center text-slate-400">
-          <p className="text-lg font-semibold text-slate-100">
+        <div className="flex flex-col items-center gap-4 py-16 text-center text-slate-500 dark:text-slate-400">
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             No records match these filters
           </p>
           <p className="max-w-md text-sm">
@@ -418,32 +418,32 @@ export default function OffersCASPage() {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="border-slate-800/60">
-              <TableHead className="text-slate-300">Student</TableHead>
-              <TableHead className="text-slate-300">University</TableHead>
-              <TableHead className="text-slate-300">Offer Type</TableHead>
-              <TableHead className="text-slate-300">CAS Number</TableHead>
-              <TableHead className="text-slate-300">Date Issued</TableHead>
-              <TableHead className="text-slate-300">Status</TableHead>
-              <TableHead className="text-right text-slate-300">Actions</TableHead>
+            <TableRow className="border-slate-200 dark:border-slate-800/60">
+              <TableHead className="text-slate-600 dark:text-slate-300">Student</TableHead>
+              <TableHead className="text-slate-600 dark:text-slate-300">University</TableHead>
+              <TableHead className="text-slate-600 dark:text-slate-300">Offer Type</TableHead>
+              <TableHead className="text-slate-600 dark:text-slate-300">CAS Number</TableHead>
+              <TableHead className="text-slate-600 dark:text-slate-300">Date Issued</TableHead>
+              <TableHead className="text-slate-600 dark:text-slate-300">Status</TableHead>
+              <TableHead className="text-right text-slate-600 dark:text-slate-300">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredRecords.map((record) => (
               <TableRow
                 key={`${record.id}-${record.casNumber ?? record.offerType ?? "record"}`}
-                className="border-slate-800/50 bg-slate-950/40 transition-colors hover:bg-slate-900/40"
+                className="border-slate-200/60 bg-white/40 transition-colors hover:bg-slate-50 dark:border-slate-800/50 dark:bg-slate-950/40 dark:hover:bg-slate-900/40"
               >
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium text-slate-100">{record.student}</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">{record.student}</span>
                     {record.email && (
-                      <span className="text-xs text-slate-400">{record.email}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{record.email}</span>
                     )}
                   </div>
                 </TableCell>
                 <TableCell className="max-w-[240px]">
-                  <span className="truncate text-slate-100" title={record.university}>
+                  <span className="truncate text-slate-900 dark:text-slate-100" title={record.university}>
                     {record.university}
                   </span>
                 </TableCell>
@@ -462,10 +462,10 @@ export default function OffersCASPage() {
                     <span className="text-slate-500">—</span>
                   )}
                 </TableCell>
-                <TableCell className="text-slate-200">
+                <TableCell className="text-slate-700 dark:text-slate-200">
                   {record.casNumber ?? "—"}
                 </TableCell>
-                <TableCell className="text-slate-200">
+                <TableCell className="text-slate-700 dark:text-slate-200">
                   {formatDate(record.dateIssued)}
                 </TableCell>
                 <TableCell>
@@ -481,7 +481,7 @@ export default function OffersCASPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 text-blue-200 hover:text-blue-100"
+                      className="gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-200 dark:hover:text-blue-100"
                       onClick={() => handleDownload(record.offerLetterUrl)}
                     >
                       <Download className="h-4 w-4" />
@@ -490,7 +490,7 @@ export default function OffersCASPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 text-emerald-200 hover:text-emerald-100"
+                      className="gap-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-200 dark:hover:text-emerald-100"
                       onClick={() => handleDownload(record.casLetterUrl)}
                     >
                       <Download className="h-4 w-4" />
@@ -508,73 +508,73 @@ export default function OffersCASPage() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
         <PartnerSidebar />
-        <SidebarInset className="flex min-h-screen flex-1 flex-col bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
+        <SidebarInset className="flex min-h-screen flex-1 flex-col bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 transition-colors dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
           <PartnerHeader />
           <main className="flex-1 space-y-8 px-4 pb-12 pt-6 md:px-8 lg:px-12">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-100">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
                 Offers &amp; CAS Tracking
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Review university offers, track CAS issuance, and download documents for
                 your students.
               </p>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-              <Card className="border border-slate-800/60 bg-slate-950/60 backdrop-blur">
+              <Card className="border border-slate-200 bg-white/80 backdrop-blur transition-colors dark:border-slate-800/60 dark:bg-slate-950/60">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
                     Total Offers
                   </CardTitle>
-                  <GraduationCap className="h-4 w-4 text-blue-300" />
+                  <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold text-slate-100">
+                  <div className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     {summary.totalOffers}
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border border-slate-800/60 bg-slate-950/60 backdrop-blur">
+              <Card className="border border-slate-200 bg-white/80 backdrop-blur transition-colors dark:border-slate-800/60 dark:bg-slate-950/60">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
                     Issued CAS
                   </CardTitle>
-                  <Download className="h-4 w-4 text-emerald-300" />
+                  <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-300" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold text-emerald-400">
+                  <div className="text-2xl font-semibold text-emerald-600 dark:text-emerald-400">
                     {summary.issuedCas}
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border border-slate-800/60 bg-slate-950/60 backdrop-blur">
+              <Card className="border border-slate-200 bg-white/80 backdrop-blur transition-colors dark:border-slate-800/60 dark:bg-slate-950/60">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-400">
+                  <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
                     Pending CAS
                   </CardTitle>
-                  <University className="h-4 w-4 text-slate-300" />
+                  <University className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold text-slate-200">
+                  <div className="text-2xl font-semibold text-slate-700 dark:text-slate-200">
                     {summary.pendingCas}
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="border border-slate-800/60 bg-slate-950/60 backdrop-blur">
+            <Card className="border border-slate-200 bg-white/80 backdrop-blur transition-colors dark:border-slate-800/60 dark:bg-slate-950/60">
               <CardHeader>
-                <CardTitle className="text-lg text-slate-100">Filters</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-lg text-slate-900 dark:text-slate-100">Filters</CardTitle>
+                <CardDescription className="text-slate-500 dark:text-slate-400">
                   Narrow the records by offer type or university partner.
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Offer Type
                   </p>
                   <Select
@@ -583,11 +583,11 @@ export default function OffersCASPage() {
                       setOfferTypeFilter(value as OfferType | "all")
                     }
                   >
-                    <SelectTrigger className="bg-slate-900/80 text-slate-100">
-                      <Filter className="mr-2 h-4 w-4 text-slate-400" />
+                    <SelectTrigger className="bg-white text-slate-900 dark:bg-slate-900/80 dark:text-slate-100">
+                      <Filter className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                       <SelectValue placeholder="All offer types" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-950 text-slate-100">
+                    <SelectContent className="bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
                       <SelectItem value="all">All offer types</SelectItem>
                       <SelectItem value="conditional">Conditional</SelectItem>
                       <SelectItem value="unconditional">Unconditional</SelectItem>
@@ -595,18 +595,18 @@ export default function OffersCASPage() {
                   </Select>
                 </div>
                 <div>
-                  <p className="mb-2 text-xs uppercase tracking-wide text-slate-400">
+                  <p className="mb-2 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     University
                   </p>
                   <Select
                     value={universityFilter}
                     onValueChange={(value) => setUniversityFilter(value)}
                   >
-                    <SelectTrigger className="bg-slate-900/80 text-slate-100">
-                      <University className="mr-2 h-4 w-4 text-slate-400" />
+                    <SelectTrigger className="bg-white text-slate-900 dark:bg-slate-900/80 dark:text-slate-100">
+                      <University className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />
                       <SelectValue placeholder="All universities" />
                     </SelectTrigger>
-                      <SelectContent className="max-h-64 overflow-y-auto bg-slate-950 text-slate-100">
+                      <SelectContent className="max-h-64 overflow-y-auto bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
                       <SelectItem value="all">All universities</SelectItem>
                       {universityOptions.map((university, idx) => (
                         <SelectItem key={String(university ?? `uni-${idx}`)} value={String(university)}>
@@ -619,7 +619,7 @@ export default function OffersCASPage() {
                 <div className="flex items-end">
                   <Button
                     variant="outline"
-                    className="w-full gap-2 border-slate-700 bg-slate-900/70 text-slate-100 hover:bg-slate-900"
+                    className="w-full gap-2 border-slate-300 bg-white text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:hover:bg-slate-900"
                     onClick={() => refetch()}
                     disabled={isFetching}
                   >
@@ -630,12 +630,12 @@ export default function OffersCASPage() {
               </CardContent>
             </Card>
 
-            <Card className="border border-slate-800/60 bg-slate-950/60 backdrop-blur">
+            <Card className="border border-slate-200 bg-white/80 backdrop-blur transition-colors dark:border-slate-800/60 dark:bg-slate-950/60">
               <CardHeader>
-                <CardTitle className="text-xl text-slate-100">
+                <CardTitle className="text-xl text-slate-900 dark:text-slate-100">
                   Offers &amp; CAS Letters
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-slate-500 dark:text-slate-400">
                   Track offers and CAS issuance progress across your student portfolio.
                 </CardDescription>
               </CardHeader>

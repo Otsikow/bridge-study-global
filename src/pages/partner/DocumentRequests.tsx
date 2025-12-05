@@ -81,13 +81,13 @@ const formatDate = (dateString: string | null) => {
 const getStatusBadgeClasses = (status: string) => {
   switch (status) {
     case "received":
-      return "border-emerald-500/40 bg-emerald-500/15 text-emerald-100";
+      return "border-emerald-300 bg-emerald-100 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-100";
     case "pending":
-      return "border-amber-400/40 bg-amber-400/15 text-amber-100";
+      return "border-amber-300 bg-amber-100 text-amber-700 dark:border-amber-400/40 dark:bg-amber-400/15 dark:text-amber-100";
     case "overdue":
-      return "border-red-500/40 bg-red-500/15 text-red-200";
+      return "border-red-300 bg-red-100 text-red-700 dark:border-red-500/40 dark:bg-red-500/15 dark:text-red-200";
     default:
-      return "border-slate-600/50 bg-slate-800 text-slate-200";
+      return "border-slate-300 bg-slate-100 text-slate-600 dark:border-slate-600/50 dark:bg-slate-800 dark:text-slate-200";
   }
 };
 
@@ -344,7 +344,7 @@ export default function PartnerDocumentRequestsPage() {
   const renderContent = () => {
     if (authLoading) {
       return (
-        <Card className="border border-slate-800/60 bg-slate-900/60">
+        <Card className="border border-slate-200 bg-white/80 dark:border-slate-800/60 dark:bg-slate-900/60">
           <CardContent className="py-16">
             <LoadingState message="Loading document requests..." />
           </CardContent>
@@ -354,7 +354,7 @@ export default function PartnerDocumentRequestsPage() {
 
     if (!profile) {
       return (
-        <Card className="border border-slate-800/60 bg-slate-900/60">
+        <Card className="border border-slate-200 bg-white/80 dark:border-slate-800/60 dark:bg-slate-900/60">
           <CardContent className="py-16">
             <EmptyState
               title="No partner profile found"
@@ -366,13 +366,13 @@ export default function PartnerDocumentRequestsPage() {
     }
 
     return (
-      <Card className="border border-slate-800/70 bg-slate-900/70 text-slate-100 shadow-lg shadow-slate-950/30">
+      <Card className="border border-slate-200 bg-white/80 text-slate-900 shadow-lg shadow-slate-200/40 dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-100 dark:shadow-slate-950/30">
         <CardHeader className="space-y-4 md:flex md:items-center md:justify-between md:space-y-0">
           <div>
-            <CardTitle className="text-xl font-semibold tracking-tight">
+            <CardTitle className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
               Active Document Requests
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-slate-500 dark:text-slate-400">
               Review outstanding document requests from university partners and upload files as students submit them.
             </CardDescription>
           </div>
@@ -381,16 +381,16 @@ export default function PartnerDocumentRequestsPage() {
               placeholder="Search by student name..."
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="w-full border-slate-800 bg-slate-950/60 text-slate-100 placeholder:text-slate-500 sm:w-60"
+              className="w-full border-slate-200 bg-white text-slate-900 placeholder:text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 sm:w-60"
             />
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as DocumentStatusFilter)}
             >
-              <SelectTrigger className="w-full border-slate-800 bg-slate-950/60 text-slate-100 sm:w-48">
+              <SelectTrigger className="w-full border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 sm:w-48">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="border-slate-800 bg-slate-900 text-slate-100">
+              <SelectContent className="border-slate-200 bg-white text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100">
                 {statusOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -402,7 +402,7 @@ export default function PartnerDocumentRequestsPage() {
               variant="outline"
               onClick={() => void handleRefresh()}
               disabled={loading || isRefreshing}
-              className="border-slate-700 bg-slate-950/60 text-slate-100 hover:bg-slate-900/80"
+              className="border-slate-300 bg-white text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950/60 dark:text-slate-100 dark:hover:bg-slate-900/80"
             >
               {isRefreshing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -424,15 +424,15 @@ export default function PartnerDocumentRequestsPage() {
               description="New document requests from universities will appear here as students are assigned to you."
             />
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/40">
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 dark:border-slate-800/60 dark:bg-slate-950/40">
               <Table>
-                <TableHeader className="bg-slate-950/70">
-                  <TableRow className="border-slate-800/60">
-                    <TableHead className="text-slate-300">Student</TableHead>
-                    <TableHead className="text-slate-300">Document Type</TableHead>
-                    <TableHead className="text-slate-300">Requested</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-right text-slate-300">Actions</TableHead>
+                <TableHeader className="bg-slate-100/70 dark:bg-slate-950/70">
+                  <TableRow className="border-slate-200 dark:border-slate-800/60">
+                    <TableHead className="text-slate-600 dark:text-slate-300">Student</TableHead>
+                    <TableHead className="text-slate-600 dark:text-slate-300">Document Type</TableHead>
+                    <TableHead className="text-slate-600 dark:text-slate-300">Requested</TableHead>
+                    <TableHead className="text-slate-600 dark:text-slate-300">Status</TableHead>
+                    <TableHead className="text-right text-slate-600 dark:text-slate-300">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -442,15 +442,15 @@ export default function PartnerDocumentRequestsPage() {
                       return (
                         <TableRow
                           key={request.id}
-                          className="border-slate-800/60 bg-slate-950/30 hover:bg-slate-900/60"
+                          className="border-slate-200/60 bg-white/40 hover:bg-slate-50 dark:border-slate-800/60 dark:bg-slate-950/30 dark:hover:bg-slate-900/60"
                         >
-                          <TableCell className="font-medium text-slate-100">
+                          <TableCell className="font-medium text-slate-900 dark:text-slate-100">
                             {request.studentName}
                           </TableCell>
-                          <TableCell className="text-slate-300">
+                          <TableCell className="text-slate-600 dark:text-slate-300">
                             {formatStatus(request.requestType)}
                           </TableCell>
-                          <TableCell className="text-slate-400">
+                          <TableCell className="text-slate-500 dark:text-slate-400">
                             {formatDate(request.requestedAt)}
                           </TableCell>
                           <TableCell>
@@ -462,8 +462,8 @@ export default function PartnerDocumentRequestsPage() {
                             <div className="flex flex-col items-end gap-2 sm:flex-row sm:justify-end sm:gap-3">
                               {progress !== undefined && (
                                 <div className="w-full min-w-[160px] sm:w-40">
-                                  <Progress value={progress} className="h-2 bg-slate-800" />
-                                  <div className="mt-1 text-right text-xs text-slate-400">
+                                  <Progress value={progress} className="h-2 bg-slate-200 dark:bg-slate-800" />
+                                  <div className="mt-1 text-right text-xs text-slate-500 dark:text-slate-400">
                                     {progress === 100 ? "Upload complete" : `Uploading… ${progress}%`}
                                   </div>
                                 </div>
@@ -474,7 +474,7 @@ export default function PartnerDocumentRequestsPage() {
                                     variant="ghost"
                                     size="sm"
                                     asChild
-                                    className="text-blue-300 hover:text-blue-200"
+                                    className="text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200"
                                   >
                                     <a
                                       href={request.documentUrl}
@@ -499,7 +499,7 @@ export default function PartnerDocumentRequestsPage() {
                                   variant="outline"
                                   onClick={() => handleUploadClick(request.id)}
                                   disabled={uploadingId === request.id}
-                                  className="gap-2 border-slate-700 text-slate-100 hover:bg-slate-900/80"
+                                  className="gap-2 border-slate-300 text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-900/80"
                                 >
                                   {uploadingId === request.id ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -525,16 +525,16 @@ export default function PartnerDocumentRequestsPage() {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-950 text-slate-100">
+      <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
         <PartnerSidebar />
-        <SidebarInset className="flex min-h-screen flex-1 flex-col bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
+        <SidebarInset className="flex min-h-screen flex-1 flex-col bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 transition-colors dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
           <PartnerHeader />
           <main className="flex-1 space-y-8 px-4 pb-12 pt-6 md:px-8 lg:px-12">
             <div className="space-y-2">
-              <h1 className="text-3xl font-semibold text-slate-100">
+              <h1 className="text-3xl font-semibold text-slate-900 dark:text-slate-100">
                 Student Document Requests
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Monitor outstanding document requests from universities, upload student submissions, and track their status in real time.
               </p>
             </div>
