@@ -29,6 +29,10 @@ import {
   XCircle,
   AlertCircle,
   Loader2,
+  TrendingUp,
+  FileStack,
+  Award,
+  Zap,
 } from "lucide-react";
 import {
   Card,
@@ -902,6 +906,25 @@ const ApplicationsPage = () => {
     return insights;
   };
 
+  // Calculate application statistics
+  const applicationStats = useMemo(() => {
+    const total = totalCount;
+    const pending = applications.filter(app => 
+      ["draft", "submitted"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const underReview = applications.filter(app => 
+      ["screening"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const offersIssued = applications.filter(app => 
+      ["conditional_offer", "unconditional_offer"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    const enrolled = applications.filter(app => 
+      ["enrolled"].includes(app.status?.toLowerCase() ?? "")
+    ).length;
+    
+    return { total, pending, underReview, offersIssued, enrolled };
+  }, [applications, totalCount]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -910,6 +933,57 @@ const ApplicationsPage = () => {
           Monitor applications submitted by agents, review documentation, and
           stay on top of decisions.
         </p>
+      </div>
+
+      {/* Application Statistics Summary */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+              <FileStack className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.total}</p>
+              <p className="text-sm text-muted-foreground">Total Applications</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10">
+              <Clock className="h-6 w-6 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.pending}</p>
+              <p className="text-sm text-muted-foreground">Pending Review</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
+              <TrendingUp className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.offersIssued}</p>
+              <p className="text-sm text-muted-foreground">Offers Issued</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className={withUniversityCardStyles("rounded-2xl")}>
+          <CardContent className="flex items-center gap-4 py-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+              <GraduationCap className="h-6 w-6 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{applicationStats.enrolled}</p>
+              <p className="text-sm text-muted-foreground">Enrolled Students</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Card className={withUniversityCardStyles("rounded-2xl border-primary/30 bg-primary/5 text-card-foreground")}
@@ -1021,6 +1095,7 @@ const ApplicationsPage = () => {
                     <TableHead>Student name</TableHead>
                     <TableHead>Agent</TableHead>
                     <TableHead>Course</TableHead>
+                    <TableHead>Source</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                     <TableHead>Date submitted</TableHead>
@@ -1069,6 +1144,15 @@ const ApplicationsPage = () => {
                             Intake: {getIntakeLabel(application)}
                           </p>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className="border-primary/40 bg-primary/5 text-primary whitespace-nowrap gap-1"
+                        >
+                          <Zap className="h-3 w-3" />
+                          UniDoxia
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
@@ -1215,6 +1299,24 @@ const ApplicationsPage = () => {
                       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         Last updated {formatDateTime(selectedApplication.updated_at)}
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <Badge 
+                          variant="outline" 
+                          className="border-primary/40 bg-primary/5 text-primary gap-1"
+                        >
+                          <Zap className="h-3 w-3" />
+                          Source: UniDoxia
+                        </Badge>
+                        {data?.university && (
+                          <Badge 
+                            variant="outline" 
+                            className="border-emerald-500/40 bg-emerald-500/5 text-emerald-600 gap-1"
+                          >
+                            <Award className="h-3 w-3" />
+                            Accredited Institution
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
