@@ -118,11 +118,18 @@ export default function StudentDetailsPage() {
           <div className="space-y-6">
             <div className="space-y-4">
               {studentId && <ApplicationProgress studentId={studentId} />}
-              <Button asChild className="w-full" variant="default">
-                <Link to={`/dashboard/applications/new?studentId=${studentId}`}>
-                  Submit Application
-                </Link>
-              </Button>
+              <div className="flex flex-col gap-2">
+                <Button asChild className="w-full" variant="default">
+                  <Link to={`/student/applications/new?studentId=${studentId}`}>
+                    Start New Application
+                  </Link>
+                </Button>
+                <Button asChild className="w-full" variant="outline">
+                  <Link to={`/courses?view=programs&studentId=${studentId}`}>
+                    Browse Programs
+                  </Link>
+                </Button>
+              </div>
             </div>
             <Card>
               <CardHeader className="pb-2">

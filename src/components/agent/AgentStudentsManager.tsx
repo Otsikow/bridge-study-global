@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { formatDistanceToNowStrict, parseISO } from "date-fns";
 import {
   Search,
@@ -10,6 +11,10 @@ import {
   RefreshCw,
   AlertTriangle,
   UserPlus,
+  FileText,
+  MoreHorizontal,
+  Eye,
+  GraduationCap,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -31,10 +36,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { SortableButton } from "@/components/SortableButton";
+import { useToast } from "@/hooks/use-toast";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantStudents } from "@/hooks/useTenantStudents";
@@ -109,6 +123,8 @@ const MetricsSkeleton = () => (
 );
 
 export default function AgentStudentsManager() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { profile, loading: authLoading } = useAuth();
   const agentProfileId = profile?.id ?? null;
   const tenantId = profile?.tenant_id ?? null;
@@ -122,6 +138,34 @@ export default function AgentStudentsManager() {
     column: "status",
     direction: "asc",
   });
+
+  const handleStartApplication = (student: AgentStudent) => {
+    if (!student.onboarded) {
+      toast({
+        title: "Student not ready",
+        description: "This student needs to complete their onboarding before you can submit applications for them.",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate(`/student/applications/new?studentId=${student.studentId}`);
+  };
+
+  const handleViewStudent = (student: AgentStudent) => {
+    navigate(`/agent/student/${student.studentId}`);
+  };
+
+  const handleBrowsePrograms = (student: AgentStudent) => {
+    if (!student.onboarded) {
+      toast({
+        title: "Student not ready",
+        description: "This student needs to complete their onboarding before you can browse programs for them.",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate(`/courses?view=programs&studentId=${student.studentId}`);
+  };
 
   const allStudents = data ?? [];
 
@@ -386,13 +430,18 @@ export default function AgentStudentsManager() {
                     </TableHead>
                     <TableHead>Applications</TableHead>
                     <TableHead>Last activity</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredStudents.map((student) => {
                     const status: StatusFilter = student.onboarded ? "onboarded" : "pending";
                     return (
-                      <TableRow key={student.studentId} className="hover:bg-muted/40">
+                      <TableRow
+                        key={student.studentId}
+                        className="cursor-pointer hover:bg-muted/40 transition-colors"
+                        onClick={() => handleViewStudent(student)}
+                      >
                         <TableCell>
                           <div className="font-medium">{student.displayName}</div>
                           {student.email !== "unknown@example.com" && (
@@ -450,6 +499,53 @@ export default function AgentStudentsManager() {
                           <span className="text-sm text-muted-foreground">
                             {formatRelativeTime(student.updatedAt)}
                           </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="gap-1.5"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartApplication(student);
+                              }}
+                              disabled={!student.onboarded}
+                            >
+                              <FileText className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Apply</span>
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <span className="sr-only">Open menu</span>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleViewStudent(student)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleBrowsePrograms(student)}
+                                  disabled={!student.onboarded}
+                                >
+                                  <GraduationCap className="mr-2 h-4 w-4" />
+                                  Browse Programs
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleStartApplication(student)}
+                                  disabled={!student.onboarded}
+                                >
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  New Application
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

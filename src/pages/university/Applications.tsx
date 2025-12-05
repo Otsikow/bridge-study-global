@@ -25,6 +25,10 @@ import {
   MapPin,
   Globe,
   Calendar,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -34,6 +38,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -54,6 +60,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -220,6 +227,13 @@ const ApplicationsPage = () => {
   const [detailsError, setDetailsError] = useState<string | null>(null);
 
   const detailsCacheRef = useRef<Record<string, DetailedApplication>>({});
+
+  // Admission decision state
+  const [decisionDialogOpen, setDecisionDialogOpen] = useState(false);
+  const [decisionApplication, setDecisionApplication] = useState<ApplicationRow | null>(null);
+  const [newStatus, setNewStatus] = useState<string>("");
+  const [decisionNotes, setDecisionNotes] = useState("");
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const debouncedSearch = useDebounce(searchTerm.trim(), 300);
 
@@ -574,6 +588,102 @@ const ApplicationsPage = () => {
     setPage((prev) => Math.min(totalPages, prev + 1));
   };
 
+  const handleOpenDecisionDialog = (application: ApplicationRow, event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    setDecisionApplication(application);
+    setNewStatus(application.status || "submitted");
+    setDecisionNotes("");
+    setDecisionDialogOpen(true);
+  };
+
+  const handleCloseDecisionDialog = () => {
+    setDecisionDialogOpen(false);
+    setDecisionApplication(null);
+    setNewStatus("");
+    setDecisionNotes("");
+  };
+
+  const handleUpdateApplicationStatus = async () => {
+    if (!decisionApplication || !newStatus) return;
+
+    setIsUpdatingStatus(true);
+    try {
+      // Build timeline entry
+      const timelineEntry = {
+        title: `Status updated to ${newStatus.replace(/_/g, " ")}`,
+        description: decisionNotes || undefined,
+        date: new Date().toISOString(),
+        status: newStatus,
+      };
+
+      // Get existing timeline or create new array
+      const existingTimeline = Array.isArray(decisionApplication.timeline_json)
+        ? decisionApplication.timeline_json
+        : [];
+
+      const updatedTimeline = [timelineEntry, ...existingTimeline];
+
+      // Update application
+      const { error } = await supabase
+        .from("applications")
+        .update({
+          status: newStatus,
+          internal_notes: decisionNotes || decisionApplication.internal_notes,
+          timeline_json: updatedTimeline,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", decisionApplication.id);
+
+      if (error) throw error;
+
+      // Create offer record if status is an offer
+      if (newStatus === "conditional_offer" || newStatus === "unconditional_offer") {
+        const { error: offerError } = await supabase
+          .from("offers")
+          .insert({
+            application_id: decisionApplication.id,
+            offer_type: newStatus,
+            status: "pending",
+            notes: decisionNotes || null,
+            created_at: new Date().toISOString(),
+          });
+
+        if (offerError) {
+          logError(offerError, "ApplicationsPage.createOffer");
+          // Don't throw - the status update succeeded
+        }
+      }
+
+      toast({
+        title: "Application updated",
+        description: `Application status changed to ${newStatus.replace(/_/g, " ")}.`,
+      });
+
+      // Clear cache and refresh
+      delete detailsCacheRef.current[decisionApplication.id];
+      handleCloseDecisionDialog();
+      await fetchApplications();
+    } catch (error) {
+      logError(error, "ApplicationsPage.updateApplicationStatus");
+      toast(formatErrorForToast(error, "Failed to update application status"));
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const admissionStatusOptions = [
+    { value: "submitted", label: "Submitted", description: "Application received" },
+    { value: "screening", label: "Under Review", description: "Being evaluated" },
+    { value: "conditional_offer", label: "Conditional Offer", description: "Offer with conditions" },
+    { value: "unconditional_offer", label: "Unconditional Offer", description: "Full offer issued" },
+    { value: "cas_loa", label: "CAS/LOA Stage", description: "Preparing documents" },
+    { value: "visa", label: "Visa Stage", description: "Visa processing" },
+    { value: "enrolled", label: "Enrolled", description: "Student enrolled" },
+    { value: "rejected", label: "Rejected", description: "Application declined" },
+    { value: "withdrawn", label: "Withdrawn", description: "Student withdrew" },
+    { value: "deferred", label: "Deferred", description: "Deferred to later intake" },
+  ];
+
   const showingRangeStart = totalCount === 0 ? 0 : startIndex + 1;
   const showingRangeEnd =
     totalCount === 0 ? 0 : Math.min(totalCount, startIndex + applications.length);
@@ -883,6 +993,7 @@ const ApplicationsPage = () => {
                     <TableHead>Agent</TableHead>
                     <TableHead>Course</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                     <TableHead>Date submitted</TableHead>
                     <TableHead>Last updated</TableHead>
                   </TableRow>
@@ -941,6 +1052,10 @@ const ApplicationsPage = () => {
                               #{application.app_number}
                             </Badge>
                           )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -952,6 +1067,15 @@ const ApplicationsPage = () => {
                           >
                             <Eye className="h-3.5 w-3.5" />
                             View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 gap-1 px-2 text-xs"
+                            onClick={(event) => handleOpenDecisionDialog(application, event)}
+                          >
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            Decision
                           </Button>
                         </div>
                       </TableCell>
@@ -1067,9 +1191,22 @@ const ApplicationsPage = () => {
                   </div>
 
                   <div className={withUniversitySurfaceTint("rounded-2xl p-4")}>
-                    <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
-                      <ClipboardList className="h-4 w-4" />
-                      Application
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+                        <ClipboardList className="h-4 w-4" />
+                        Application
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedApplication(null);
+                          handleOpenDecisionDialog(selectedApplication);
+                        }}
+                        className="gap-1.5"
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" />
+                        Make Decision
+                      </Button>
                     </div>
                     <div className="mt-3 space-y-3 text-sm">
                       <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -1206,6 +1343,128 @@ const ApplicationsPage = () => {
               </div>
             </ScrollArea>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Admission Decision Dialog */}
+      <Dialog open={decisionDialogOpen} onOpenChange={(open) => !open && handleCloseDecisionDialog()}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
+              Update Application Status
+            </DialogTitle>
+            <DialogDescription>
+              Review the application and issue an admission decision for{" "}
+              <span className="font-medium">
+                {decisionApplication?.student?.legal_name ||
+                  decisionApplication?.student?.profile?.full_name ||
+                  "this student"}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Current Status */}
+            <div className="rounded-lg bg-muted/50 p-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Current status:</span>
+                <StatusBadge status={decisionApplication?.status || "submitted"} />
+              </div>
+              {decisionApplication?.program?.name && (
+                <p className="mt-2 text-sm">
+                  <span className="text-muted-foreground">Program: </span>
+                  <span className="font-medium">{decisionApplication.program.name}</span>
+                </p>
+              )}
+            </div>
+
+            {/* New Status Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="new-status">New Status</Label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger id="new-status">
+                  <SelectValue placeholder="Select new status" />
+                </SelectTrigger>
+                <SelectContent>
+                  {admissionStatusOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <div className="flex flex-col">
+                        <span>{option.label}</span>
+                        <span className="text-xs text-muted-foreground">{option.description}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Decision Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="decision-notes">Notes (optional)</Label>
+              <Textarea
+                id="decision-notes"
+                placeholder="Add any relevant notes about this decision..."
+                value={decisionNotes}
+                onChange={(e) => setDecisionNotes(e.target.value)}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                These notes will be recorded in the application timeline.
+              </p>
+            </div>
+
+            {/* Status-specific guidance */}
+            {(newStatus === "conditional_offer" || newStatus === "unconditional_offer") && (
+              <div className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/5 p-3">
+                <CheckCircle className="h-4 w-4 text-success mt-0.5" />
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium text-success">Issuing an offer</p>
+                  <p className="text-muted-foreground">
+                    An offer record will be created. The student and agent will be notified.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {newStatus === "rejected" && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                <XCircle className="h-4 w-4 text-destructive mt-0.5" />
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium text-destructive">Rejecting application</p>
+                  <p className="text-muted-foreground">
+                    Please ensure you've thoroughly reviewed all documents before declining.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={handleCloseDecisionDialog}
+              disabled={isUpdatingStatus}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateApplicationStatus}
+              disabled={isUpdatingStatus || !newStatus || newStatus === decisionApplication?.status}
+            >
+              {isUpdatingStatus ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Update Status
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
