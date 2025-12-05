@@ -1,4 +1,3 @@
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import BackButton from '@/components/BackButton';
 import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -66,9 +65,8 @@ export default function Analytics() {
   ], [statsData]);
 
   return (
-    <DashboardLayout>
-      <div className="p-4 md:p-8 space-y-6">
-        <BackButton variant="ghost" size="sm" fallback="/dashboard" />
+    <div className="space-y-6">
+      <BackButton variant="ghost" size="sm" fallback="/admin" />
 
         {/* Header */}
         <div className="space-y-1.5 animate-fade-in">
@@ -231,7 +229,6 @@ export default function Analytics() {
             <AnalyticsDashboard />
           </TabsContent>
         </Tabs>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
