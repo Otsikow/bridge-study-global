@@ -20,10 +20,11 @@ import {
   GraduationCap,
   Coins,
 } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { useNotifications } from "@/hooks/useNotifications";
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -116,10 +117,19 @@ export function AppSidebar() {
   const { primaryRole, loading: rolesLoading } = useUserRoles();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth/login");
+  };
+
+  const isItemActive = (url: string) => {
+    if (url === "/dashboard") {
+      return location.pathname === url;
+    }
+
+    return location.pathname === url || location.pathname.startsWith(`${url}/`);
   };
 
   const items =
@@ -164,58 +174,81 @@ export function AppSidebar() {
           )}
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item, index) => (
-                <SidebarMenuItem
-                  key={item.title}
-                  className="animate-fade-in-left"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={state === "collapsed" ? item.title : undefined}
+              {items.map((item, index) => {
+                const isActive = isItemActive(item.url);
+
+                return (
+                  <SidebarMenuItem
+                    key={item.title}
+                    className="animate-fade-in-left"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/dashboard"}
-                      className={({ isActive }) =>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      tooltip={state === "collapsed" ? item.title : undefined}
+                      className={cn(
+                        "group relative overflow-hidden border border-transparent",
                         isActive
-                          ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium transition-all duration-200 hover:shadow-md"
-                          : "hover:bg-accent transition-all duration-200 hover:translate-x-1"
-                      }
-                      onClick={() => {
-                        if (isMobile) {
-                          setOpenMobile(false);
-                        }
-                      }}
+                          ? "bg-gradient-to-r from-primary/15 via-primary/10 to-transparent text-primary ring-1 ring-primary/40 shadow-[0_10px_30px_-15px_rgba(59,130,246,0.55)]"
+                          : "hover:border-accent hover:bg-accent/70 hover:translate-x-1"
+                      )}
                     >
-                      <div className="relative">
-                        <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                        {item.title === "Notifications" && unreadCount > 0 && (
-                          <Badge
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] animate-pulse"
-                          >
-                            {unreadCount > 9 ? "9+" : unreadCount}
-                          </Badge>
-                        )}
-                      </div>
-                      {state !== "collapsed" && (
-                        <>
-                          <span className="truncate text-sm">{item.title}</span>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === "/dashboard"}
+                        className="flex w-full items-center gap-3"
+                        onClick={() => {
+                          if (isMobile) {
+                            setOpenMobile(false);
+                          }
+                        }}
+                      >
+                        <span
+                          className={cn(
+                            "absolute inset-y-1 left-1 w-1 rounded-full bg-primary/80 transition-all duration-300",
+                            isActive
+                              ? "opacity-100 scale-y-100"
+                              : "scale-y-0 opacity-0 group-hover:scale-y-100 group-hover:opacity-60"
+                          )}
+                          aria-hidden
+                        />
+                        <div className="relative">
+                          <item.icon
+                            className={cn(
+                              "h-4 w-4 flex-shrink-0 transition-all duration-200",
+                              isActive ? "text-primary" : "group-hover:scale-110"
+                            )}
+                          />
                           {item.title === "Notifications" && unreadCount > 0 && (
                             <Badge
                               variant="destructive"
-                              className="ml-auto h-5 w-5 flex items-center justify-center text-[10px] animate-pulse"
+                              className="absolute -top-2 -right-2 h-4 w-4 p-0 flex items-center justify-center text-[10px] animate-pulse"
                             >
                               {unreadCount > 9 ? "9+" : unreadCount}
                             </Badge>
                           )}
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                        </div>
+                        {state !== "collapsed" && (
+                          <>
+                            <span className="truncate text-sm font-medium text-foreground">
+                              {item.title}
+                            </span>
+                            {item.title === "Notifications" && unreadCount > 0 && (
+                              <Badge
+                                variant="destructive"
+                                className="ml-auto h-5 w-5 flex items-center justify-center text-[10px] animate-pulse"
+                              >
+                                {unreadCount > 9 ? "9+" : unreadCount}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
