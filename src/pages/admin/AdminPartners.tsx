@@ -45,6 +45,12 @@ type ApplicationRow = {
   } | null;
 };
 
+type ProgramRow = {
+  id: string;
+  university_id: string;
+  active: boolean | null;
+};
+
 type AgentCard = {
   id: string;
   companyName: string;
@@ -88,6 +94,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [universities, setUniversities] = useState<UniversityRow[]>([]);
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
+  const [programs, setPrograms] = useState<ProgramRow[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -98,6 +105,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
           setAgents([]);
           setUniversities([]);
           setApplications([]);
+          setPrograms([]);
           setLoading(false);
         }
         return;
@@ -105,7 +113,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
 
       try {
         setLoading(true);
-        const [agentResponse, universityResponse, applicationResponse] = await Promise.all([
+        const [agentResponse, universityResponse, applicationResponse, programResponse] = await Promise.all([
           supabase
             .from("agents")
             .select(
@@ -120,6 +128,10 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
             .from("applications")
             .select("id, status, agent_id, student_id, tenant_id, program:programs(id, university_id, name)")
             .eq("tenant_id", tenantId),
+          supabase
+            .from("programs")
+            .select("id, university_id, active, tenant_id")
+            .eq("tenant_id", tenantId),
         ]);
 
         if (!isMounted) return;
@@ -127,10 +139,12 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         if (agentResponse.error) throw agentResponse.error;
         if (universityResponse.error) throw universityResponse.error;
         if (applicationResponse.error) throw applicationResponse.error;
+        if (programResponse.error) throw programResponse.error;
 
         setAgents((agentResponse.data as AgentRow[]) ?? []);
         setUniversities((universityResponse.data as UniversityRow[]) ?? []);
         setApplications((applicationResponse.data as ApplicationRow[]) ?? []);
+        setPrograms((programResponse.data as ProgramRow[]) ?? []);
       } catch (error) {
         console.error("Failed to load partner management data", error);
         toast({
@@ -182,13 +196,13 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
     if (universities.length === 0) return [];
 
     return universities.map((university) => {
+      // Count actual programs for this university (only active ones)
+      const universityPrograms = programs.filter(
+        (program) => program.university_id === university.id && program.active !== false
+      );
+
       const universityApplications = applications.filter(
         (application) => application.program?.university_id === university.id
-      );
-      const distinctPrograms = new Set(
-        universityApplications
-          .map((application) => application.program?.id ?? "")
-          .filter((programId) => programId !== "")
       );
       const successful = universityApplications.filter((application) =>
         successStatuses.includes((application.status ?? "").toLowerCase())
@@ -200,14 +214,14 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         id: university.id,
         name: university.name,
         country: university.country,
-        programsOffered: distinctPrograms.size,
+        programsOffered: universityPrograms.length,
         totalApplications: universityApplications.length,
         conversionRate: Number.isFinite(conversion) ? conversion : 0,
         partnershipStatus: (university.partnership_status ?? "pending").replace(/_/g, " "),
         isActive: university.active ?? false,
       };
     });
-  }, [universities, applications]);
+  }, [universities, applications, programs]);
 
   const handleAgentToggle = async (agentId: string, currentState: boolean) => {
     const nextState = !currentState;
