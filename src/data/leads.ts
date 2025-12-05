@@ -88,37 +88,35 @@ export const getStudent = async (studentId: string): Promise<Lead> => {
       preferred_name,
       contact_email,
       current_country,
-      agent_student_links!inner(
+      agent_student_links(
         status
       )
     `
     )
     .eq("id", studentId)
-    .limit(1);
+    .maybeSingle();
 
   if (error) {
     console.error("Error fetching student:", error);
     throw error;
   }
 
-  const student = Array.isArray(data) ? data[0] : null;
-
-  if (!student) {
+  if (!data) {
     throw new Error("Student not found");
   }
 
-  const agentStatus = Array.isArray(student.agent_student_links)
-    ? student.agent_student_links[0]?.status
+  const agentStatus = Array.isArray(data.agent_student_links)
+    ? data.agent_student_links[0]?.status
     : undefined;
-  const nameParts = (student.legal_name || student.preferred_name || "").split(" ");
+  const nameParts = (data.legal_name || data.preferred_name || "").split(" ");
   const firstName = nameParts.shift() || "";
   const lastName = nameParts.join(" ");
   const baseLead: LeadCore = {
-    id: student.id,
+    id: data.id,
     first_name: firstName,
     last_name: lastName,
-    email: student.contact_email || "",
-    country: student.current_country || "",
+    email: data.contact_email || "",
+    country: data.current_country || "",
     status: agentStatus || "unknown",
   };
   return enrichLeadWithQualification(baseLead) as Lead;
