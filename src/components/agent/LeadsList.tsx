@@ -5,17 +5,36 @@ import LeadTableRow from "./LeadTableRow";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import BulkActions from "./BulkActions";
+import { LoadingState } from "@/components/LoadingState";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function LeadsList() {
   const { data: leads, isLoading, error } = useLeads();
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Card>
+        <CardContent className="py-12">
+          <LoadingState message="Loading leads..." size="md" />
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <Card>
+        <CardContent className="py-6">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error loading leads</AlertTitle>
+            <AlertDescription>{error.message || "Failed to load your leads. Please try again."}</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
   }
 
   const handleSelectAll = (checked: boolean) => {

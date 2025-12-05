@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface OverviewTabProps {
@@ -51,117 +51,118 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   const fetchAnalytics = useCallback(async () => {
-      try {
-        setAnalyticsLoading(true);
+    try {
+      setAnalyticsLoading(true);
 
-        // Fetch top countries
-        const { data: studentsData } = await supabase
-          .from('students')
-          .select('nationality');
-        
-        const countryCounts = studentsData?.reduce((acc: { [key: string]: number }, student) => {
-          if (student.nationality) {
-            acc[student.nationality] = (acc[student.nationality] || 0) + 1;
-          }
-          return acc;
-        }, {}) || {};
+      // Fetch top countries
+      const { data: studentsData } = await supabase
+        .from('students')
+        .select('nationality');
+      
+      const countryCounts = studentsData?.reduce((acc: { [key: string]: number }, student) => {
+        if (student.nationality) {
+          acc[student.nationality] = (acc[student.nationality] || 0) + 1;
+        }
+        return acc;
+      }, {}) || {};
 
-        const topCountriesData = Object.entries(countryCounts)
-          .map(([name, count]) => ({ name, count: count as number }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
+      const topCountriesData = Object.entries(countryCounts)
+        .map(([name, count]) => ({ name, count: count as number }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5);
 
-        setTopCountries(topCountriesData);
+      setTopCountries(topCountriesData);
 
-        // Fetch top agents by applications
-        const { data: applicationsData } = await supabase
-          .from('applications')
-          .select(`
-            agent_id,
-            agents (
-              profile_id,
-              profiles (
-                full_name
-              )
+      // Fetch top agents by applications
+      const { data: applicationsData } = await supabase
+        .from('applications')
+        .select(`
+          agent_id,
+          agents (
+            profile_id,
+            profiles (
+              full_name
             )
-          `)
-          .not('agent_id', 'is', null);
+          )
+        `)
+        .not('agent_id', 'is', null);
 
-        const agentCounts = applicationsData?.reduce((acc: { [key: string]: { name: string, count: number } }, app: any) => {
-          if (app.agent_id && app.agents?.profiles?.full_name) {
-            const agentName = app.agents.profiles.full_name;
-            if (!acc[app.agent_id]) {
-              acc[app.agent_id] = { name: agentName, count: 0 };
-            }
-            acc[app.agent_id].count++;
+      const agentCounts = applicationsData?.reduce((acc: { [key: string]: { name: string, count: number } }, app: any) => {
+        if (app.agent_id && app.agents?.profiles?.full_name) {
+          const agentName = app.agents.profiles.full_name;
+          if (!acc[app.agent_id]) {
+            acc[app.agent_id] = { name: agentName, count: 0 };
           }
-          return acc;
-        }, {}) || {};
+          acc[app.agent_id].count++;
+        }
+        return acc;
+      }, {}) || {};
 
-        const topAgentsData = Object.values(agentCounts)
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5)
-          .map(agent => ({ name: agent.name, applications: agent.count }));
+      const topAgentsData = Object.values(agentCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+        .map(agent => ({ name: agent.name, applications: agent.count }));
 
-        setTopAgents(topAgentsData);
+      setTopAgents(topAgentsData);
 
-        // Fetch top programs
-        const { data: programsData } = await supabase
-          .from('applications')
-          .select(`
-            program_id,
-            programs (
-              name
-            )
-          `);
+      // Fetch top programs
+      const { data: programsData } = await supabase
+        .from('applications')
+        .select(`
+          program_id,
+          programs (
+            name
+          )
+        `);
 
-        const programCounts = programsData?.reduce((acc: { [key: string]: { name: string, count: number } }, app: any) => {
-          if (app.program_id && app.programs?.name) {
-            const programName = app.programs.name;
-            if (!acc[app.program_id]) {
-              acc[app.program_id] = { name: programName, count: 0 };
-            }
-            acc[app.program_id].count++;
+      const programCounts = programsData?.reduce((acc: { [key: string]: { name: string, count: number } }, app: any) => {
+        if (app.program_id && app.programs?.name) {
+          const programName = app.programs.name;
+          if (!acc[app.program_id]) {
+            acc[app.program_id] = { name: programName, count: 0 };
           }
-          return acc;
-        }, {}) || {};
+          acc[app.program_id].count++;
+        }
+        return acc;
+      }, {}) || {};
 
-        const topProgramsData = Object.values(programCounts)
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5)
-          .map(program => ({ name: program.name, applications: program.count }));
+      const topProgramsData = Object.values(programCounts)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+        .map(program => ({ name: program.name, applications: program.count }));
 
-        setTopPrograms(topProgramsData);
+      setTopPrograms(topProgramsData);
 
-        const { count: featuredCount } = await supabase
-          .from('universities')
-          .select('*', { count: 'exact', head: true })
-          .eq('featured', true);
+      // Featured university analytics
+      const { count: featuredCount } = await supabase
+        .from('universities')
+        .select('*', { count: 'exact', head: true })
+        .eq('featured', true);
 
-        const { data: featuredUpdated } = await supabase
-          .from('universities')
-          .select('updated_at')
-          .eq('featured', true)
-          .order('updated_at', { ascending: false })
-          .limit(1);
+      const { data: featuredUpdated } = await supabase
+        .from('universities')
+        .select('updated_at')
+        .eq('featured', true)
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
-        setShowcaseStats({
-          count: featuredCount || 0,
-          lastUpdated: featuredUpdated?.[0]?.updated_at ?? null,
-        });
+      setShowcaseStats({
+        count: featuredCount || 0,
+        lastUpdated: featuredUpdated?.[0]?.updated_at ?? null,
+      });
 
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
-      } finally {
-        setAnalyticsLoading(false);
-      }
-    }, []);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
-  // Set up real-time subscriptions for live updates
+  // Real-time subscriptions
   useEffect(() => {
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
@@ -229,50 +230,40 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Total Revenue</span>
-                <span className="font-medium text-success">${loading ? '...' : metrics.revenue.toLocaleString()}</span>
+                <span className="font-medium text-success">
+                  ${loading ? '...' : metrics.revenue.toLocaleString()}
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
 
+        {/* Placeholder Application Status Widget */}
         <Card>
           <CardHeader>
             <CardTitle>Application Status Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                  <span className="text-sm">Draft</span>
+              {[
+                { label: "Draft", color: "bg-yellow-500" },
+                { label: "Submitted", color: "bg-blue-500" },
+                { label: "Approved", color: "bg-green-500" },
+                { label: "Enrolled", color: "bg-purple-500" }
+              ].map((item) => (
+                <div key={item.label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
+                    <span className="text-sm">{item.label}</span>
+                  </div>
+                  <span className="font-medium">-</span>
                 </div>
-                <span className="font-medium">-</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-sm">Submitted</span>
-                </div>
-                <span className="font-medium">-</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-sm">Approved</span>
-                </div>
-                <span className="font-medium">-</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                  <span className="text-sm">Enrolled</span>
-                </div>
-                <span className="font-medium">-</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
+        {/* Featured Universities */}
         <Card className="md:col-span-2 border-dashed">
           <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -310,14 +301,17 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
 
       {/* Analytics Widgets */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* Top Performing Countries */}
+        {/* Top Countries */}
         <Card>
           <CardHeader>
             <CardTitle>Top Countries</CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topCountries.length > 0 ? (
               <div className="space-y-3">
                 {topCountries.map((country, index) => (
@@ -338,14 +332,17 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardContent>
         </Card>
 
-        {/* Top Performing Agents */}
+        {/* Top Agents */}
         <Card>
           <CardHeader>
             <CardTitle>Top Agents</CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topAgents.length > 0 ? (
               <div className="space-y-3">
                 {topAgents.map((agent, index) => (
@@ -366,14 +363,17 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardContent>
         </Card>
 
-        {/* Top Performing Programs */}
+        {/* Top Programs */}
         <Card>
           <CardHeader>
             <CardTitle>Top Programmes</CardTitle>
           </CardHeader>
           <CardContent>
             {analyticsLoading ? (
-              <div className="text-center text-muted-foreground py-8">Loading...</div>
+              <div className="flex items-center justify-center gap-2 text-muted-foreground py-8">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading...</span>
+              </div>
             ) : topPrograms.length > 0 ? (
               <div className="space-y-3">
                 {topPrograms.map((program, index) => (
@@ -399,6 +399,8 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
 
       {/* Charts */}
       <div className="grid gap-6 md:grid-cols-2">
+
+        {/* Top Countries Chart */}
         <Card>
           <CardHeader>
             <CardTitle>Top Countries Chart</CardTitle>
@@ -420,6 +422,7 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
           </CardContent>
         </Card>
 
+        {/* Top Agents Pie Chart */}
         <Card>
           <CardHeader>
             <CardTitle>Top Agents Performance</CardTitle>
@@ -450,6 +453,7 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
             )}
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

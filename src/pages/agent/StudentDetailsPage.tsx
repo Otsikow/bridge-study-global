@@ -7,7 +7,9 @@ import Chat from "@/components/agent/Chat";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import LeadQualificationDetails from "@/components/agent/LeadQualificationDetails";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
+import { LoadingState } from "@/components/LoadingState";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function StudentDetailsPage() {
   const { studentId } = useParams<{ studentId: string }>();
@@ -40,15 +42,45 @@ export default function StudentDetailsPage() {
   };
 
   if (!studentId) {
-    return <div>Student not found.</div>;
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[50vh] items-center justify-center p-6">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Student not found</AlertTitle>
+            <AlertDescription>
+              No student ID was provided. Please go back and select a valid student.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[50vh] items-center justify-center p-6">
+          <LoadingState message="Loading student details..." size="lg" />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[50vh] items-center justify-center p-6">
+          <Alert variant="destructive" className="max-w-md">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Unable to load student</AlertTitle>
+            <AlertDescription>
+              {error.message || "Something went wrong while fetching student details. Please try again."}
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DashboardLayout>
+    );
   }
 
   return (
