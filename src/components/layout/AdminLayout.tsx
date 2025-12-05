@@ -11,11 +11,9 @@ import { useTranslation } from "react-i18next";
 import { useUserRoles } from "@/hooks/useUserRoles";
 import { LoadingState } from "@/components/LoadingState";
 import {
-  LayoutDashboard,
   Users,
   GraduationCap,
   CreditCard,
-  Building,
   Library,
   Wrench,
   Sparkles,
@@ -30,6 +28,10 @@ import {
   Activity,
   BadgeCheck,
   BookOpen,
+  BarChart3,
+  Gauge,
+  Handshake,
+  ScrollText,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -55,7 +57,7 @@ const NAV_ITEMS: NavItem[] = [
     descriptionKey: "admin.layout.navigation.dashboard.description",
     labelDefault: "Dashboard",
     descriptionDefault: "Key metrics & insights",
-    icon: LayoutDashboard,
+    icon: Gauge,
   },
   {
     to: "/admin/overview",
@@ -63,7 +65,7 @@ const NAV_ITEMS: NavItem[] = [
     descriptionKey: "admin.layout.navigation.overview.description",
     labelDefault: "Overview",
     descriptionDefault: "Executive summary",
-    icon: LayoutDashboard,
+    icon: BarChart3,
   },
   {
     to: "/admin/users",
@@ -79,7 +81,7 @@ const NAV_ITEMS: NavItem[] = [
     descriptionKey: "admin.layout.navigation.admissions.description",
     labelDefault: "Admissions Oversight",
     descriptionDefault: "Pipeline ownership",
-    icon: GraduationCap,
+    icon: ScrollText,
   },
   {
     to: "/admin/payments",
@@ -95,7 +97,7 @@ const NAV_ITEMS: NavItem[] = [
     descriptionKey: "admin.layout.navigation.partners.description",
     labelDefault: "Partners",
     descriptionDefault: "Agencies & universities",
-    icon: Building,
+    icon: Handshake,
   },
   {
     to: "/admin/universities",
