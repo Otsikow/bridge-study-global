@@ -25,6 +25,12 @@ type AgentRow = {
   } | null;
 };
 
+type AgentStudentLinkRow = {
+  agent_id: string;
+  student_id: string;
+  status: string | null;
+};
+
 type UniversityRow = {
   id: string;
   name: string;
@@ -98,6 +104,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
   const [universities, setUniversities] = useState<UniversityRow[]>([]);
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [programs, setPrograms] = useState<ProgramRow[]>([]);
+  const [agentStudentLinks, setAgentStudentLinks] = useState<AgentStudentLinkRow[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,6 +116,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
           setUniversities([]);
           setApplications([]);
           setPrograms([]);
+          setAgentStudentLinks([]);
           setLoading(false);
         }
         return;
@@ -116,7 +124,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
 
       try {
         setLoading(true);
-        const [agentResponse, universityResponse, applicationResponse, programResponse] = await Promise.all([
+        const [agentResponse, universityResponse, applicationResponse, programResponse, agentStudentLinksResponse] = await Promise.all([
           supabase
             .from("agents")
             .select(
@@ -135,6 +143,10 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
             .from("programs")
             .select("id, university_id, active, tenant_id")
             .eq("tenant_id", tenantId),
+          supabase
+            .from("agent_student_links")
+            .select("agent_id, student_id, status")
+            .eq("tenant_id", tenantId),
         ]);
 
         if (!isMounted) return;
@@ -143,11 +155,13 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         if (universityResponse.error) throw universityResponse.error;
         if (applicationResponse.error) throw applicationResponse.error;
         if (programResponse.error) throw programResponse.error;
+        if (agentStudentLinksResponse.error) throw agentStudentLinksResponse.error;
 
         setAgents((agentResponse.data as AgentRow[]) ?? []);
         setUniversities((universityResponse.data as UniversityRow[]) ?? []);
         setApplications((applicationResponse.data as ApplicationRow[]) ?? []);
         setPrograms((programResponse.data as ProgramRow[]) ?? []);
+        setAgentStudentLinks((agentStudentLinksResponse.data as AgentStudentLinkRow[]) ?? []);
       } catch (error) {
         console.error("Failed to load partner management data", error);
         toast({
@@ -173,9 +187,13 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
     if (agents.length === 0) return [];
 
     return agents.map((agent) => {
+      // Count students from agent_student_links (the accurate source)
+      const linkedStudents = agentStudentLinks.filter(
+        (link) => link.agent_id === agent.id && link.status !== 'inactive'
+      );
+      
+      // Get applications for this agent for performance calculation
       const agentApplications = applications.filter((application) => application.agent_id === agent.id);
-      const uniqueStudents = new Set(agentApplications.map((application) => application.student_id ?? ""));
-      uniqueStudents.delete("");
       const successful = agentApplications.filter((application) =>
         successStatuses.includes((application.status ?? "").toLowerCase())
       );
@@ -185,7 +203,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         id: agent.id,
         companyName: agent.company_name ?? agent.profile?.full_name ?? "Unnamed Agency",
         email: agent.profile?.email ?? "—",
-        activeStudents: uniqueStudents.size,
+        activeStudents: linkedStudents.length,
         performanceScore: Number.isFinite(performance) ? performance : 0,
         commissionRate: agent.commission_rate_l1,
         verificationStatus: (agent.verification_status ?? "unverified").replace(/_/g, " "),
@@ -193,7 +211,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         profileId: agent.profile_id,
       };
     });
-  }, [agents, applications]);
+  }, [agents, applications, agentStudentLinks]);
 
   const universityCards = useMemo<UniversityCard[]>(() => {
     if (universities.length === 0) return [];
