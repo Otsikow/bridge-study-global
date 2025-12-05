@@ -54,6 +54,7 @@ const DocumentsPage = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const documentRequests = data?.documentRequests ?? [];
+  const tenantId = data?.university?.tenant_id ?? null;
 
   const filteredRequests = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
@@ -70,12 +71,24 @@ const DocumentsPage = () => {
   }, [documentRequests, searchTerm, statusFilter]);
 
   const handleMarkReceived = async (requestId: string) => {
+    // ISOLATION CHECK: Verify tenant context
+    if (!tenantId) {
+      toast({
+        title: "Missing account context",
+        description: "Unable to verify your university profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setUpdatingId(requestId);
+      // ISOLATION: Update must be scoped by tenant_id to prevent cross-tenant modifications
       const { error } = await supabase
         .from("document_requests")
         .update({ status: "received" })
-        .eq("id", requestId);
+        .eq("id", requestId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;

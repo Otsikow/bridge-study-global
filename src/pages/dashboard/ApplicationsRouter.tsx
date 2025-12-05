@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import PartnerApplications from '@/pages/dashboard/PartnerApplications';
 import StaffApplications from '@/pages/dashboard/StaffApplications';
+import AgentApplications from '@/pages/dashboard/AgentApplications';
 
 const ApplicationsRouter = () => {
   const { primaryRole, loading, error } = useUserRoles();
@@ -33,6 +34,10 @@ const ApplicationsRouter = () => {
 
   if (primaryRole === 'partner') {
     return <PartnerApplications />;
+  }
+
+  if (primaryRole === 'agent') {
+    return <AgentApplications />;
   }
 
   return <StaffApplications />;

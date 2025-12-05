@@ -210,6 +210,7 @@ const ApplicationsPage = () => {
   const { toast } = useToast();
 
   const universityId = data?.university?.id ?? null;
+  const tenantId = data?.university?.tenant_id ?? null;
 
   const [applications, setApplications] = useState<ApplicationRow[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -295,7 +296,8 @@ const ApplicationsPage = () => {
 
   const fetchApplications = useCallback(
     async (options?: { signal?: AbortSignal }) => {
-      if (!universityId) {
+      // ISOLATION CHECK: Must have both universityId and tenantId
+      if (!universityId || !tenantId) {
         setApplications([]);
         setTotalCount(0);
         return false;
@@ -310,6 +312,7 @@ const ApplicationsPage = () => {
           ? `%${debouncedSearch.replace(/\s+/g, "%")}%`
           : null;
 
+        // ISOLATION: Filter applications by programs that belong to THIS university only
         let query = supabase
           .from("applications")
           .select(
@@ -348,11 +351,13 @@ const ApplicationsPage = () => {
                 id,
                 name,
                 level,
-                university_id
+                university_id,
+                tenant_id
               )
             `,
             { count: "exact" },
           )
+          // ISOLATION: Filter by university_id to ensure only this university's applications are shown
           .eq("program.university_id", universityId)
           .not("submitted_at", "is", null)
           .neq("status", "draft");
@@ -420,11 +425,13 @@ const ApplicationsPage = () => {
       statusFilter,
       toast,
       universityId,
+      tenantId,
     ],
   );
 
   useEffect(() => {
-    if (!universityId) {
+    // ISOLATION: Only fetch if we have proper university context
+    if (!universityId || !tenantId) {
       return;
     }
 
@@ -434,7 +441,7 @@ const ApplicationsPage = () => {
     return () => {
       controller.abort();
     };
-  }, [fetchApplications, universityId]);
+  }, [fetchApplications, universityId, tenantId]);
 
   const loadApplicationDetails = useCallback(
     async (applicationId: string) => {
@@ -606,8 +613,30 @@ const ApplicationsPage = () => {
   const handleUpdateApplicationStatus = async () => {
     if (!decisionApplication || !newStatus) return;
 
+    // ISOLATION CHECK: Verify we have proper context
+    if (!universityId) {
+      toast({
+        title: "Missing university context",
+        description: "Unable to verify your university profile. Please refresh.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUpdatingStatus(true);
     try {
+      // ISOLATION CHECK: Verify the application belongs to a program of this university
+      const { data: programCheck } = await supabase
+        .from("programs")
+        .select("id, university_id")
+        .eq("id", decisionApplication.program?.id)
+        .eq("university_id", universityId)
+        .single();
+
+      if (!programCheck) {
+        throw new Error("Cannot update application: program not found or does not belong to your university");
+      }
+
       // Build timeline entry
       const timelineEntry = {
         title: `Status updated to ${newStatus.replace(/_/g, " ")}`,
@@ -623,7 +652,7 @@ const ApplicationsPage = () => {
 
       const updatedTimeline = [timelineEntry, ...existingTimeline];
 
-      // Update application
+      // ISOLATION: Update application only if it belongs to a program of this university
       const { error } = await supabase
         .from("applications")
         .update({

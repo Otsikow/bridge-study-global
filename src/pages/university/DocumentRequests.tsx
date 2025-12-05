@@ -145,6 +145,8 @@ const UniversityDocumentRequestsPage = () => {
   const { toast } = useToast();
 
   const universityId = data?.university?.id ?? null;
+  // ISOLATION: Use the actual tenant_id for data scoping, not university_id
+  const tenantId = data?.university?.tenant_id ?? null;
 
   const [documentRequests, setDocumentRequests] = useState<DocumentRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,19 +159,21 @@ const UniversityDocumentRequestsPage = () => {
 
   const fetchRequests = useCallback(
     async ({ showLoader = true }: { showLoader?: boolean } = {}) => {
-      if (!universityId) return;
+      // ISOLATION: Must have both universityId and tenantId
+      if (!universityId || !tenantId) return;
 
       if (showLoader) {
         setLoading(true);
       }
 
       try {
+        // ISOLATION: Filter by tenant_id to ensure only this tenant's document requests
         const { data: rows, error } = await supabase
           .from("document_requests")
           .select(
             "id, student_id, request_type, status, requested_at, created_at, document_url, uploaded_file_url, file_url, storage_path",
           )
-          .eq("tenant_id", universityId)
+          .eq("tenant_id", tenantId)
           .order("requested_at", { ascending: false });
 
         if (error) {
@@ -222,16 +226,17 @@ const UniversityDocumentRequestsPage = () => {
         }
       }
     },
-    [toast, universityId],
+    [toast, universityId, tenantId],
   );
 
   useEffect(() => {
-    if (universityId) {
+    // ISOLATION: Only fetch if we have proper context
+    if (universityId && tenantId) {
       void fetchRequests();
     } else {
       setLoading(false);
     }
-  }, [fetchRequests, universityId]);
+  }, [fetchRequests, universityId, tenantId]);
 
   const documentTypeOptions = useMemo(
     () => buildDocumentTypeOptions(documentRequests),
@@ -262,6 +267,16 @@ const UniversityDocumentRequestsPage = () => {
   };
 
   const handleFileUpload = async (requestId: string, file: File) => {
+    // ISOLATION CHECK: Verify tenant context
+    if (!tenantId) {
+      toast({
+        title: "Missing account context",
+        description: "Unable to verify your university profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadingId(requestId);
 
     try {
@@ -297,10 +312,12 @@ const UniversityDocumentRequestsPage = () => {
         updates.storage_path = storagePath;
       }
 
+      // ISOLATION: Update must be scoped by tenant_id
       const { error: updateError } = await supabase
         .from('document_requests')
         .update(updates)
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .eq('tenant_id', tenantId);
 
       if (updateError) {
         throw updateError;
