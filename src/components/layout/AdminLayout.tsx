@@ -37,6 +37,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import unidoxiaLogo from "@/assets/unidoxia-logo.png";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 /* -------------------------------------------------------------------------- */
 /* ✅ Nav Items with Localization Support                                     */
@@ -370,8 +371,12 @@ const AdminLayout = () => {
       {mobileNavSheet}
       <div className={cn("hidden md:flex shrink-0", isCollapsed ? "md:w-20" : "md:w-72")}>{sidebar(true)}</div>
       <div className="flex w-full min-w-0 flex-col">
+        {/* Top Header Bar with Notification Bell */}
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+          <NotificationBell notificationsUrl="/admin/notifications" maxItems={7} />
+        </header>
         <main className="flex-1 bg-background">
-          <div className="mx-auto w-full max-w-7xl px-3 py-4 pt-16 sm:px-4 sm:pt-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
             <Outlet />
           </div>
         </main>
