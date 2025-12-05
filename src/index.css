@@ -204,7 +204,7 @@ All colors MUST be HSL.
 
 @layer components {
   .page-shell {
-    @apply mx-auto flex w-full max-w-screen-2xl flex-col px-4 sm:px-6 lg:px-10;
+    @apply mx-auto flex w-full max-w-screen-2xl min-w-0 flex-col px-4 sm:px-6 lg:px-10;
   }
 
   /* Reduced motion */
