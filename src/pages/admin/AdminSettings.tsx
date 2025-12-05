@@ -352,14 +352,14 @@ const AdminSettings = () => {
   /* ✅ Render                                                               */
   /* ---------------------------------------------------------------------- */
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <div className="page-header">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             {t("admin.settings.heading", { defaultValue: "System settings" })}
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
             {t("admin.settings.subheading", {
               defaultValue: "Configure branding, governance, integrations, and localization.",
             })}
@@ -367,7 +367,8 @@ const AdminSettings = () => {
         </div>
         <Button
           variant="outline"
-          className="gap-2"
+          size="sm"
+          className="w-full gap-2 sm:w-auto"
           onClick={() =>
             openZoe(
               t("admin.settings.securityPrompt", {
@@ -429,22 +430,22 @@ const AdminSettings = () => {
       </Card>
 
       {/* Tabs: Roles, Emails, Integrations, Localization, Audit */}
-      <Tabs defaultValue="roles" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
-          <TabsTrigger value="roles">
-            <Users className="mr-2 h-4 w-4" /> Roles
+      <Tabs defaultValue="roles" className="space-y-4 sm:space-y-6">
+        <TabsList className="grid w-full h-auto grid-cols-2 gap-1 p-1 sm:grid-cols-3 lg:grid-cols-5">
+          <TabsTrigger value="roles" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">
+            <Users className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" /> <span className="truncate">Roles</span>
           </TabsTrigger>
-          <TabsTrigger value="emails">
-            <Mail className="mr-2 h-4 w-4" /> Emails
+          <TabsTrigger value="emails" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">
+            <Mail className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" /> <span className="truncate">Emails</span>
           </TabsTrigger>
-          <TabsTrigger value="integrations">
-            <KeyRound className="mr-2 h-4 w-4" /> Integrations
+          <TabsTrigger value="integrations" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">
+            <KeyRound className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Integrations</span><span className="sm:hidden">Integ.</span>
           </TabsTrigger>
-          <TabsTrigger value="localization">
-            <Globe className="mr-2 h-4 w-4" /> Localization
+          <TabsTrigger value="localization" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">
+            <Globe className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" /> <span className="hidden sm:inline">Localization</span><span className="sm:hidden">Local</span>
           </TabsTrigger>
-          <TabsTrigger value="audit">
-            <Database className="mr-2 h-4 w-4" /> Audit
+          <TabsTrigger value="audit" className="text-xs sm:text-sm px-2 py-1.5 sm:px-3 sm:py-2">
+            <Database className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" /> <span className="truncate">Audit</span>
           </TabsTrigger>
         </TabsList>
 
@@ -488,7 +489,7 @@ const AdminSettings = () => {
         </TabsContent>
 
         <TabsContent value="emails">
-          <div className="grid gap-6 lg:grid-cols-[1.1fr,1.4fr]">
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1.1fr,1.4fr]">
             <Card className="h-full">
               <CardHeader>
                 <CardTitle>AI email automation</CardTitle>
@@ -582,9 +583,9 @@ const AdminSettings = () => {
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outline">{t("common.reset", { defaultValue: "Reset" })}</Button>
-        <Button onClick={handleSave}>{t("common.saveChanges", { defaultValue: "Save Changes" })}</Button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">{t("common.reset", { defaultValue: "Reset" })}</Button>
+        <Button onClick={handleSave} size="sm" className="w-full sm:w-auto">{t("common.saveChanges", { defaultValue: "Save Changes" })}</Button>
       </div>
     </div>
   );

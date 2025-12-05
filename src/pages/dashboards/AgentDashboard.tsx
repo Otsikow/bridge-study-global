@@ -101,16 +101,16 @@ export default function AgentDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 lg:p-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <div className="p-3 sm:p-4 md:p-6 lg:p-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:gap-6">
           {/* Header */}
-          <div className="flex items-center gap-4">
-            <BackButton variant="ghost" size="sm" fallback="/dashboard" className="shrink-0" />
+          <div className="flex items-center gap-2 sm:gap-4">
+            <BackButton variant="ghost" size="sm" fallback="/dashboard" className="shrink-0 h-8 w-8 sm:h-9 sm:w-9" />
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+              <h1 className="text-lg font-semibold tracking-tight sm:text-xl md:text-2xl">
                 Agent Dashboard
               </h1>
-              <p className="text-sm text-muted-foreground hidden sm:block">
+              <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
                 Manage students, track performance, and access resources
               </p>
             </div>

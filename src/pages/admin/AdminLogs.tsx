@@ -395,43 +395,45 @@ const AdminLogs = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Audit & system logs</h1>
-          <p className="text-sm text-muted-foreground">Investigate privileged operations and platform activity.</p>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="page-header">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Audit & system logs</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Investigate privileged operations and platform activity.</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button variant="outline" className="gap-2" onClick={() => openZoe("Summarize critical audit events today") }>
+        <div className="page-header-actions w-full sm:w-auto">
+          <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto" onClick={() => openZoe("Summarize critical audit events today") }>
             <Shield className="h-4 w-4" />
-            Security digest
+            <span className="sm:inline">Security digest</span>
           </Button>
-          <Button variant="outline" className="gap-2" onClick={handleManualRefresh} disabled={loading}>
+          <Button variant="outline" size="sm" className="w-full gap-2 sm:w-auto" onClick={handleManualRefresh} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <span>Refresh</span>
           </Button>
-          <Button onClick={handleExport} className="gap-2" disabled={!tenantId || exporting}>
+          <Button size="sm" onClick={handleExport} className="w-full gap-2 sm:w-auto" disabled={!tenantId || exporting}>
             <Download className="h-4 w-4" />
-            Export logs
+            <span>Export</span>
           </Button>
         </div>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Terminal className="h-5 w-5 text-primary" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Terminal className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Audit trail
           </CardTitle>
-          <CardDescription>Review every privileged action captured through Supabase audit logging.</CardDescription>
+          <CardDescription className="text-xs sm:text-sm">Review every privileged action captured through Supabase audit logging.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex flex-1 flex-col gap-2 sm:flex-row">
-              <div className="relative flex-1">
+        <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6 pt-0 sm:pt-0">
+          {/* Filter Section - Responsive */}
+          <div className="space-y-3">
+            {/* Search and Primary Filters */}
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="relative sm:col-span-2 lg:col-span-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Search action, entity, details, or IP"
+                  placeholder="Search logs..."
                   value={searchTerm}
                   onChange={(event) => {
                     setSearchTerm(event.target.value);
@@ -447,7 +449,7 @@ const AdminLogs = () => {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="sm:w-[180px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
                 <SelectContent>
@@ -465,7 +467,7 @@ const AdminLogs = () => {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="sm:w-[200px]">
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Filter by action" />
                 </SelectTrigger>
                 <SelectContent>
@@ -477,8 +479,13 @@ const AdminLogs = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full lg:w-auto">
+                Clear filters
+              </Button>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            
+            {/* Date Filters - Collapsible on mobile */}
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
               <Input
                 type="date"
                 value={startDate}
@@ -486,7 +493,7 @@ const AdminLogs = () => {
                   setStartDate(event.target.value);
                   setPage(1);
                 }}
-                className="sm:w-[170px]"
+                className="w-full sm:w-[150px]"
                 placeholder="Start date"
               />
               <Input
@@ -496,29 +503,64 @@ const AdminLogs = () => {
                   setEndDate(event.target.value);
                   setPage(1);
                 }}
-                className="sm:w-[170px]"
+                className="w-full sm:w-[150px]"
                 placeholder="End date"
               />
-              <Button variant="ghost" onClick={clearFilters} className="sm:w-auto">
-                Clear filters
-              </Button>
             </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <div className="overflow-x-auto rounded-md border">
+          {/* Mobile Card View */}
+          <div className="block space-y-3 md:hidden">
+            {loading && (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                Loading audit logs...
+              </div>
+            )}
+            
+            {!loading && records.length === 0 && (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                No audit records match your current filters.
+              </div>
+            )}
+            
+            {!loading && records.map((record) => (
+              <div key={record.id} className="rounded-lg border p-3 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{record.userName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{record.userEmail}</p>
+                  </div>
+                  <Badge variant="outline" className="capitalize text-xs shrink-0">
+                    {record.userRole}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <Badge variant="secondary" className="text-xs">{record.action}</Badge>
+                  <span className="text-muted-foreground">{record.entity}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 border-t">
+                  <span>{new Date(record.createdAt).toLocaleString()}</span>
+                  <span className="font-mono">{record.ipAddress ?? "—"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[140px]">ID</TableHead>
-                  <TableHead className="min-w-[200px]">User</TableHead>
-                  <TableHead className="min-w-[110px]">Role</TableHead>
-                  <TableHead className="min-w-[140px]">Action</TableHead>
-                  <TableHead className="min-w-[150px]">Affected Table</TableHead>
-                  <TableHead className="min-w-[240px]">Details</TableHead>
-                  <TableHead className="min-w-[170px]">Timestamp</TableHead>
-                  <TableHead className="min-w-[140px]">IP Address</TableHead>
+                  <TableHead className="w-[80px]">ID</TableHead>
+                  <TableHead className="min-w-[180px]">User</TableHead>
+                  <TableHead className="w-[100px]">Role</TableHead>
+                  <TableHead className="min-w-[120px]">Action</TableHead>
+                  <TableHead className="min-w-[120px]">Table</TableHead>
+                  <TableHead className="min-w-[200px] hidden lg:table-cell">Details</TableHead>
+                  <TableHead className="min-w-[150px]">Timestamp</TableHead>
+                  <TableHead className="w-[120px] hidden xl:table-cell">IP Address</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -546,22 +588,22 @@ const AdminLogs = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col">
-                          <span className="font-medium text-foreground">{record.userName}</span>
-                          <span className="text-xs text-muted-foreground">{record.userEmail}</span>
+                          <span className="font-medium text-foreground text-sm">{record.userName}</span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[150px]">{record.userEmail}</span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className="capitalize">
+                        <Badge variant="outline" className="capitalize text-xs">
                           {record.userRole}
                         </Badge>
                       </TableCell>
-                      <TableCell>{record.action}</TableCell>
-                      <TableCell>{record.entity}</TableCell>
-                      <TableCell>
-                        <span className="text-xs text-muted-foreground">{formatDetails(record.details)}</span>
+                      <TableCell className="text-sm">{record.action}</TableCell>
+                      <TableCell className="text-sm">{record.entity}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <span className="text-xs text-muted-foreground line-clamp-2">{formatDetails(record.details)}</span>
                       </TableCell>
-                      <TableCell>{new Date(record.createdAt).toLocaleString()}</TableCell>
-                      <TableCell>{record.ipAddress ?? "—"}</TableCell>
+                      <TableCell className="text-sm whitespace-nowrap">{new Date(record.createdAt).toLocaleString()}</TableCell>
+                      <TableCell className="hidden xl:table-cell text-sm">{record.ipAddress ?? "—"}</TableCell>
                     </TableRow>
                   ))}
               </TableBody>
@@ -569,13 +611,11 @@ const AdminLogs = () => {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              Showing {(records.length && (page - 1) * PAGE_SIZE + 1) || 0} -
-              {" "}
-              {(page - 1) * PAGE_SIZE + records.length} of {totalCount} records
+            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-left">
+              Showing {(records.length && (page - 1) * PAGE_SIZE + 1) || 0} - {(page - 1) * PAGE_SIZE + records.length} of {totalCount}
             </p>
-            <Pagination>
-              <PaginationContent>
+            <Pagination className="mx-0">
+              <PaginationContent className="gap-1">
                 <PaginationItem>
                   <PaginationPrevious
                     href="#"
@@ -583,12 +623,12 @@ const AdminLogs = () => {
                       event.preventDefault();
                       setPage((current) => Math.max(1, current - 1));
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-8 px-2 sm:px-3"
                   />
                 </PaginationItem>
                 <PaginationItem>
-                  <span className="px-3 text-sm text-muted-foreground">
-                    Page {page} of {totalPages}
+                  <span className="px-2 sm:px-3 text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+                    {page} / {totalPages}
                   </span>
                 </PaginationItem>
                 <PaginationItem>
@@ -598,7 +638,7 @@ const AdminLogs = () => {
                       event.preventDefault();
                       setPage((current) => Math.min(totalPages, current + 1));
                     }}
-                    className="cursor-pointer"
+                    className="cursor-pointer h-8 px-2 sm:px-3"
                   />
                 </PaginationItem>
               </PaginationContent>
