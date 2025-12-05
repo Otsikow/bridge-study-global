@@ -316,15 +316,15 @@ const SummaryCard = ({
   icon: typeof Briefcase;
   loading?: boolean;
 }) => (
-  <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition hover:border-slate-700 hover:shadow-slate-900/30">
+  <Card className="border border-slate-200 bg-white/80 shadow-lg shadow-slate-200/40 transition hover:border-slate-300 hover:shadow-slate-300/50 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/20 dark:hover:border-slate-700 dark:hover:shadow-slate-900/30">
     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
       <div>
-        <CardTitle className="text-sm font-medium text-slate-300">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</CardTitle>
         {description ? (
           <CardDescription className="text-xs text-slate-500">{description}</CardDescription>
         ) : null}
       </div>
-      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-blue-300">
+      <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300">
         <Icon className="h-5 w-5" />
       </div>
     </CardHeader>
@@ -332,7 +332,7 @@ const SummaryCard = ({
       {loading ? (
         <Skeleton className="mt-1" lines={1} />
       ) : (
-        <p className="text-3xl font-semibold tracking-tight text-slate-100">{value}</p>
+        <p className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">{value}</p>
       )}
     </CardContent>
   </Card>
@@ -349,7 +349,7 @@ const RecentApplicationsTable = ({
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="grid grid-cols-1 gap-4 rounded-lg border border-slate-800 bg-slate-900/40 p-4 md:grid-cols-5 md:items-center">
+          <div key={index} className="grid grid-cols-1 gap-4 rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40 md:grid-cols-5 md:items-center">
             <Skeleton lines={1} className="h-5" />
             <Skeleton lines={1} className="h-5" />
             <Skeleton lines={1} className="h-5" />
@@ -363,9 +363,9 @@ const RecentApplicationsTable = ({
 
   if (applications.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
-        <p className="text-sm font-medium text-slate-200">No recent applications</p>
-        <p className="text-sm text-slate-400">
+      <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center dark:border-slate-800 dark:bg-slate-900/30">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No recent applications</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           When new applications are submitted, you will see them appear here.
         </p>
       </div>
@@ -376,12 +376,12 @@ const RecentApplicationsTable = ({
     <div className="overflow-x-auto">
       <Table>
         <TableHeader>
-          <TableRow className="border-b border-slate-800 bg-slate-900/40 hover:bg-slate-900/40">
-            <TableHead className="text-slate-300">Student</TableHead>
-            <TableHead className="text-slate-300">University</TableHead>
-            <TableHead className="text-slate-300">Course</TableHead>
-            <TableHead className="text-slate-300">Status</TableHead>
-            <TableHead className="text-right text-slate-300">Date</TableHead>
+          <TableRow className="border-b border-slate-200 bg-slate-50/60 hover:bg-slate-50/60 dark:border-slate-800 dark:bg-slate-900/40 dark:hover:bg-slate-900/40">
+            <TableHead className="text-slate-600 dark:text-slate-300">Student</TableHead>
+            <TableHead className="text-slate-600 dark:text-slate-300">University</TableHead>
+            <TableHead className="text-slate-600 dark:text-slate-300">Course</TableHead>
+            <TableHead className="text-slate-600 dark:text-slate-300">Status</TableHead>
+            <TableHead className="text-right text-slate-600 dark:text-slate-300">Date</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -398,15 +398,15 @@ const RecentApplicationsTable = ({
             return (
               <TableRow
                 key={application.id}
-                className="border-b border-slate-800/60 bg-slate-900/20 hover:bg-slate-900/40"
+                className="border-b border-slate-200/60 bg-white/40 hover:bg-slate-50 dark:border-slate-800/60 dark:bg-slate-900/20 dark:hover:bg-slate-900/40"
               >
-                <TableCell className="text-slate-100">{studentName}</TableCell>
-                <TableCell className="text-slate-300">{universityName}</TableCell>
-                <TableCell className="text-slate-400">{courseName}</TableCell>
+                <TableCell className="text-slate-900 dark:text-slate-100">{studentName}</TableCell>
+                <TableCell className="text-slate-600 dark:text-slate-300">{universityName}</TableCell>
+                <TableCell className="text-slate-500 dark:text-slate-400">{courseName}</TableCell>
                 <TableCell>
                   <StatusBadge status={status} />
                 </TableCell>
-                <TableCell className="text-right text-slate-400">
+                <TableCell className="text-right text-slate-500 dark:text-slate-400">
                   {formatDate(application.created_at)}
                 </TableCell>
               </TableRow>
@@ -431,18 +431,18 @@ const UniversityOverviewCard = ({
   onRetry: () => void;
   refreshing: boolean;
 }) => (
-  <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition hover:border-slate-700 hover:shadow-slate-900/30">
+  <Card className="border border-slate-200 bg-white/80 shadow-lg shadow-slate-200/40 transition hover:border-slate-300 hover:shadow-slate-300/50 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/20 dark:hover:border-slate-700 dark:hover:shadow-slate-900/30">
     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
       <div>
-        <CardTitle className="text-lg font-semibold text-slate-100">University Overview</CardTitle>
-        <CardDescription className="text-sm text-slate-400">
+        <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">University Overview</CardTitle>
+        <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
           Snapshot of the institutions you collaborate with.
         </CardDescription>
       </div>
       <Button
         variant="ghost"
         size="sm"
-        className="text-slate-300 hover:text-slate-100"
+        className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
         onClick={onRetry}
         disabled={refreshing}
       >
@@ -453,8 +453,8 @@ const UniversityOverviewCard = ({
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/40 p-4">
-              <div className="rounded-full bg-blue-500/10 p-2 text-blue-300">
+            <div key={index} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+              <div className="rounded-full bg-blue-500/10 p-2 text-blue-600 dark:text-blue-300">
                 <University className="h-5 w-5" />
               </div>
               <div className="flex-1">
@@ -465,9 +465,9 @@ const UniversityOverviewCard = ({
           ))}
         </div>
       ) : total === 0 ? (
-        <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-800 bg-slate-900/30 p-8 text-center">
-          <p className="text-sm font-medium text-slate-200">No University Found.</p>
-          <p className="text-sm text-slate-400">
+        <div className="flex flex-col items-center justify-center space-y-3 rounded-lg border border-dashed border-slate-300 bg-slate-50/50 p-8 text-center dark:border-slate-800 dark:bg-slate-900/30">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">No University Found.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Add universities to your partnership list to unlock tailored analytics and insights.
           </p>
           <Button variant="outline" size="sm" onClick={onRetry} disabled={refreshing} className="gap-2">
@@ -477,10 +477,10 @@ const UniversityOverviewCard = ({
         </div>
       ) : (
         <>
-          <div className="flex flex-col gap-1 rounded-lg border border-blue-500/10 bg-blue-500/5 p-4">
-            <p className="text-xs uppercase tracking-wide text-blue-300">Active partnerships</p>
-            <p className="text-2xl font-semibold text-slate-100">{numberFormatter.format(total)}</p>
-            <p className="text-sm text-slate-400">
+          <div className="flex flex-col gap-1 rounded-lg border border-blue-200 bg-blue-50/80 p-4 dark:border-blue-500/10 dark:bg-blue-500/5">
+            <p className="text-xs uppercase tracking-wide text-blue-600 dark:text-blue-300">Active partnerships</p>
+            <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{numberFormatter.format(total)}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               You currently collaborate with {total === 1 ? "one university" : `${numberFormatter.format(total)} universities`}.
             </p>
           </div>
@@ -498,21 +498,21 @@ const UniversityOverviewCard = ({
               return (
                 <div
                   key={university.id}
-                  className="flex flex-col gap-3 rounded-lg border border-slate-800 bg-slate-900/40 p-4"
+                  className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex flex-1 items-start gap-3">
-                      <Avatar className="h-12 w-12 border border-slate-800 bg-slate-950/60">
+                      <Avatar className="h-12 w-12 border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/60">
                         {university.logo_url ? (
                           <AvatarImage src={university.logo_url} alt={university.name ?? "University logo"} />
                         ) : null}
-                        <AvatarFallback className="bg-slate-800 text-slate-200">
+                        <AvatarFallback className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                           {initials}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <p className="text-base font-medium text-slate-100">
+                          <p className="text-base font-medium text-slate-900 dark:text-slate-100">
                             {university.name ?? "Unnamed university"}
                           </p>
                           <p className="text-xs uppercase tracking-wide text-slate-500">
@@ -520,9 +520,9 @@ const UniversityOverviewCard = ({
                           </p>
                         </div>
                         {profileDetails.tagline ? (
-                          <p className="text-sm text-slate-300">{profileDetails.tagline}</p>
+                          <p className="text-sm text-slate-600 dark:text-slate-300">{profileDetails.tagline}</p>
                         ) : null}
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                           <span className="inline-flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
                             {[university.city, university.country].filter(Boolean).join(", ") || "Location unavailable"}
@@ -544,11 +544,11 @@ const UniversityOverviewCard = ({
                     </div>
                   </div>
                   {profileDetails.highlights.length > 0 ? (
-                    <div className="grid gap-2 text-xs text-slate-400 sm:grid-cols-2">
+                    <div className="grid gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-2">
                       {profileDetails.highlights.slice(0, 2).map((highlight, index) => (
                         <div
                           key={`${university.id}-highlight-${index}`}
-                          className="rounded-md border border-slate-800/80 bg-slate-950/50 p-3"
+                          className="rounded-md border border-slate-200/80 bg-white/50 p-3 dark:border-slate-800/80 dark:bg-slate-950/50"
                         >
                           {highlight}
                         </div>
@@ -560,13 +560,13 @@ const UniversityOverviewCard = ({
             })}
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild variant="outline" size="sm" className="gap-2 text-blue-300 hover:text-blue-100">
+            <Button asChild variant="outline" size="sm" className="gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-100">
               <Link to="/courses?view=programs">
                 <University className="h-4 w-4" />
                 Search Universities
               </Link>
             </Button>
-            <Button asChild variant="ghost" size="sm" className="gap-2 text-blue-300 hover:text-blue-100">
+            <Button asChild variant="ghost" size="sm" className="gap-2 text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-100">
               <Link to="/universities">
                 <ArrowRight className="h-4 w-4" />
                 View Directory
@@ -623,17 +623,17 @@ const PartnerOverviewPage = () => {
   }
 
   return (
-    <div className="space-y-10 text-slate-100">
-      <header className="space-y-3 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-8 shadow-lg shadow-slate-950/30">
-        <p className="text-sm text-blue-300">{greeting}</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white">Partner Dashboard</h1>
-        <p className="max-w-2xl text-sm text-slate-400">
+    <div className="space-y-10 text-slate-900 dark:text-slate-100">
+      <header className="space-y-3 rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-white p-8 shadow-lg shadow-slate-200/40 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:shadow-slate-950/30">
+        <p className="text-sm text-blue-600 dark:text-blue-300">{greeting}</p>
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">Partner Dashboard</h1>
+        <p className="max-w-2xl text-sm text-slate-500 dark:text-slate-400">
           Monitor applications, documents, and conversion rates in real time.
         </p>
       </header>
 
       {isError && (
-        <Alert variant="destructive" className="border border-red-500/40 bg-red-500/10 text-red-100">
+        <Alert variant="destructive" className="border border-red-300 bg-red-50 text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-100">
           <AlertTitle>Unable to load overview</AlertTitle>
           <AlertDescription className="space-y-4">
             <p>{errorMessage ?? "Something went wrong while fetching your dashboard data."}</p>
@@ -690,11 +690,11 @@ const PartnerOverviewPage = () => {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        <Card className="border border-slate-800 bg-slate-900/60 shadow-lg shadow-slate-950/20 transition hover:border-slate-700 hover:shadow-slate-900/30">
+        <Card className="border border-slate-200 bg-white/80 shadow-lg shadow-slate-200/40 transition hover:border-slate-300 hover:shadow-slate-300/50 dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-slate-950/20 dark:hover:border-slate-700 dark:hover:shadow-slate-900/30">
           <CardHeader className="flex flex-col gap-3 pb-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-100">Recent Applications</CardTitle>
-              <CardDescription className="text-sm text-slate-400">
+              <CardTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Applications</CardTitle>
+              <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
                 The five most recent submissions in your tenant.
               </CardDescription>
             </div>
@@ -719,29 +719,29 @@ const PartnerOverviewPage = () => {
         />
       </section>
 
-      <footer className="rounded-3xl border border-slate-800 bg-slate-900/40 p-6 shadow-inner shadow-slate-950/20">
+      <footer className="rounded-3xl border border-slate-200 bg-slate-50/60 p-6 shadow-inner shadow-slate-100/40 dark:border-slate-800 dark:bg-slate-900/40 dark:shadow-slate-950/20">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1 text-sm text-slate-400">
-            <p className="font-medium text-slate-200">Need assistance?</p>
+          <div className="space-y-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="font-medium text-slate-700 dark:text-slate-200">Need assistance?</p>
             <p>
               Reach the UniDoxia team at{" "}
               <a
                 href="mailto:info@unidoxia.com"
-                className="text-blue-300 hover:text-blue-100 hover:underline"
+                className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-300 dark:hover:text-blue-100"
               >
                 info@unidoxia.com
               </a>
               .
             </p>
           </div>
-          <div className="flex flex-wrap gap-4 text-sm text-blue-300">
-            <Link to="/courses?view=programs" className="hover:text-blue-100 hover:underline">
+          <div className="flex flex-wrap gap-4 text-sm text-blue-600 dark:text-blue-300">
+            <Link to="/courses?view=programs" className="hover:text-blue-700 hover:underline dark:hover:text-blue-100">
               Search Universities
             </Link>
-            <Link to="/blog" className="hover:text-blue-100 hover:underline">
+            <Link to="/blog" className="hover:text-blue-700 hover:underline dark:hover:text-blue-100">
               Blog
             </Link>
-            <Link to="/visa-calculator" className="hover:text-blue-100 hover:underline">
+            <Link to="/visa-calculator" className="hover:text-blue-700 hover:underline dark:hover:text-blue-100">
               Visa Calculator
             </Link>
           </div>
