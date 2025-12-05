@@ -12,6 +12,7 @@ import {
   MapPin,
   Mail,
   Globe,
+  ClipboardList,
 } from "lucide-react";
 import {
   Card,
@@ -106,6 +107,7 @@ type UniversityOverviewRow = {
   name: string | null;
   country: string | null;
   city: string | null;
+  code: string | null;
   created_at: string | null;
   logo_url?: string | null;
   website?: string | null;
@@ -258,7 +260,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .limit(5),
     supabase
       .from("universities")
-      .select("id, name, country, city, created_at, logo_url, website, submission_config_json")
+      .select("id, name, country, city, code, created_at, logo_url, website, submission_config_json")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(3),
@@ -512,9 +514,14 @@ const UniversityOverviewCard = ({
                       </Avatar>
                       <div className="flex-1 space-y-2">
                         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <p className="text-base font-medium text-slate-900 dark:text-slate-100">
-                            {university.name ?? "Unnamed university"}
-                          </p>
+                          <div>
+                            <p className="text-base font-medium text-slate-900 dark:text-slate-100">
+                              {university.name ?? "Unnamed university"}
+                            </p>
+                            {university.code && (
+                              <p className="text-xs font-mono text-blue-600 dark:text-blue-400">{university.code}</p>
+                            )}
+                          </div>
                           <p className="text-xs uppercase tracking-wide text-slate-500">
                             Added {formatDate(university.created_at)}
                           </p>
@@ -654,7 +661,14 @@ const PartnerOverviewPage = () => {
         </Alert>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <SummaryCard
+          title="Total Applications"
+          description="Received via UniDoxia"
+          value={numberFormatter.format(data?.summary.totalApplications ?? 0)}
+          icon={ClipboardList}
+          loading={isLoading && !data}
+        />
         <SummaryCard
           title="Active Applications"
           description="Currently in progress"
