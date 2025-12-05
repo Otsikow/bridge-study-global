@@ -12,10 +12,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider defaultOpen>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="bg-gradient-subtle">
-          <div className="flex flex-1 flex-col overflow-hidden">
+        <SidebarInset className="bg-gradient-subtle min-w-0">
+          <div className="flex flex-1 min-w-0 flex-col overflow-hidden">
             <SidebarToolbar />
-            <main className="flex-1 animate-fade-in overflow-y-auto">
+            <main className="flex-1 min-w-0 animate-fade-in overflow-y-auto">
               <div className="page-shell py-4 sm:py-6 lg:py-8">{children}</div>
             </main>
             <AppFooter />
