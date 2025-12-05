@@ -405,11 +405,15 @@ const fetchUniversityDashboardData = async (
   let applications: UniversityApplication[] = [];
 
   if (programIds.length > 0) {
+    // Defense-in-depth: filter by both program_id AND tenant_id
+    // This ensures that even if programIds somehow contained IDs from other tenants,
+    // we would only return applications belonging to this university's tenant
     const { data: applicationsRes, error: applicationsError } = await supabase
       .from("applications")
       .select(
         "id, app_number, status, created_at, program_id, student_id, updated_at",
       )
+      .eq("tenant_id", tenantId)
       .in("program_id", programIds)
       .order("created_at", { ascending: false });
 
@@ -432,9 +436,12 @@ const fetchUniversityDashboardData = async (
     >();
 
     if (studentIds.length > 0) {
+      // Defense-in-depth: filter by tenant_id to ensure we only see students
+      // belonging to this university's tenant
       const { data: studentsData, error: studentsError } = await supabase
         .from("students")
         .select("id, legal_name, nationality")
+        .eq("tenant_id", tenantId)
         .in("id", studentIds);
 
       if (studentsError) {
@@ -505,9 +512,12 @@ const fetchUniversityDashboardData = async (
     );
 
     if (studentIds.length > 0) {
+      // Defense-in-depth: filter by tenant_id to ensure we only see students
+      // belonging to this university's tenant
       const { data: docStudents, error: docStudentsError } = await supabase
         .from("students")
         .select("id, legal_name, preferred_name")
+        .eq("tenant_id", tenantId)
         .in("id", studentIds);
 
       if (docStudentsError) {
@@ -530,9 +540,12 @@ const fetchUniversityDashboardData = async (
 
   const agents: UniversityAgent[] = await Promise.all(
     (agentsRes.data ?? []).map(async (agent: any) => {
+      // Defense-in-depth: filter by tenant_id to ensure we only count applications
+      // belonging to this university's tenant
       const { count, error: countError } = await supabase
         .from("applications")
         .select("id", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
         .eq("agent_id", agent.id);
 
       if (countError) {

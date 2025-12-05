@@ -935,10 +935,13 @@ const ProgramsPage = () => {
   const handleToggleActive = async (programId: string, nextActive: boolean) => {
     try {
       setUpdatingId(programId);
+      // Defense-in-depth: filter by tenant_id to ensure we only update
+      // programmes belonging to this university's tenant
       const { error } = await supabase
         .from("programs")
         .update({ active: nextActive })
-        .eq("id", programId);
+        .eq("id", programId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
@@ -1054,10 +1057,13 @@ const ProgramsPage = () => {
     try {
       setIsSubmitting(true);
       const payload = buildPayloadFromForm(values);
+      // Defense-in-depth: filter by tenant_id to ensure we only update
+      // programmes belonging to this university's tenant
       const { error } = await supabase
         .from("programs")
         .update(payload)
-        .eq("id", editingProgram.id);
+        .eq("id", editingProgram.id)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
@@ -1090,7 +1096,13 @@ const ProgramsPage = () => {
     try {
       setIsSubmitting(true);
       const programToDelete = programs.find((program) => program.id === deletingId) ?? null;
-      const { error } = await supabase.from("programs").delete().eq("id", deletingId);
+      // Defense-in-depth: filter by tenant_id to ensure we only delete
+      // programmes belonging to this university's tenant
+      const { error } = await supabase
+        .from("programs")
+        .delete()
+        .eq("id", deletingId)
+        .eq("tenant_id", tenantId);
 
       if (error) {
         throw error;
