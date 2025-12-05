@@ -401,6 +401,7 @@ const App = () => {
                           <Route path="universities" element={<AdminUniversitiesPage />} />
                           <Route path="admissions" element={<AdminAdmissions />} />
                           <Route path="agents" element={<AdminAgentsPage />} />
+                          <Route path="programmes" element={<Navigate to="/admin/programs" replace />} />
                           <Route path="programs" element={<AdminProgramsPage />} />
                           <Route path="payments" element={<AdminPaymentsPage />} />
                           <Route path="partners" element={<AdminPartnersPage />} />
