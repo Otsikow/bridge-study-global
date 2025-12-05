@@ -8,8 +8,10 @@ import {
 } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Sparkles, Loader2 } from 'lucide-react';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import AdminTrackingPanel from '@/components/admin/AdminTrackingPanel';
 
 interface OverviewTabProps {
   metrics: {
@@ -455,6 +457,10 @@ export default function OverviewTab({ metrics, loading }: OverviewTabProps) {
         </Card>
 
       </div>
+
+      {/* Tracking Dashboard Section */}
+      <Separator className="my-8" />
+      <AdminTrackingPanel />
     </div>
   );
 }
