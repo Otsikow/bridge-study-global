@@ -121,6 +121,7 @@ export default function UniversityProfile() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<string>("about");
 
   useEffect(() => {
     if (id) {
@@ -282,7 +283,7 @@ export default function UniversityProfile() {
       </div>
 
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <Tabs defaultValue="about" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="about">
               <BookOpen className="h-4 w-4 mr-2" />
@@ -339,20 +340,26 @@ export default function UniversityProfile() {
                 <CardTitle>Quick Stats</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+                <button
+                  onClick={() => setActiveTab("programs")}
+                  className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer text-left w-full"
+                >
                   <GraduationCap className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-2xl font-bold">{programs.length}</p>
                     <p className="text-sm text-muted-foreground">Programs Offered</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
+                </button>
+                <button
+                  onClick={() => setActiveTab("scholarships")}
+                  className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer text-left w-full"
+                >
                   <Award className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-2xl font-bold">{scholarships.length}</p>
                     <p className="text-sm text-muted-foreground">Scholarships Available</p>
                   </div>
-                </div>
+                </button>
                 <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
                   <MapPin className="h-8 w-8 text-primary" />
                   <div>
