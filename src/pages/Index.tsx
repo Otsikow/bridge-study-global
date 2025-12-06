@@ -188,22 +188,53 @@ const Index = () => {
 
       <LandingHeader />
 
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-16">
-        <div className="container mx-auto px-4 py-24 text-center">
+      {/* HERO VIDEO SECTION */}
+      <section className="hero-video-container">
+        {/* Background Video */}
+        <video
+          className="hero-video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/videos/hero-poster.jpg"
+        >
+          <source src="/videos/hero-video.mp4" type="video/mp4" />
+        </video>
+
+        {/* Dark Overlay */}
+        <div className="hero-video-overlay" />
+
+        {/* Content */}
+        <div className="hero-content">
+          {/* Logo at top */}
           <img
             src={unidoxiaLogo}
             alt="UniDoxia logo"
-            className="mx-auto mb-8 h-96 w-auto rounded-lg object-contain drop-shadow-lg dark:brightness-0 dark:invert"
+            className="hero-logo mb-8 h-24 w-auto sm:h-32 md:h-40 opacity-50 drop-shadow-2xl brightness-0 invert"
           />
 
-          <h1 className="text-5xl font-bold mb-4">
+          {/* Main Text */}
+          <h1 className="hero-text text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-lg">
+            Apply{" "}
+            <span className="text-white/90">•</span>{" "}
+            Get Your Visa{" "}
+            <span className="text-white/90">•</span>{" "}
+            Study Abroad
+          </h1>
+        </div>
+      </section>
+
+      {/* CTA CARDS SECTION */}
+      <section className="relative bg-gradient-to-b from-background to-muted/20 py-16 sm:py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             {heroTitleParts.prefix}{" "}
             <span className="text-primary">{heroTitleParts.highlight}</span>
             {heroTitleParts.suffix ? ` ${heroTitleParts.suffix}` : ""}
-          </h1>
+          </h2>
 
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-12">
             {heroDescription}
           </p>
 
