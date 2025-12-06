@@ -107,7 +107,6 @@ type UniversityOverviewRow = {
   name: string | null;
   country: string | null;
   city: string | null;
-  code: string | null;
   created_at: string | null;
   logo_url?: string | null;
   website?: string | null;
@@ -260,7 +259,7 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
       .limit(5),
     supabase
       .from("universities")
-      .select("id, name, country, city, code, created_at, logo_url, website, submission_config_json")
+      .select("id, name, country, city, created_at, logo_url, website, submission_config_json")
       .eq("tenant_id", tenantId)
       .order("created_at", { ascending: false })
       .limit(3),
@@ -282,13 +281,17 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
   const offersReceived = offersResponse.count ?? 0;
   const conversionRate = totalApplications === 0 ? 0 : offersReceived / totalApplications;
 
-  const universityRows = (universitiesResponse.data ?? []).map((university) => {
-    const uni = university as Record<string, unknown>;
-    return {
-      ...uni,
-      profileDetails: parseUniversityProfileDetails(uni.submission_config_json ?? null),
-    };
-  });
+  const universityRows: UniversityOverviewRow[] = (universitiesResponse.data ?? []).map((university) => ({
+    id: university.id,
+    name: university.name,
+    country: university.country,
+    city: university.city,
+    created_at: university.created_at,
+    logo_url: university.logo_url,
+    website: university.website,
+    submission_config_json: university.submission_config_json,
+    profileDetails: parseUniversityProfileDetails(university.submission_config_json ?? null),
+  }));
 
   return {
     summary: {
@@ -519,9 +522,6 @@ const UniversityOverviewCard = ({
                             <p className="text-base font-medium text-slate-900 dark:text-slate-100">
                               {university.name ?? "Unnamed university"}
                             </p>
-                            {university.code && (
-                              <p className="text-xs font-mono text-blue-600 dark:text-blue-400">{university.code}</p>
-                            )}
                           </div>
                           <p className="text-xs uppercase tracking-wide text-slate-500">
                             Added {formatDate(university.created_at)}
