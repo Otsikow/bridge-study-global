@@ -286,47 +286,96 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       let tenant = null;
 
-      if (metadataTenantId) {
-        tenant = await resolveTenantById(metadataTenantId);
-      }
-
-      if (!tenant && metadataTenantSlug) {
-        tenant = await resolveTenantBySlug(metadataTenantSlug);
-      }
-
-      if (!tenant && shouldIsolateTenant) {
-        tenant = await createIsolatedTenant();
-      }
-
-      if (!tenant && DEFAULT_TENANT_SLUG) {
-        tenant = await resolveTenantBySlug(DEFAULT_TENANT_SLUG);
-      }
-
-      if (!tenant) {
-        console.error('No tenant found, creating default tenant...');
-        const { data: newTenant, error: tenantError } = await supabase
-          .from('tenants')
-          .insert({
-            name: 'Default Tenant',
-            slug: generateTenantSlug(DEFAULT_TENANT_SLUG || 'default'),
-            email_from: 'noreply@example.com',
-            active: true,
-          })
-          .select()
-          .single();
-
-        if (tenantError) {
-          console.error('Error creating tenant:', tenantError);
-          return;
+      // CRITICAL: For partner roles, we MUST create an isolated tenant
+      // Do not fall back to shared tenants for partners - this prevents data leakage
+      if (shouldIsolateTenant) {
+        // First, try user-specified tenant from metadata
+        if (metadataTenantId) {
+          tenant = await resolveTenantById(metadataTenantId);
+        }
+        
+        if (!tenant && metadataTenantSlug) {
+          tenant = await resolveTenantBySlug(metadataTenantSlug);
+        }
+        
+        // If no pre-existing tenant, create an isolated one
+        if (!tenant) {
+          tenant = await createIsolatedTenant();
+          
+          // If isolated tenant creation failed, retry with a more unique slug
+          if (!tenant) {
+            console.warn('First tenant creation attempt failed, retrying with unique ID...');
+            const retrySlug = `university-${crypto.randomUUID()}`;
+            const { data: retryTenant, error: retryError } = await supabase
+              .from('tenants')
+              .insert({
+                name: user.user_metadata?.full_name || 'University Partner',
+                slug: retrySlug,
+                email_from: user.email || 'noreply@example.com',
+                active: true,
+              })
+              .select()
+              .single();
+            
+            if (retryError) {
+              console.error('CRITICAL: Failed to create isolated tenant for partner after retry:', retryError);
+              // For partners, we MUST NOT proceed without an isolated tenant
+              // This prevents the mirroring issue where all partners share the same data
+              throw new Error('Failed to create isolated tenant for university partner. Please contact support.');
+            }
+            
+            tenant = retryTenant;
+          }
+        }
+        
+        if (!tenant) {
+          console.error('CRITICAL: Partner account could not be assigned an isolated tenant');
+          throw new Error('Failed to set up university partner account. Please try again or contact support.');
+        }
+        
+        console.log('Isolated tenant created/resolved for partner:', tenant.id, tenant.slug);
+      } else {
+        // For non-partner roles (students, agents), use standard tenant resolution
+        if (metadataTenantId) {
+          tenant = await resolveTenantById(metadataTenantId);
         }
 
-        tenant = newTenant;
+        if (!tenant && metadataTenantSlug) {
+          tenant = await resolveTenantBySlug(metadataTenantSlug);
+        }
+
+        if (!tenant && DEFAULT_TENANT_SLUG) {
+          tenant = await resolveTenantBySlug(DEFAULT_TENANT_SLUG);
+        }
+
+        if (!tenant) {
+          console.log('No tenant found for non-partner role, creating default tenant...');
+          const { data: newTenant, error: tenantError } = await supabase
+            .from('tenants')
+            .insert({
+              name: 'Default Tenant',
+              slug: generateTenantSlug(DEFAULT_TENANT_SLUG || 'default'),
+              email_from: 'noreply@example.com',
+              active: true,
+            })
+            .select()
+            .single();
+
+          if (tenantError) {
+            console.error('Error creating tenant:', tenantError);
+            return;
+          }
+
+          tenant = newTenant;
+        }
       }
 
       if (shouldIsolateTenant) {
+        // CRITICAL: Verify this tenant doesn't already have a university from another account
+        // This is a safety check to prevent data leakage
         const { data: existingUniversity, error: existingUniError } = await supabase
           .from('universities')
-          .select('id, tenant_id')
+          .select('id, tenant_id, name')
           .eq('tenant_id', tenant.id)
           .maybeSingle();
 
@@ -334,18 +383,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error checking existing university for tenant:', existingUniError);
         }
 
-        if (!existingUniversity) {
+        if (existingUniversity) {
+          // A university already exists for this tenant - this should NOT happen for new partner signups
+          // This indicates the tenant was reused (which is a bug) or user is re-registering
+          console.warn(
+            `University already exists for tenant ${tenant.id}: ${existingUniversity.name}. ` +
+            `This may indicate tenant reuse. University ID: ${existingUniversity.id}`
+          );
+        } else {
+          // Create a new isolated university for this partner
           const universityName =
-            typeof user.user_metadata?.university_name === 'string'
-              ? user.user_metadata.university_name
-              : `${username || 'University'} Partner`;
+            typeof user.user_metadata?.university_name === 'string' &&
+            user.user_metadata.university_name.trim()
+              ? user.user_metadata.university_name.trim()
+              : user.user_metadata?.full_name
+                ? `${user.user_metadata.full_name}'s University`
+                : `University Partner ${new Date().toISOString().slice(0, 10)}`;
 
           const country =
             typeof user.user_metadata?.country === 'string' && user.user_metadata.country.trim()
               ? user.user_metadata.country
               : 'Unknown';
 
-          const { error: universityError } = await supabase
+          console.log(`Creating new university "${universityName}" for tenant ${tenant.id}`);
+
+          const { data: newUniversity, error: universityError } = await supabase
             .from('universities')
             .insert({
               name: universityName,
@@ -353,13 +415,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               city: null,
               website: user.user_metadata?.website || null,
               logo_url: null,
-              description: null,
+              description: `Welcome to ${universityName}. Please update your profile to showcase your institution.`,
               tenant_id: tenant.id,
               active: true,
-            });
+            })
+            .select('id, name')
+            .single();
 
           if (universityError) {
-            console.error('Error creating isolated university profile:', universityError);
+            console.error('CRITICAL: Error creating isolated university profile:', universityError);
+            // This is a critical error - the partner won't have a university to manage
+            // Log details for debugging
+            console.error('University creation details:', {
+              tenantId: tenant.id,
+              universityName,
+              country,
+              error: universityError.message,
+              code: universityError.code,
+            });
+          } else {
+            console.log(`Successfully created university "${newUniversity.name}" (ID: ${newUniversity.id}) for tenant ${tenant.id}`);
           }
         }
       }
