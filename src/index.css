@@ -498,6 +498,80 @@ All colors MUST be HSL.
     box-shadow: 0 0 14px var(--beam-glow);
   }
 
+  /* Hero Video Section */
+  .hero-video-container {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .hero-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    z-index: 0;
+  }
+
+  .hero-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      hsl(0 0% 0% / 0.25) 0%,
+      hsl(0 0% 0% / 0.4) 50%,
+      hsl(0 0% 0% / 0.5) 100%
+    );
+    z-index: 1;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  .hero-logo {
+    opacity: 0;
+    animation: heroFadeIn 1s ease-out 0.2s forwards;
+  }
+
+  .hero-text {
+    opacity: 0;
+    animation: heroFadeIn 0.8s ease-out 0.6s forwards;
+  }
+
+  @keyframes heroFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+
   /* Graceful fallback when clip-path animations are unavailable */
   @supports not (clip-path: inset(10% 10%)) {
     .button-border-beam::after {
