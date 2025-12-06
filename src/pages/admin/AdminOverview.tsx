@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,7 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { useNavigate } from "react-router-dom";
 
 /* -------------------------------------------------------------------------- */
 /* ✅ KPI Configuration                                                      */
@@ -51,6 +52,15 @@ const KPI_CONFIG = [
   },
   { key: "pendingVerifications", labelKey: "admin.overview.kpis.pendingVerifications", defaultLabel: "Pending Verifications" },
 ] as const;
+
+const KPI_DESTINATIONS: Partial<Record<(typeof KPI_CONFIG)[number]["key"], string>> = {
+  totalStudents: "/admin/users",
+  totalAgents: "/admin/agents",
+  totalUniversities: "/admin/universities",
+  activeApplications: "/admin/admissions",
+  totalCommissionPaid: "/admin/payments",
+  pendingVerifications: "/admin/agents",
+};
 
 /* -------------------------------------------------------------------------- */
 /* ✅ Utility Functions                                                      */
@@ -108,6 +118,7 @@ const AdminOverview = () => {
   const { profile } = useAuth();
   const tenantId = profile?.tenant_id;
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const translate = useCallback(
     (key: string, defaultValue: string, options?: Record<string, unknown>) =>
       t(key, { defaultValue, ...options }),
@@ -183,8 +194,32 @@ const AdminOverview = () => {
           'format' in item && item.format === "currency"
             ? formatValue(value, "currency", metricsQuery.data?.currency, i18n.language)
             : formatValue(value, undefined, undefined, i18n.language);
+        const destination = KPI_DESTINATIONS[item.key];
+        const interactive = Boolean(destination);
+        const navigateToDestination = () => {
+          if (destination) navigate(destination);
+        };
+        const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+          if (!interactive) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            navigateToDestination();
+          }
+        };
         return (
-          <Card key={item.key}>
+          <Card
+            key={item.key}
+            role={interactive ? "button" : undefined}
+            tabIndex={interactive ? 0 : undefined}
+            aria-label={interactive ? translate(item.labelKey, item.defaultLabel) : undefined}
+            onClick={navigateToDestination}
+            onKeyDown={handleKeyDown}
+            className={cn(
+              interactive
+                ? "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                : undefined,
+            )}
+          >
             <CardHeader className="p-3 sm:p-4 pb-1 sm:pb-2 flex flex-row items-start justify-between gap-1">
               <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground leading-tight">
                 {t(item.labelKey, { defaultValue: item.defaultLabel })}
