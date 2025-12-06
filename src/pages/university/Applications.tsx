@@ -363,7 +363,9 @@ const ApplicationsPage = () => {
             `,
             { count: "exact" },
           )
-          // ISOLATION: Filter by university_id to ensure only this university's applications are shown
+          // ISOLATION: Filter by both tenant_id AND university_id to ensure complete data isolation
+          // Defense in depth: even if program.university_id filter fails, tenant_id ensures isolation
+          .eq("tenant_id", tenantId)
           .eq("program.university_id", universityId)
           .not("submitted_at", "is", null)
           .neq("status", "draft");

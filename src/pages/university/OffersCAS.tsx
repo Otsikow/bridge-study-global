@@ -157,7 +157,7 @@ const resolveUniversityId = (
   );
 };
 
-const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[]> => {
+const fetchOffersAndCas = async (universityId: string, tenantId: string | null): Promise<ProcessedRecord[]> => {
   if (!universityId) {
     return [];
   }
@@ -209,12 +209,16 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
     )
   `;
 
+  // ISOLATION: Filter by university_id at the database level for performance and security
   const fetchCasLetters = async (): Promise<CasRow[]> => {
-    const casLettersResponse = await (supabase as any)
+    let casQuery = (supabase as any)
       .from("cas_letters")
       .select(casSelect)
+      .eq("university_id", universityId)
       .order("issue_date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false, nullsFirst: false });
+
+    const casLettersResponse = await casQuery;
 
     if (casLettersResponse.error) {
       const errorCode = (casLettersResponse.error as { code?: string }).code;
@@ -225,6 +229,7 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
         const fallbackResponse = await (supabase as any)
           .from("cas_loa")
           .select(casSelect)
+          .eq("university_id", universityId)
           .order("issue_date", { ascending: false, nullsFirst: false })
           .order("created_at", { ascending: false, nullsFirst: false });
 
@@ -240,10 +245,12 @@ const fetchOffersAndCas = async (universityId: string): Promise<ProcessedRecord[
     return (casLettersResponse.data ?? []) as unknown as CasRow[];
   };
 
+  // ISOLATION: Filter by university_id at the database level
   const [offersResponse, casLetters] = await Promise.all([
     (supabase as any)
       .from("offers")
       .select(offerSelect)
+      .eq("university_id", universityId)
       .order("created_at", { ascending: false, nullsFirst: false }),
     fetchCasLetters(),
   ]);
@@ -338,6 +345,8 @@ const OffersCASPage = () => {
   const { data } = useUniversityDashboard();
   const { toast } = useToast();
   const universityId = data?.university?.id ?? "";
+  // ISOLATION: Include tenant_id for defense-in-depth data isolation
+  const tenantId = data?.university?.tenant_id ?? null;
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -348,9 +357,9 @@ const OffersCASPage = () => {
     error,
     refetch,
   } = useQuery<ProcessedRecord[], Error>({
-    queryKey: ["university-offers-cas", universityId],
+    queryKey: ["university-offers-cas", universityId, tenantId],
     enabled: Boolean(universityId),
-    queryFn: () => fetchOffersAndCas(universityId),
+    queryFn: () => fetchOffersAndCas(universityId, tenantId),
     staleTime: 1000 * 60 * 5,
   });
 
