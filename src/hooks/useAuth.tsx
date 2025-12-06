@@ -205,6 +205,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ? user.user_metadata.tenant_slug
         : null;
 
+      const role = user.user_metadata?.role || 'student';
+
+      const shouldIsolateTenant = ['partner', 'school_rep', 'admin', 'staff'].includes(role);
+
+      const generateTenantSlug = (base: string) => {
+        const normalizedBase = base
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)+/g, '')
+          .slice(0, 40);
+
+        const seed = normalizedBase || 'tenant';
+        return `${seed}-${crypto.randomUUID().slice(0, 8)}`;
+      };
+
+      const createIsolatedTenant = async () => {
+        const nameSeed =
+          typeof user.user_metadata?.university_name === 'string'
+            ? user.user_metadata.university_name
+            : typeof user.user_metadata?.company === 'string'
+              ? user.user_metadata.company
+              : user.user_metadata?.full_name || 'University Partner';
+
+        const slugSeed =
+          typeof user.user_metadata?.university_slug === 'string'
+            ? user.user_metadata.university_slug
+            : user.email?.split('@')[1]?.split('.')[0] || nameSeed;
+
+        const tenantSlug = generateTenantSlug(slugSeed || 'tenant');
+
+        const { data: newTenant, error: tenantError } = await supabase
+          .from('tenants')
+          .insert({
+            name: nameSeed,
+            slug: tenantSlug,
+            email_from: user.email || 'noreply@example.com',
+            active: true,
+          })
+          .select()
+          .single();
+
+        if (tenantError) {
+          console.error('Error creating isolated tenant:', tenantError);
+          return null;
+        }
+
+        return newTenant;
+      };
+
       const resolveTenantById = async (tenantId: string) => {
         const { data, error } = await supabase
           .from('tenants')
@@ -245,6 +294,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         tenant = await resolveTenantBySlug(metadataTenantSlug);
       }
 
+      if (!tenant && shouldIsolateTenant) {
+        tenant = await createIsolatedTenant();
+      }
+
       if (!tenant && DEFAULT_TENANT_SLUG) {
         tenant = await resolveTenantBySlug(DEFAULT_TENANT_SLUG);
       }
@@ -255,7 +308,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .from('tenants')
           .insert({
             name: 'Default Tenant',
-            slug: DEFAULT_TENANT_SLUG || 'default',
+            slug: generateTenantSlug(DEFAULT_TENANT_SLUG || 'default'),
             email_from: 'noreply@example.com',
             active: true,
           })
@@ -268,6 +321,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         tenant = newTenant;
+      }
+
+      if (shouldIsolateTenant) {
+        const { data: existingUniversity, error: existingUniError } = await supabase
+          .from('universities')
+          .select('id, tenant_id')
+          .eq('tenant_id', tenant.id)
+          .maybeSingle();
+
+        if (existingUniError) {
+          console.error('Error checking existing university for tenant:', existingUniError);
+        }
+
+        if (!existingUniversity) {
+          const universityName =
+            typeof user.user_metadata?.university_name === 'string'
+              ? user.user_metadata.university_name
+              : `${username || 'University'} Partner`;
+
+          const country =
+            typeof user.user_metadata?.country === 'string' && user.user_metadata.country.trim()
+              ? user.user_metadata.country
+              : 'Unknown';
+
+          const { error: universityError } = await supabase
+            .from('universities')
+            .insert({
+              name: universityName,
+              country,
+              city: null,
+              website: user.user_metadata?.website || null,
+              logo_url: null,
+              description: null,
+              tenant_id: tenant.id,
+              active: true,
+            });
+
+          if (universityError) {
+            console.error('Error creating isolated university profile:', universityError);
+          }
+        }
       }
 
       const { error: profileError } = await supabase.from('profiles').insert({
