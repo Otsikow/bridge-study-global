@@ -274,14 +274,14 @@ export default function AgentDashboardOverview() {
       try {
         const { data: agentData } = await supabase
           .from("agents")
-          .select("id")
+          .select("id, tenant_id")
           .eq("profile_id", agentProfileId)
           .maybeSingle();
 
         if (!agentData?.id) return;
 
         // Check for existing referral
-        const { data: refData, error: refError } = await supabase
+        const { data: refData } = await supabase
           .from("referrals")
           .select("code")
           .eq("agent_id", agentData.id)
@@ -301,6 +301,7 @@ export default function AgentDashboardOverview() {
         const { error: insertError } = await supabase.from("referrals").insert({
           code: newCode,
           agent_id: agentData.id,
+          tenant_id: agentData.tenant_id,
           active: true,
         });
 

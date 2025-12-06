@@ -183,14 +183,14 @@ export default function StaffReports() {
         .from('applications')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
-        .in('status', ['enrolled', 'rejected', 'withdrawn'])
+        .in('status', ['enrolled', 'withdrawn'])
         .gte('updated_at', formatISO(startDate));
 
       const { count: previousCompletedTasks } = await supabase
         .from('applications')
         .select('id', { count: 'exact', head: true })
         .eq('tenant_id', tenantId)
-        .in('status', ['enrolled', 'rejected', 'withdrawn'])
+        .in('status', ['enrolled', 'withdrawn'])
         .gte('updated_at', formatISO(previousStart))
         .lt('updated_at', formatISO(previousEnd));
 
@@ -199,7 +199,7 @@ export default function StaffReports() {
         .from('applications')
         .select('created_at, updated_at, status')
         .eq('tenant_id', tenantId)
-        .in('status', ['conditional_offer', 'unconditional_offer', 'enrolled', 'rejected']);
+        .in('status', ['conditional_offer', 'unconditional_offer', 'enrolled', 'withdrawn']);
 
       let avgDays = 3.2;
       if (processedApps && processedApps.length > 0) {
