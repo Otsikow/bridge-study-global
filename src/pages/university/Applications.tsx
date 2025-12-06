@@ -472,7 +472,7 @@ const ApplicationsPage = () => {
               updated_at,
               created_at,
               app_number,
-              application_source,
+              submission_channel,
               notes,
               internal_notes,
               timeline_json,
@@ -1168,12 +1168,12 @@ const ApplicationsPage = () => {
                               #{application.app_number}
                             </Badge>
                           )}
-                          {application.application_source && (
+                          {application.submission_channel && (
                             <Badge
                               variant="secondary"
                               className="text-[10px]"
                             >
-                              {application.application_source}
+                              {application.submission_channel}
                             </Badge>
                           )}
                         </div>
@@ -1358,9 +1358,9 @@ const ApplicationsPage = () => {
                             #{selectedApplication.app_number}
                           </Badge>
                         )}
-                        {selectedApplication.application_source && (
+                        {selectedApplication.submission_channel && (
                           <Badge variant="default" className="text-xs">
-                            Source: {selectedApplication.application_source}
+                            Source: {selectedApplication.submission_channel}
                           </Badge>
                         )}
                         <Badge variant="outline" className="text-xs">
