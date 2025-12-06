@@ -1,0 +1,593 @@
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Upload, Image as ImageIcon, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { withUniversitySurfaceTint } from "@/components/university/common/cardStyles";
+
+const monthFormatter = new Intl.DateTimeFormat(undefined, { month: "short" });
+
+export const INTAKE_MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => {
+  const value = index + 1;
+  return { value, label: monthFormatter.format(new Date(2000, index, 1)) };
+});
+
+const CURRENCY_OPTIONS = ["USD", "CAD", "GBP", "EUR", "AUD", "NZD", "SGD"];
+
+const PROGRAM_IMAGE_BUCKET = "university-media";
+const PROGRAM_IMAGE_FOLDER = "program-images";
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+const optionalImageUrlSchema = z
+  .string()
+  .trim()
+  .optional()
+  .or(z.literal(""))
+  .refine(
+    (v) => {
+      if (!v) return true;
+      try {
+        const parsed = new URL(v);
+        return parsed.protocol === "http:" || parsed.protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Enter a valid image URL including https://" },
+  )
+  .transform((value) => (value?.trim() ? value.trim() : null));
+
+export const programSchema = z.object({
+  name: z.string().min(2),
+  level: z.string().min(2),
+  discipline: z.string().min(2),
+  durationMonths: z.number().min(1),
+  tuitionCurrency: z.string().min(1),
+  tuitionAmount: z.number().min(0),
+  applicationFee: z.number().min(0).nullable().optional(),
+  seatsAvailable: z.number().min(0).nullable().optional(),
+  ieltsOverall: z.number().min(0).max(9).nullable().optional(),
+  toeflOverall: z.number().min(0).nullable().optional(),
+  intakeMonths: z.array(z.number().int().min(1).max(12)).min(1),
+  entryRequirements: z.string().max(2000).optional(),
+  description: z.string().max(4000).optional(),
+  imageUrl: optionalImageUrlSchema,
+  active: z.boolean(),
+});
+
+export type ProgramFormValues = z.infer<typeof programSchema>;
+
+const extractStorageObject = (url: string | null | undefined) => {
+  if (!url) return null;
+  const match = url.match(/storage\/v1\/object\/public\/([^?]+)/);
+  if (!match) return null;
+
+  const [bucket, ...pathParts] = match[1].split("/");
+  if (!bucket || pathParts.length === 0) return null;
+
+  return { bucket, path: pathParts.join("/") };
+};
+
+interface ProgramFormProps {
+  initialValues: ProgramFormValues;
+  onSubmit: (values: ProgramFormValues) => Promise<void> | void;
+  onCancel: () => void;
+  isSubmitting: boolean;
+  submitLabel: string;
+  levelOptions: string[];
+  tenantId: string | null;
+  userId: string | null;
+}
+
+export default function ProgramForm({
+  initialValues,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+  submitLabel,
+  levelOptions,
+  tenantId,
+  userId,
+}: ProgramFormProps) {
+  const { toast } = useToast();
+  const form = useForm<ProgramFormValues>({
+    resolver: zodResolver(programSchema),
+    defaultValues: initialValues,
+    mode: "onBlur",
+  });
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    form.reset(initialValues);
+  }, [initialValues]);
+
+  const removeImage = async (url: string | null) => {
+    const obj = extractStorageObject(url);
+    if (!obj) return;
+
+    await supabase.storage.from(obj.bucket).remove([obj.path]);
+  };
+
+  const handleFileSelect = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast({
+        variant: "destructive",
+        title: "Invalid file type",
+        description: "Allowed: JPEG, PNG, WebP",
+      });
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Max size 5 MB",
+      });
+      return;
+    }
+
+    if (!tenantId || !userId) {
+      toast({
+        variant: "destructive",
+        title: "Upload error",
+        description: "User or tenant not identified",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const uniqueName = `${tenantId}/${userId}/${Date.now()}.${ext}`;
+      const storagePath = `${PROGRAM_IMAGE_FOLDER}/${uniqueName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(PROGRAM_IMAGE_BUCKET)
+        .upload(storagePath, file, { upsert: false });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from(PROGRAM_IMAGE_BUCKET)
+        .getPublicUrl(storagePath);
+
+      const previousUrl = form.getValues("imageUrl");
+      if (previousUrl) {
+        await removeImage(previousUrl);
+      }
+
+      form.setValue("imageUrl", publicUrlData.publicUrl, { shouldValidate: true });
+
+      toast({ title: "Image uploaded" });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      toast({ variant: "destructive", title: "Upload failed", description: msg });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    const url = form.getValues("imageUrl");
+    if (url) {
+      await removeImage(url);
+    }
+    form.setValue("imageUrl", null, { shouldValidate: true });
+  };
+
+  const imageUrl = form.watch("imageUrl");
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={withUniversitySurfaceTint(
+          "space-y-6 rounded-lg border border-border bg-card p-6 text-card-foreground"
+        )}
+      >
+        {/* Name */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Programme Name</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. MSc Data Science" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Level & Discipline */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="level"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Level</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {levelOptions.map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="discipline"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Discipline</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Computer Science" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Duration & Tuition */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField
+            control={form.control}
+            name="durationMonths"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Duration (months)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={1}
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="tuitionCurrency"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Currency</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="tuitionAmount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tuition Fee</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* App Fee & Seats */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="applicationFee"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Application Fee (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="seatsAvailable"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Seats Available (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* IELTS & TOEFL */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="ieltsOverall"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>IELTS Overall (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    min={0}
+                    max={9}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="toeflOverall"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>TOEFL Overall (optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(e.target.value === "" ? null : Number(e.target.value))
+                    }
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Intake Months */}
+        <FormField
+          control={form.control}
+          name="intakeMonths"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Intake Months</FormLabel>
+              <div className="flex flex-wrap gap-3 pt-1">
+                {INTAKE_MONTH_OPTIONS.map((m) => {
+                  const selected = field.value.includes(m.value);
+                  return (
+                    <label
+                      key={m.value}
+                      className="flex cursor-pointer items-center gap-2 select-none"
+                    >
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={(checked) => {
+                          const next = checked
+                            ? [...field.value, m.value]
+                            : field.value.filter((v) => v !== m.value);
+                          field.onChange(next);
+                        }}
+                      />
+                      <span className="text-sm">{m.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Entry Requirements */}
+        <FormField
+          control={form.control}
+          name="entryRequirements"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Entry Requirements</FormLabel>
+              <FormControl>
+                <Textarea rows={3} placeholder="Minimum qualifications…" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Description */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea rows={4} placeholder="Programme overview…" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Image */}
+        <FormField
+          control={form.control}
+          name="imageUrl"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Programme Image (optional)</FormLabel>
+              <FormDescription>
+                Upload an image or paste a public URL. Max 5 MB.
+              </FormDescription>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="mr-2 h-4 w-4" />
+                    )}
+                    Upload
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_IMAGE_TYPES.join(",")}
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                </div>
+
+                <FormControl>
+                  <Input
+                    placeholder="https://…"
+                    value={field.value ?? ""}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                  />
+                </FormControl>
+                <FormMessage />
+
+                {imageUrl && (
+                  <div className="relative w-40 overflow-hidden rounded-md border border-border bg-muted">
+                    <img
+                      src={imageUrl}
+                      alt="Preview"
+                      className="h-24 w-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/placeholder.svg";
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute right-1 top-1 h-6 w-6 p-0"
+                      onClick={handleRemoveImage}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </FormItem>
+          )}
+        />
+
+        {/* Active */}
+        <FormField
+          control={form.control}
+          name="active"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between rounded-lg border border-border bg-background p-4">
+              <div className="space-y-0.5">
+                <FormLabel className="font-medium">Publish Programme</FormLabel>
+                <FormDescription>
+                  Visible to agents and students in course search.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Switch checked={field.value} onCheckedChange={field.onChange} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : submitLabel}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}

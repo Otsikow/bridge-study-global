@@ -282,12 +282,13 @@ const fetchOverviewData = async (tenantId: string): Promise<OverviewData> => {
   const offersReceived = offersResponse.count ?? 0;
   const conversionRate = totalApplications === 0 ? 0 : offersReceived / totalApplications;
 
-  const universityRows = (universitiesResponse.data ?? []).map((university) => ({
-    ...university,
-    profileDetails: parseUniversityProfileDetails(
-      (university as { submission_config_json?: unknown }).submission_config_json ?? null,
-    ),
-  }));
+  const universityRows = (universitiesResponse.data ?? []).map((university) => {
+    const uni = university as Record<string, unknown>;
+    return {
+      ...uni,
+      profileDetails: parseUniversityProfileDetails(uni.submission_config_json ?? null),
+    };
+  });
 
   return {
     summary: {

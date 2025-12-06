@@ -37,6 +37,7 @@ type UniversityRow = {
   country: string;
   partnership_status: string | null;
   active: boolean | null;
+  city?: string | null;
 };
 
 type ApplicationRow = {
@@ -73,7 +74,7 @@ type UniversityCard = {
   id: string;
   name: string;
   country: string;
-  code: string | null;
+  city: string | null;
   programsOffered: number;
   totalApplications: number;
   submittedApplications: number;
@@ -240,7 +241,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
         id: university.id,
         name: university.name,
         country: university.country,
-        code: university.code,
+        city: university.city ?? null,
         programsOffered: universityPrograms.length,
         totalApplications: universityApplications.length,
         submittedApplications: submittedApplications.length,
@@ -481,8 +482,8 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
                               {university.isActive ? "Active" : "Suspended"}
                             </Badge>
                           </div>
-                          {university.code && (
-                            <p className="text-xs font-mono text-muted-foreground mt-0.5">{university.code}</p>
+                          {university.city && (
+                            <p className="text-xs text-muted-foreground mt-0.5">{university.city}</p>
                           )}
                           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1">
                             <Badge variant="secondary" className="text-[10px] sm:text-xs">{university.programsOffered} programs</Badge>
