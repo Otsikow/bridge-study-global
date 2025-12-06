@@ -101,7 +101,7 @@ const AdminAgents = () => {
       // Fetch commissions per agent
       const { data: commissions } = await supabase
         .from("commissions")
-        .select("agent_id, amount")
+        .select("agent_id, amount_cents")
         .eq("status", "paid");
 
       // Calculate stats per agent
@@ -114,7 +114,7 @@ const AdminAgents = () => {
             agentAppCounts[app.agent_id] = { total: 0, approved: 0 };
           }
           agentAppCounts[app.agent_id].total++;
-          if (app.status === "approved" || app.status === "enrolled") {
+          if (app.status === "enrolled" || app.status === "unconditional_offer") {
             agentAppCounts[app.agent_id].approved++;
           }
         }
@@ -122,7 +122,7 @@ const AdminAgents = () => {
 
       commissions?.forEach((comm) => {
         if (comm.agent_id) {
-          agentRevenue[comm.agent_id] = (agentRevenue[comm.agent_id] || 0) + (comm.amount || 0);
+          agentRevenue[comm.agent_id] = (agentRevenue[comm.agent_id] || 0) + ((comm.amount_cents || 0) / 100);
         }
       });
 

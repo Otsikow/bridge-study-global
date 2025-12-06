@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Loader2, 
   Save, 
@@ -61,6 +60,8 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
   deadline_reminders: true,
 };
 
+const STORAGE_KEY = 'notification_preferences';
+
 const NotificationsTab = ({ profile }: NotificationsTabProps) => {
   const { toast } = useToast();
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
@@ -79,79 +80,27 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
     }
   }, []);
 
-  // Load preferences from database
-  const loadPreferences = useCallback(async () => {
-    if (!profile?.id) return;
-
-    const loadFromStorage = () => {
-      const storageKey = `notification_preferences_${profile.id}`;
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          const merged = { ...DEFAULT_PREFERENCES, ...parsed };
-          setPreferences(merged);
-          setOriginalPreferences(merged);
-        } catch (error) {
-          console.error('Error parsing stored preferences:', error);
-        }
-      }
-    };
+  // Load preferences from localStorage
+  const loadPreferences = useCallback(() => {
+    if (!profile?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      setIsLoading(true);
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .single();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          // No preferences found, create default ones
-          const { data: newData, error: insertError } = await supabase
-            .from('notification_preferences')
-            .insert({ profile_id: profile.id })
-            .select()
-            .single();
-
-          if (!insertError && newData) {
-            const prefs = mapDbToPreferences(newData);
-            setPreferences(prefs);
-            setOriginalPreferences(prefs);
-          }
-        } else {
-          console.error('Error loading notification preferences:', error);
-          // Fall back to localStorage
-          loadFromStorage();
-        }
-      } else if (data) {
-        const prefs = mapDbToPreferences(data);
-        setPreferences(prefs);
-        setOriginalPreferences(prefs);
+      const storageKey = `${STORAGE_KEY}_${profile.id}`;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const merged = { ...DEFAULT_PREFERENCES, ...parsed };
+        setPreferences(merged);
+        setOriginalPreferences(merged);
       }
     } catch (error) {
-      console.error('Error loading preferences:', error);
-      loadFromStorage();
-    } finally {
-      setIsLoading(false);
+      console.error('Error parsing stored preferences:', error);
     }
+    setIsLoading(false);
   }, [profile?.id]);
-
-  const mapDbToPreferences = (data: Record<string, unknown>): NotificationPreferences => ({
-    email_notifications: data.email_notifications as boolean ?? DEFAULT_PREFERENCES.email_notifications,
-    sms_notifications: data.sms_notifications as boolean ?? DEFAULT_PREFERENCES.sms_notifications,
-    marketing_emails: data.marketing_emails as boolean ?? DEFAULT_PREFERENCES.marketing_emails,
-    application_updates: data.application_updates as boolean ?? DEFAULT_PREFERENCES.application_updates,
-    document_reminders: data.document_reminders as boolean ?? DEFAULT_PREFERENCES.document_reminders,
-    push_notifications: data.push_notifications as boolean ?? DEFAULT_PREFERENCES.push_notifications,
-    in_app_notifications: data.in_app_notifications as boolean ?? DEFAULT_PREFERENCES.in_app_notifications,
-    sound_enabled: data.sound_enabled as boolean ?? DEFAULT_PREFERENCES.sound_enabled,
-    browser_notifications: data.browser_notifications as boolean ?? DEFAULT_PREFERENCES.browser_notifications,
-    message_notifications: data.message_notifications as boolean ?? DEFAULT_PREFERENCES.message_notifications,
-    commission_notifications: data.commission_notifications as boolean ?? DEFAULT_PREFERENCES.commission_notifications,
-    deadline_reminders: data.deadline_reminders as boolean ?? DEFAULT_PREFERENCES.deadline_reminders,
-  });
 
   useEffect(() => {
     loadPreferences();
@@ -216,23 +165,10 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
     setIsSaving(true);
 
     try {
-      const { error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          profile_id: profile.id,
-          ...preferences,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'profile_id',
-        });
-
-      if (error) {
-        console.error('Error saving to database:', error);
-        // Fall back to localStorage
-        const storageKey = `notification_preferences_${profile.id}`;
-        localStorage.setItem(storageKey, JSON.stringify(preferences));
-      }
-
+      // Save to localStorage
+      const storageKey = `${STORAGE_KEY}_${profile.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(preferences));
+      
       setOriginalPreferences(preferences);
       toast({
         title: 'Success',
@@ -240,13 +176,10 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
       });
     } catch (error) {
       console.error('Error saving preferences:', error);
-      // Fall back to localStorage
-      const storageKey = `notification_preferences_${profile.id}`;
-      localStorage.setItem(storageKey, JSON.stringify(preferences));
-      
       toast({
-        title: 'Success',
-        description: 'Notification preferences saved.',
+        title: 'Error',
+        description: 'Failed to save notification preferences.',
+        variant: 'destructive',
       });
     } finally {
       setIsSaving(false);
@@ -481,9 +414,9 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="email_notifications">Enable Email Notifications</Label>
+                <Label htmlFor="email_notifications">Email Notifications</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive notifications via email
+                  Receive important updates via email
                 </p>
               </div>
               <Switch
@@ -499,7 +432,7 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
               <div className="space-y-0.5">
                 <Label htmlFor="marketing_emails">Marketing Emails</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive updates about new features and promotions
+                  Receive news, tips, and promotional content
                 </p>
               </div>
               <Switch
@@ -526,59 +459,59 @@ const NotificationsTab = ({ profile }: NotificationsTabProps) => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="sms_notifications">Enable SMS Notifications</Label>
+                <Label htmlFor="sms_notifications">SMS Notifications</Label>
                 <p className="text-sm text-muted-foreground">
-                  Receive important updates via SMS
+                  Receive urgent updates via SMS
                 </p>
+                {!profile.phone && (
+                  <Badge variant="secondary" className="mt-1">
+                    Add phone number in profile to enable
+                  </Badge>
+                )}
               </div>
               <Switch
                 id="sms_notifications"
                 checked={preferences.sms_notifications}
                 onCheckedChange={() => handleToggle('sms_notifications')}
+                disabled={!profile.phone}
               />
             </div>
-
-            {!profile.phone && preferences.sms_notifications && (
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  Please add your phone number in the Profile tab to receive SMS notifications.
-                </p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Submit Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center gap-2">
             {hasChanges ? (
-              <>
-                <span className="h-2 w-2 rounded-full bg-orange-500" />
+              <Badge variant="outline" className="text-orange-600 border-orange-300">
                 Unsaved changes
-              </>
+              </Badge>
             ) : (
-              <>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+              <Badge variant="outline" className="text-green-600 border-green-300">
+                <CheckCircle className="h-3 w-3 mr-1" />
                 All changes saved
-              </>
+              </Badge>
             )}
           </div>
-          <div className="flex gap-2">
-            {hasChanges && (
-              <Button type="button" variant="outline" onClick={handleReset}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Reset
-              </Button>
-            )}
-            <Button type="submit" disabled={isSaving || !hasChanges}>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleReset}
+              disabled={!hasChanges || isSaving}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+            <Button type="submit" disabled={!hasChanges || isSaving}>
               {isSaving ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Saving...
                 </>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" />
+                  <Save className="h-4 w-4 mr-2" />
                   Save Preferences
                 </>
               )}

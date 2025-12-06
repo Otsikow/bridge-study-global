@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface NotificationPreferences {
@@ -39,95 +38,37 @@ export function useNotificationPreferences() {
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
   const [loading, setLoading] = useState(true);
 
-  const loadPreferences = useCallback(async () => {
-    if (!user?.id) {
-      // Load from localStorage as fallback
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setPreferences({ ...DEFAULT_PREFERENCES, ...JSON.parse(stored) });
-        }
-      } catch {
-        // Ignore
-      }
-      setLoading(false);
-      return;
-    }
-
+  const loadPreferences = useCallback(() => {
+    // Load from localStorage (database table not yet created)
     try {
-      const { data, error } = await supabase
-        .from('notification_preferences')
-        .select('*')
-        .eq('profile_id', user.id)
-        .single();
-
-      if (error) {
-        // Fall back to localStorage
-        try {
-          const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) {
-            setPreferences({ ...DEFAULT_PREFERENCES, ...JSON.parse(stored) });
-          }
-        } catch {
-          // Ignore
-        }
-      } else if (data) {
-        const prefs: NotificationPreferences = {
-          email_notifications: data.email_notifications ?? DEFAULT_PREFERENCES.email_notifications,
-          sms_notifications: data.sms_notifications ?? DEFAULT_PREFERENCES.sms_notifications,
-          marketing_emails: data.marketing_emails ?? DEFAULT_PREFERENCES.marketing_emails,
-          application_updates: data.application_updates ?? DEFAULT_PREFERENCES.application_updates,
-          document_reminders: data.document_reminders ?? DEFAULT_PREFERENCES.document_reminders,
-          push_notifications: data.push_notifications ?? DEFAULT_PREFERENCES.push_notifications,
-          in_app_notifications: data.in_app_notifications ?? DEFAULT_PREFERENCES.in_app_notifications,
-          sound_enabled: data.sound_enabled ?? DEFAULT_PREFERENCES.sound_enabled,
-          browser_notifications: data.browser_notifications ?? DEFAULT_PREFERENCES.browser_notifications,
-          message_notifications: data.message_notifications ?? DEFAULT_PREFERENCES.message_notifications,
-          commission_notifications: data.commission_notifications ?? DEFAULT_PREFERENCES.commission_notifications,
-          deadline_reminders: data.deadline_reminders ?? DEFAULT_PREFERENCES.deadline_reminders,
-        };
-        setPreferences(prefs);
+      const storageKey = user?.id ? `${STORAGE_KEY}_${user.id}` : STORAGE_KEY;
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        setPreferences({ ...DEFAULT_PREFERENCES, ...JSON.parse(stored) });
       }
-    } catch (error) {
-      console.error('Error loading notification preferences:', error);
-    } finally {
-      setLoading(false);
+    } catch {
+      // Ignore parsing errors
     }
+    setLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
     loadPreferences();
   }, [loadPreferences]);
 
-  const updatePreference = useCallback(async <K extends keyof NotificationPreferences>(
+  const updatePreference = useCallback(<K extends keyof NotificationPreferences>(
     key: K,
     value: NotificationPreferences[K]
   ) => {
     const newPreferences = { ...preferences, [key]: value };
     setPreferences(newPreferences);
 
-    // Save to localStorage as backup
+    // Save to localStorage
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newPreferences));
+      const storageKey = user?.id ? `${STORAGE_KEY}_${user.id}` : STORAGE_KEY;
+      localStorage.setItem(storageKey, JSON.stringify(newPreferences));
     } catch {
-      // Ignore
-    }
-
-    // Save to database if authenticated
-    if (user?.id) {
-      try {
-        await supabase
-          .from('notification_preferences')
-          .upsert({
-            profile_id: user.id,
-            [key]: value,
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'profile_id',
-          });
-      } catch (error) {
-        console.error('Error saving notification preference:', error);
-      }
+      // Ignore storage errors
     }
   }, [preferences, user?.id]);
 
@@ -146,7 +87,7 @@ export function useNotificationPreferences() {
       case 'document':
         return preferences.document_reminders;
       case 'course_recommendation':
-        return true; // Always show course recommendations if in-app is enabled
+        return true;
       default:
         return true;
     }

@@ -512,9 +512,9 @@ export const useKPIMetrics = (tenantId?: string | null) => {
           .from("applications")
           .select("created_at, updated_at, status")
           .eq("tenant_id", tenantId)
-          .in("status", ["conditional_offer", "unconditional_offer", "enrolled", "rejected"]),
+          .in("status", ["conditional_offer", "unconditional_offer", "enrolled", "withdrawn"]),
         supabase
-          .from("feedback")
+          .from("user_feedback")
           .select("rating")
           .eq("tenant_id", tenantId),
       ]);

@@ -146,7 +146,7 @@ export const useApplicationPipeline = (tenantId?: string | null) => {
           .from("applications")
           .select("submitted_at, updated_at, status")
           .eq("tenant_id", tenantId)
-          .in("status", ["conditional_offer", "unconditional_offer", "enrolled", "rejected"]),
+          .in("status", ["conditional_offer", "unconditional_offer", "enrolled", "withdrawn"]),
       ]);
 
       // Count by status

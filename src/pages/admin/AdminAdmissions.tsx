@@ -79,7 +79,7 @@ interface ApplicationRow {
   submitted_at: string | null;
   created_at: string | null;
   app_number: string | null;
-  application_source: string | null;
+  submission_channel: string | null;
   tenant_id?: string | null;
   student: {
     id: string;
@@ -186,7 +186,7 @@ const AdminAdmissionsOversight = () => {
             submitted_at,
             created_at,
             app_number,
-            application_source,
+            submission_channel,
             tenant_id,
             student:students (
               id,

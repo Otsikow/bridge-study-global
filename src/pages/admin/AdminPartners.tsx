@@ -35,7 +35,6 @@ type UniversityRow = {
   id: string;
   name: string;
   country: string;
-  code: string | null;
   partnership_status: string | null;
   active: boolean | null;
 };
@@ -133,7 +132,7 @@ const AdminPartners = ({ defaultTab = "agents" }: AdminPartnersProps) => {
             .eq("tenant_id", tenantId),
           supabase
             .from("universities")
-            .select("id, name, country, code, partnership_status, active, tenant_id")
+            .select("id, name, country, partnership_status, active, tenant_id")
             .eq("tenant_id", tenantId),
           supabase
             .from("applications")

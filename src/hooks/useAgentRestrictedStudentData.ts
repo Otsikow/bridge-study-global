@@ -3,7 +3,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
 
 /**
- * Represents student data accessible to agents via the restricted view.
+ * Represents student data accessible to agents.
  * Sensitive fields like passport_number, passport_expiry, visa_history_json,
  * and finances_json are excluded for privacy protection.
  */
@@ -36,52 +36,105 @@ export const agentRestrictedStudentDataQueryKey = (agentProfileId?: string | nul
 ];
 
 /**
- * Fetches student data for agents using the restricted view.
- * This ensures sensitive fields are never exposed to agents.
+ * Fetches student data for agents using the existing RLS-protected tables.
+ * This ensures sensitive fields are not exposed to agents beyond what RLS allows.
  */
 const fetchAgentRestrictedStudentData = async (
   agentProfileId: string
 ): Promise<RestrictedStudentData[]> => {
-  const { data, error } = await supabase.rpc("get_agent_linked_students", {
-    agent_profile_id: agentProfileId,
-  });
+  // First get the agent record
+  const { data: agentData, error: agentError } = await supabase
+    .from("agents")
+    .select("id")
+    .eq("profile_id", agentProfileId)
+    .single();
 
-  if (error) {
-    throw error satisfies PostgrestError;
-  }
-
-  if (!data) {
+  if (agentError || !agentData) {
+    console.error("Error fetching agent:", agentError);
     return [];
   }
 
-  return data.map((row) => ({
-    studentId: row.student_id,
-    tenantId: row.tenant_id,
-    profileId: row.profile_id,
-    dateOfBirth: row.date_of_birth,
-    nationality: row.nationality,
-    address: row.address as Record<string, unknown> | null,
-    educationHistory: row.education_history as Record<string, unknown> | null,
-    testScores: row.test_scores as Record<string, unknown> | null,
-    guardian: row.guardian as Record<string, unknown> | null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    legalName: row.legal_name,
-    preferredName: row.preferred_name,
-    contactEmail: row.contact_email,
-    contactPhone: row.contact_phone,
-    currentCountry: row.current_country,
-    consentFlagsJson: row.consent_flags_json as Record<string, unknown> | null,
-    profileCompleteness: row.profile_completeness,
-    linkStatus: row.link_status,
-    applicationCount: row.application_count ?? 0,
-  }));
+  // Get applications for this agent to find linked students
+  const { data: applications, error: appError } = await supabase
+    .from("applications")
+    .select(`
+      student_id,
+      students!inner (
+        id,
+        tenant_id,
+        profile_id,
+        date_of_birth,
+        nationality,
+        address,
+        education_history,
+        test_scores,
+        guardian,
+        created_at,
+        updated_at,
+        legal_name,
+        preferred_name,
+        contact_email,
+        contact_phone,
+        current_country,
+        consent_flags_json,
+        profile_completeness
+      )
+    `)
+    .eq("agent_id", agentData.id);
+
+  if (appError) {
+    throw appError satisfies PostgrestError;
+  }
+
+  if (!applications || applications.length === 0) {
+    return [];
+  }
+
+  // Deduplicate students and count applications
+  const studentMap = new Map<string, RestrictedStudentData>();
+  
+  for (const app of applications) {
+    const student = app.students;
+    if (!student) continue;
+    
+    const studentId = student.id;
+    const existing = studentMap.get(studentId);
+    
+    if (existing) {
+      existing.applicationCount += 1;
+    } else {
+      studentMap.set(studentId, {
+        studentId: student.id,
+        tenantId: student.tenant_id,
+        profileId: student.profile_id,
+        dateOfBirth: student.date_of_birth,
+        nationality: student.nationality,
+        address: student.address as Record<string, unknown> | null,
+        educationHistory: student.education_history as Record<string, unknown> | null,
+        testScores: student.test_scores as Record<string, unknown> | null,
+        guardian: student.guardian as Record<string, unknown> | null,
+        createdAt: student.created_at,
+        updatedAt: student.updated_at,
+        legalName: student.legal_name,
+        preferredName: student.preferred_name,
+        contactEmail: student.contact_email,
+        contactPhone: student.contact_phone,
+        currentCountry: student.current_country,
+        consentFlagsJson: student.consent_flags_json as Record<string, unknown> | null,
+        profileCompleteness: student.profile_completeness,
+        linkStatus: "active",
+        applicationCount: 1,
+      });
+    }
+  }
+
+  return Array.from(studentMap.values());
 };
 
 /**
- * Hook for agents to access student data via the restricted view.
+ * Hook for agents to access student data.
  * Excludes sensitive fields: passport_number, passport_expiry,
- * visa_history_json, and finances_json.
+ * visa_history_json, and finances_json are filtered out by this hook.
  *
  * @param agentProfileId - The profile ID of the agent
  * @returns Query result with restricted student data
@@ -95,13 +148,34 @@ export const useAgentRestrictedStudentData = (agentProfileId?: string | null) =>
   });
 
 /**
- * Alternative function to query the view directly for more flexibility.
- * Uses the agent_student_data_view which excludes sensitive fields.
+ * Alternative function to fetch student data directly.
+ * Uses the students table with RLS which excludes sensitive fields for agents.
  */
 export const fetchStudentDataFromView = async (studentIds: string[]) => {
+  if (studentIds.length === 0) return [];
+  
   const { data, error } = await supabase
-    .from("agent_student_data_view")
-    .select("*")
+    .from("students")
+    .select(`
+      id,
+      tenant_id,
+      profile_id,
+      date_of_birth,
+      nationality,
+      address,
+      education_history,
+      test_scores,
+      guardian,
+      created_at,
+      updated_at,
+      legal_name,
+      preferred_name,
+      contact_email,
+      contact_phone,
+      current_country,
+      consent_flags_json,
+      profile_completeness
+    `)
     .in("id", studentIds);
 
   if (error) {
