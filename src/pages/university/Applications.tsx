@@ -137,7 +137,7 @@ interface ApplicationRow {
   updated_at: string | null;
   created_at: string | null;
   app_number?: string | null;
-  application_source?: string | null;
+  submission_channel?: string | null;
   intake_year?: number | null;
   intake_month?: number | null;
   student?: StudentInfo | null;
@@ -145,7 +145,7 @@ interface ApplicationRow {
   program?: ProgramInfo | null;
   notes?: string | null;
   internal_notes?: string | null;
-  timeline_json?: TimelineItem[] | null;
+  timeline_json?: unknown[] | null;
 }
 
 interface ApplicationDocument {
@@ -328,7 +328,7 @@ const ApplicationsPage = () => {
               updated_at,
               created_at,
               app_number,
-              application_source,
+              submission_channel,
               intake_year,
               intake_month,
               student:students (
@@ -663,9 +663,9 @@ const ApplicationsPage = () => {
       const { error } = await supabase
         .from("applications")
         .update({
-          status: newStatus,
+          status: newStatus as any,
           internal_notes: decisionNotes || decisionApplication.internal_notes,
-          timeline_json: updatedTimeline,
+          timeline_json: updatedTimeline as any,
           updated_at: new Date().toISOString(),
         })
         .eq("id", decisionApplication.id);
@@ -674,15 +674,15 @@ const ApplicationsPage = () => {
 
       // Create offer record if status is an offer
       if (newStatus === "conditional_offer" || newStatus === "unconditional_offer") {
+        const offerType = newStatus === "conditional_offer" ? "conditional" : "unconditional";
         const { error: offerError } = await supabase
           .from("offers")
           .insert({
             application_id: decisionApplication.id,
-            offer_type: newStatus,
-            status: "pending",
-            notes: decisionNotes || null,
+            offer_type: offerType,
+            letter_url: "",
             created_at: new Date().toISOString(),
-          });
+          } as any);
 
         if (offerError) {
           logError(offerError, "ApplicationsPage.createOffer");

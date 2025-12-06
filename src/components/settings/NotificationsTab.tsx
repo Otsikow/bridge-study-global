@@ -26,7 +26,6 @@ interface NotificationsTabProps {
   profile: {
     id: string;
     phone?: string;
-    [key: string]: unknown;
   };
 }
 

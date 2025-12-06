@@ -39,7 +39,6 @@ type StatusFilter = 'all' | 'pending' | 'submitted' | 'offer' | 'rejected';
 interface ApplicationRow {
   id: string;
   app_number?: string | null;
-  application_source?: string | null;
   status: string;
   submitted_at?: string | null;
   created_at: string;
@@ -163,7 +162,6 @@ const PartnerApplications = () => {
             `
               id,
               app_number,
-              application_source,
               status,
               submitted_at,
               created_at,
@@ -462,8 +460,8 @@ const PartnerApplications = () => {
                         {selectedApplication.app_number && (
                           <Badge variant="secondary">#{selectedApplication.app_number}</Badge>
                         )}
-                        {selectedApplication.application_source && (
-                          <Badge variant="default">Source: {selectedApplication.application_source}</Badge>
+                        {selectedApplication.submission_channel && (
+                          <Badge variant="default">Source: {selectedApplication.submission_channel}</Badge>
                         )}
                         {selectedApplication.submission_channel && (
                           <Badge variant="outline">{selectedApplication.submission_channel}</Badge>

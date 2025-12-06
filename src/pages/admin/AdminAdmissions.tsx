@@ -303,8 +303,8 @@ const AdminAdmissionsOversight = () => {
   const uniqueSources = useMemo(() => {
     const values = new Set<string>();
     applications.forEach((application) => {
-      if (application.application_source) {
-        values.add(application.application_source);
+      if (application.submission_channel) {
+        values.add(application.submission_channel);
       }
     });
     return Array.from(values).sort((a, b) => a.localeCompare(b));
@@ -322,7 +322,7 @@ const AdminAdmissionsOversight = () => {
         application.student?.legal_name ?? application.student?.profile?.full_name ?? "";
       const programName = application.program?.name ?? "";
       const agentName = application.agent?.profile?.full_name ?? application.agent?.company_name ?? "";
-      const applicationSource = application.application_source ?? "";
+      const applicationSource = application.submission_channel ?? "";
 
       const searchMatch =
         lowerSearch.length === 0 ||
@@ -520,7 +520,7 @@ const AdminAdmissionsOversight = () => {
     const rows = filteredApplications.map((application) => [
       application.id,
       application.app_number ?? "",
-      application.application_source ?? "UniDoxia",
+      application.submission_channel ?? "UniDoxia",
       application.student?.legal_name ?? application.student?.profile?.full_name ?? "",
       application.student?.profile?.email ?? "",
       application.agent?.profile?.full_name ?? application.agent?.company_name ?? "",
@@ -626,9 +626,9 @@ const AdminAdmissionsOversight = () => {
                 <Badge variant={getStatusBadgeVariant(application.status)} className="text-xs">
                   {formatStatus(application.status)}
                 </Badge>
-                {application.application_source && (
+                {application.submission_channel && (
                   <Badge variant="secondary" className="text-xs">
-                    {application.application_source}
+                    {application.submission_channel}
                   </Badge>
                 )}
               </div>
