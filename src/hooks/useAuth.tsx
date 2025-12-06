@@ -383,7 +383,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const role = user.user_metadata?.role || 'student';
       if (role === 'student') {
         await supabase.from('students').insert({
           tenant_id: tenant.id,
