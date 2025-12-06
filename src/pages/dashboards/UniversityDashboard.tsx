@@ -128,12 +128,18 @@ export default function UniversityDashboard() {
   const [universityForm, setUniversityForm] = useState(() => createDefaultUniversityForm());
 
   const fetchData = useCallback(async () => {
-    if (!profile) {
+    if (!profile?.tenant_id) {
       setUniversity(null);
       setPrograms([]);
       setApplications([]);
       setAgents([]);
       setLoading(false);
+      if (!profile) return;
+      toast({
+        title: 'Tenant unavailable',
+        description: 'We could not determine your university tenant. Please sign in again or contact support.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -162,6 +168,7 @@ export default function UniversityDashboard() {
       const { data: programsData, error: programsError } = await supabase
         .from('programs')
         .select('*')
+        .eq('tenant_id', profile.tenant_id)
         .eq('university_id', uniData.id)
         .order('name');
 
@@ -179,6 +186,7 @@ export default function UniversityDashboard() {
         const { data: rawApplications, error: applicationsError } = await supabase
           .from('applications')
           .select('id, app_number, status, created_at, program_id, student_id')
+          .eq('tenant_id', profile.tenant_id)
           .in('program_id', programIds)
           .order('created_at', { ascending: false });
 
@@ -194,7 +202,8 @@ export default function UniversityDashboard() {
           const { data: studentsData, error: studentsError } = await supabase
             .from('students')
             .select('id, legal_name, nationality')
-            .in('id', studentIds);
+            .in('id', studentIds)
+            .eq('tenant_id', profile.tenant_id);
 
           if (studentsError) {
             throw studentsError;
@@ -237,7 +246,8 @@ export default function UniversityDashboard() {
           const { count, error: countError } = await supabase
             .from('applications')
             .select('id', { count: 'exact', head: true })
-            .eq('agent_id', agent.id);
+            .eq('agent_id', agent.id)
+            .eq('tenant_id', profile.tenant_id);
 
           if (countError) {
             throw countError;
@@ -268,7 +278,7 @@ export default function UniversityDashboard() {
   }, [fetchData]);
 
   const handleAddProgram = async () => {
-    if (!university) return;
+    if (!university || !profile?.tenant_id) return;
     
     const durationValue = newProgram.duration_months === '' ? null : newProgram.duration_months;
 
@@ -288,7 +298,7 @@ export default function UniversityDashboard() {
           ...newProgram,
           duration_months: durationValue,
           university_id: university.id,
-          tenant_id: profile!.tenant_id,
+          tenant_id: profile.tenant_id,
         });
 
       if (error) throw error;
@@ -314,10 +324,20 @@ export default function UniversityDashboard() {
 
   const handleUpdateProgram = async (programId: string, updates: Partial<Program>) => {
     try {
+      if (!profile?.tenant_id) {
+        toast({
+          title: 'Tenant unavailable',
+          description: 'We could not determine your university tenant. Please sign in again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('programs')
         .update(updates)
-        .eq('id', programId);
+        .eq('id', programId)
+        .eq('tenant_id', profile.tenant_id);
 
       if (error) throw error;
 
@@ -341,10 +361,20 @@ export default function UniversityDashboard() {
     if (!confirm('Are you sure you want to delete this course?')) return;
     
     try {
+      if (!profile?.tenant_id) {
+        toast({
+          title: 'Tenant unavailable',
+          description: 'We could not determine your university tenant. Please sign in again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('programs')
         .delete()
-        .eq('id', programId);
+        .eq('id', programId)
+        .eq('tenant_id', profile.tenant_id);
 
       if (error) throw error;
 
