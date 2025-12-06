@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +45,59 @@ export default function AdminDashboard() {
     revenue: 0,
   });
   const [loading, setLoading] = useState(true);
+
+  const metricCards = [
+    {
+      key: 'students',
+      label: 'Total Students',
+      value: metrics.totalStudents,
+      icon: Users,
+      iconClassName: 'text-blue-500',
+      destination: '/admin/users',
+    },
+    {
+      key: 'applications',
+      label: 'Total Applications',
+      value: metrics.totalApplications,
+      icon: FileText,
+      iconClassName: 'text-green-500',
+      destination: '/admin/admissions',
+    },
+    {
+      key: 'universities',
+      label: 'Partner Universities',
+      value: metrics.partnerUniversities,
+      icon: Building2,
+      iconClassName: 'text-purple-500',
+      destination: '/admin/universities',
+    },
+    {
+      key: 'agents',
+      label: 'Agents',
+      value: metrics.agents,
+      icon: UserCog,
+      iconClassName: 'text-orange-500',
+      destination: '/admin/agents',
+    },
+    {
+      key: 'revenue',
+      label: 'Revenue',
+      value: metrics.revenue,
+      icon: Wallet,
+      iconClassName: 'text-emerald-500',
+      prefix: '$',
+      destination: '/admin/payments',
+    },
+  ];
+
+  const handleMetricNavigation = (path: string) => navigate(path);
+
+  const handleMetricKeyDown = (event: KeyboardEvent<HTMLDivElement>, path: string) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleMetricNavigation(path);
+    }
+  };
 
   // Check if user has admin privileges
   useEffect(() => {
@@ -139,75 +193,30 @@ export default function AdminDashboard() {
 
         {/* Quick Stats - Metrics Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <p className="text-2xl font-bold">
-                    {loading ? '...' : metrics.totalStudents.toLocaleString()}
-                  </p>
-                </div>
-                <Users className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Applications</p>
-                  <p className="text-2xl font-bold">
-                    {loading ? '...' : metrics.totalApplications.toLocaleString()}
-                  </p>
-                </div>
-                <FileText className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Partner Universities</p>
-                  <p className="text-2xl font-bold">
-                    {loading ? '...' : metrics.partnerUniversities.toLocaleString()}
-                  </p>
-                </div>
-                <Building2 className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Agents</p>
-                  <p className="text-2xl font-bold">
-                    {loading ? '...' : metrics.agents.toLocaleString()}
-                  </p>
-                </div>
-                <UserCog className="h-8 w-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Revenue</p>
-                  <p className="text-2xl font-bold">
-                    ${loading ? '...' : metrics.revenue.toLocaleString()}
-                  </p>
-                </div>
-                <Wallet className="h-8 w-8 text-emerald-500" />
-              </div>
-            </CardContent>
-          </Card>
+          {metricCards.map(({ key, label, value, icon: Icon, iconClassName, prefix, destination }) => {
+            const displayValue = loading ? '...' : `${prefix ?? ''}${value.toLocaleString()}`;
+            return (
+              <Card
+                key={key}
+                role="button"
+                tabIndex={0}
+                aria-label={`View details for ${label}`}
+                onClick={() => handleMetricNavigation(destination)}
+                onKeyDown={(event) => handleMetricKeyDown(event, destination)}
+                className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+                      <p className="text-2xl font-bold">{displayValue}</p>
+                    </div>
+                    <Icon className={cn('h-8 w-8', iconClassName)} />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         <div className="-mx-4 sm:-mx-6 lg:-mx-8">
