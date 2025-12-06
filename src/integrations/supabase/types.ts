@@ -328,7 +328,6 @@ export type Database = {
         Row: {
           agent_id: string | null
           app_number: string | null
-          application_source: string | null
           created_at: string | null
           decision_json: Json | null
           fees_json: Json | null
@@ -351,7 +350,6 @@ export type Database = {
         Insert: {
           agent_id?: string | null
           app_number?: string | null
-          application_source?: string | null
           created_at?: string | null
           decision_json?: Json | null
           fees_json?: Json | null
@@ -374,7 +372,6 @@ export type Database = {
         Update: {
           agent_id?: string | null
           app_number?: string | null
-          application_source?: string | null
           created_at?: string | null
           decision_json?: Json | null
           fees_json?: Json | null
@@ -2820,51 +2817,6 @@ export type Database = {
       }
     }
     Views: {
-      agent_student_data_view: {
-        Row: {
-          id: string | null
-          tenant_id: string | null
-          profile_id: string | null
-          date_of_birth: string | null
-          nationality: string | null
-          address: Json | null
-          education_history: Json | null
-          test_scores: Json | null
-          guardian: Json | null
-          created_at: string | null
-          updated_at: string | null
-          legal_name: string | null
-          preferred_name: string | null
-          contact_email: string | null
-          contact_phone: string | null
-          current_country: string | null
-          consent_flags_json: Json | null
-          profile_completeness: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "students_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "students_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: true
-            referencedRelation: "staff_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "students_tenant_id_fkey"
-            columns: ["tenant_id"]
-            isOneToOne: false
-            referencedRelation: "tenants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       staff_profiles: {
         Row: {
           account_status: string | null
@@ -2978,31 +2930,6 @@ export type Database = {
         Args: { p_agent_profile_id: string; p_regenerate?: boolean }
         Returns: string
       }
-      get_agent_linked_students: {
-        Args: { agent_profile_id: string }
-        Returns: {
-          student_id: string
-          tenant_id: string
-          profile_id: string
-          date_of_birth: string
-          nationality: string
-          address: Json
-          education_history: Json
-          test_scores: Json
-          guardian: Json
-          created_at: string
-          updated_at: string
-          legal_name: string
-          preferred_name: string
-          contact_email: string
-          contact_phone: string
-          current_country: string
-          consent_flags_json: Json
-          profile_completeness: number
-          link_status: string
-          application_count: number
-        }[]
-      }
       get_or_create_conversation: {
         Args: {
           p_other_user_id: string
@@ -3053,7 +2980,6 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_staff: { Args: { user_id: string }; Returns: boolean }
-      is_agent: { Args: { user_id: string }; Returns: boolean }
       is_agent_for_application: {
         Args: { _application_id: string; _user_id: string }
         Returns: boolean
